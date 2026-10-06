@@ -17,10 +17,11 @@ architecture; this file is how to work on it.
   table + cache policies, `migrations/` D1 schema.
 - `web/src/` Preact SPA: `routes.ts` (routes + `needs()` = what a page prefetches), `nav.ts` (navigation,
   link prefetch, back link), `store.ts` (client cache, /api/batch), `views/*.tsx` pages, `rules.tsx` (rules
-  panel), `rounds.ts` + `views/rounds.tsx` (round visualizer), `styles.css`.
+  panel), `rounds.ts` + `views/rounds.tsx` (round visualizer), `paragon.ts` + `views/paragon.tsx`
+  (paragon calculator; provisional constants in `REF`), `views/tools.tsx` (/tools hub), `styles.css`.
 - Generated from the owner's game install (`C:\Program Files (x86)\Steam\steamapps\common\BloonsTD6`) by
   `npm run art` (venv `.venv-art`): `web/src/art/*` sprite sheets, `web/public/art/maps`, `web/src/data/names.ts`
-  (map/ability/relic names), `web/src/data/rounds/*` (53 round sets). `scripts/build_og.py` → `web/public/og.jpg`. `node scripts/boss_history.ts` → `web/src/data/bossHistory.ts`
+  (map/ability/relic names), `web/src/data/rounds/*` (53 round sets), `web/src/data/paragons.json` (`build_paragons.py`). `scripts/build_og.py` → `web/public/og.jpg`. `node scripts/boss_history.ts` → `web/src/data/bossHistory.ts`
   (boss events before the archive, from the Bloons Wiki; numbering checked against archived NK ids).
 
 ## Commands

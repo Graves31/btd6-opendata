@@ -5,6 +5,11 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
 
 ## Later (agreed)
 
+- **Paragon calculator: v57 paragon power rework.** When v57 ships (the wiki flags v57.0 as reworking paragon power),
+  add an old/new calculation toggle on /tools/paragon. Before running `npm run art` on v57, freeze the v56.3
+  `web/src/data/paragons.json` as its own file (e.g. `paragons-56.json`) and version the formula block in
+  `web/src/paragon.ts`; re-verify totem power and the formulas against the new game code.
+
 - **UI audit follow-ups (fixes deployed 2026-09-30, version 89a3822d).** Objective findings from the six reports in `.audit/`
   fixed by 4 parallel agents + a CSS fold pass (layers merged into styles.css; pre-fold copy in
   `.audit/styles.before.css`). Owner decisions built: boss difficulty is "Normal" everywhere, #3 plate bronze,
