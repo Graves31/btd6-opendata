@@ -341,6 +341,84 @@ RELIC_IDS = [
 _RELIC_FILE = {"SuperMonkeyStorm": "Sms"}
 RELICS = {r: "ref/%s#300x300" % _RELIC_FILE.get(r, r) for r in RELIC_IDS}
 
+# Paragon upgrade icons. build_paragons decodes the 13 "<TowerId> Paragon" UpgradeModel records from the game's
+# sim_model, each with an icon Addressables guid; the binary catalog (aa/catalog.bin) maps that guid (a key) to
+# its locations, whose internal id ends in the sprite's file name ("ApexPlasmaMasterUpgradeIcon.png"). The sprite
+# of that name (".png" dropped) is in the asset_references bundle ("ref/"). The Paragon Power Totem tower has
+# no icon guid here: its portrait sprite is "ParagonPowerTotemPortrait" (same bundle).
+CATALOG_BIN = BTD6_DIR / "BloonsTD6_Data" / "StreamingAssets" / "aa" / "catalog.bin"
+PARAGON_TOTEM_SPRITE = "ref/ParagonPowerTotemPortrait"
+
+
+def catalog_file_names(guids: list) -> dict:
+    """guid -> file name (last path part of its location internal id) from Addressables' catalog.bin.
+
+    Layout (ContentCatalogData binary, checked here): header uints [magic 0x0de38942, version 2, keysOffset,
+    ...]; at keysOffset an array [u32 byte size][(keyObj, locationList) u32 pairs]; keyObj = [typeOff, dataOff]
+    with data -> a string offset (strings are length-prefixed UTF-8/ASCII, offset points at the bytes); a location
+    list = [u32 byte size][location offsets]; a location = [primaryKey, internalId, ...] string offsets, where a
+    string offset with bit 0x40000000 is a "dynamic" node [filePartStr, parentNode] (directory chain omitted:
+    only the file part is needed)."""
+    import struct
+
+    if not CATALOG_BIN.is_file():
+        sys.exit(f"{CATALOG_BIN} not found (set BTD6_DIR)")
+    d = CATALOG_BIN.read_bytes()
+    u = lambda o: struct.unpack_from("<I", d, o)[0]
+    if u(0) != 0x0DE38942 or u(4) != 2:
+        sys.exit(f"catalog.bin format changed (magic {u(0):#x}, version {u(4)})")
+    start = u(8)
+    end = start + u(start - 4)
+
+    def text(o: int) -> str:
+        return d[o:o + u(o - 4)].decode("utf-8")
+
+    def file_part(p: int) -> str:
+        return text(u(p & 0x3FFFFFFF)) if p & 0x40000000 else text(p)
+
+    want = {}
+    for g in guids:
+        off = d.find(g.encode("ascii"))
+        if off < 0 or u(off - 4) != len(g):
+            sys.exit(f"icon guid {g} not in catalog.bin")
+        want[off] = g
+    out: dict = {}
+    for o in range(start, end, 8):
+        k, v = u(o), u(o + 4)
+        if k + 8 > len(d) or v < 4 or v >= len(d):
+            continue
+        if u(k + 4) + 4 > len(d) or u(k + 4) < 4:
+            continue
+        ds = u(u(k + 4)) if u(k + 4) + 4 <= len(d) else None
+        if ds in want:
+            names = {file_part(u(u(v + 4 * i))) for i in range(u(v - 4) // 4)}
+            if len(names) != 1:
+                sys.exit(f"icon guid {want[ds]}: expected one file name, got {sorted(names)}")
+            out[want[ds]] = names.pop()
+    missing = [g for g in guids if g not in out]
+    if missing:
+        sys.exit(f"icon guids without a catalog location: {missing}")
+    return out
+
+
+def paragon_icons() -> dict:
+    """TowerId -> sprite spec, for the "paragon" family (+ ParagonPowerTotem)."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import build_paragons
+    import build_rounds
+
+    ups = [u for u in build_paragons.parse_upgrades(build_rounds.load_sim_model()) if u["confirmation"] == "Paragon"]
+    names = catalog_file_names([u["icon"] for u in ups])
+    table = {}
+    for u in sorted(ups, key=lambda u: u["name"]):
+        file = names[u["icon"]]
+        if not file.endswith(".png"):
+            sys.exit(f"paragon icon of {u['name']!r} is not a .png: {file!r}")
+        table[u["name"].removesuffix(" Paragon")] = "ref/" + file[: -len(".png")]
+    table["ParagonPowerTotem"] = PARAGON_TOTEM_SPRITE
+    return table
+
+
 BLOONS = {  # canonical bloon keys -> plain base sprites (no damage states, no event skins)
     "red": "Bloons/Red",
     "blue": "Bloons/Blue",
@@ -455,6 +533,7 @@ FAMILIES = {  # family -> (table, cell px, aliases)
     "bossBadge": (BOSS_BADGES, 64, {}),
     "container": (CONTAINERS, 112, {}),
     "relic": (RELICS, 64, {}),
+    "paragon": ({}, 96, {}),  # filled by main() from paragon_icons()
     "season": (SEASON_BADGES, 96, {}),
     "eventIcon": (EVENT_ICONS, 96, {}),
 }
@@ -1148,6 +1227,9 @@ export type Family =
    *  Techbot, AlchemistTouch, CamoFlogged, Fortifried, SuperMonkeyStorm, … all 45 relics the game defines
    *  (incl. MonkeyShield, MonkeyShieldMark2/3, PsiVision, OpenSeason, PrimaryPrimates, MonkeyTycoon, …). */
   | "relic"
+  /** Paragon upgrade icons keyed by TowerId (the 13 keys of src/data/paragons.json: DartMonkey, BoomerangMonkey, …
+   *  EngineerMonkey), plus ParagonPowerTotem (the Paragon Power Totem tower's portrait). */
+  | "paragon"
   /** Social Season badges keyed by UserProfile.seasonBadges ids: SeasonTier1–4, SeasonUltimate1–3 (one per
    *  season: 1 Dr. Monkey, 2 Striker's Vacation, 3 Quincy's Roadtrip), SeasonChampion. */
   | "season";
@@ -1348,6 +1430,7 @@ def main() -> None:
     bar = {"parts": build_boss_bar(src, ui), "rects": ui["rects"], "marker": ui["marker"],
            "hud": build_boss_hud(src, ui)}
     FAMILIES["bloonVariant"] = (bloon_variants(), 64, {})
+    FAMILIES["paragon"] = (paragon_icons(), 96, {})
     fams = {f: build_family(src, f, t, c, a) for f, (t, c, a) in FAMILIES.items()}
     print(f"  sheets total {sum(i['bytes'] for i in fams.values()) / 1024:.1f} KB")
     if args.skip_maps and (ART_DIR / "manifest.json").exists():

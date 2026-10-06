@@ -20,6 +20,7 @@ import bossUrl from "./boss.webp";
 import bossBadgeUrl from "./bossBadge.webp";
 import containerUrl from "./container.webp";
 import relicUrl from "./relic.webp";
+import paragonUrl from "./paragon.webp";
 import seasonUrl from "./season.webp";
 import eventIconUrl from "./eventIcon.webp";
 import bossBar_armour_diamondback_edge from "./bossbar/armour-diamondback-edge.webp";
@@ -134,6 +135,9 @@ export type Family =
    *  Techbot, AlchemistTouch, CamoFlogged, Fortifried, SuperMonkeyStorm, … all 45 relics the game defines
    *  (incl. MonkeyShield, MonkeyShieldMark2/3, PsiVision, OpenSeason, PrimaryPrimates, MonkeyTycoon, …). */
   | "relic"
+  /** Paragon upgrade icons keyed by TowerId (the 13 keys of src/data/paragons.json: DartMonkey, BoomerangMonkey, …
+   *  EngineerMonkey), plus ParagonPowerTotem (the Paragon Power Totem tower's portrait). */
+  | "paragon"
   /** Social Season badges keyed by UserProfile.seasonBadges ids: SeasonTier1–4, SeasonUltimate1–3 (one per
    *  season: 1 Dr. Monkey, 2 Striker's Vacation, 3 Quincy's Roadtrip), SeasonChampion. */
   | "season";
@@ -151,6 +155,7 @@ export const ART: Record<Family, SpriteSheet | null> = {
   bossBadge: { url: bossBadgeUrl, cols: 4, rows: 4, cell: 64, keys: { bloonarius: 0, "elite:bloonarius": 1, lych: 2, "elite:lych": 3, vortex: 4, "elite:vortex": 5, dreadbloon: 6, "elite:dreadbloon": 7, phayze: 8, "elite:phayze": 9, blastapopoulos: 10, "elite:blastapopoulos": 11, diamondback: 12, "elite:diamondback": 13 } },
   container: { url: containerUrl, cols: 3, rows: 3, cell: 112, keys: { Primary: 0, Military: 1, Magic: 2, Support: 3, Hero: 4, Power: 5, PowerPro: 6, PowerStore: 7 } },
   relic: { url: relicUrl, cols: 7, rows: 7, cell: 64, keys: { StartingStash: 0, ExtraEmpowered: 1, BoxOfChocolates: 2, BoxOfMonkey: 3, MarchingBoots: 4, HeroBoost: 5, BiggerBloonSabotage: 6, RoundingUp: 7, ManaBulwark: 8, Regeneration: 9, Restoration: 10, DurableShots: 11, AlchemistTouch: 12, DeepHeat: 13, Sharpsplosion: 14, RoyalTreatment: 15, HardBaked: 16, Fortifried: 17, MoabClash: 18, CamoFlogged: 19, BrokenHeart: 20, GoingTheDistance: 21, Heartless: 22, FlintTips: 23, Abilitized: 24, AirAndSea: 25, ElDorado: 26, MonkeyShield: 27, MonkeyShieldMark2: 28, MonkeyShieldMark3: 29, PsiVision: 30, OpenSeason: 31, CamoTrap: 32, Thrive: 33, SuperMonkeyStorm: 34, MonkeyBoost: 35, RoadSpikes: 36, MoabMine: 37, GlueTrap: 38, Techbot: 39, PrimaryPrimates: 40, MilitaryMonkeys: 41, MagicMonkeys: 42, SupportSimians: 43, MonkeyTycoon: 44 } },
+  paragon: { url: paragonUrl, cols: 4, rows: 4, cell: 96, keys: { BombShooter: 0, BoomerangMonkey: 1, DartMonkey: 2, Druid: 3, EngineerMonkey: 4, IceMonkey: 5, MonkeyAce: 6, MonkeyBuccaneer: 7, MonkeySub: 8, NinjaMonkey: 9, SpikeFactory: 10, TackShooter: 11, WizardMonkey: 12, ParagonPowerTotem: 13 } },
   season: { url: seasonUrl, cols: 3, rows: 3, cell: 96, keys: { SeasonTier1: 0, SeasonTier2: 1, SeasonTier3: 2, SeasonTier4: 3, SeasonUltimate1: 4, SeasonUltimate2: 5, SeasonUltimate3: 6, SeasonChampion: 7 } },
   eventIcon: { url: eventIconUrl, cols: 3, rows: 2, cell: 96, keys: { boss: 0, race: 1, ct: 2, odyssey: 3, daily: 4, bossRush: 5 } },
 };
