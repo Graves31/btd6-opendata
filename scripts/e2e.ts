@@ -349,11 +349,11 @@ async function main() {
     await page.waitForFunction(() => location.search.includes("to=3"), { timeout: 3000 }).catch(() => problems.push(`paragon: totems input didn't update the URL (${location.search})`));
     if ((await page.evaluate(() => history.length)) !== hist) problems.push("paragon: an input change added a history entry");
     if ((await page.evaluate(() => document.querySelector(".pg-res .stat-v")?.textContent ?? "")) === "1") problems.push("paragon: degree didn't move after 3 totems");
-    await page.click(".pg-picker button:nth-child(3)");
+    await page.click(".pg-tile[data-k='BombShooter']");
     await page.waitForFunction(() => location.search.includes("p=bomb"), { timeout: 3000 }).catch(() => problems.push("paragon: picking a tower didn't update the URL"));
     await shoot(page, "desktop-paragon-set");
     await api.quiet();
-    pages["paragon-set"] = "/tools/paragon?p=dart&d=h&c=85000000&to=2&x=1&adv=1&po=4500000";
+    pages["paragon-set"] = "/tools/paragon?p=dart&d=h&c=85000000&to=2&x=1&adv=1&b=1&po=4500000";
     await home();
 
     await step("Now → Challenges", 'header nav a[href="/challenges"]', "challenges");

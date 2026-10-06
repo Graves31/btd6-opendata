@@ -7,12 +7,13 @@ import type { ComponentChildren } from "preact";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import data from "../data/paragons.json" with { type: "json" };
 import { ART } from "../art/index.ts";
-import { fmtInt } from "../format.ts";
+import { fmtInt, unitName } from "../format.ts";
 import { navigate } from "../nav.ts";
-import { evaluate, GAME_VERSION, paragonCost, PARAGON_TOWERS, REF, scaling, waysTo, type Difficulty, type ParagonInput, type ParagonResult, type ParagonTower, type Way } from "../paragon.ts";
-import { href, PG_DIFFS, PG_MAX, type ParagonRoute } from "../routes.ts";
+import { evaluate, GAME_VERSION, inputMax, paragonCost, PARAGON_TOWERS, powerForDegree, REF, scaling, waysTo, type Bucket, type Difficulty, type ParagonInput, type ParagonResult, type ParagonTower, type Way } from "../paragon.ts";
+import { href, PG_DIFFS, type ParagonRoute } from "../routes.ts";
+import { TOWER_GROUPS } from "../rules.tsx";
 import { Spr } from "../sprite.tsx";
-import { A, Section, Stat } from "../ui.tsx";
+import { A, Stat } from "../ui.tsx";
 
 const D = data.degreeData;
 const REQS = D.powerDegreeRequirements;
@@ -31,8 +32,30 @@ export function paragonIcon(tower: ParagonTower, size = 64) {
 }
 
 const paragonName = (t: ParagonTower) => data.paragons[t].name;
-/** Picker order = the game's shop order (as in the tower sprite sheet). */
-const PICK_ORDER = [...PARAGON_TOWERS].sort((a, b) => (ART.tower?.keys[a] ?? 99) - (ART.tower?.keys[b] ?? 99));
+/** Picker runs = the game's shop categories in shop order; a paragon of an unknown tower goes last, in sprite-sheet order. */
+const PICK_RUNS: [string, ParagonTower[]][] = (() => {
+  const isParagon = (t: string): t is ParagonTower => (PARAGON_TOWERS as string[]).includes(t);
+  const known = TOWER_GROUPS.map(([cat, ids]): [string, ParagonTower[]] => [cat, ids.filter(isParagon)]);
+  const placed = new Set<string>(known.flatMap(([, t]) => t));
+  const rest = PARAGON_TOWERS.filter((t) => !placed.has(t)).sort((a, b) => (ART.tower?.keys[a] ?? 99) - (ART.tower?.keys[b] ?? 99));
+  return [...known, ["Other", rest] as [string, ParagonTower[]]].filter(([, t]) => t.length > 0);
+})();
+/** Short tower names on the picker tiles (wide screens). */
+const SHORT: Record<string, string> = {
+  DartMonkey: "Dart",
+  BoomerangMonkey: "Boomerang",
+  BombShooter: "Bomb",
+  TackShooter: "Tack",
+  IceMonkey: "Ice",
+  MonkeySub: "Sub",
+  MonkeyBuccaneer: "Buccaneer",
+  MonkeyAce: "Ace",
+  WizardMonkey: "Wizard",
+  NinjaMonkey: "Ninja",
+  Druid: "Druid",
+  SpikeFactory: "Spike",
+  EngineerMonkey: "Engineer",
+};
 
 // ─────────────────────────────── helpers
 
@@ -72,25 +95,26 @@ function up(n: number): string {
 const times = (x: number) => `×${+x.toFixed(2)}`;
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
-function describe(w: Way): { big: string; exact: string } {
+/** A way as amount + noun ("+$2.11M" "sacrificed cash"), plus the exact amount when the big one is rounded. */
+function describe(w: Way): { amt: string; noun: string; exact: string } {
   const n = w.add;
   switch (w.key) {
     case "cash":
-      return { big: `+$${up(n)} sacrificed cash`, exact: `$${fmtInt(n)}` };
+      return { amt: `+$${up(n)}`, noun: "sacrificed cash", exact: n >= 1e6 ? `$${fmtInt(n)}` : "" };
     case "pops":
-      return { big: `+${up(n)} pops`, exact: fmtInt(n) };
+      return { amt: `+${up(n)}`, noun: "pops", exact: n >= 1e6 ? fmtInt(n) : "" };
     case "totems":
-      return { big: `Add ${fmtInt(n)} ${plural(n, "totem", "totems")}`, exact: "" };
+      return { amt: `+${fmtInt(n)}`, noun: plural(n, "power totem", "power totems"), exact: "" };
     case "t5":
-      return { big: `Add ${fmtInt(n)} tier 5 ${plural(n, "tower", "towers")}`, exact: "" };
+      return { amt: `+${fmtInt(n)}`, noun: plural(n, "tier 5 tower", "tier 5 towers"), exact: "" };
     default:
-      return { big: `Add ${fmtInt(n)} upgrade ${plural(n, "tier", "tiers")} (non-tier-5 towers)`, exact: "" };
+      return { amt: `+${fmtInt(n)}`, noun: plural(n, "upgrade tier", "upgrade tiers"), exact: "" };
   }
 }
 
 // ─────────────────────────────── number field
 
-function NumField(p: { id: string; label: string; hint?: string; value: number; max: number; step: number; decimal?: boolean; onChange: (n: number) => void }) {
+function NumField(p: { id: string; label: string; hint: string; value: number; max: number; step: number; decimal?: boolean; onChange: (n: number) => void }) {
   const [draft, setDraft] = useState<string | null>(null);
   const [capped, setCapped] = useState(false);
   const clamp = (n: number) => Math.min(p.max, Math.max(0, Math.round(n)));
@@ -110,9 +134,20 @@ function NumField(p: { id: string; label: string; hint?: string; value: number; 
   };
   return (
     <div class="pg-field">
-      <label for={p.id} class="pg-label">
-        {p.label}
-      </label>
+      <div class="pg-fl">
+        <label for={p.id} class="pg-lab">
+          {p.label}
+        </label>
+        <p class="pg-hint">
+          {p.hint}
+          {capped && (
+            <>
+              {" · "}
+              <strong>limited to the max, {fmtInt(p.max)}</strong>
+            </>
+          )}
+        </p>
+      </div>
       <div class="pg-num">
         <button type="button" class="pg-step" aria-label={`Less ${p.label.toLowerCase()}`} disabled={p.value <= 0} onClick={() => bump(-1)}>
           −
@@ -143,10 +178,6 @@ function NumField(p: { id: string; label: string; hint?: string; value: number; 
           +
         </button>
       </div>
-      <p class="pg-hint">
-        {p.hint && <>{p.hint} · </>}
-        {capped ? <strong>limited to the max, {fmtInt(p.max)}</strong> : <>max {fmtInt(p.max)}</>}
-      </p>
     </div>
   );
 }
@@ -154,15 +185,22 @@ function NumField(p: { id: string; label: string; hint?: string; value: number; 
 // ─────────────────────────────── page
 
 type Patch = Partial<Omit<ParagonRoute, "name" | "picked">>;
+type InKey = "cash" | "slider" | "pops" | "income" | "tiers" | "extraT5" | "totems";
+const IN_KEYS: InKey[] = ["cash", "slider", "pops", "income", "tiers", "extraT5", "totems"];
+type Max = Record<InKey, number>;
 
 export function ParagonPage(props: { r: ParagonRoute }) {
   const last = useMemo(lastUsed, []);
   const r = props.r;
-  const s: ParagonRoute = !r.picked && last ? { ...r, tower: last.tower, diff: last.diff } : r;
-  useEffect(() => remember(s.tower, s.diff), [s.tower, s.diff]);
+  const picked: ParagonRoute = !r.picked && last ? { ...r, tower: last.tower, diff: last.diff } : r;
+  useEffect(() => remember(picked.tower, picked.diff), [picked.tower, picked.diff]);
+  // The URL accepts generous values; each input stops where its source fills (per paragon and difficulty).
+  const max = inputMax(picked.tower, picked.diff);
+  const s: ParagonRoute = { ...picked };
+  for (const k of IN_KEYS) s[k] = Math.min(max[k], s[k]);
 
   const go = (patch: Patch) => navigate(href.paragon({ ...s, ...patch }, true), { replace: true, keepScroll: true });
-  const input: ParagonInput = { tower: s.tower, diff: s.diff, coop: s.coop, cash: s.cash, slider: s.slider, pops: s.pops, income: s.income, tiers: s.tiers, extraT5: s.extraT5, totems: s.totems };
+  const input: ParagonInput = { tower: s.tower, diff: s.diff, coop: s.coop, cash: s.cash, slider: s.slider, pops: s.pops, income: s.income, tiers: s.tiers, extraT5: s.extraT5, totems: s.totems, boost: s.boost };
   const res = evaluate(input);
   const defTarget = res.breakpoint?.degree ?? res.next?.degree ?? 100;
   const target = s.target ?? defTarget;
@@ -203,56 +241,50 @@ export function ParagonPage(props: { r: ParagonRoute }) {
 
       <div class="pg-cols">
         <div class="pg-main">
-          <TargetSection s={s} input={input} res={res} target={target} go={go} />
-          <Section title="Your sacrifices">
-            <div class="pg-quick rv-form">
-              <NumField id="pg-cash" label="Sacrificed cash" hint="exclude what you spent on tier 5s" value={s.cash} max={PG_MAX.cash} step={10_000} decimal onChange={(n) => go({ cash: n })} />
-              <NumField id="pg-t5" label="Extra tier 5s" hint="sacrificed beyond the paragon's three" value={s.extraT5} max={PG_MAX.extraT5} step={1} onChange={(n) => go({ extraT5: n })} />
-              <NumField id="pg-totems" label="Power totems" hint="Paragon Power Totems placed" value={s.totems} max={PG_MAX.totems} step={1} onChange={(n) => go({ totems: n })} />
-            </div>
-            <details class="pg-fold" open={s.adv} onToggle={(e) => e.currentTarget.open !== s.adv && go({ adv: e.currentTarget.open })}>
-              <summary>Advanced: pops, income, tiers, slider</summary>
-              <div class="pg-quick rv-form">
-                <NumField id="pg-pops" label="Pops" hint="by the sacrificed towers" value={s.pops} max={PG_MAX.pops} step={1_000_000} decimal onChange={(n) => go({ pops: n })} />
-                <NumField id="pg-income" label="Income" hint="cash the sacrificed towers earned" value={s.income} max={PG_MAX.income} step={100_000} decimal onChange={(n) => go({ income: n })} />
-                <NumField id="pg-tiers" label="Upgrade tiers" hint="on sacrificed non-tier-5 towers (a 2-0-3 counts 5)" value={s.tiers} max={PG_MAX.tiers} step={1} onChange={(n) => go({ tiers: n })} />
-                <NumField id="pg-slider" label="Cash slider" hint={`paid in through the paragon's slider, +${+(D.paidContributionPenalty * 100).toFixed(1)}% cost`} value={s.slider} max={PG_MAX.slider} step={10_000} decimal onChange={(n) => go({ slider: n })} />
-              </div>
-            </details>
-          </Section>
+          <TargetPanel s={s} input={input} res={res} target={target} go={go} />
+          <InputsPanel s={s} res={res} max={max} go={go} />
         </div>
         <aside class="pg-side" id="pg-result" aria-label="Result">
-          <ResultCard res={res} copied={copied} copy={copy} />
+          <ResultCard res={res} boost={s.boost} copied={copied} copy={copy} />
         </aside>
       </div>
 
       <ScalingFold degree={res.degree} />
-      <MethodFold s={s} />
+      <MethodFold s={s} max={max} />
       <p class="pg-foot">Data from game v{GAME_VERSION} · unofficial</p>
     </div>
   );
 }
 
-// ─────────────────────────────── picker, difficulty, co-op
+// ─────────────────────────────── picker, difficulty, co-op, boost
 
 function Picker(props: { s: ParagonRoute; go: (p: Patch) => void }) {
   const { s, go } = props;
   return (
-    <Section title="Paragon" class="pg-pick-sec">
-      <div class="pg-picker" role="group" aria-label="Paragon">
-        {PICK_ORDER.map((t) => (
-          <button key={t} type="button" class="pg-tile" aria-pressed={t === s.tower} aria-label={paragonName(t)} title={paragonName(t)} onClick={() => go({ tower: t })}>
-            {paragonIcon(t, 48)}
-            <span class="pg-tile-mk" aria-hidden="true">
-              <Spr family="tower" k={t} size={26} />
-            </span>
-          </button>
+    <section class="pg-pick" aria-label="Paragon">
+      <div class="pg-picker">
+        {PICK_RUNS.map(([cat, towers]) => (
+          <div key={cat} class="pg-run" role="group" aria-label={cat}>
+            {towers.map((t) => (
+              <button key={t} type="button" class={`pg-tile c-${cat}`} data-k={t} aria-pressed={t === s.tower} aria-label={`${paragonName(t)} (${unitName(t)})`} title={paragonName(t)} onClick={() => go({ tower: t })}>
+                <span class="pg-tile-art">{paragonIcon(t, 72)}</span>
+                <span class="pg-tile-ft" aria-hidden="true">
+                  <Spr family="tower" k={t} size={24} label />
+                  <span class="pg-tile-n">{SHORT[t] ?? unitName(t)}</span>
+                </span>
+              </button>
+            ))}
+          </div>
         ))}
       </div>
       <p class="pg-picked">
         <strong>{paragonName(s.tower)}</strong>
+        <span class="pg-picked-t">
+          <Spr family="tower" k={s.tower} size={28} label />
+          {unitName(s.tower)}
+        </span>
         <span>
-          ${fmtInt(paragonCost(s.tower, s.diff))} on {DIFF_NAME[s.diff]}
+          · ${fmtInt(paragonCost(s.tower, s.diff))} on {DIFF_NAME[s.diff]}
         </span>
       </p>
       <div class="pg-opts">
@@ -263,27 +295,30 @@ function Picker(props: { s: ParagonRoute; go: (p: Patch) => void }) {
             </button>
           ))}
         </div>
-        <div class="pg-coop">
+        <div class="pg-tog">
           <button type="button" class={`rv-chip${s.coop ? " on" : ""}`} aria-pressed={s.coop} onClick={() => go({ coop: !s.coop })}>
             Co-op
           </button>
-          <span class="pg-hint">
-            {s.coop
-              ? "Teammates' towers, tier 5s and totems are absorbed too: up to 3 extra tier 5s per teammate."
-              : "Solo: an extra tier 5 is only possible for Apex Plasma Master (Master Double Cross) and Herald of Everfrost (Silas)."}
-          </span>
+          <span class="pg-hint">{s.coop ? "Teammates' towers and totems are absorbed too" : "Solo: an extra tier 5 only with Master Double Cross (Apex) or Silas (Herald)"}</span>
+        </div>
+        <div class="pg-tog">
+          <button type="button" class={`rv-chip${s.boost ? " on" : ""}`} aria-pressed={s.boost} onClick={() => go({ boost: !s.boost })}>
+            Paragon Boost
+          </button>
+          <span class="pg-hint">+{REF.boostDegrees} degrees on the game's first paragon</span>
         </div>
       </div>
-    </Section>
+    </section>
   );
 }
 
 // ─────────────────────────────── target
 
-function TargetSection(p: { s: ParagonRoute; input: ParagonInput; res: ParagonResult; target: number; go: (p: Patch) => void }) {
+function TargetPanel(p: { s: ParagonRoute; input: ParagonInput; res: ParagonResult; target: number; go: (p: Patch) => void }) {
   const { res, target, go } = p;
   const explicit = p.s.target !== undefined;
-  const ways = res.degree < 100 && target > res.degree ? waysTo(p.input, REQS[target - 1]) : [];
+  const need = powerForDegree(target, p.s.boost);
+  const ways = res.degree < 100 && target > res.degree ? waysTo(p.input, need) : [];
   const [best, ...others] = ways;
   const step = (n: number) => go({ target: Math.min(100, Math.max(2, n)) });
   let answer: ComponentChildren;
@@ -301,7 +336,7 @@ function TargetSection(p: { s: ParagonRoute; input: ParagonInput; res: ParagonRe
       <>
         <p class="pg-ans-t">No single change gets there</p>
         <p class="pg-ans-s">
-          Degree {target} needs {fmtInt(REQS[target - 1])} power. Combine several sources (the Advanced inputs help), or add totems.
+          Degree {target} needs {fmtInt(need)} power. Combine several inputs, or add totems.
         </p>
       </>
     );
@@ -309,19 +344,22 @@ function TargetSection(p: { s: ParagonRoute; input: ParagonInput; res: ParagonRe
     const d = describe(best);
     answer = (
       <>
-        <p class="pg-ans-t">{d.big}</p>
+        <p class="pg-k">Quickest way</p>
+        <p class="pg-ans-t">
+          <b>{d.amt}</b> <span>{d.noun}</span>
+        </p>
         <p class="pg-ans-s">
-          {d.exact && <>{d.exact} · </>}reaches degree {target}: {fmtInt(REQS[target - 1])} power, you have {fmtInt(res.power)}.
+          {d.exact && <>{d.exact} · </>}reaches degree {target}: {fmtInt(need)} power, you have {fmtInt(res.power)}.
         </p>
         {others.length > 0 && (
           <details class="pg-fold pg-other">
-            <summary>Other ways</summary>
+            <summary>Other ways ({others.length})</summary>
             <ul>
               {others.map((w) => {
                 const o = describe(w);
                 return (
                   <li key={w.key}>
-                    {o.big}
+                    <b>{o.amt}</b> {o.noun}
                     {o.exact && <span> ({o.exact})</span>}
                   </li>
                 );
@@ -334,35 +372,86 @@ function TargetSection(p: { s: ParagonRoute; input: ParagonInput; res: ParagonRe
     );
   }
   return (
-    <Section
-      title="Target"
-      class="pg-target-sec"
-      aside={
-        explicit ? (
+    <section class="pg-panel pg-target-p" aria-label="Target degree">
+      <div class="pg-ph">
+        <p class="eyebrow">Target degree</p>
+        {explicit ? (
           <button type="button" class="pg-link" onClick={() => go({ target: undefined })}>
             Back to next boss breakpoint
           </button>
         ) : (
-          "next boss breakpoint"
-        )
-      }
-    >
+          <span class="pg-hint">next boss breakpoint</span>
+        )}
+      </div>
       <div class="pg-target">
         <div class="pg-tstep" role="group" aria-label="Target degree">
           <button type="button" class="pg-step" aria-label="Lower target degree" disabled={target <= 2} onClick={() => step(target - 1)}>
             −
           </button>
-          <label class="pg-tval">
-            <span class="pg-tk">Degree</span>
-            <TargetInput value={target} onChange={step} />
-          </label>
+          <TargetInput value={target} onChange={step} />
           <button type="button" class="pg-step" aria-label="Higher target degree" disabled={target >= 100} onClick={() => step(target + 1)}>
             +
           </button>
         </div>
         <div class="pg-ans">{answer}</div>
       </div>
-    </Section>
+    </section>
+  );
+}
+
+// ─────────────────────────────── inputs
+
+/** A limit as a whole percentage of the cost (the slider's 315%). */
+const pct = (n: number, cost: number) => Math.round((n / cost) * 100);
+
+function InputsPanel(p: { s: ParagonRoute; res: ParagonResult; max: Max; go: (p: Patch) => void }) {
+  const { s, res, max, go } = p;
+  const field = (k: InKey, id: string, label: string, hint: string, step: number, decimal = false) => (
+    <NumField id={id} label={label} hint={hint} value={s[k]} max={max[k]} step={step} decimal={decimal} onChange={(n) => go({ [k]: n })} />
+  );
+  // One block per power source (bucket order), its power on the right.
+  const block = (key: Bucket["key"], fields: ComponentChildren) => {
+    const b = res.buckets.find((x) => x.key === key)!;
+    return (
+      <div class={`pg-bk${b.full ? " full" : ""}`}>
+        <div class="pg-bk-f">{fields}</div>
+        <p class={`pg-bk-pw${b.power === 0 ? " zero" : ""}`}>
+          <b>{b.full ? "MAX" : fmtInt(b.power)}</b>
+          <span>power</span>
+        </p>
+      </div>
+    );
+  };
+  const empty = IN_KEYS.every((k) => s[k] === 0);
+  return (
+    <section class="pg-panel pg-in" aria-label="Your inputs">
+      <div class="pg-ph">
+        <p class="eyebrow">Your inputs</p>
+        <span class="pg-ph-a">
+          <span class="pg-hint">type 85m · 1.2b · 40k</span>
+          <button type="button" class="pg-copy" disabled={empty} onClick={() => go(Object.fromEntries(IN_KEYS.map((k) => [k, 0])))}>
+            Reset all
+          </button>
+        </span>
+      </div>
+      {block(
+        "cash",
+        <>
+          {field("cash", "pg-cash", "Sacrificed cash", "paid for same-type towers below tier 5", 10_000, true)}
+          {field("slider", "pg-slider", "Cash slider", `paid on top of the price · up to ${pct(max.slider, paragonCost(s.tower, s.diff))}%`, 10_000, true)}
+        </>,
+      )}
+      {block(
+        "pops",
+        <>
+          {field("pops", "pg-pops", "Pops", "damage counters of the absorbed towers", 1_000_000, true)}
+          {field("income", "pg-income", "Income", "income counters, e.g. merchantmen", 100_000, true)}
+        </>,
+      )}
+      {block("tiers", field("tiers", "pg-tiers", "Upgrade tiers", "towers below tier 5 · a 2-0-3 counts 5", 1))}
+      {block("t5", field("extraT5", "pg-t5", "Extra tier 5s", "beyond the three needed · co-op +3 per teammate", 1))}
+      {block("totems", field("totems", "pg-totems", "Power totems", "yours and teammates' · no cap", 1))}
+    </section>
   );
 }
 
@@ -404,7 +493,7 @@ function TargetInput(p: { value: number; onChange: (n: number) => void }) {
 
 // ─────────────────────────────── result
 
-function ResultCard(p: { res: ParagonResult; copied: boolean; copy: () => void }) {
+function ResultCard(p: { res: ParagonResult; boost: boolean; copied: boolean; copy: () => void }) {
   const { res } = p;
   const bp = res.breakpoint;
   const at = bp ? scaling(bp.degree) : undefined;
@@ -417,7 +506,7 @@ function ResultCard(p: { res: ParagonResult; copied: boolean; copy: () => void }
         </button>
       </div>
       <dl class="pg-hero">
-        <Stat k="Degree" v={res.degree} accent />
+        <Stat k="Degree" v={res.degree} accent note={p.boost ? `${res.base} from power + ${res.degree - res.base} Paragon Boost` : undefined} />
       </dl>
       <dl class="pg-nums">
         <Stat k="Power" v={fmtInt(res.power)} />
@@ -509,35 +598,44 @@ function ScalingFold(p: { degree: number }) {
   );
 }
 
-function MethodFold(p: { s: ParagonRoute }) {
-  const unit = paragonCost(p.s.tower, p.s.diff) / D.moneySpentOverX;
+function MethodFold(p: { s: ParagonRoute; max: Max }) {
+  const { s, max } = p;
+  const cost = paragonCost(s.tower, s.diff);
+  const unit = cost / D.moneySpentOverX;
+  const pen = +(D.paidContributionPenalty * 100).toFixed(1);
   return (
     <details class="pg-fold pg-fold-big">
       <summary>How this is calculated</summary>
       <ul class="pg-how">
         <li>
-          <b>Sacrificed cash:</b> 1 power per ${+unit.toFixed(2)} (this paragon's cost ÷ {fmtInt(D.moneySpentOverX)}), up to {fmtInt(D.maxPowerFromMoneySpent)} power. The slider pays {+(D.paidContributionPenalty * 100).toFixed(1)}% more per power.
+          <b>Absorbed towers:</b> every tower of the paragon's type on the map, from any player, is absorbed when the paragon is built. Monkey Knowledge doesn't change the power.
         </li>
         <li>
-          <b>Pops:</b> 1 power per {fmtInt(D.popsOverX)} pops, up to {fmtInt(D.maxPowerFromPops)}. Cash the towers earned counts ×{D.cashEarnedContributionModifier} as pops.
+          <b>Sacrificed cash:</b> the price actually paid (discounts included) for the absorbed towers below tier 5. 1 power per ${+unit.toFixed(2)} (this paragon's cost ÷ {fmtInt(D.moneySpentOverX)}); fills at {fmtInt(D.maxPowerFromMoneySpent)} power, {+(D.maxPowerFromMoneySpent / D.moneySpentOverX).toFixed(2)}× the cost (${fmtInt(max.cash)}), shared with the slider.
         </li>
         <li>
-          <b>Upgrade tiers</b> on sacrificed non-tier-5 towers: {fmtInt(D.nonTier5TowersMultByX)} power each, up to {fmtInt(D.maxPowerFromNonTier5Count)}.
+          <b>Cash slider:</b> paid on top of the price, up to {pct(max.slider, cost)}% of the cost (${fmtInt(max.slider)}, and only the cash you have). {pen}% less efficient than sacrificed cash, rounded up.
         </li>
         <li>
-          <b>Extra tier 5s:</b> {fmtInt(D.tier5TowersMultByX)} power each, up to {fmtInt(D.maxPowerFromTier5Count)}.
+          <b>Pops:</b> damage dealt by all absorbed towers, tier 5s included (their damage counters): 1 power per {fmtInt(D.popsOverX)}. <b>Income</b> (cash generated, the income counters) counts ×{D.cashEarnedContributionModifier} as pops: ${+(D.popsOverX / D.cashEarnedContributionModifier).toFixed(2)} = 1 power. Both share one cap of {fmtInt(D.maxPowerFromPops)} power ({fmtInt(max.pops)} pops).
         </li>
         <li>
-          <b>Power totems:</b> {fmtInt(REF.totemPower)} power each, no cap (read from the game's code).
+          <b>Upgrade tiers</b> of the absorbed towers below tier 5: {fmtInt(D.nonTier5TowersMultByX)} power each; fills at {fmtInt(max.tiers)} tiers ({fmtInt(D.maxPowerFromNonTier5Count)} power).
         </li>
         <li>
-          <b>Cost by difficulty:</b> {PG_DIFFS.map((d) => `${d[0].toUpperCase()}${d.slice(1)} $${fmtInt(paragonCost(p.s.tower, d))}`).join(" · ")}. The game's cost mods: Easy ×0.85, Hard ×1.08, Impoppable is Hard then ×1.111; rounded to ${REF.costRounding}.
+          <b>Extra tier 5s</b> beyond the three lowest-investment ones the paragon is built from: {fmtInt(D.tier5TowersMultByX)} power each; fills at {fmtInt(max.extraT5)} ({fmtInt(D.maxPowerFromTier5Count)} power).
+        </li>
+        <li>
+          <b>Power totems:</b> {fmtInt(REF.totemPower)} power each, no cap; teammates' totems count too (read from the game's code).
+        </li>
+        <li>
+          <b>Paragon Boost:</b> +{REF.boostDegrees} degrees on the game's first paragon, added after the power (degree 100 at most).
+        </li>
+        <li>
+          <b>Cost by difficulty:</b> {PG_DIFFS.map((d) => `${d[0].toUpperCase()}${d.slice(1)} $${fmtInt(paragonCost(s.tower, d))}`).join(" · ")}. The game's cost mods: Easy ×0.85, Hard ×1.08, Impoppable is Hard then ×1.111; rounded to ${REF.costRounding}.
         </li>
         <li>
           <b>Degree:</b> the highest degree whose power requirement you meet: degree 2 at {fmtInt(REQS[1])}, degree 100 at {fmtInt(REQS[99])}. Boss damage grows {+(D.bonusBossDamagePercent * 100).toFixed(0)}% every {D.bonusBossDamagePerDegrees} degrees; elites take double.
-        </li>
-        <li>
-          <b>Co-op:</b> accepted, but changes nothing yet (pending verification).
         </li>
       </ul>
     </details>

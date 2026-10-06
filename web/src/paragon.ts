@@ -6,11 +6,14 @@ import data from "./data/paragons.json" with { type: "json" };
  * totemPower = ParagonSacrificeBonusModel.bonus on the totem (ParagonTower.GetTowerInvestment, uncapped);
  * costMods = GlobalCostModModel multipliers applied in turn (Impoppable = the Hard difficulty plus the
  * Impoppable mode); costRounding = TowerManager.GetTowerUpgradeCost's final round to 5.
+ * boostDegrees = Paragon Boost, degrees added to the game's first paragon after the power calculation
+ * (Blooncyclopedia, Paragon_Boost page, v56.0).
  */
 export const REF = {
   totemPower: 2000,
   costMods: { easy: [0.85], medium: [], hard: [1.08], impoppable: [1.08, 1.1111111640930176] } as Record<Difficulty, number[]>,
   costRounding: 5,
+  boostDegrees: 25,
 };
 
 const D = data.degreeData;
@@ -53,6 +56,25 @@ export interface ParagonInput {
   /** Extra sacrificed tier-5 towers. */
   extraT5: number;
   totems: number;
+  /** Paragon Boost: +REF.boostDegrees degrees on the game's first paragon. */
+  boost: boolean;
+}
+
+/** Largest useful value of each input: where its source fills (the cash slider: the game's 315% of the cost). */
+export function inputMax(tower: ParagonTower, diff: Difficulty): Record<"cash" | "slider" | "pops" | "income" | "tiers" | "extraT5" | "totems", number> {
+  const cash = (D.maxPowerFromMoneySpent * paragonCost(tower, diff)) / D.moneySpentOverX;
+  const pops = D.maxPowerFromPops * D.popsOverX;
+  // toFixed: 3 × cost × 1.05 is exact in decimal; float noise must not round it up by one.
+  const ceil = (x: number) => Math.ceil(+x.toFixed(6));
+  return {
+    cash: ceil(cash),
+    slider: ceil(cash * (1 + D.paidContributionPenalty)),
+    pops,
+    income: ceil(pops / D.cashEarnedContributionModifier),
+    tiers: ceil(D.maxPowerFromNonTier5Count / D.nonTier5TowersMultByX),
+    extraT5: ceil(D.maxPowerFromTier5Count / D.tier5TowersMultByX),
+    totems: ceil(D.powerDegreeRequirements[D.powerDegreeRequirements.length - 1] / REF.totemPower),
+  };
 }
 
 /** One power source: its floored power, uncapped raw power, cap and whether it is at the cap. */
@@ -68,10 +90,14 @@ export interface Bucket {
 /** Result of evaluate(). */
 export interface ParagonResult {
   power: number;
+  /** Degree from power alone. */
+  base: number;
+  /** Final degree: base + Paragon Boost, at most 100. */
   degree: number;
   buckets: Bucket[];
+  /** Next final degree, the power it needs and the gap. */
   next: { degree: number; power: number; gap: number } | null;
-  /** Next multiple of bonusBossDamagePerDegrees, or 100. */
+  /** Next multiple of bonusBossDamagePerDegrees (or 100) in final degrees, and the power gap to it. */
   breakpoint: { degree: number; gap: number } | null;
   boss: { normal: number; elite: number };
 }
@@ -103,6 +129,12 @@ function degreeFor(power: number): number {
   let d = 1;
   for (let k = 1; k < D.powerDegreeRequirements.length; k++) if (D.powerDegreeRequirements[k] <= power) d = k + 1;
   return d;
+}
+
+/** Power a final degree needs (the boost's degrees come free; 0 when the boost alone reaches it). */
+export function powerForDegree(degree: number, boost: boolean): number {
+  const base = Math.max(1, Math.min(D.powerDegreeRequirements.length, degree - (boost ? REF.boostDegrees : 0)));
+  return D.powerDegreeRequirements[base - 1];
 }
 
 /** Bonus boss damage multipliers for a degree. */
@@ -137,13 +169,17 @@ export function evaluate(i: ParagonInput): ParagonResult {
   });
   // The game sums the capped sources as floats; requirements are integers, so flooring the total is exact.
   const power = Math.floor(buckets.reduce((s, b) => s + (b.cap === null ? b.raw : Math.min(b.raw, b.cap)), 0));
-  const degree = degreeFor(power);
+  const base = degreeFor(power);
   const reqs = D.powerDegreeRequirements;
-  const next = degree >= reqs.length ? null : { degree: degree + 1, power: reqs[degree], gap: reqs[degree] - power };
+  // The boost is added after the power calculation: the next final degree needs the next base degree.
+  const degree = Math.min(reqs.length, base + (i.boost ? REF.boostDegrees : 0));
+  const top = degree >= reqs.length;
+  const next = top ? null : { degree: degree + 1, power: reqs[base], gap: reqs[base] - power };
   const per = D.bonusBossDamagePerDegrees;
   const bpDeg = Math.min(reqs.length, (Math.floor(degree / per) + 1) * per);
-  const breakpoint = degree >= reqs.length ? null : { degree: bpDeg, gap: reqs[bpDeg - 1] - power };
-  return { power, degree, buckets, next, breakpoint, boss: bossFor(degree) };
+  const bpPower = powerForDegree(bpDeg, i.boost);
+  const breakpoint = top ? null : { degree: bpDeg, gap: Math.max(0, bpPower - power) };
+  return { power, base, degree, buckets, next, breakpoint, boss: bossFor(degree) };
 }
 
 /** One way to reach a target power: the amount of a single input that alone is enough. */

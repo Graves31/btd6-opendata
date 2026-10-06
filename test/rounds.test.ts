@@ -324,8 +324,13 @@ describe("tools hub and paragon calculator routes", () => {
   it("href.paragon leaves defaults out and round-trips", () => {
     assert.equal(href.paragon(), "/tools/paragon");
     assert.equal(href.tools(), "/tools");
-    const r = parse(U("/tools/paragon?p=ninja&d=h&c=1200000&to=2&tg=40")) as ParagonRoute;
-    assert.equal(href.paragon(r), "/tools/paragon?p=ninja&d=h&c=1200000&to=2&tg=40");
+    const r = parse(U("/tools/paragon?p=ninja&d=h&c=1200000&to=2&tg=40&b=1")) as ParagonRoute;
+    assert.equal(r.boost, true);
+    assert.equal(href.paragon(r), "/tools/paragon?p=ninja&d=h&c=1200000&to=2&tg=40&b=1");
+    // adv=1 (old links) is read but no longer written.
+    const old = parse(U("/tools/paragon?p=ninja&adv=1")) as ParagonRoute;
+    assert.equal(old.boost, false);
+    assert.equal(href.paragon(old), "/tools/paragon?p=ninja");
     assert.equal(href.paragon({ diff: "medium" }, true), "/tools/paragon?p=dart&d=m");
   });
   it("needs no data", () => {

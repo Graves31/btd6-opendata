@@ -107,7 +107,8 @@ export interface RoundsRoute {
 /**
  * Tools → Paragon degree calculator (/tools/paragon). The URL is the whole state (short keys, defaults left out):
  * p tower slug, d e/m/h/i, co=1, c cash, s slider, po pops, in income, t tiers, x extra tier 5s, to totems,
- * tg target degree, adv=1 advanced fold open. Invalid values are ignored, too-large ones clamped.
+ * tg target degree, b=1 Paragon Boost. Invalid values are ignored, too-large ones clamped (the page clamps further).
+ * adv=1 (the old Advanced fold) is still parsed for old links but never written.
  */
 export interface ParagonRoute {
   name: "paragon";
@@ -123,6 +124,9 @@ export interface ParagonRoute {
   totems: number;
   /** target degree 2..100; absent = the next boss breakpoint */
   target?: number;
+  /** Paragon Boost (+25 degrees on the game's first paragon) */
+  boost: boolean;
+  /** old links: the Advanced fold was open (no longer used or written) */
   adv: boolean;
   /** the URL named a tower or difficulty (else the page may preselect the last one used) */
   picked: boolean;
@@ -146,7 +150,7 @@ export const PARAGON_SLUG: Record<ParagonTower, string> = {
 };
 const DIFF_KEY: Record<Difficulty, string> = { easy: "e", medium: "m", hard: "h", impoppable: "i" };
 export const PG_DIFFS = ["easy", "medium", "hard", "impoppable"] as const;
-/** Largest value each paragon input takes (the page clamps to these). */
+/** Largest value the URL accepts for each paragon input (the page clamps further, to where each source fills). */
 export const PG_MAX = { cash: 10_000_000_000, slider: 10_000_000_000, pops: 1_000_000_000, income: 10_000_000_000, tiers: 1000, extraT5: 100, totems: 1000 };
 export const PG_DEFAULT: { tower: ParagonTower; diff: Difficulty } = { tower: "DartMonkey", diff: "medium" };
 
@@ -352,6 +356,7 @@ function parseParagon(q: URLSearchParams): ParagonRoute {
     tiers: clampInt(q.get("t"), PG_MAX.tiers),
     extraT5: clampInt(q.get("x"), PG_MAX.extraT5),
     totems: clampInt(q.get("to"), PG_MAX.totems),
+    boost: q.get("b") === "1",
     adv: q.get("adv") === "1",
     picked: !!tower || !!diff,
   };
@@ -447,7 +452,7 @@ export const href = {
       x: s.extraT5 || undefined,
       to: s.totems || undefined,
       tg: s.target,
-      adv: s.adv ? 1 : undefined,
+      b: s.boost ? 1 : undefined,
     })}`,
 };
 
