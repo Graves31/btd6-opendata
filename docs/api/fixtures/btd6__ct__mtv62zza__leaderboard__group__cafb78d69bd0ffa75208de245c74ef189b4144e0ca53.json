@@ -1,0 +1,54 @@
+{
+  "error": null,
+  "success": true,
+  "body": [
+    {
+      "displayName": "CHEESINGTHEALG0RITHM",
+      "score": 291810,
+      "profile": "https://data.ninjakiwi.com/btd6/guild/9fb9168a8a94f1a449458c4a0a25e522cf021ab59f41df39",
+      "group": "https://data.ninjakiwi.com/btd6/ct/mtv62zza/leaderboard/group/cafb78d69bd0ffa75208de245c74ef189b4144e0ca53"
+    },
+    {
+      "displayName": "JHYU",
+      "score": 2960,
+      "profile": "https://data.ninjakiwi.com/btd6/guild/9fee128ad9c4fdf31f4b871f5f7ae722c8024fbccb138b3e",
+      "group": "https://data.ninjakiwi.com/btd6/ct/mtv62zza/leaderboard/group/cafb78d69bd0ffa75208de245c74ef189b4144e0ca53"
+    },
+    {
+      "displayName": "POKA MOAB",
+      "score": 890,
+      "profile": "https://data.ninjakiwi.com/btd6/guild/9fee1f8b8997f0ad19418c4b0a71ef76cc061dbf9a43d03f",
+      "group": "https://data.ninjakiwi.com/btd6/ct/mtv62zza/leaderboard/group/cafb78d69bd0ffa75208de245c74ef189b4144e0ca53"
+    },
+    {
+      "displayName": "CWR",
+      "score": 770,
+      "profile": "https://data.ninjakiwi.com/btd6/guild/9fbd42d8dc94feac1942874c5d27e424ca0d4eef9f148a6e",
+      "group": "https://data.ninjakiwi.com/btd6/ct/mtv62zza/leaderboard/group/cafb78d69bd0ffa75208de245c74ef189b4144e0ca53"
+    }
+  ],
+  "model": {
+    "name": "_btd6ctleaderboardteam",
+    "parameters": {
+      "displayName": {
+        "description": "The display name for this Team",
+        "type": "string"
+      },
+      "score": {
+        "description": "The CT score",
+        "type": "number"
+      },
+      "profile": {
+        "description": "URL to the team public profile",
+        "type": "string"
+      },
+      "group": {
+        "description": "URL to the team's group leaderboard'",
+        "type": "string"
+      }
+    }
+  },
+  "next": null,
+  "prev": null,
+  "maxPages": 1
+}

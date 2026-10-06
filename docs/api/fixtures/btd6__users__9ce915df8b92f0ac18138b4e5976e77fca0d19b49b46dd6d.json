@@ -1,0 +1,567 @@
+{
+  "error": null,
+  "success": true,
+  "body": {
+    "displayName": "dreamyaria",
+    "rank": 153,
+    "veteranRank": 0,
+    "achievements": 147,
+    "mostExperiencedMonkey": "SniperMonkey",
+    "highestRound": 300,
+    "avatar": "ProfileAvatar85",
+    "avatarURL": "https://static-api.nkstatic.com/appdocs/4/assets/opendata/74f14994aa1c578f556126fe6cdcfded_ProfileAvatar85.png",
+    "banner": "ProfileBanner10",
+    "bannerURL": "https://static-api.nkstatic.com/appdocs/4/assets/opendata/27bb9d2733351057a6e56363d56eea92_ProfileBanner10.png",
+    "followers": 9,
+    "bloonsPopped": {
+      "badsPopped": 2830,
+      "ddtsPopped": 64419,
+      "bfbsPopped": 196969,
+      "bossesPopped": 266,
+      "bloonsPopped": 260931494,
+      "bloonsLeaked": 12473549,
+      "camosPopped": 16200473,
+      "ceramicsPopped": 7572975,
+      "coopBloonsPopped": 17698222,
+      "goldenBloonsPopped": 174,
+      "leadsPopped": 619927,
+      "moabsPopped": 982317,
+      "necroBloonsReanimated": 461168,
+      "transformingTonicsUsed": 179,
+      "purplesPopped": 588284,
+      "regrowsPopped": 101522858,
+      "zomgsPopped": 31767
+    },
+    "gameplay": {
+      "cashEarned": 339816124,
+      "challengesCompleted": 304,
+      "collectionChestsOpened": 126,
+      "coopCashGiven": 47632132,
+      "dailyRewards": 363,
+      "gameCount": 3525,
+      "gamesWon": 1390,
+      "highestRound": 300,
+      "highestRoundCHIMPS": 114,
+      "highestRoundDeflation": 102,
+      "instaMonkeyCollection": 617,
+      "monkeyTeamsWins": 101,
+      "powersUsed": 904,
+      "totalOdysseysCompleted": 24,
+      "totalOdysseyStars": 75,
+      "totalTrophiesEarned": 2566,
+      "damageDoneToBosses": 621208886,
+      "instaMonkeysUsed": 48,
+      "abilitiesUsed": 35798,
+      "monkeysPlaced": 20757
+    },
+    "heroesPlaced": {
+      "AdmiralBrickell": 39,
+      "Adora": 12,
+      "Benjamin": 222,
+      "Etienne": 142,
+      "Geraldo": 33,
+      "Gwendolin": 49,
+      "ObynGreenfoot": 212,
+      "PatFusty": 22,
+      "Psi": 44,
+      "Quincy": 121,
+      "Sauda": 234,
+      "StrikerJones": 37,
+      "Ezili": 65,
+      "CaptainChurchill": 79,
+      "Corvus": 3,
+      "Rosalia": 14,
+      "Silas": 24,
+      "DanDMonke": 16
+    },
+    "towersPlaced": {
+      "DartMonkey": 2640,
+      "BombShooter": 488,
+      "NinjaMonkey": 990,
+      "SuperMonkey": 459,
+      "WizardMonkey": 1086,
+      "BananaFarm": 1793,
+      "MonkeyVillage": 1026,
+      "HeliPilot": 365,
+      "Druid": 1345,
+      "EngineerMonkey": 404,
+      "MortarMonkey": 233,
+      "Alchemist": 1467,
+      "MonkeyAce": 599,
+      "BoomerangMonkey": 602,
+      "SpikeFactory": 411,
+      "GlueGunner": 551,
+      "TackShooter": 504,
+      "MonkeyBuccaneer": 946,
+      "MonkeySub": 1163,
+      "DartlingGunner": 313,
+      "BeastHandler": 105,
+      "IceMonkey": 597,
+      "SniperMonkey": 970,
+      "Mermonkey": 138,
+      "Desperado": 83,
+      "Skywarden": 111
+    },
+    "stats": {
+      "totalTowersSold": 8839,
+      "paragonsPurchasedByName": {
+        "DartMonkey": 24,
+        "BoomerangMonkey": 11,
+        "NinjaMonkey": 6,
+        "MonkeyBuccaneer": 18,
+        "MonkeyAce": 9,
+        "WizardMonkey": 1,
+        "IceMonkey": 1,
+        "SpikeFactory": 2,
+        "EngineerMonkey": 12,
+        "Druid": 5
+      },
+      "upgradesPurchasedByTier": {},
+      "abilitiesActivatedByName": {
+        "Rapid Shot": 528,
+        "Storm of Arrows": 273,
+        "Cocktail of Fire": 331,
+        "Firestorm": 171,
+        "Sabotage": 174,
+        "Turbo Charge": 164,
+        "Brambles": 595,
+        "Wall of Trees": 304,
+        "Darkshift": 62,
+        "Concussive Shell": 254,
+        "Armor Piercing Shells": 209,
+        "Grand Sabotage": 164,
+        "Perma Charge": 84,
+        "IMF loan": 166,
+        "Tech Terror": 136,
+        "Call to Arms": 666,
+        "Retaliation": 20,
+        "MOAB Barrage": 74,
+        "Transforming Tonic": 167,
+        "MOAB Takedown": 3297,
+        "Blood Sacrifice": 34,
+        "Sacrificial Totem": 23,
+        "Heartstopper": 13,
+        "Support Drop": 592,
+        "MOAB Hex": 105,
+        "First Strike Capability": 1055,
+        "Glue Strike": 56,
+        "Jungle's Bounty": 3850,
+        "Supply Drop": 717,
+        "Bombardment": 544,
+        "Super Monkey Fan Club": 157,
+        "Vine Rupture": 44,
+        "Emergency Unlock": 42,
+        "RocketStorm": 205,
+        "ZOMG Takedown": 1159,
+        "Assassinate MOAB": 1330,
+        "Moab Eliminator": 524,
+        "Syphon Funding": 134,
+        "Biohack": 386,
+        "": 34,
+        "Overclock": 1680,
+        "Blade Maelstrom": 1116,
+        "Super Maelstrom": 17,
+        "ChampionDarkshift": 88,
+        "Drone Swarm": 331,
+        "UCAV": 207,
+        "Redeploy": 1342,
+        "Psychic Blast": 215,
+        "Psionic Scream": 98,
+        "Plasma Monkey Fan Club": 125,
+        "Monkey-Nomics": 1109,
+        "Homeland Defense": 857,
+        "RocketStormMAD": 387,
+        "Ultraboost": 1900,
+        "Spike Storm": 179,
+        "Special Poperations": 21,
+        "Ground Zero": 191,
+        "Absolute Zero": 92,
+        "Tsar Bomba": 125,
+        "Link": 987,
+        "Unlink": 50,
+        "Glue Storm": 455,
+        "The Anti-Bloon": 44,
+        "Summon Pheonix": 238,
+        "Snowstorm": 110,
+        "Legend of the Night": 133,
+        "Summon Lord Phoenix": 166,
+        "Artillery Command": 26,
+        "Naval Tactics": 215,
+        "Mega Mine": 547,
+        "Total Transforming Tonic": 12,
+        "Leaping Sword Attack": 777,
+        "Sword Charge": 323,
+        "The Long Arm of Light": 27,
+        "Ball of Light": 16,
+        "Rallying Roar": 62,
+        "Bomb Blitz": 3,
+        "Big Squeeze": 13,
+        "Pop And Awe": 20,
+        "Door Gunner": 2,
+        "Deploy": 3,
+        "Large BAD Harpoon": 78,
+        "Blast Chain Ability": 57,
+        "SentryParagonSpawner": 168,
+        "Carpet Bomb": 32,
+        "T Rex STOMP": 60,
+        "Phoenix Rebirth": 1,
+        "Arcane Metamorphosis": 1,
+        "Giga STOMP ": 2,
+        "Elite Supply Drop": 10,
+        "Vine Crush": 24,
+        "Frostbite": 99,
+        "Frozen Cascade": 63,
+        "MermonkyAbility": 55,
+        "Frozen Burial": 30,
+        "Scatter Missile": 55,
+        "Flight Boost": 27,
+        "Kinetic Charge": 8,
+        "Controlled Burst": 23,
+        "Spikeageddon": 13,
+        "Take Aim": 225,
+        "TakeAim2": 386,
+        "Marked To Pop": 140,
+        "Marked To Pop2": 234,
+        "ThunderCharge": 47,
+        "Transform Ability": 241,
+        "LeapingSmash": 25,
+        "Battlecry": 63,
+        "Soul Harvest": 11,
+        "Spirit Walk": 3,
+        "Dark Ritual": 4,
+        "Paragon Overclock": 57,
+        "Warcry": 14,
+        "Teleport": 357,
+        "MermonkyAbilityBig": 13,
+        "Primordial Wrath": 20
+      },
+      "heroesPlacedByName": {
+        "": 0,
+        "Quincy": 121,
+        "Gwendolin": 49,
+        "ObynGreenfoot": 212,
+        "StrikerJones": 37,
+        "CaptainChurchill": 79,
+        "Ezili": 65,
+        "Benjamin": 222,
+        "Etienne": 142,
+        "Psi": 44,
+        "AdmiralBrickell": 39,
+        "Sauda": 234,
+        "Adora": 12,
+        "PatFusty": 22,
+        "Geraldo": 33,
+        "Silas": 24,
+        "Rosalia": 14,
+        "DanDMonke": 16,
+        "Corvus": 3
+      },
+      "instaMonkeysUsed": 48,
+      "collectionEventCratesOpened": 126,
+      "ctCapturedTiles": 115
+    },
+    "bossBadgesNormal": {
+      "Bloonarius": 10,
+      "Lych": 3,
+      "Vortex": 1,
+      "Dreadbloon": 1,
+      "Phayze": 1,
+      "Blastapopoulos": 0,
+      "Diamondback": 1
+    },
+    "bossBadgesElite": {
+      "Bloonarius": 7,
+      "Lych": 2,
+      "Vortex": 1,
+      "Dreadbloon": 0,
+      "Phayze": 1,
+      "Blastapopoulos": 0,
+      "Diamondback": 1
+    },
+    "seasonBadges": {
+      "SeasonUltimate3": {
+        "url": "https://static-api.nkstatic.com/appdocs/4/assets/opendata/e2b9630a52e16b2f48e9e82acd3d34ef_SocialSeasonsUltimate3Medal.png",
+        "id": "SeasonUltimate3",
+        "count": 1
+      },
+      "SeasonChampion": {
+        "url": "https://static-api.nkstatic.com/appdocs/4/assets/opendata/325aea8c5579f65827f1d2c1e03603b2_SocialSeasonsChampionMedal.png",
+        "id": "SeasonChampion",
+        "count": 1
+      }
+    },
+    "_medalsSinglePlayer": {
+      "CHIMPS-BLACK": 36,
+      "Easy": 48,
+      "Medium": 32,
+      "Hard": 49,
+      "PrimaryOnly": 29,
+      "Deflation": 28,
+      "MilitaryOnly": 24,
+      "Apopalypse": 24,
+      "Reverse": 25,
+      "MagicOnly": 30,
+      "HalfCash": 24,
+      "DoubleMoabHealth": 26,
+      "AlternateBloonsRounds": 40,
+      "Impoppable": 38,
+      "Clicks": 36
+    },
+    "_medalsMultiplayer": {
+      "CHIMPS-BLACK": 6,
+      "Easy": 9,
+      "Medium": 4,
+      "Hard": 7,
+      "PrimaryOnly": 3,
+      "Deflation": 1,
+      "MilitaryOnly": 4,
+      "Apopalypse": 0,
+      "Reverse": 1,
+      "MagicOnly": 2,
+      "HalfCash": 1,
+      "DoubleMoabHealth": 2,
+      "AlternateBloonsRounds": 5,
+      "Impoppable": 22,
+      "Clicks": 6
+    },
+    "_medalsBoss": {
+      "Bronze": 3,
+      "GoldDiamond": 1
+    },
+    "_medalsBossElite": {
+      "GoldDiamond": 2
+    },
+    "_medalsCTLocal": {
+      "RedDiamond": 1
+    },
+    "_medalsCTGlobal": {
+      "BlueDiamond": 1
+    },
+    "_medalsRace": {
+      "GoldSilver": 2,
+      "GoldDiamond": 1
+    }
+  },
+  "model": {
+    "name": "_btd6userprofile",
+    "parameters": {
+      "displayName": {
+        "description": "Current User Display Name",
+        "type": "string"
+      },
+      "rank": {
+        "description": "Player Rank",
+        "type": "number"
+      },
+      "veteranRank": {
+        "description": "Player Veteran Rank",
+        "type": "number"
+      },
+      "achievements": {
+        "description": "Number of achievements unlocked",
+        "type": "string"
+      },
+      "mostExperiencedMonkey": {
+        "description": "Most Experienced Monkey",
+        "type": "string"
+      },
+      "highestRound": {
+        "description": "[Deprecated] Use gameplay.highestRound",
+        "type": "number"
+      },
+      "avatar": {
+        "description": "User avatar icon",
+        "type": "string"
+      },
+      "banner": {
+        "description": "User banner icon",
+        "type": "string"
+      },
+      "avatarURL": {
+        "description": "URL to avatar icon",
+        "type": "assetURL"
+      },
+      "bannerURL": {
+        "description": "URL to banner icon",
+        "type": "assetURL"
+      },
+      "followers": {
+        "description": "Number of followers",
+        "type": "number"
+      },
+      "bloonsPopped": {
+        "description": "Bloon Pop Stats",
+        "default": {
+          "badsPopped": 0,
+          "ddtsPopped": 0,
+          "bfbsPopped": 0,
+          "bossesPopped": 0,
+          "bloonsPopped": 0,
+          "bloonsLeaked": 0,
+          "camosPopped": 0,
+          "ceramicsPopped": 0,
+          "coopBloonsPopped": 0,
+          "goldenBloonsPopped": 0,
+          "leadsPopped": 0,
+          "moabsPopped": 0,
+          "necroBloonsReanimated": 0,
+          "transformingTonicsUsed": 0,
+          "purplesPopped": 0,
+          "regrowsPopped": 0,
+          "zomgsPopped": 0
+        },
+        "type": "map"
+      },
+      "gameplay": {
+        "description": "Gameplay Stats",
+        "default": {
+          "cashEarned": 0,
+          "challengesCompleted": 0,
+          "collectionChestsOpened": 0,
+          "coopCashGiven": 0,
+          "dailyRewards": 0,
+          "gameCount": 0,
+          "gamesWon": 0,
+          "highestRound": 0,
+          "highestRoundCHIMPS": 0,
+          "highestRoundDeflation": 0,
+          "instaMonkeyCollection": 0,
+          "monkeyTeamsWins": 0,
+          "powersUsed": 0,
+          "totalOdysseysCompleted": 0,
+          "totalOdysseyStars": 0,
+          "totalTrophiesEarned": 0,
+          "damageDoneToBosses": 0,
+          "instaMonkeysUsed": 0,
+          "abilitiesUsed": 0,
+          "monkeysPlaced": 0
+        },
+        "type": "map"
+      },
+      "heroesPlaced": {
+        "description": "Hero Stats",
+        "default": {
+          "AdmiralBrickell": 0,
+          "Adora": 0,
+          "Benjamin": 0,
+          "Etienne": 0,
+          "Geraldo": 0,
+          "Gwendolin": 0,
+          "ObynGreenfoot": 0,
+          "PatFusty": 0,
+          "Psi": 0,
+          "Quincy": 0,
+          "Sauda": 0,
+          "StrikerJones": 0,
+          "Ezili": 0,
+          "CaptainChurchill": 0,
+          "Corvus": 0,
+          "Rosalia": 0
+        },
+        "type": "map",
+        "filtered": false
+      },
+      "towersPlaced": {
+        "description": "Tower Stats",
+        "trustSave": true,
+        "default": {
+          "DartMonkey": 0,
+          "BombShooter": 0,
+          "NinjaMonkey": 0,
+          "SuperMonkey": 0,
+          "WizardMonkey": 0,
+          "BananaFarm": 0,
+          "MonkeyVillage": 0,
+          "HeliPilot": 0,
+          "Druid": 0,
+          "EngineerMonkey": 0,
+          "MortarMonkey": 0,
+          "Alchemist": 0,
+          "MonkeyAce": 0,
+          "BoomerangMonkey": 0,
+          "SpikeFactory": 0,
+          "GlueGunner": 0,
+          "TackShooter": 0,
+          "MonkeyBuccaneer": 0,
+          "MonkeySub": 0,
+          "DartlingGunner": 0,
+          "BeastHandler": 0,
+          "IceMonkey": 0,
+          "SniperMonkey": 0,
+          "Mermonkey": 0,
+          "Desperado": 0
+        },
+        "type": "map",
+        "filtered": false
+      },
+      "stats": {
+        "description": "A number of miscellaneous stats",
+        "default": {},
+        "type": "map",
+        "filtered": false
+      },
+      "bossBadgesNormal": {
+        "description": "Normal Boss Badges",
+        "default": {
+          "Bloonarius": 0,
+          "Lych": 0,
+          "Vortex": 0,
+          "Dreadbloon": 0,
+          "Phayze": 0,
+          "Blastapopoulos": 0,
+          "Diamondback": 0
+        },
+        "type": "map"
+      },
+      "bossBadgesElite": {
+        "description": "Normal Boss Badges",
+        "default": {
+          "Bloonarius": 0,
+          "Lych": 0,
+          "Vortex": 0,
+          "Dreadbloon": 0,
+          "Phayze": 0,
+          "Blastapopoulos": 0,
+          "Diamondback": 0
+        },
+        "type": "map"
+      },
+      "seasonBadges": {
+        "description": "Season Event Medals",
+        "default": {},
+        "type": "map",
+        "filtered": false
+      },
+      "_medalsSinglePlayer": {
+        "description": "[!] Single Player Medals",
+        "type": "raw"
+      },
+      "_medalsMultiplayer": {
+        "description": "[!] Multiplayer Medals",
+        "type": "raw"
+      },
+      "_medalsBoss": {
+        "description": "[!] Boss Medals",
+        "type": "raw"
+      },
+      "_medalsBossElite": {
+        "description": "[!] Elite Boss Medals",
+        "type": "raw"
+      },
+      "_medalsCTLocal": {
+        "description": "[!] CT Local Medals",
+        "type": "raw"
+      },
+      "_medalsCTGlobal": {
+        "description": "[!] CT Global Medals",
+        "type": "raw"
+      },
+      "_medalsRace": {
+        "description": "[!] Race Medals",
+        "type": "raw"
+      }
+    }
+  },
+  "next": null,
+  "prev": null
+}

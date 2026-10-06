@@ -1,0 +1,32 @@
+{
+  "error": null,
+  "success": true,
+  "body": [],
+  "model": {
+    "name": "_btd6challenge",
+    "parameters": {
+      "name": {
+        "description": "Challenge Filter Name",
+        "type": "string"
+      },
+      "createdAt": {
+        "description": "Challenge creation time in unix epoch milliseconds",
+        "type": "number"
+      },
+      "id": {
+        "description": "Unique Challenge ID",
+        "type": "string"
+      },
+      "creator": {
+        "description": "URL to the creators profile",
+        "type": "string"
+      },
+      "metadata": {
+        "description": "URL to the full challenge information",
+        "type": "string"
+      }
+    }
+  },
+  "next": null,
+  "prev": "https://data.ninjakiwi.com/btd6/challenges/filter/daily?page=1"
+}

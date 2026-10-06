@@ -1,0 +1,1321 @@
+{
+  "capturedAt": "2026-09-24T17:46:13Z",
+  "base": "https://data.ninjakiwi.com",
+  "requests": [
+    {
+      "path": "/btd6/races",
+      "file": "btd6__races.json",
+      "status": 200,
+      "ms": 190,
+      "bytes": 3226,
+      "note": "",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"c9a-i7AQWOKHKcR0R+QZnOKwPY/35oY\"",
+        "age": "688",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:18 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses",
+      "file": "btd6__bosses.json",
+      "status": 200,
+      "ms": 188,
+      "bytes": 7889,
+      "note": "",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"1ed1-zMOCyYWEKOEAVAENQzuxGgwwuE8\"",
+        "age": "700",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:18 GMT"
+      }
+    },
+    {
+      "path": "/btd6/ct",
+      "file": "btd6__ct.json",
+      "status": 200,
+      "ms": 114,
+      "bytes": 3444,
+      "note": "",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"d74-aSdW/uuT5cR2q4mK8yy2+lRfY8w\"",
+        "age": "591",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:19 GMT"
+      }
+    },
+    {
+      "path": "/btd6/odyssey",
+      "file": "btd6__odyssey.json",
+      "status": 200,
+      "ms": 211,
+      "bytes": 6029,
+      "note": "",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"178d-98KpXFUsEUBvUt0Gcyoqml6p/RQ\"",
+        "age": "679",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:20 GMT"
+      }
+    },
+    {
+      "path": "/btd6/events",
+      "file": "btd6__events.json",
+      "status": 200,
+      "ms": 86,
+      "bytes": 2733,
+      "note": "",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"aad-ovhGN179GZvCeyCqUxalds8ShAA\"",
+        "age": "591",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:20 GMT"
+      }
+    },
+    {
+      "path": "/btd6/challenges",
+      "file": "btd6__challenges.json",
+      "status": 200,
+      "ms": 91,
+      "bytes": 537,
+      "note": "",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"219-E0yyef59Xd3/KZQ82yGRRFAIVQQ\"",
+        "age": "1178",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:21 GMT"
+      }
+    },
+    {
+      "path": "/btd6/maps",
+      "file": "btd6__maps.json",
+      "status": 200,
+      "ms": 86,
+      "bytes": 485,
+      "note": "",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"1e5-YAR5BVcRaIPXJEVhsXCFu+pGlSk\"",
+        "age": "591",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:22 GMT"
+      }
+    },
+    {
+      "path": "/btd6/races/Party_Madness_muekt6x6/metadata",
+      "file": "btd6__races__Party_Madness_muekt6x6__metadata.json",
+      "status": 200,
+      "ms": 476,
+      "bytes": 9340,
+      "note": "race metadata",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"247c-0sgkSZxMxhMXlQX/TpRhGqy98Gs\"",
+        "cf-cache-status": "REVALIDATED",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:23 GMT"
+      }
+    },
+    {
+      "path": "/btd6/races/Party_Madness_muekt6x6/leaderboard",
+      "file": "btd6__races__Party_Madness_muekt6x6__leaderboard.json",
+      "status": 200,
+      "ms": 288,
+      "bytes": 47,
+      "note": "race leaderboard p1",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2f-CBzwUbgrr96YuNlN27f3qX17s0c\"",
+        "cf-cache-status": "REVALIDATED",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:23 GMT"
+      }
+    },
+    {
+      "path": "/btd6/races/Gun_Game_mu19oabt/metadata",
+      "file": "btd6__races__Gun_Game_mu19oabt__metadata.json",
+      "status": 200,
+      "ms": 442,
+      "bytes": 9314,
+      "note": "race metadata",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2462-geg3D0wD4mHpjCMhbBNdeJC7cmo\"",
+        "cf-cache-status": "REVALIDATED",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:24 GMT"
+      }
+    },
+    {
+      "path": "/btd6/races/Gun_Game_mu19oabt/leaderboard",
+      "file": "btd6__races__Gun_Game_mu19oabt__leaderboard.json",
+      "status": 200,
+      "ms": 262,
+      "bytes": 15313,
+      "note": "race leaderboard p1",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"3bd1-PnS4YuiaAD13FO3jqGMTVcg5Qrg\"",
+        "cf-cache-status": "REVALIDATED",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:25 GMT"
+      }
+    },
+    {
+      "path": "/btd6/races/Gun_Game_mu19oabt/leaderboard?page=2",
+      "file": "btd6__races__Gun_Game_mu19oabt__leaderboard__page__2.json",
+      "status": 200,
+      "ms": 105,
+      "bytes": 15336,
+      "note": "race leaderboard p2",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"3be8-YG5aD0W+zogQVMoEBlT1hMPyeMU\"",
+        "age": "591",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:26 GMT"
+      }
+    },
+    {
+      "path": "/btd6/races/Gun_Game_mu19oabt/leaderboard?page=0",
+      "file": "btd6__races__Gun_Game_mu19oabt__leaderboard__page__0.json",
+      "status": 200,
+      "ms": 87,
+      "bytes": 15309,
+      "note": "page=0 quirk",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"3bcd-Rvn2I7cD7TtGpvgcJVrL17pU2rk\"",
+        "age": "457",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:26 GMT"
+      }
+    },
+    {
+      "path": "/btd6/races/Gun_Game_mu19oabt/leaderboard?page=99999",
+      "file": "btd6__races__Gun_Game_mu19oabt__leaderboard__page__99999.json",
+      "status": 200,
+      "ms": 89,
+      "bytes": 47,
+      "note": "past last page",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2f-CBzwUbgrr96YuNlN27f3qX17s0c\"",
+        "age": "592",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:27 GMT"
+      }
+    },
+    {
+      "path": "/btd6/races/Tough_Candy_ms4ugwkz/metadata",
+      "file": "btd6__races__Tough_Candy_ms4ugwkz__metadata.json",
+      "status": 200,
+      "ms": 112,
+      "bytes": 9193,
+      "note": "oldest race in list",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"23e9-AYR7kEIbQ64OORSRDHxCjYtp4fY\"",
+        "age": "592",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:27 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses/Vortex47_mu62cmt5/metadata/standard",
+      "file": "btd6__bosses__Vortex47_mu62cmt5__metadata__standard.json",
+      "status": 200,
+      "ms": 100,
+      "bytes": 9324,
+      "note": "boss metadata standard",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"246c-KjkzTipjYqR+Zlx3zfvFqOfC0uo\"",
+        "age": "591",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:28 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses/Vortex47_mu62cmt5/leaderboard/standard/1",
+      "file": "btd6__bosses__Vortex47_mu62cmt5__leaderboard__standard__1.json",
+      "status": 200,
+      "ms": 104,
+      "bytes": 8705,
+      "note": "boss leaderboard standard",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2201-fuiG7DefZNvZOHYOZDS2Ip/cLOU\"",
+        "age": "591",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:29 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses/Vortex47_mu62cmt5/metadata/elite",
+      "file": "btd6__bosses__Vortex47_mu62cmt5__metadata__elite.json",
+      "status": 200,
+      "ms": 90,
+      "bytes": 9322,
+      "note": "boss metadata elite",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"246a-Rgpic0bdL5sGlTll/W6QWR+VJDU\"",
+        "age": "591",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:29 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses/Vortex47_mu62cmt5/leaderboard/elite/1",
+      "file": "btd6__bosses__Vortex47_mu62cmt5__leaderboard__elite__1.json",
+      "status": 200,
+      "ms": 92,
+      "bytes": 8727,
+      "note": "boss leaderboard elite",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2217-u9rL2Ib26cx3bN7bHlxQIsTK4kI\"",
+        "age": "591",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:30 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses/Vortex46_ms8tf3cb/metadata/standard",
+      "file": "btd6__bosses__Vortex46_ms8tf3cb__metadata__standard.json",
+      "status": 200,
+      "ms": 116,
+      "bytes": 9233,
+      "note": "boss metadata standard",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2411-+o3YGK/V6nglIEqzfwTXSGguB5Y\"",
+        "age": "591",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:31 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses/Vortex46_ms8tf3cb/leaderboard/standard/1",
+      "file": "btd6__bosses__Vortex46_ms8tf3cb__leaderboard__standard__1.json",
+      "status": 200,
+      "ms": 103,
+      "bytes": 8706,
+      "note": "boss leaderboard standard",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2202-mUUT/bJCRgb+dPGd6fN4ZZTs33Y\"",
+        "age": "590",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:31 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses/Vortex46_ms8tf3cb/metadata/elite",
+      "file": "btd6__bosses__Vortex46_ms8tf3cb__metadata__elite.json",
+      "status": 200,
+      "ms": 104,
+      "bytes": 9230,
+      "note": "boss metadata elite",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"240e-jAGblxh0UP4c/Wt33ISLHRxKs0Y\"",
+        "age": "590",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:32 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses/Vortex46_ms8tf3cb/leaderboard/elite/1",
+      "file": "btd6__bosses__Vortex46_ms8tf3cb__leaderboard__elite__1.json",
+      "status": 200,
+      "ms": 82,
+      "bytes": 8722,
+      "note": "boss leaderboard elite",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2212-3f779EMJn43YN2+fZFyJ3+tK8zw\"",
+        "age": "590",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:32 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses/Vortex47_mu62cmt5/leaderboard/standard/1?page=2",
+      "file": "btd6__bosses__Vortex47_mu62cmt5__leaderboard__standard__1__page__2.json",
+      "status": 200,
+      "ms": 90,
+      "bytes": 8793,
+      "note": "boss lb page 2",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2259-HMtVFIvChHU+mpU0uNgilS+kMtY\"",
+        "age": "590",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:33 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses/Vortex47_mu62cmt5/leaderboard/standard/2",
+      "file": "btd6__bosses__Vortex47_mu62cmt5__leaderboard__standard__2.json",
+      "status": 200,
+      "ms": 79,
+      "bytes": 8735,
+      "note": "teamSize 2 (docs claim only 1 works)",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"221f-8afkqyQGkf2mPtMOIeUd6HRaI/k\"",
+        "age": "590",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:33 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses/Vortex47_mu62cmt5/leaderboard/standard/3",
+      "file": "btd6__bosses__Vortex47_mu62cmt5__leaderboard__standard__3.json",
+      "status": 200,
+      "ms": 112,
+      "bytes": 8715,
+      "note": "teamSize 3 (docs claim only 1 works)",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"220b-wGpR96cPDpZlQDlvqxU25buB55g\"",
+        "age": "472",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:34 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses/Vortex47_mu62cmt5/leaderboard/standard/4",
+      "file": "btd6__bosses__Vortex47_mu62cmt5__leaderboard__standard__4.json",
+      "status": 200,
+      "ms": 93,
+      "bytes": 8702,
+      "note": "teamSize 4 (docs claim only 1 works)",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"21fe-9foxjQ5mtbZnMllvnnu+PvKmbaY\"",
+        "age": "472",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:35 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses/Vortex47_mu62cmt5/leaderboard/standard/5",
+      "file": "btd6__bosses__Vortex47_mu62cmt5__leaderboard__standard__5.json",
+      "status": 200,
+      "ms": 98,
+      "bytes": 45,
+      "note": "teamSize 5 probe",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2d-d5sLdHg+b3lNognV2OCVnXmpirA\"",
+        "age": "471",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:35 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses/Vortex47_mu62cmt5/leaderboard/standard/1",
+      "file": "btd6__bosses__Vortex47_mu62cmt5__leaderboard__standard__1.json",
+      "status": 200,
+      "ms": 99,
+      "bytes": 8705,
+      "note": "boss lb p1 (for maxPages)",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2201-fuiG7DefZNvZOHYOZDS2Ip/cLOU\"",
+        "age": "598",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:36 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses/Vortex47_mu62cmt5/leaderboard/standard/1?page=40",
+      "file": "btd6__bosses__Vortex47_mu62cmt5__leaderboard__standard__1__page__40.json",
+      "status": 200,
+      "ms": 93,
+      "bytes": 8749,
+      "note": "last page",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"222d-j2OaYJczBMcd8Gj4gYZyxmwT7wU\"",
+        "age": "472",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:36 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses/Vortex47_mu62cmt5/leaderboard/standard/1?page=41",
+      "file": "btd6__bosses__Vortex47_mu62cmt5__leaderboard__standard__1__page__41.json",
+      "status": 200,
+      "ms": 80,
+      "bytes": 47,
+      "note": "past maxPages",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2f-CBzwUbgrr96YuNlN27f3qX17s0c\"",
+        "age": "471",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:37 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses/Vortex47_mu62cmt5/metadata/hard",
+      "file": "btd6__bosses__Vortex47_mu62cmt5__metadata__hard.json",
+      "status": 200,
+      "ms": 82,
+      "bytes": 51,
+      "note": "invalid difficulty probe",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"33-RjR0NvzMm1uZ2/WiUaPRymaT3iM\"",
+        "age": "593",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:38 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses?id=Vortex47_mu62cmt5",
+      "file": "btd6__bosses__id__Vortex47_mu62cmt5.json",
+      "status": 200,
+      "ms": 86,
+      "bytes": 2375,
+      "note": "undocumented ?id= filter",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"947-3XVAK4a/Pn7LnQsobrSLYsMxV2Y\"",
+        "age": "466",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:38 GMT"
+      }
+    },
+    {
+      "path": "/btd6/races?id=Tough_Candy_ms4ugwkz",
+      "file": "btd6__races__id__Tough_Candy_ms4ugwkz.json",
+      "status": 200,
+      "ms": 1348,
+      "bytes": 885,
+      "note": "undocumented ?id= filter",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"375-ljibgAd6Uc3vogsIVGlqq4FLREI\"",
+        "cf-cache-status": "MISS",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:40 GMT"
+      }
+    },
+    {
+      "path": "/btd6/odyssey?id=muekowzs",
+      "file": "btd6__odyssey__id__muekowzs.json",
+      "status": 200,
+      "ms": 303,
+      "bytes": 1077,
+      "note": "undocumented ?id= filter",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"435-ue217kSrtjCNCspV8GpG7Wqroxg\"",
+        "age": "468",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:41 GMT"
+      }
+    },
+    {
+      "path": "/btd6/ct/muekp4st/tiles",
+      "file": "btd6__ct__muekp4st__tiles.json",
+      "status": 200,
+      "ms": 508,
+      "bytes": 9497,
+      "note": "ct tiles",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2519-S+7m4UdOb3Igd/9eUv2YwFZKmvs\"",
+        "cf-cache-status": "REVALIDATED",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:42 GMT"
+      }
+    },
+    {
+      "path": "/btd6/ct/muekp4st/leaderboard/player",
+      "file": "btd6__ct__muekp4st__leaderboard__player.json",
+      "status": 200,
+      "ms": 390,
+      "bytes": 47,
+      "note": "ct player lb",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2f-CBzwUbgrr96YuNlN27f3qX17s0c\"",
+        "age": "597",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:43 GMT"
+      }
+    },
+    {
+      "path": "/btd6/ct/muekp4st/leaderboard/team",
+      "file": "btd6__ct__muekp4st__leaderboard__team.json",
+      "status": 200,
+      "ms": 213,
+      "bytes": 47,
+      "note": "ct team lb",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2f-CBzwUbgrr96YuNlN27f3qX17s0c\"",
+        "age": "597",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:43 GMT"
+      }
+    },
+    {
+      "path": "/btd6/ct/mtv62zza/tiles",
+      "file": "btd6__ct__mtv62zza__tiles.json",
+      "status": 200,
+      "ms": 335,
+      "bytes": 9476,
+      "note": "ct tiles",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2504-EySnvV1/unLEvQDI5unuJga9sME\"",
+        "cf-cache-status": "REVALIDATED",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:44 GMT"
+      }
+    },
+    {
+      "path": "/btd6/ct/mtv62zza/leaderboard/player",
+      "file": "btd6__ct__mtv62zza__leaderboard__player.json",
+      "status": 200,
+      "ms": 237,
+      "bytes": 3913,
+      "note": "ct player lb",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"f49-aldM34u4T3DtuB3xfhGndQH8kkE\"",
+        "age": "597",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:45 GMT"
+      }
+    },
+    {
+      "path": "/btd6/ct/mtv62zza/leaderboard/team",
+      "file": "btd6__ct__mtv62zza__leaderboard__team.json",
+      "status": 200,
+      "ms": 188,
+      "bytes": 7047,
+      "note": "ct team lb",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"1b87-JYS4Tv/+qlFcBlQR3f99e7uI83k\"",
+        "age": "596",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:46 GMT"
+      }
+    },
+    {
+      "path": "/btd6/ct/mtv62zza/leaderboard/player?page=2",
+      "file": "btd6__ct__mtv62zza__leaderboard__player__page__2.json",
+      "status": 200,
+      "ms": 78,
+      "bytes": 3998,
+      "note": "ct player lb p2",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"f9e-HRiSyKsJNNee0Z/TrOj3/zVEw4s\"",
+        "age": "595",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:46 GMT"
+      }
+    },
+    {
+      "path": "/btd6/ct/mtv62zza/leaderboard/team?page=2",
+      "file": "btd6__ct__mtv62zza__leaderboard__team__page__2.json",
+      "status": 200,
+      "ms": 88,
+      "bytes": 7105,
+      "note": "ct team lb p2",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"1bc1-CtmksdMvLjwqqIyk/LQAtrxutp4\"",
+        "age": "593",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:47 GMT"
+      }
+    },
+    {
+      "path": "/btd6/ct/mtv62zza/leaderboard/group/cafb78d69bd0ffa75208de245c74ef189b4144e0ca53",
+      "file": "btd6__ct__mtv62zza__leaderboard__group__cafb78d69bd0ffa75208de245c74ef189b4144e0ca53.json",
+      "status": 200,
+      "ms": 93,
+      "bytes": 1448,
+      "note": "ct group",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"5a8-RBQ1FKWbrrY2ZQ0RpOytac00WNQ\"",
+        "age": "593",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:48 GMT"
+      }
+    },
+    {
+      "path": "/btd6/guild/9fb9168a8a94f1a449458c4a0a25e522cf021ab59f41df39",
+      "file": "btd6__guild__9fb9168a8a94f1a449458c4a0a25e522cf021ab59f41df39.json",
+      "status": 200,
+      "ms": 79,
+      "bytes": 1840,
+      "note": "guild",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"730-RuI4k4hAef0p7xIuPwqceLQtU5I\"",
+        "age": "592",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:48 GMT"
+      }
+    },
+    {
+      "path": "/btd6/odyssey/muekowzs/easy",
+      "file": "btd6__odyssey__muekowzs__easy.json",
+      "status": 200,
+      "ms": 273,
+      "bytes": 4328,
+      "note": "odyssey easy",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"10e8-YfQ4y8ojP0v54DhsVhw6YGRSr9o\"",
+        "cf-cache-status": "REVALIDATED",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:49 GMT"
+      }
+    },
+    {
+      "path": "/btd6/odyssey/muekowzs/easy/maps",
+      "file": "btd6__odyssey__muekowzs__easy__maps.json",
+      "status": 200,
+      "ms": 97,
+      "bytes": 5855,
+      "note": "odyssey maps easy",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"16df-p6wrNhnIUt91P3M4Vzx667kEaSs\"",
+        "age": "592",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:50 GMT"
+      }
+    },
+    {
+      "path": "/btd6/odyssey/muekowzs/medium",
+      "file": "btd6__odyssey__muekowzs__medium.json",
+      "status": 200,
+      "ms": 81,
+      "bytes": 4335,
+      "note": "odyssey medium",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"10ef-YF1gXkYoMa4ppfdIfI7aKESZiz8\"",
+        "age": "592",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:50 GMT"
+      }
+    },
+    {
+      "path": "/btd6/odyssey/muekowzs/medium/maps",
+      "file": "btd6__odyssey__muekowzs__medium__maps.json",
+      "status": 200,
+      "ms": 84,
+      "bytes": 6841,
+      "note": "odyssey maps medium",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"1ab9-0GcH4xP9Va1vUsQHJhqfd4xU9l4\"",
+        "age": "591",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:51 GMT"
+      }
+    },
+    {
+      "path": "/btd6/odyssey/muekowzs/hard",
+      "file": "btd6__odyssey__muekowzs__hard.json",
+      "status": 200,
+      "ms": 78,
+      "bytes": 3979,
+      "note": "odyssey hard",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"f8b-rvJUR77Rk7p4hkJNjXftD3liLg4\"",
+        "age": "591",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:51 GMT"
+      }
+    },
+    {
+      "path": "/btd6/odyssey/muekowzs/hard/maps",
+      "file": "btd6__odyssey__muekowzs__hard__maps.json",
+      "status": 200,
+      "ms": 104,
+      "bytes": 7811,
+      "note": "odyssey maps hard",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"1e83-Hb3KItF4oC1j6hlhEjiwG9blujg\"",
+        "age": "591",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:52 GMT"
+      }
+    },
+    {
+      "path": "/btd6/challenges/filter/newest",
+      "file": "btd6__challenges__filter__newest.json",
+      "status": 200,
+      "ms": 497,
+      "bytes": 6726,
+      "note": "challenge filter newest",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"1a46-SlzwQ6LRGXxPs8sSq5nOfwp4158\"",
+        "cf-cache-status": "EXPIRED",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:53 GMT"
+      }
+    },
+    {
+      "path": "/btd6/challenges/challenge/ZFVWLVG",
+      "file": "btd6__challenges__challenge__ZFVWLVG.json",
+      "status": 200,
+      "ms": 404,
+      "bytes": 11418,
+      "note": "challenge document",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2c9a-K1VsKrHMBItSDrYE1vAmhnhcKb4\"",
+        "cf-cache-status": "MISS",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:54 GMT"
+      }
+    },
+    {
+      "path": "/btd6/challenges/filter/trending",
+      "file": "btd6__challenges__filter__trending.json",
+      "status": 200,
+      "ms": 106,
+      "bytes": 6678,
+      "note": "challenge filter trending",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"1a16-MPPpflJ+CxLHNvqy9/k4G3G/Q34\"",
+        "age": "1197",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:54 GMT"
+      }
+    },
+    {
+      "path": "/btd6/challenges/challenge/ZFVHOWM",
+      "file": "btd6__challenges__challenge__ZFVHOWM.json",
+      "status": 200,
+      "ms": 91,
+      "bytes": 11425,
+      "note": "challenge document",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2ca1-LkfF9BWlNIObtLF52SWzN/5uE9U\"",
+        "age": "1197",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:55 GMT"
+      }
+    },
+    {
+      "path": "/btd6/challenges/filter/daily",
+      "file": "btd6__challenges__filter__daily.json",
+      "status": 200,
+      "ms": 88,
+      "bytes": 3788,
+      "note": "challenge filter daily",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"ecc-4/zsXQQ0L2lYfRKqWvLzKQfjtlI\"",
+        "age": "591",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:56 GMT"
+      }
+    },
+    {
+      "path": "/btd6/challenges/challenge/rot296620260924",
+      "file": "btd6__challenges__challenge__rot296620260924.json",
+      "status": 200,
+      "ms": 98,
+      "bytes": 9381,
+      "note": "challenge document",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"24a5-CdiPyzZu3aAG5jDTCUMpNZmtKNk\"",
+        "age": "1184",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:56 GMT"
+      }
+    },
+    {
+      "path": "/btd6/challenges/filter/newest?page=2",
+      "file": "btd6__challenges__filter__newest__page__2.json",
+      "status": 200,
+      "ms": 289,
+      "bytes": 6774,
+      "note": "challenge filter page 2",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"1a76-Wr7BruWm3j1EiJeVzJFoC9RbOdU\"",
+        "age": "590",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:57 GMT"
+      }
+    },
+    {
+      "path": "/btd6/challenges/filter/daily?page=2",
+      "file": "btd6__challenges__filter__daily__page__2.json",
+      "status": 200,
+      "ms": 213,
+      "bytes": 546,
+      "note": "filter past the end \u2192 empty list",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"222-4reDl7kGLfnteyqyHvIqeXbQyTw\"",
+        "age": "482",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:58 GMT"
+      }
+    },
+    {
+      "path": "/btd6/maps/filter/newest",
+      "file": "btd6__maps__filter__newest.json",
+      "status": 200,
+      "ms": 215,
+      "bytes": 6282,
+      "note": "map filter newest",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"188a-xnzoQHiKfb0TkH3Ahl6HJ+xDUMc\"",
+        "age": "590",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:58 GMT"
+      }
+    },
+    {
+      "path": "/btd6/maps/map/ZFVWLUD",
+      "file": "btd6__maps__map__ZFVWLUD.json",
+      "status": 200,
+      "ms": 173,
+      "bytes": 1538,
+      "note": "map document",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"602-rW8Tt4nWFLoP65mFUY+Ntwjt0lA\"",
+        "age": "590",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:50:59 GMT"
+      }
+    },
+    {
+      "path": "/btd6/maps/map/ZFVWLUD/preview",
+      "file": null,
+      "status": 200,
+      "ms": 260,
+      "bytes": 44838,
+      "note": "map preview image (undocumented)",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "age": "480",
+        "cf-cache-status": "HIT",
+        "content-type": "image/jpg",
+        "expires": "Thu, 24 Sep 2026 17:51:00 GMT",
+        "last-modified": "Thu, 24 Sep 2026 17:37:59 GMT"
+      }
+    },
+    {
+      "path": "/btd6/maps/filter/trending",
+      "file": "btd6__maps__filter__trending.json",
+      "status": 200,
+      "ms": 159,
+      "bytes": 6314,
+      "note": "map filter trending",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"18aa-86DtZsP9bHDwUGMbCOYyFnVyZB8\"",
+        "age": "591",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:51:00 GMT"
+      }
+    },
+    {
+      "path": "/btd6/maps/map/ZFVWPYR",
+      "file": "btd6__maps__map__ZFVWPYR.json",
+      "status": 200,
+      "ms": 109,
+      "bytes": 1551,
+      "note": "map document",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"60f-+SuHBepHUzVel0FIarw3XETiZ9E\"",
+        "age": "590",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:51:01 GMT"
+      }
+    },
+    {
+      "path": "/btd6/maps/map/ZFVWPYR/preview",
+      "file": null,
+      "status": 200,
+      "ms": 798,
+      "bytes": 43492,
+      "note": "map preview image (undocumented)",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "cf-cache-status": "MISS",
+        "content-type": "image/jpg",
+        "expires": "Thu, 24 Sep 2026 17:51:02 GMT",
+        "last-modified": "Thu, 24 Sep 2026 17:46:02 GMT"
+      }
+    },
+    {
+      "path": "/btd6/maps/filter/mostLiked",
+      "file": "btd6__maps__filter__mostLiked.json",
+      "status": 200,
+      "ms": 320,
+      "bytes": 6329,
+      "note": "map filter mostLiked",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"18b9-Bl1oBt3tAwRyAdxnzFjTSwFp1i4\"",
+        "age": "592",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:51:03 GMT"
+      }
+    },
+    {
+      "path": "/btd6/maps/map/ZMYWROV",
+      "file": "btd6__maps__map__ZMYWROV.json",
+      "status": 200,
+      "ms": 201,
+      "bytes": 1599,
+      "note": "map document",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"63f-5lM8WxTNvVdK9thvKxrbSPGgimc\"",
+        "age": "592",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:51:04 GMT"
+      }
+    },
+    {
+      "path": "/btd6/maps/map/ZMYWROV/preview",
+      "file": null,
+      "status": 200,
+      "ms": 629,
+      "bytes": 40261,
+      "note": "map preview image (undocumented)",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "cf-cache-status": "MISS",
+        "content-type": "image/jpg",
+        "expires": "Thu, 24 Sep 2026 17:51:05 GMT",
+        "last-modified": "Thu, 24 Sep 2026 17:46:05 GMT"
+      }
+    },
+    {
+      "path": "/btd6/maps/filter/newest?page=2",
+      "file": "btd6__maps__filter__newest__page__2.json",
+      "status": 200,
+      "ms": 99,
+      "bytes": 6291,
+      "note": "map filter page 2",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"1893-RBxfOIU7ALkMDUZD+T6nUEW/X0o\"",
+        "age": "593",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:51:06 GMT"
+      }
+    },
+    {
+      "path": "/btd6/users/9ce915df8b92f0ac18138b4e5976e77fca0d19b49b46dd6d",
+      "file": "btd6__users__9ce915df8b92f0ac18138b4e5976e77fca0d19b49b46dd6d.json",
+      "status": 200,
+      "ms": 88,
+      "bytes": 9909,
+      "note": "user profile",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"26b5-KMgVHZiI9dHfFcO5Ib1agBeUQxc\"",
+        "age": "592",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:51:06 GMT"
+      }
+    },
+    {
+      "path": "/btd6/users/9ce942dedd93a8a61e13871f5b7be77ec8054beacc428e31",
+      "file": "btd6__users__9ce942dedd93a8a61e13871f5b7be77ec8054beacc428e31.json",
+      "status": 200,
+      "ms": 88,
+      "bytes": 11121,
+      "note": "user profile",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2b71-7fox3Z6NFYhj/UEGMnz9EuclEcs\"",
+        "age": "592",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:51:07 GMT"
+      }
+    },
+    {
+      "path": "/btd6/users/9cee118ede9eaff71c178d4b0925e27fce041eee9b19de69",
+      "file": "btd6__users__9cee118ede9eaff71c178d4b0925e27fce041eee9b19de69.json",
+      "status": 200,
+      "ms": 92,
+      "bytes": 9313,
+      "note": "user profile",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2461-dg76pj684BH5yS58tu888kPrC4Y\"",
+        "age": "590",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:51:07 GMT"
+      }
+    },
+    {
+      "path": "/btd6/users/9fb6118ddcc2fcf7184add1e0974ee71980d1ebe9617dd6a",
+      "file": "btd6__users__9fb6118ddcc2fcf7184add1e0974ee71980d1ebe9617dd6a.json",
+      "status": 200,
+      "ms": 90,
+      "bytes": 9683,
+      "note": "user profile",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"25d3-pb4oGVAJIYlXcE34XCybIp1L7LI\"",
+        "age": "590",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:51:08 GMT"
+      }
+    },
+    {
+      "path": "/btd6/users/9fb91f89d793afa41f44dc485870e6729f041db9ca12dc3a",
+      "file": "btd6__users__9fb91f89d793afa41f44dc485870e6729f041db9ca12dc3a.json",
+      "status": 200,
+      "ms": 85,
+      "bytes": 9665,
+      "note": "user profile",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"25c1-3D9U6IupC650wt9zwPqOGzwgryg\"",
+        "age": "590",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:51:09 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses/NotABoss_x/metadata/standard",
+      "file": "btd6__bosses__NotABoss_x__metadata__standard.json",
+      "status": 200,
+      "ms": 94,
+      "bytes": 55,
+      "note": "unknown boss",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"37-Gf5eknbLlDPsBJVvVf6DSi9Tw7s\"",
+        "age": "590",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:51:09 GMT"
+      }
+    },
+    {
+      "path": "/btd6/races/NotARace_x/leaderboard",
+      "file": "btd6__races__NotARace_x__leaderboard.json",
+      "status": 200,
+      "ms": 91,
+      "bytes": 55,
+      "note": "unknown race",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"37-Q3r7CHWWbH0Be4/rI5OFITeS1xg\"",
+        "age": "589",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:51:10 GMT"
+      }
+    },
+    {
+      "path": "/btd6/users/notauser",
+      "file": "btd6__users__notauser.json",
+      "status": 200,
+      "ms": 80,
+      "bytes": 76,
+      "note": "unknown user",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"4c-4G5m2tQqFQlhdgQqyJrZXMrfEBc\"",
+        "age": "589",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:51:10 GMT"
+      }
+    },
+    {
+      "path": "/btd6/challenges/challenge/ZZZZZZZ",
+      "file": "btd6__challenges__challenge__ZZZZZZZ.json",
+      "status": 200,
+      "ms": 86,
+      "bytes": 60,
+      "note": "unknown challenge",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"3c-P2D6XuPIJcG/JP+bwqVPMl4p1jU\"",
+        "age": "589",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:51:11 GMT"
+      }
+    },
+    {
+      "path": "/btd6/maps/map/ZZZZZZZ",
+      "file": "btd6__maps__map__ZZZZZZZ.json",
+      "status": 200,
+      "ms": 88,
+      "bytes": 42,
+      "note": "unknown map",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2a-rou+xCw7A09+aDG6FO96HDCKI5I\"",
+        "age": "589",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:51:12 GMT"
+      }
+    },
+    {
+      "path": "/btd6/challenges/filter/bogus",
+      "file": "btd6__challenges__filter__bogus.json",
+      "status": 200,
+      "ms": 88,
+      "bytes": 47,
+      "note": "unknown filter",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"2f-lgBNCbtLyzRdphO8ctwyFEQKZW4\"",
+        "age": "588",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:51:12 GMT"
+      }
+    },
+    {
+      "path": "/btd6/save/notanoak",
+      "file": "btd6__save__notanoak.json",
+      "status": 200,
+      "ms": 89,
+      "bytes": 127,
+      "note": "save without valid OAK",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "etag": "W/\"7f-0xe9Z0vMmko4p1fR8AqnZDHTCnU\"",
+        "age": "588",
+        "cf-cache-status": "HIT",
+        "content-type": "application/json; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:51:13 GMT"
+      }
+    },
+    {
+      "path": "/btd6/doesnotexist",
+      "file": "btd6__doesnotexist.json",
+      "status": 404,
+      "ms": 90,
+      "bytes": 156,
+      "note": "unknown route",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "age": "588",
+        "cf-cache-status": "HIT",
+        "content-type": "text/html; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:51:13 GMT"
+      }
+    },
+    {
+      "path": "/btd6/bosses?pretty=true",
+      "file": "btd6__bosses__pretty__true.json",
+      "status": 200,
+      "ms": 90,
+      "bytes": 28406,
+      "note": "pretty=true returns HTML, not JSON",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "age": "496",
+        "cf-cache-status": "HIT",
+        "content-type": "text/html; charset=utf-8",
+        "expires": "Thu, 24 Sep 2026 17:51:14 GMT",
+        "last-modified": "Thu, 24 Sep 2026 17:37:58 GMT"
+      }
+    }
+  ]
+}

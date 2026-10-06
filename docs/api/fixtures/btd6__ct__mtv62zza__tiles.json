@@ -1,0 +1,869 @@
+{
+  "error": null,
+  "success": true,
+  "body": {
+    "id": "mtv62zza",
+    "tiles": [
+      {
+        "id": "MRX",
+        "type": "Banner",
+        "gameType": "Boss"
+      },
+      {
+        "id": "DAG",
+        "type": "Relic - ManaBulwark",
+        "gameType": "Boss"
+      },
+      {
+        "id": "DAF",
+        "type": "Relic - Techbot",
+        "gameType": "Boss"
+      },
+      {
+        "id": "DAE",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "DAD",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "DAC",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "DAB",
+        "type": "TeamFirstCapture",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "DAA",
+        "type": "TeamStart",
+        "gameType": "TeamStart"
+      },
+      {
+        "id": "AAG",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "AAF",
+        "type": "Banner",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "AAE",
+        "type": "Relic - AlchemistTouch",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "AAD",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "AAC",
+        "type": "Banner",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "AAB",
+        "type": "TeamFirstCapture",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "AAA",
+        "type": "TeamStart",
+        "gameType": "TeamStart"
+      },
+      {
+        "id": "CAG",
+        "type": "Banner",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "CBF",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "DCE",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "DCD",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "DCC",
+        "type": "Banner",
+        "gameType": "Boss"
+      },
+      {
+        "id": "DCB",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "DCA",
+        "type": "TeamFirstCapture",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "BAG",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "ABF",
+        "type": "Relic - CamoFlogged",
+        "gameType": "Race"
+      },
+      {
+        "id": "ABE",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "ABD",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "ABC",
+        "type": "Banner",
+        "gameType": "Race"
+      },
+      {
+        "id": "ABB",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "ABA",
+        "type": "TeamFirstCapture",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "BBF",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "CAF",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "CBE",
+        "type": "Banner",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "CDD",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "DEC",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "DEB",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "DEA",
+        "type": "Relic - HeroBoost",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "BAF",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "BCE",
+        "type": "Banner",
+        "gameType": "Boss"
+      },
+      {
+        "id": "ADD",
+        "type": "Relic - RoundingUp",
+        "gameType": "Boss"
+      },
+      {
+        "id": "ADC",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "ADB",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "ADA",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "CCE",
+        "type": "Banner",
+        "gameType": "Race"
+      },
+      {
+        "id": "CAE",
+        "type": "Banner",
+        "gameType": "Race"
+      },
+      {
+        "id": "CBD",
+        "type": "Relic - BrokenHeart",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "CDC",
+        "type": "Relic - Fortifried",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "CFB",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "DGA",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "BBE",
+        "type": "Banner",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "BAE",
+        "type": "Banner",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "BCD",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "BEC",
+        "type": "Banner",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "AFB",
+        "type": "Relic - RoadSpikes",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "AFA",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "BDD",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "CCD",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "CAD",
+        "type": "Relic - RoyalTreatment",
+        "gameType": "Boss"
+      },
+      {
+        "id": "CBC",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "CDB",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "CFA",
+        "type": "Banner",
+        "gameType": "Race"
+      },
+      {
+        "id": "BBD",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "BAD",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "BCC",
+        "type": "Relic - GoingTheDistance",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "BEB",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "BGA",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "CEC",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "CCC",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "CAC",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "CBB",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "CDA",
+        "type": "Relic - AirAndSea",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "BDC",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "BBC",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "BAC",
+        "type": "Relic - Thrive",
+        "gameType": "Race"
+      },
+      {
+        "id": "BCB",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "BEA",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "BFB",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "CEB",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "CCB",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "CAB",
+        "type": "TeamFirstCapture",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "CBA",
+        "type": "TeamFirstCapture",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "BDB",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "BBB",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "BAB",
+        "type": "TeamFirstCapture",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "BCA",
+        "type": "TeamFirstCapture",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "CGA",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "CEA",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "CCA",
+        "type": "TeamFirstCapture",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "CAA",
+        "type": "TeamStart",
+        "gameType": "TeamStart"
+      },
+      {
+        "id": "BFA",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "BDA",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "BBA",
+        "type": "TeamFirstCapture",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "BAA",
+        "type": "TeamStart",
+        "gameType": "TeamStart"
+      },
+      {
+        "id": "EAG",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "DBF",
+        "type": "Banner",
+        "gameType": "Boss"
+      },
+      {
+        "id": "DBE",
+        "type": "Banner",
+        "gameType": "Boss"
+      },
+      {
+        "id": "DBD",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "DBC",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "DBB",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "DBA",
+        "type": "TeamFirstCapture",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "FAH",
+        "type": "Banner",
+        "gameType": "Race"
+      },
+      {
+        "id": "FBF",
+        "type": "Banner",
+        "gameType": "Race"
+      },
+      {
+        "id": "ACE",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "ACD",
+        "type": "Relic - MoabMine",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "ACC",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "ACB",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "ACA",
+        "type": "TeamFirstCapture",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "EBF",
+        "type": "Relic - MoabClash",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "EAF",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "ECE",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "DDD",
+        "type": "Relic - CamoTrap",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "DDC",
+        "type": "Banner",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "DDB",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "DDA",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "FAF",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "FBE",
+        "type": "Relic - ElDorado",
+        "gameType": "Boss"
+      },
+      {
+        "id": "FDD",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "AEC",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "AEB",
+        "type": "Relic - GlueTrap",
+        "gameType": "Race"
+      },
+      {
+        "id": "AEA",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "EBE",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "EAE",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "ECD",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "EEC",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "DFB",
+        "type": "Banner",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "DFA",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "FCE",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "FAE",
+        "type": "Relic - Heartless",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "FBD",
+        "type": "Relic - HardBaked",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "FDC",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "FFB",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "AGA",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "EDD",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "EBD",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "EAD",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "ECC",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "EEB",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "EGA",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "FCD",
+        "type": "Relic - Restoration",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "FAD",
+        "type": "Relic - Abilitized",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "FBC",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "FDB",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "FFA",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "EDC",
+        "type": "Relic - DurableShots",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "EBC",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "EAC",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "ECB",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "EEA",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "FEC",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "FCC",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "FAC",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "FBB",
+        "type": "Banner",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "FDA",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "EFB",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "EDB",
+        "type": "Relic - SuperMonkeyStorm",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "EBB",
+        "type": "Regular",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "EAB",
+        "type": "TeamFirstCapture",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "ECA",
+        "type": "TeamFirstCapture",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "FEB",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "FCB",
+        "type": "Regular",
+        "gameType": "Race"
+      },
+      {
+        "id": "FAB",
+        "type": "TeamFirstCapture",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "FBA",
+        "type": "TeamFirstCapture",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "EFA",
+        "type": "Banner",
+        "gameType": "Race"
+      },
+      {
+        "id": "EDA",
+        "type": "Banner",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "EBA",
+        "type": "TeamFirstCapture",
+        "gameType": "LeastCash"
+      },
+      {
+        "id": "EAA",
+        "type": "TeamStart",
+        "gameType": "TeamStart"
+      },
+      {
+        "id": "FGA",
+        "type": "Banner",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "FEA",
+        "type": "Regular",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "FCA",
+        "type": "TeamFirstCapture",
+        "gameType": "LeastTiers"
+      },
+      {
+        "id": "FAA",
+        "type": "TeamStart",
+        "gameType": "TeamStart"
+      }
+    ]
+  },
+  "model": {
+    "name": "_btd6cttile",
+    "parameters": {
+      "id": {
+        "description": "The CT ID",
+        "type": "string"
+      },
+      "tiles": {
+        "description": "A list of CT tiles",
+        "type": "array"
+      }
+    }
+  },
+  "next": null,
+  "prev": null
+}

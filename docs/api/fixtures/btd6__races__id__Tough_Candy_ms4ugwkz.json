@@ -1,0 +1,50 @@
+{
+  "error": null,
+  "success": true,
+  "body": [
+    {
+      "id": "Tough_Candy_ms4ugwkz",
+      "name": "Tough Candy",
+      "start": 1785463200000,
+      "end": 1785812400000,
+      "totalScores": 33010,
+      "leaderboard": "https://data.ninjakiwi.com/btd6/races/Tough_Candy_ms4ugwkz/leaderboard",
+      "metadata": "https://data.ninjakiwi.com/btd6/races/Tough_Candy_ms4ugwkz/metadata"
+    }
+  ],
+  "model": {
+    "name": "_btd6race",
+    "parameters": {
+      "id": {
+        "description": "Race Event ID",
+        "type": "string"
+      },
+      "name": {
+        "description": "Race Name",
+        "type": "string"
+      },
+      "start": {
+        "description": "Race start time in unix epoch milliseconds",
+        "type": "number"
+      },
+      "end": {
+        "description": "Race end time in unix epoch milliseconds",
+        "type": "number"
+      },
+      "totalScores": {
+        "description": "The total number of scores submitted",
+        "type": "number"
+      },
+      "leaderboard": {
+        "description": "URL to leaderboard data",
+        "type": "string"
+      },
+      "metadata": {
+        "description": "URL to full Race metadata",
+        "type": "string"
+      }
+    }
+  },
+  "next": null,
+  "prev": null
+}

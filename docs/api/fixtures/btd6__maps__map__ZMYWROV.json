@@ -1,0 +1,88 @@
+{
+  "error": null,
+  "success": true,
+  "body": {
+    "name": "Monkey Meadow but at a different angle",
+    "createdAt": 1696931421787,
+    "id": "ZMYWROV",
+    "creator": "https://data.ninjakiwi.com/btd6/users/9cee118ede9eaff71c178d4b0925e27fce041eee9b19de69",
+    "gameVersion": "39.0",
+    "map": "CustomMap",
+    "mapURL": "https://data.ninjakiwi.com/btd6/maps/map/ZMYWROV/preview",
+    "plays": 541383,
+    "wins": 116119,
+    "restarts": 33785,
+    "losses": 27234,
+    "upvotes": 70585,
+    "playsUnique": 466909,
+    "winsUnique": 113484,
+    "lossesUnique": 6673
+  },
+  "model": {
+    "name": "_btd6mapdocument",
+    "parameters": {
+      "name": {
+        "description": "Map Name",
+        "type": "string"
+      },
+      "createdAt": {
+        "description": "Map creation time in unix epoch milliseconds",
+        "type": "number"
+      },
+      "id": {
+        "description": "Unique Map ID",
+        "type": "string"
+      },
+      "creator": {
+        "description": "URL to the creators profile",
+        "type": "string"
+      },
+      "gameVersion": {
+        "description": "Version of the game this map was created in",
+        "type": "string"
+      },
+      "map": {
+        "description": "Map Name",
+        "type": "string"
+      },
+      "mapURL": {
+        "description": "URL to the map icon",
+        "type": "assetURL"
+      },
+      "plays": {
+        "description": "Total number of attempts",
+        "type": "number"
+      },
+      "wins": {
+        "description": "Total number of wins",
+        "type": "number"
+      },
+      "losses": {
+        "description": "Total number of losses",
+        "type": "number"
+      },
+      "upvotes": {
+        "description": "Total number of upvotes",
+        "type": "number"
+      },
+      "playsUnique": {
+        "description": "Total number of unique attempts",
+        "type": "number"
+      },
+      "restarts": {
+        "description": "Total number of restarts",
+        "type": "number"
+      },
+      "winsUnique": {
+        "description": "Total number of unique player wins",
+        "type": "number"
+      },
+      "lossesUnique": {
+        "description": "Total number of unique player losses",
+        "type": "number"
+      }
+    }
+  },
+  "next": null,
+  "prev": null
+}

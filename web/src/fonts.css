@@ -1,0 +1,29 @@
+/* Self-hosted, latin subset only. Vite hashes the files into /assets (immutable, cached by the service worker);
+   vite.config.ts preloads both from index.html. Other scripts (player names) fall back to system fonts. */
+@font-face {
+  font-family: "Big Shoulders";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("../../node_modules/@fontsource-variable/big-shoulders-display/files/big-shoulders-display-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("../../node_modules/@fontsource-variable/archivo/files/archivo-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* Arrows and triangles (→ ▲ ▼ ← ≈) are not in the latin subsets above. Name a system face for just those code
+   points, declared at weight 400 so bold text gets a synthesised bold instead of a hairline; the font stacks in
+   styles.css (--f-display, --f-body) list it after the web fonts. One local() name only: each extra name is a system-font lookup on
+   first use, and seven of them cost ~23 ms on the round visualizer's first paint. Elsewhere the stack falls through. */
+@font-face {
+  font-family: "Glyphs";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Segoe UI Symbol");
+  unicode-range: U+2190, U+2192, U+25B2, U+25BC, U+2248;
+}

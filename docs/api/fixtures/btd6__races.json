@@ -1,0 +1,122 @@
+{
+  "error": null,
+  "success": true,
+  "body": [
+    {
+      "id": "Party_Madness_muekt6x6",
+      "name": "Party Madness",
+      "start": 1790301600000,
+      "end": 1790650800000,
+      "totalScores": 0,
+      "leaderboard": "https://data.ninjakiwi.com/btd6/races/Party_Madness_muekt6x6/leaderboard",
+      "metadata": "https://data.ninjakiwi.com/btd6/races/Party_Madness_muekt6x6/metadata"
+    },
+    {
+      "id": "Gun_Game_mu19oabt",
+      "name": "Gun Game",
+      "start": 1789696800000,
+      "end": 1790046000000,
+      "totalScores": 24010,
+      "leaderboard": "https://data.ninjakiwi.com/btd6/races/Gun_Game_mu19oabt/leaderboard",
+      "metadata": "https://data.ninjakiwi.com/btd6/races/Gun_Game_mu19oabt/metadata"
+    },
+    {
+      "id": "Aerial_Support_mtra25qx",
+      "name": "Aerial Support",
+      "start": 1789092000000,
+      "end": 1789441200000,
+      "totalScores": 13662,
+      "leaderboard": "https://data.ninjakiwi.com/btd6/races/Aerial_Support_mtra25qx/leaderboard",
+      "metadata": "https://data.ninjakiwi.com/btd6/races/Aerial_Support_mtra25qx/metadata"
+    },
+    {
+      "id": "Regene-race_mtjapaiu",
+      "name": "Regene-race ",
+      "start": 1788487200000,
+      "end": 1788836400000,
+      "totalScores": 6251,
+      "leaderboard": "https://data.ninjakiwi.com/btd6/races/Regene-race_mtjapaiu/leaderboard",
+      "metadata": "https://data.ninjakiwi.com/btd6/races/Regene-race_mtjapaiu/metadata"
+    },
+    {
+      "id": "Adoras_Temple_Race_mt7bs7il",
+      "name": "Adora's Temple Race",
+      "start": 1787882400000,
+      "end": 1788231600000,
+      "totalScores": 11515,
+      "leaderboard": "https://data.ninjakiwi.com/btd6/races/Adoras_Temple_Race_mt7bs7il/leaderboard",
+      "metadata": "https://data.ninjakiwi.com/btd6/races/Adoras_Temple_Race_mt7bs7il/metadata"
+    },
+    {
+      "id": "Three_Mines_Back_Around_msxclkeg",
+      "name": "Three Mines Back Around",
+      "start": 1787277600000,
+      "end": 1787626800000,
+      "totalScores": 36851,
+      "leaderboard": "https://data.ninjakiwi.com/btd6/races/Three_Mines_Back_Around_msxclkeg/leaderboard",
+      "metadata": "https://data.ninjakiwi.com/btd6/races/Three_Mines_Back_Around_msxclkeg/metadata"
+    },
+    {
+      "id": "Cubistic_Dreams_msn8pk0x",
+      "name": "Cubistic Dreams",
+      "start": 1786672800000,
+      "end": 1787022000000,
+      "totalScores": 33663,
+      "leaderboard": "https://data.ninjakiwi.com/btd6/races/Cubistic_Dreams_msn8pk0x/leaderboard",
+      "metadata": "https://data.ninjakiwi.com/btd6/races/Cubistic_Dreams_msn8pk0x/metadata"
+    },
+    {
+      "id": "Two_Pieces_mse433cc",
+      "name": "Two Pieces",
+      "start": 1786068000000,
+      "end": 1786417200000,
+      "totalScores": 30358,
+      "leaderboard": "https://data.ninjakiwi.com/btd6/races/Two_Pieces_mse433cc/leaderboard",
+      "metadata": "https://data.ninjakiwi.com/btd6/races/Two_Pieces_mse433cc/metadata"
+    },
+    {
+      "id": "Tough_Candy_ms4ugwkz",
+      "name": "Tough Candy",
+      "start": 1785463200000,
+      "end": 1785812400000,
+      "totalScores": 33010,
+      "leaderboard": "https://data.ninjakiwi.com/btd6/races/Tough_Candy_ms4ugwkz/leaderboard",
+      "metadata": "https://data.ninjakiwi.com/btd6/races/Tough_Candy_ms4ugwkz/metadata"
+    }
+  ],
+  "model": {
+    "name": "_btd6race",
+    "parameters": {
+      "id": {
+        "description": "Race Event ID",
+        "type": "string"
+      },
+      "name": {
+        "description": "Race Name",
+        "type": "string"
+      },
+      "start": {
+        "description": "Race start time in unix epoch milliseconds",
+        "type": "number"
+      },
+      "end": {
+        "description": "Race end time in unix epoch milliseconds",
+        "type": "number"
+      },
+      "totalScores": {
+        "description": "The total number of scores submitted",
+        "type": "number"
+      },
+      "leaderboard": {
+        "description": "URL to leaderboard data",
+        "type": "string"
+      },
+      "metadata": {
+        "description": "URL to full Race metadata",
+        "type": "string"
+      }
+    }
+  },
+  "next": null,
+  "prev": null
+}

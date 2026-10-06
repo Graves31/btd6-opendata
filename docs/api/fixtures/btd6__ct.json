@@ -1,0 +1,125 @@
+{
+  "error": null,
+  "success": true,
+  "body": [
+    {
+      "id": "muekp4st",
+      "start": 1790719200000,
+      "end": 1791324000000,
+      "totalScores_player": 0,
+      "totalScores_team": 0,
+      "tiles": "https://data.ninjakiwi.com/btd6/ct/muekp4st/tiles",
+      "leaderboard_player": "https://data.ninjakiwi.com/btd6/ct/muekp4st/leaderboard/player",
+      "leaderboard_team": "https://data.ninjakiwi.com/btd6/ct/muekp4st/leaderboard/team"
+    },
+    {
+      "id": "mtv62zza",
+      "start": 1789509600000,
+      "end": 1790114400000,
+      "totalScores_player": 13546,
+      "totalScores_team": 4780,
+      "tiles": "https://data.ninjakiwi.com/btd6/ct/mtv62zza/tiles",
+      "leaderboard_player": "https://data.ninjakiwi.com/btd6/ct/mtv62zza/leaderboard/player",
+      "leaderboard_team": "https://data.ninjakiwi.com/btd6/ct/mtv62zza/leaderboard/team"
+    },
+    {
+      "id": "mtb64y9f",
+      "start": 1788300000000,
+      "end": 1788904800000,
+      "totalScores_player": 12166,
+      "totalScores_team": 3987,
+      "tiles": "https://data.ninjakiwi.com/btd6/ct/mtb64y9f/tiles",
+      "leaderboard_player": "https://data.ninjakiwi.com/btd6/ct/mtb64y9f/leaderboard/player",
+      "leaderboard_team": "https://data.ninjakiwi.com/btd6/ct/mtb64y9f/leaderboard/team"
+    },
+    {
+      "id": "msqks1nd",
+      "start": 1787090400000,
+      "end": 1787695200000,
+      "totalScores_player": 13914,
+      "totalScores_team": 4528,
+      "tiles": "https://data.ninjakiwi.com/btd6/ct/msqks1nd/tiles",
+      "leaderboard_player": "https://data.ninjakiwi.com/btd6/ct/msqks1nd/leaderboard/player",
+      "leaderboard_team": "https://data.ninjakiwi.com/btd6/ct/msqks1nd/leaderboard/team"
+    },
+    {
+      "id": "ms9qsje1",
+      "start": 1785974400000,
+      "end": 1786579200000,
+      "totalScores_player": 11542,
+      "totalScores_team": 3613,
+      "tiles": "https://data.ninjakiwi.com/btd6/ct/ms9qsje1/tiles",
+      "leaderboard_player": "https://data.ninjakiwi.com/btd6/ct/ms9qsje1/leaderboard/player",
+      "leaderboard_team": "https://data.ninjakiwi.com/btd6/ct/ms9qsje1/leaderboard/team"
+    },
+    {
+      "id": "mrmlgm3n",
+      "start": 1784671200000,
+      "end": 1785276000000,
+      "totalScores_player": 13925,
+      "totalScores_team": 4698,
+      "tiles": "https://data.ninjakiwi.com/btd6/ct/mrmlgm3n/tiles",
+      "leaderboard_player": "https://data.ninjakiwi.com/btd6/ct/mrmlgm3n/leaderboard/player",
+      "leaderboard_team": "https://data.ninjakiwi.com/btd6/ct/mrmlgm3n/leaderboard/team"
+    },
+    {
+      "id": "mr1xxae0",
+      "start": 1783461600000,
+      "end": 1784066400000,
+      "totalScores_player": 0,
+      "totalScores_team": 0,
+      "tiles": "https://data.ninjakiwi.com/btd6/ct/mr1xxae0/tiles",
+      "leaderboard_player": "https://data.ninjakiwi.com/btd6/ct/mr1xxae0/leaderboard/player",
+      "leaderboard_team": "https://data.ninjakiwi.com/btd6/ct/mr1xxae0/leaderboard/team"
+    },
+    {
+      "id": "mqid7ieg",
+      "start": 1782252000000,
+      "end": 1782856800000,
+      "totalScores_player": 0,
+      "totalScores_team": 0,
+      "tiles": "https://data.ninjakiwi.com/btd6/ct/mqid7ieg/tiles",
+      "leaderboard_player": "https://data.ninjakiwi.com/btd6/ct/mqid7ieg/leaderboard/player",
+      "leaderboard_team": "https://data.ninjakiwi.com/btd6/ct/mqid7ieg/leaderboard/team"
+    }
+  ],
+  "model": {
+    "name": "_btd6ct",
+    "parameters": {
+      "id": {
+        "description": "CT Event ID",
+        "type": "string"
+      },
+      "start": {
+        "description": "Event start time in unix epoch milliseconds",
+        "type": "number"
+      },
+      "end": {
+        "description": "Event end time in unix epoch milliseconds",
+        "type": "number"
+      },
+      "totalScores_player": {
+        "description": "Total scores in the Player leaderboard",
+        "type": "number"
+      },
+      "totalScores_team": {
+        "description": "Total scores in the Team leaderboard",
+        "type": "number"
+      },
+      "tiles": {
+        "description": "URL to Information about each CT tile",
+        "type": "string"
+      },
+      "leaderboard_player": {
+        "description": "URL to Top Player leaderboard",
+        "type": "string"
+      },
+      "leaderboard_team": {
+        "description": "URL to Top Team leaderboard",
+        "type": "string"
+      }
+    }
+  },
+  "next": null,
+  "prev": null
+}

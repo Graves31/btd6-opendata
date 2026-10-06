@@ -1,0 +1,4 @@
+{
+  "error": "This endpoint requires an OAK id. An invalid oak ID was given or the player does not play this game",
+  "success": false
+}

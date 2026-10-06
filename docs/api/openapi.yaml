@@ -1,0 +1,1265 @@
+openapi: 3.1.0
+info:
+  title: Ninja Kiwi Open Data — BTD6
+  version: "2026-09-24"
+  summary: Local contract for the BTD6 endpoints of data.ninjakiwi.com.
+  description: |
+    Derived from the official endpoint list plus 80+ live captures (docs/api/fixtures, 2026-09-24, game v56.x).
+    Where the official docs and observed behaviour disagree, this file follows observed behaviour
+    and says so in the description. See docs/api/README.md for conventions and the cache policy.
+
+    Every JSON response is HTTP 200 and either a SuccessEnvelope (success: true) or an
+    ErrorEnvelope (success: false). Always branch on `success`, never on the status code.
+
+    Vendor extensions:
+      x-cache-class   cache class from README §6 / src/nk/routes.ts
+      x-known-values  values observed so far for an open-ended string (not an exhaustive enum)
+      x-observed      behaviour confirmed by capture but absent from or contradicting the official docs
+  contact:
+    name: Ninja Kiwi Open Data
+    email: opendata@ninjakiwi.com
+servers:
+  - url: https://data.ninjakiwi.com
+
+tags:
+  - name: races
+  - name: bosses
+  - name: ct
+  - name: odyssey
+  - name: events
+  - name: users
+  - name: challenges
+  - name: maps
+
+paths:
+  # ─────────────────────────────── Races
+  /btd6/races:
+    get:
+      tags: [races]
+      operationId: listRaces
+      summary: A list of all available Race events (recent history + upcoming, newest first)
+      x-cache-class: list
+      parameters:
+        - $ref: "#/components/parameters/idFilter"
+      responses:
+        "200":
+          description: Race list
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/RaceListResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  /btd6/races/{raceID}/leaderboard:
+    get:
+      tags: [races]
+      operationId: getRaceLeaderboard
+      summary: A race leaderboard (50 rows/page, maxPages 20 → top 1000)
+      x-cache-class: leaderboard
+      parameters:
+        - $ref: "#/components/parameters/raceID"
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200":
+          description: Leaderboard page, or `No Scores Available` (upcoming event / page past maxPages)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/RaceLeaderboardResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  /btd6/races/{raceID}/metadata:
+    get:
+      tags: [races]
+      operationId: getRaceMetadata
+      summary: Metadata (ruleset) for a race event
+      x-cache-class: event-doc
+      parameters:
+        - $ref: "#/components/parameters/raceID"
+      responses:
+        "200":
+          description: Race ruleset
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ChallengeDocumentResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  # ─────────────────────────────── Bosses
+  /btd6/bosses:
+    get:
+      tags: [bosses]
+      operationId: listBosses
+      summary: List all available Boss events (recent history + upcoming, newest first)
+      x-cache-class: list
+      parameters:
+        - $ref: "#/components/parameters/idFilter"
+      responses:
+        "200":
+          description: Boss list
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/BossListResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  /btd6/bosses/{bossID}/leaderboard/{type}/{teamSize}:
+    get:
+      tags: [bosses]
+      operationId: getBossLeaderboard
+      summary: A Boss event leaderboard (25 rows/page, maxPages ≤ 40 → top 1000)
+      x-cache-class: leaderboard
+      parameters:
+        - $ref: "#/components/parameters/bossID"
+        - name: type
+          in: path
+          required: true
+          schema: { type: string, enum: [standard, elite] }
+        - name: teamSize
+          in: path
+          required: true
+          description: |
+            Number of players. The official docs say only `1` is supported; observed: 1, 2, 3 and 4 all
+            return leaderboards (co-op boards list every teammate as its own row). 5+ → `Invalid team size`.
+          x-observed: teamSize 2–4 work
+          schema: { type: integer, minimum: 1, maximum: 4 }
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200":
+          description: Leaderboard page, or an error envelope
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/BossLeaderboardResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  /btd6/bosses/{bossID}/metadata/{difficulty}:
+    get:
+      tags: [bosses]
+      operationId: getBossMetadata
+      summary: Boss event ruleset for one difficulty
+      x-cache-class: event-doc
+      parameters:
+        - $ref: "#/components/parameters/bossID"
+        - name: difficulty
+          in: path
+          required: true
+          schema: { type: string, enum: [standard, elite] }
+      responses:
+        "200":
+          description: Boss ruleset
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ChallengeDocumentResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  # ─────────────────────────────── Users & guilds
+  /btd6/users/{userID}:
+    get:
+      tags: [users]
+      operationId: getUser
+      summary: Load information about a BTD6 player
+      x-cache-class: profile
+      description: |
+        `userID` may be the 48-hex encrypted ID found in `profile`/`creator` links, or a player's OAK.
+        Our proxy accepts only the 48-hex form (OAK requests are `private` and go browser → NK directly).
+      parameters:
+        - name: userID
+          in: path
+          required: true
+          schema: { type: string }
+          examples:
+            encrypted: { value: 9fb6118ddcc2fcf7184add1e0974ee71980d1ebe9617dd6a }
+      responses:
+        "200":
+          description: Public profile
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/UserProfileResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  /btd6/guild/{guildID}:
+    get:
+      tags: [users]
+      operationId: getGuild
+      summary: Load information about a BTD6 Team (guild)
+      x-cache-class: profile
+      parameters:
+        - name: guildID
+          in: path
+          required: true
+          schema: { type: string, pattern: "^[0-9a-f]{48}$" }
+      responses:
+        "200":
+          description: Team profile
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GuildResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  /btd6/save/{oakID}:
+    get:
+      tags: [users]
+      operationId: getSave
+      summary: Detailed player progress. Requires the player's OAK token.
+      x-cache-class: private
+      description: |
+        PRIVATE. Never proxy, log or cache server-side; call from the browser only.
+        Schema below is transcribed from the official docs — no live sample has been captured.
+      parameters:
+        - name: oakID
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Save data, or the OAK error envelope
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/UserSaveResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  # ─────────────────────────────── Challenges
+  /btd6/challenges:
+    get:
+      tags: [challenges]
+      operationId: listChallengeFilters
+      summary: List all available challenge filters
+      x-cache-class: static
+      responses:
+        "200":
+          description: Filter list
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ChallengeFilterListResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  /btd6/challenges/filter/{challengeFilter}:
+    get:
+      tags: [challenges]
+      operationId: listChallenges
+      summary: List challenges for a filter (25/page, no maxPages; past the end → empty list)
+      x-cache-class: feed
+      parameters:
+        - name: challengeFilter
+          in: path
+          required: true
+          schema: { type: string, enum: [newest, trending, daily] }
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200":
+          description: Challenge summaries
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ChallengeListResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  /btd6/challenges/challenge/{challengeID}:
+    get:
+      tags: [challenges]
+      operationId: getChallenge
+      summary: Get a specific challenge (player-made or daily)
+      x-cache-class: ugc-doc
+      parameters:
+        - name: challengeID
+          in: path
+          required: true
+          schema: { type: string }
+          examples:
+            player: { value: ZFVWLUS }
+            daily: { value: rot296620260924 }
+      responses:
+        "200":
+          description: Challenge document
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ChallengeDocumentResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  # ─────────────────────────────── Contested Territory
+  /btd6/ct:
+    get:
+      tags: [ct]
+      operationId: listCT
+      summary: Current, upcoming and recent CT events (newest first)
+      x-cache-class: list
+      responses:
+        "200":
+          description: CT list
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/CTListResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  /btd6/ct/{ctID}/tiles:
+    get:
+      tags: [ct]
+      operationId: getCTTiles
+      summary: Tiles of a CT event
+      x-cache-class: event-doc
+      parameters:
+        - $ref: "#/components/parameters/ctID"
+      responses:
+        "200":
+          description: Tile list
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/CTTilesResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  /btd6/ct/{ctID}/leaderboard/player:
+    get:
+      tags: [ct]
+      operationId: getCTPlayerLeaderboard
+      summary: Top player leaderboard (25/page, maxPages 40)
+      x-cache-class: leaderboard
+      parameters:
+        - $ref: "#/components/parameters/ctID"
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200":
+          description: Leaderboard page
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/CTPlayerLeaderboardResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  /btd6/ct/{ctID}/leaderboard/team:
+    get:
+      tags: [ct]
+      operationId: getCTTeamLeaderboard
+      summary: Top team leaderboard (25/page, maxPages 40)
+      x-cache-class: leaderboard
+      parameters:
+        - $ref: "#/components/parameters/ctID"
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200":
+          description: Leaderboard page
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/CTTeamLeaderboardResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  /btd6/ct/{ctID}/leaderboard/group/{groupID}:
+    get:
+      tags: [ct]
+      operationId: getCTGroupLeaderboard
+      summary: A team's CT group (single page)
+      x-cache-class: leaderboard
+      parameters:
+        - $ref: "#/components/parameters/ctID"
+        - name: groupID
+          in: path
+          required: true
+          schema: { type: string, pattern: "^[0-9a-f]{8,64}$", description: "44 hex during an event; an 8-hex placeholder once NK drops the groups (a few days after the end)" }
+      responses:
+        "200":
+          description: Group leaderboard
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/CTTeamLeaderboardResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  # ─────────────────────────────── Odyssey
+  /btd6/odyssey:
+    get:
+      tags: [odyssey]
+      operationId: listOdysseys
+      summary: Current, upcoming and recent odyssey events (newest first)
+      x-cache-class: list
+      parameters:
+        - $ref: "#/components/parameters/idFilter"
+      responses:
+        "200":
+          description: Odyssey list
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/OdysseyListResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  /btd6/odyssey/{odysseyID}/{difficulty}:
+    get:
+      tags: [odyssey]
+      operationId: getOdysseyMetadata
+      summary: Odyssey settings for one difficulty
+      x-cache-class: event-doc
+      parameters:
+        - $ref: "#/components/parameters/odysseyID"
+        - $ref: "#/components/parameters/odysseyDifficulty"
+      responses:
+        "200":
+          description: Odyssey metadata
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/OdysseyMetadataResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  /btd6/odyssey/{odysseyID}/{difficulty}/maps:
+    get:
+      tags: [odyssey]
+      operationId: getOdysseyMaps
+      summary: The islands (maps) of an odyssey, one ChallengeDocument each
+      x-cache-class: event-doc
+      parameters:
+        - $ref: "#/components/parameters/odysseyID"
+        - $ref: "#/components/parameters/odysseyDifficulty"
+      responses:
+        "200":
+          description: Island rulesets
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ChallengeDocumentListResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  # ─────────────────────────────── Maps (player-made)
+  /btd6/maps:
+    get:
+      tags: [maps]
+      operationId: listMapFilters
+      summary: List all map filters
+      x-cache-class: static
+      responses:
+        "200":
+          description: Filter list
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/MapFilterListResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  /btd6/maps/filter/{mapFilter}:
+    get:
+      tags: [maps]
+      operationId: listMaps
+      summary: List maps for a filter (25/page, no maxPages; past the end → empty list)
+      x-cache-class: feed
+      parameters:
+        - name: mapFilter
+          in: path
+          required: true
+          schema: { type: string, enum: [newest, trending, mostLiked] }
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200":
+          description: Map summaries
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/MapListResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  /btd6/maps/map/{mapID}:
+    get:
+      tags: [maps]
+      operationId: getMap
+      summary: Get a specific player-made map
+      x-cache-class: ugc-doc
+      parameters:
+        - $ref: "#/components/parameters/mapID"
+      responses:
+        "200":
+          description: Map document
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/MapDocumentResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+  /btd6/maps/map/{mapID}/preview:
+    get:
+      tags: [maps]
+      operationId: getMapPreview
+      summary: Map preview image (undocumented; this is what MapDocument.mapURL points to)
+      x-observed: undocumented endpoint
+      x-cache-class: image
+      parameters:
+        - $ref: "#/components/parameters/mapID"
+      responses:
+        "200":
+          description: "JPEG preview (40–47 KB observed). Served as `Content-Type: image/jpg`."
+          content:
+            image/jpg:
+              schema: { type: string, format: binary }
+
+  # ─────────────────────────────── Events
+  /btd6/events:
+    get:
+      tags: [events]
+      operationId: listEvents
+      summary: List in-game events (all types, including ones without their own endpoint)
+      x-cache-class: list
+      responses:
+        "200":
+          description: Event list
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/EventListResponse"
+                  - $ref: "#/components/schemas/ErrorEnvelope"
+
+components:
+  parameters:
+    page:
+      name: page
+      in: query
+      required: false
+      description: |
+        1-based page. Omit for page 1. `page=0` returns page 1 but with `next=?page=1` (normalise to omitted).
+        Leaderboards past `maxPages` → `No Scores Available`; filter lists past the end → empty `body`.
+      schema: { type: integer, minimum: 1 }
+    idFilter:
+      name: id
+      in: query
+      required: false
+      description: Undocumented. Restricts the list to the event with this ID (1-item list). Used by `/btd6/events` `url`.
+      x-observed: works on /btd6/races, /btd6/bosses, /btd6/odyssey
+      schema: { type: string }
+    raceID:
+      name: raceID
+      in: path
+      required: true
+      schema: { type: string, pattern: "^[A-Za-z0-9_-]{4,64}$", description: "Validated by shape only. Seen: Gun_Game_mu19oabt, Regene-race_mtjapaiu" }
+      example: Gun_Game_mu19oabt
+    bossID:
+      name: bossID
+      in: path
+      required: true
+      schema: { type: string, pattern: "^[A-Za-z0-9_-]{4,64}$", description: "Validated by shape only. Seen: Vortex47_mu62cmt5 and bare msi6n2qi (Dreadbloon #37)" }
+      example: Vortex47_mu62cmt5
+    ctID:
+      name: ctID
+      in: path
+      required: true
+      schema: { type: string, pattern: "^[A-Za-z0-9_-]{4,64}$" }
+      example: mtv62zza
+    odysseyID:
+      name: odysseyID
+      in: path
+      required: true
+      schema: { type: string, pattern: "^[A-Za-z0-9_-]{4,64}$" }
+      example: muekowzs
+    odysseyDifficulty:
+      name: difficulty
+      in: path
+      required: true
+      schema: { type: string, enum: [easy, medium, hard] }
+    mapID:
+      name: mapID
+      in: path
+      required: true
+      schema: { type: string, pattern: "^[A-Z0-9]{7}$" }
+      example: ZMYWROV
+
+  schemas:
+    # ───────────── primitives
+    EpochMs:
+      type: integer
+      description: Unix epoch milliseconds
+    NKUrl:
+      type: string
+      description: Absolute URL on https://data.ninjakiwi.com
+      pattern: "^https://data\\.ninjakiwi\\.com/btd6/"
+    AssetUrl:
+      type: string
+      description: Content-addressed, immutable asset URL (static-api.nkstatic.com) — or, for custom maps, the /preview endpoint
+      pattern: "^https://"
+    IntMap:
+      type: object
+      description: Map with dynamic keys (tower/hero/ability/medal names) → integer. Keys grow as NK adds content.
+      additionalProperties: { type: integer }
+
+    # ───────────── envelopes
+    ModelDoc:
+      type: object
+      description: NK's self-describing body schema. Constant per endpoint; strip it when caching (~19% of bytes).
+      properties:
+        name: { type: string }
+        parameters:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              description: { type: string }
+              type: { type: string }
+              default: {}
+      required: [name, parameters]
+    Envelope:
+      type: object
+      properties:
+        success: { const: true }
+        error: { type: "null" }
+        body: {}
+        next: { type: [string, "null"], description: "Absolute URL of the next page, or null" }
+        prev: { type: [string, "null"], description: "Absolute URL of the previous page, or null" }
+        maxPages: { type: integer, description: Only present on leaderboards }
+        model: { $ref: "#/components/schemas/ModelDoc" }
+      required: [success, error, body, next, prev, model]
+      additionalProperties: false
+    ErrorEnvelope:
+      type: object
+      description: Returned with HTTP 200. See README §2 for the exact error strings.
+      properties:
+        success: { const: false }
+        error:
+          type: string
+          x-known-values:
+            - No Boss with that ID exists
+            - No Race with that ID exists
+            - Invalid boss difficulty
+            - Invalid team size
+            - No Scores Available
+            - Invalid user ID / Player Does not play this game
+            - No challenge with that ID exists
+            - Invalid map ID
+            - Invalid filter type
+            - This endpoint requires an OAK id. An invalid oak ID was given or the player does not play this game
+      required: [success, error]
+      additionalProperties: false
+
+    # ───────────── races
+    Race:
+      type: object
+      additionalProperties: false
+      required: [id, name, start, end, totalScores, leaderboard, metadata]
+      properties:
+        id: { type: string, description: Race Event ID }
+        name: { type: string, description: Race Name }
+        start: { $ref: "#/components/schemas/EpochMs" }
+        end: { $ref: "#/components/schemas/EpochMs" }
+        totalScores: { type: integer, description: Total number of scores submitted (0 for upcoming) }
+        leaderboard: { $ref: "#/components/schemas/NKUrl" }
+        metadata: { $ref: "#/components/schemas/NKUrl" }
+    ScorePart:
+      type: object
+      additionalProperties: false
+      required: [type, score, name]
+      properties:
+        type: { type: string, enum: [number, time], description: "`time` = milliseconds" }
+        score: { type: integer }
+        name:
+          type: string
+          x-known-values: [Boss Tier, Least Cash, Least Tiers, Game Time, Time after event start]
+    RaceLeaderboardEntry:
+      type: object
+      additionalProperties: false
+      required: [displayName, score, scoreParts, submissionTime, profile]
+      properties:
+        displayName: { type: string }
+        score: { type: integer, description: Race time in milliseconds (lower is better) }
+        scoreParts: { type: array, items: { $ref: "#/components/schemas/ScorePart" } }
+        submissionTime: { type: integer, description: "Epoch ms, or -1 when unavailable (always -1 so far)" }
+        profile: { $ref: "#/components/schemas/NKUrl" }
+
+    # ───────────── bosses
+    Boss:
+      type: object
+      additionalProperties: false
+      required: [id, name, bossType, bossTypeURL, start, end, totalScores_standard, totalScores_elite,
+                 scoringType, normalScoringType, eliteScoringType,
+                 leaderboard_standard_players_1, leaderboard_elite_players_1, metadataStandard, metadataElite]
+      properties:
+        id: { type: string, description: Boss Event ID }
+        name: { type: string, description: "Boss name + event number, e.g. Vortex47" }
+        bossType:
+          type: string
+          x-known-values: [bloonarius, lych, vortex, dreadbloon, phayze, blastapopoulos, diamondback]
+        bossTypeURL: { $ref: "#/components/schemas/AssetUrl" }
+        start: { $ref: "#/components/schemas/EpochMs" }
+        end: { $ref: "#/components/schemas/EpochMs" }
+        totalScores_standard: { type: integer }
+        totalScores_elite: { type: integer }
+        scoringType: { $ref: "#/components/schemas/ScoringType", deprecated: true }
+        normalScoringType: { $ref: "#/components/schemas/ScoringType" }
+        eliteScoringType: { $ref: "#/components/schemas/ScoringType" }
+        leaderboard_standard_players_1: { $ref: "#/components/schemas/NKUrl" }
+        leaderboard_elite_players_1: { $ref: "#/components/schemas/NKUrl" }
+        metadataStandard: { $ref: "#/components/schemas/NKUrl" }
+        metadataElite: { $ref: "#/components/schemas/NKUrl" }
+    ScoringType:
+      type: string
+      x-known-values: [LeastCash, GameTime, LeastTiers]
+    BossLeaderboardEntry:
+      type: object
+      additionalProperties: false
+      required: [displayName, score, scoreParts, submissionTime, profile]
+      properties:
+        displayName: { type: string }
+        score:
+          type: integer
+          description: |
+            Primary ranking value. The docs call it "milliseconds (lower is better)", but for LeastCash
+            events it was the Boss Tier (5). Read `scoreParts` for the actual metrics.
+        scoreParts: { type: array, items: { $ref: "#/components/schemas/ScorePart" } }
+        submissionTime: { type: integer, description: "Epoch ms, or -1 (always -1 so far)" }
+        profile: { $ref: "#/components/schemas/NKUrl" }
+
+    # ───────────── challenge document (race/boss metadata, challenges, odyssey islands)
+    TowerRestriction:
+      type: object
+      additionalProperties: false
+      required: [tower, max, path1NumBlockedTiers, path2NumBlockedTiers, path3NumBlockedTiers, isHero]
+      properties:
+        tower:
+          type: string
+          description: Internal tower/hero ID; `ChosenPrimaryHero` = the player's selected hero
+          x-known-values: [DartMonkey, BoomerangMonkey, BombShooter, TackShooter, IceMonkey, GlueGunner, Desperado,
+                           SniperMonkey, MonkeySub, MonkeyBuccaneer, MonkeyAce, HeliPilot, MortarMonkey, DartlingGunner,
+                           WizardMonkey, SuperMonkey, NinjaMonkey, Alchemist, Druid, Mermonkey, Skywarden,
+                           BananaFarm, SpikeFactory, MonkeyVillage, EngineerMonkey, BeastHandler,
+                           ChosenPrimaryHero, Quincy, Gwendolin, StrikerJones, ObynGreenfoot, CaptainChurchill,
+                           Benjamin, Ezili, PatFusty, Adora, AdmiralBrickell, Etienne, Sauda, Psi, Geraldo,
+                           Corvus, Rosalia, Silas, DanDMonke]
+        max: { type: integer, description: "0 = banned, -1 = unlimited, N = at most N" }
+        path1NumBlockedTiers: { type: integer, description: "Inferred: number of top tiers blocked (0 none … 5); -1 observed, meaning unverified" }
+        path2NumBlockedTiers: { type: integer }
+        path3NumBlockedTiers: { type: integer }
+        isHero: { type: boolean }
+        restrictParagon: { type: boolean, description: Present on player challenges only }
+    PowerRestriction:
+      type: object
+      additionalProperties: false
+      required: [power, max]
+      properties:
+        power:
+          type: string
+          x-known-values: [BananaFarmer, BananaFarmerPro, BattleCat, CamoTrap, CashDrop, CaveMonkey, DartTime,
+                           EnergisingTotem, GlueTrap, HealthPotion, MoabMine, MonkeyBoost, MonkeyBoostPro, Pontoon,
+                           PortableLake, PortableLakePro, RoadSpikes, SheRa, Skeletor, StaminaPotion,
+                           SuperMonkeyBeacon, SuperMonkeyStorm, SwordOfPower, TechBot, TechBotPrime, Thrive]
+        max: { type: integer, description: "0 = banned, -1 = unlimited" }
+    BloonModifiers:
+      type: object
+      additionalProperties: false
+      required: [speedMultiplier, moabSpeedMultiplier, bossSpeedMultiplier, regrowRateMultiplier,
+                 healthMultipliers, allCamo, allRegen]
+      properties:
+        speedMultiplier: { type: number }
+        moabSpeedMultiplier: { type: number }
+        bossSpeedMultiplier: { type: number }
+        regrowRateMultiplier: { type: number }
+        healthMultipliers:
+          type: object
+          additionalProperties: false
+          required: [bloons, moabs, boss]
+          properties:
+            bloons: { type: number }
+            moabs: { type: number }
+            boss: { type: number }
+        allCamo: { type: boolean }
+        allRegen: { type: boolean }
+        allFortified: { type: boolean, description: Not always present }
+    ChallengeDocument:
+      type: object
+      additionalProperties: false
+      description: |
+        Shared ruleset shape. For NK events (race/boss/odyssey) id="n/a", createdAt=0, gameVersion="0",
+        creator=null and all counters are 0 — the document is immutable once published.
+      required: [name, createdAt, id, creator, gameVersion, map, mapURL, mode, difficulty,
+                 disableDoubleCash, disableInstas, disableMK, disablePowers, disableSelling,
+                 startingCash, abilityCooldownReductionMultiplier, leastCashUsed, leastTiersUsed,
+                 noContinues, seed, removeableCostMultiplier, roundSets, lives, maxLives, startRound,
+                 endRound, maxTowers, maxParagons, plays, wins, restarts, losses, upvotes, playsUnique,
+                 winsUnique, lossesUnique, _powers, _bloonModifiers, _towers]
+      properties:
+        name: { type: string }
+        createdAt: { $ref: "#/components/schemas/EpochMs" }
+        id: { type: string, description: "Challenge ID, or \"n/a\" for NK events" }
+        creator: { type: [string, "null"], description: Creator profile URL }
+        gameVersion: { type: string, description: "e.g. \"56.3\"; \"0\" for NK events" }
+        map: { type: string, description: "Internal map name, e.g. EndOfTheRoad" }
+        mapURL: { $ref: "#/components/schemas/AssetUrl" }
+        mode:
+          type: string
+          x-known-values: [Standard, Reverse, Impoppable, DoubleMoabHealth, Apopalypse]
+        difficulty:
+          type: string
+          x-known-values: [Easy, Medium, Hard]
+        disableDoubleCash: { type: boolean }
+        disableInstas: { type: boolean }
+        disableMK: { type: boolean }
+        disablePowers: { type: boolean }
+        disableSelling: { type: boolean }
+        startingCash: { type: integer }
+        abilityCooldownReductionMultiplier: { type: number, description: May be fractional (0.05 observed) }
+        leastCashUsed: { type: integer, description: "Least-cash cap; -1 = none" }
+        leastTiersUsed: { type: integer, description: "Least-tiers cap; -1 = none" }
+        noContinues: { type: boolean, description: "Docs say number; observed boolean" }
+        seed: { type: integer }
+        removeableCostMultiplier: { type: number, description: Blocker removal cost multiplier }
+        roundSets:
+          type: array
+          items: { type: string, x-known-values: [default, vortex] }
+        lives: { type: integer }
+        maxLives: { type: integer }
+        startRound: { type: integer }
+        endRound: { type: integer }
+        maxTowers: { type: integer, description: "9999 = unlimited" }
+        maxParagons: { type: integer }
+        plays: { type: integer }
+        wins: { type: integer }
+        restarts: { type: integer }
+        losses: { type: integer }
+        upvotes: { type: integer }
+        playsUnique: { type: integer }
+        winsUnique: { type: integer }
+        lossesUnique: { type: integer }
+        _powers: { type: array, items: { $ref: "#/components/schemas/PowerRestriction" } }
+        _bloonModifiers: { $ref: "#/components/schemas/BloonModifiers" }
+        _towers:
+          type: [array, "null"]
+          description: "null on odyssey islands"
+          items: { $ref: "#/components/schemas/TowerRestriction" }
+
+    # ───────────── users
+    Badge:
+      type: object
+      additionalProperties: false
+      required: [id, url]
+      properties:
+        id: { type: string }
+        url: { $ref: "#/components/schemas/AssetUrl" }
+        count: { type: integer, description: Present on season badges }
+    BossBadges:
+      type: object
+      description: Boss name → badge count
+      additionalProperties: { type: integer }
+      x-known-values: [Bloonarius, Lych, Vortex, Dreadbloon, Phayze, Blastapopoulos, Diamondback]
+    UserProfile:
+      type: object
+      additionalProperties: false
+      required: [displayName, rank, veteranRank, achievements, mostExperiencedMonkey, highestRound, avatar,
+                 avatarURL, banner, bannerURL, followers, bloonsPopped, gameplay, heroesPlaced, towersPlaced,
+                 stats, bossBadgesNormal, bossBadgesElite, seasonBadges, _medalsSinglePlayer,
+                 _medalsMultiplayer, _medalsBoss, _medalsBossElite, _medalsCTLocal, _medalsCTGlobal, _medalsRace]
+      properties:
+        displayName: { type: string }
+        rank: { type: integer }
+        veteranRank: { type: integer }
+        achievements: { type: integer, description: "Docs say string; observed integer" }
+        mostExperiencedMonkey: { type: string, description: Tower ID }
+        highestRound: { type: integer, deprecated: true, description: Use gameplay.highestRound }
+        avatar: { type: string }
+        avatarURL: { $ref: "#/components/schemas/AssetUrl" }
+        banner: { type: string }
+        bannerURL: { $ref: "#/components/schemas/AssetUrl" }
+        followers: { type: integer }
+        bloonsPopped:
+          $ref: "#/components/schemas/IntMap"
+          x-known-values: [badsPopped, ddtsPopped, bfbsPopped, bossesPopped, bloonsPopped, bloonsLeaked, camosPopped,
+                           ceramicsPopped, coopBloonsPopped, goldenBloonsPopped, leadsPopped, moabsPopped,
+                           necroBloonsReanimated, transformingTonicsUsed, purplesPopped, regrowsPopped, zomgsPopped]
+        gameplay:
+          $ref: "#/components/schemas/IntMap"
+          x-known-values: [cashEarned, challengesCompleted, collectionChestsOpened, coopCashGiven, dailyRewards,
+                           gameCount, gamesWon, highestRound, highestRoundCHIMPS, highestRoundDeflation,
+                           instaMonkeyCollection, monkeyTeamsWins, powersUsed, totalOdysseysCompleted,
+                           totalOdysseyStars, totalTrophiesEarned, damageDoneToBosses, instaMonkeysUsed,
+                           abilitiesUsed, monkeysPlaced]
+        heroesPlaced: { $ref: "#/components/schemas/IntMap", description: Hero ID → count }
+        towersPlaced: { $ref: "#/components/schemas/IntMap", description: Tower ID → count }
+        stats:
+          type: object
+          additionalProperties: false
+          required: [totalTowersSold, paragonsPurchasedByName, upgradesPurchasedByTier, abilitiesActivatedByName,
+                     heroesPlacedByName, instaMonkeysUsed, collectionEventCratesOpened, ctCapturedTiles]
+          properties:
+            totalTowersSold: { type: integer }
+            paragonsPurchasedByName: { $ref: "#/components/schemas/IntMap", description: Tower ID → paragons bought }
+            upgradesPurchasedByTier: { $ref: "#/components/schemas/IntMap", description: "\"1\"…\"5\" → count; often empty" }
+            abilitiesActivatedByName: { $ref: "#/components/schemas/IntMap", description: "Ability display name → count" }
+            heroesPlacedByName: { $ref: "#/components/schemas/IntMap", description: "Hero ID → count (may include \"\" key)" }
+            instaMonkeysUsed: { type: integer }
+            collectionEventCratesOpened: { type: integer }
+            ctCapturedTiles: { type: integer }
+        bossBadgesNormal: { $ref: "#/components/schemas/BossBadges" }
+        bossBadgesElite: { $ref: "#/components/schemas/BossBadges" }
+        seasonBadges:
+          type: object
+          description: Badge ID → badge (with count)
+          additionalProperties: { $ref: "#/components/schemas/Badge" }
+        _medalsSinglePlayer: { $ref: "#/components/schemas/IntMap", description: "Mode/difficulty (e.g. CHIMPS-BLACK, Impoppable) → medals" }
+        _medalsMultiplayer: { $ref: "#/components/schemas/IntMap" }
+        _medalsBoss: { $ref: "#/components/schemas/MedalCounts" }
+        _medalsBossElite: { $ref: "#/components/schemas/MedalCounts" }
+        _medalsCTLocal: { $ref: "#/components/schemas/MedalCounts" }
+        _medalsCTGlobal: { $ref: "#/components/schemas/MedalCounts" }
+        _medalsRace: { $ref: "#/components/schemas/MedalCounts" }
+    MedalCounts:
+      type: object
+      description: Medal tier → count; tiers with zero are omitted
+      additionalProperties: { type: integer }
+      x-known-values: [Bronze, Silver, DoubleSilver, GoldSilver, DoubleGold, GoldDiamond, BlueDiamond, RedDiamond, BlackDiamond]
+    Guild:
+      type: object
+      additionalProperties: false
+      required: [name, owner, numMembers, status, banner, frame, icon, bannerURL, frameURL, iconURL, CtBadges]
+      properties:
+        name: { type: string }
+        owner: { $ref: "#/components/schemas/NKUrl" }
+        numMembers: { type: integer }
+        status: { type: string, enum: [OPEN, FILTERED, CLOSED, DISBANDED] }
+        banner: { type: string }
+        frame: { type: string }
+        icon: { type: string }
+        bannerURL: { $ref: "#/components/schemas/AssetUrl" }
+        frameURL: { $ref: "#/components/schemas/AssetUrl" }
+        iconURL: { $ref: "#/components/schemas/AssetUrl" }
+        CtBadges:
+          type: object
+          description: "Badge ID (e.g. Global_BlackDiamond, Local_BlueDiamond) → badge"
+          additionalProperties: { $ref: "#/components/schemas/Badge" }
+    UserSave:
+      type: object
+      description: |
+        UNVERIFIED — transcribed from the official docs (no OAK sample captured). Map/nestedmap fields are
+        typed loosely on purpose. Private: never proxy or cache server-side.
+      properties:
+        latestGameVersion: { type: string }
+        towerXP: { type: object }
+        acquiredUpgrades: { type: object }
+        acquiredKnowledge: { type: object }
+        unlockedTowers: { type: object }
+        unlockedHeroes: { type: object }
+        unlockedHeros: { type: object, deprecated: true }
+        unlockedSkins: { type: object }
+        gamesPlayed: { type: number }
+        powers: { type: object }
+        powersPro: { type: object }
+        instaTowers: { type: object, description: "Tower → tier → count" }
+        monkeyMoney: { type: number }
+        xp: { type: number }
+        rank: { type: number }
+        veteranXp: { type: number }
+        veteranRank: { type: number }
+        trophies: { type: number }
+        lifetimeTrophies: { type: number }
+        lifetimeTeamTrophies: { type: number }
+        knowledgePoints: { type: number }
+        primaryHero: { type: string }
+        achievementsClaimed: { type: array }
+        highestSeenRound: { type: number }
+        dailyRewardCount: { type: number }
+        totalDailyChallengesCompleted: { type: number }
+        consecutiveDailyChallengesCompleted: { type: number }
+        totalRacesEntered: { type: number }
+        challengesPlayed: { type: number }
+        challengesShared: { type: number }
+        totalCompletedOdysseys: { type: number }
+        unlockedBigBloons: { type: boolean }
+        bigBloonsActive: { type: boolean }
+        unlockedSmallBloons: { type: boolean }
+        smallBloonsActive: { type: boolean }
+        seenBigTowers: { type: boolean }
+        bigTowersActive: { type: boolean }
+        unlockedSmallTowers: { type: boolean }
+        smallTowersActive: { type: boolean }
+        unlockedSmallBosses: { type: boolean }
+        smallBossesActive: { type: boolean }
+        namedMonkeys: { type: object, description: "User-generated names (unmoderated)" }
+        collectionEventCratesOpened: { type: number }
+        continuesUsed: { type: number }
+        trophyStoreItems: { type: object }
+        mapProgress: { type: object, description: "Maps completed, split by single/coop and difficulty" }
+        rogueLegends: { type: object }
+        frontierLegends: { type: object }
+        rogueUnlockedStarterArtifacts: { type: object }
+        rogueLegendsStats: {}
+        frontierLegendsStats: {}
+        quests: { type: array }
+
+    # ───────────── challenges & maps lists
+    ChallengeFilter:
+      type: object
+      additionalProperties: false
+      required: [type, challenges]
+      properties:
+        type: { type: string, x-known-values: [newest, trending, daily] }
+        challenges: { $ref: "#/components/schemas/NKUrl" }
+    ChallengeSummary:
+      type: object
+      additionalProperties: false
+      required: [name, createdAt, id, creator, metadata]
+      properties:
+        name: { type: string }
+        createdAt: { $ref: "#/components/schemas/EpochMs" }
+        id: { type: string }
+        creator: { type: [string, "null"], description: "null for daily challenges" }
+        metadata: { $ref: "#/components/schemas/NKUrl" }
+    MapFilter:
+      type: object
+      additionalProperties: false
+      required: [type, maps]
+      properties:
+        type: { type: string, x-known-values: [newest, trending, mostLiked] }
+        maps: { $ref: "#/components/schemas/NKUrl" }
+    MapSummary:
+      type: object
+      additionalProperties: false
+      required: [name, createdAt, id, creator, metadata]
+      properties:
+        name: { type: string }
+        createdAt: { $ref: "#/components/schemas/EpochMs" }
+        id: { type: string }
+        creator: { type: [string, "null"] }
+        metadata: { $ref: "#/components/schemas/NKUrl" }
+    MapDocument:
+      type: object
+      additionalProperties: false
+      required: [name, createdAt, id, creator, gameVersion, map, mapURL, plays, wins, restarts, losses,
+                 upvotes, playsUnique, winsUnique, lossesUnique]
+      properties:
+        name: { type: string }
+        createdAt: { $ref: "#/components/schemas/EpochMs" }
+        id: { type: string }
+        creator: { type: [string, "null"] }
+        gameVersion: { type: string }
+        map: { type: string, description: "Always CustomMap so far" }
+        mapURL: { $ref: "#/components/schemas/NKUrl", description: "→ /btd6/maps/map/:id/preview (JPEG)" }
+        plays: { type: integer }
+        wins: { type: integer }
+        restarts: { type: integer }
+        losses: { type: integer }
+        upvotes: { type: integer }
+        playsUnique: { type: integer }
+        winsUnique: { type: integer }
+        lossesUnique: { type: integer }
+
+    # ───────────── CT
+    CT:
+      type: object
+      additionalProperties: false
+      required: [id, start, end, totalScores_player, totalScores_team, tiles, leaderboard_player, leaderboard_team]
+      properties:
+        id: { type: string }
+        start: { $ref: "#/components/schemas/EpochMs" }
+        end: { $ref: "#/components/schemas/EpochMs" }
+        totalScores_player: { type: integer }
+        totalScores_team: { type: integer }
+        tiles: { $ref: "#/components/schemas/NKUrl" }
+        leaderboard_player: { $ref: "#/components/schemas/NKUrl" }
+        leaderboard_team: { $ref: "#/components/schemas/NKUrl" }
+    CTTile:
+      type: object
+      additionalProperties: false
+      required: [id, type, gameType]
+      properties:
+        id: { type: string, description: "3-letter tile code, e.g. MRX" }
+        type:
+          type: string
+          description: "Regular | Banner | TeamFirstCapture | TeamStart | \"Relic - <RelicName>\""
+          x-known-values: [Regular, Banner, TeamFirstCapture, TeamStart, "Relic - ManaBulwark"]
+        gameType:
+          type: string
+          x-known-values: [LeastCash, LeastTiers, Race, Boss, TeamStart]
+    CTTiles:
+      type: object
+      additionalProperties: false
+      required: [id, tiles]
+      properties:
+        id: { type: string }
+        tiles: { type: array, items: { $ref: "#/components/schemas/CTTile" } }
+    CTPlayerEntry:
+      type: object
+      additionalProperties: false
+      required: [displayName, score, profile]
+      properties:
+        displayName: { type: string }
+        score: { type: integer }
+        profile: { $ref: "#/components/schemas/NKUrl" }
+    CTTeamEntry:
+      type: object
+      additionalProperties: false
+      required: [displayName, score, profile, group]
+      properties:
+        displayName: { type: string }
+        score: { type: integer }
+        profile: { $ref: "#/components/schemas/NKUrl", description: "Guild URL (/btd6/guild/:id)" }
+        group: { $ref: "#/components/schemas/NKUrl" }
+
+    # ───────────── odyssey
+    Odyssey:
+      type: object
+      additionalProperties: false
+      required: [id, name, description, start, end, metadata_easy, metadata_medium, metadata_hard]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        start: { $ref: "#/components/schemas/EpochMs" }
+        end: { $ref: "#/components/schemas/EpochMs" }
+        metadata_easy: { $ref: "#/components/schemas/NKUrl" }
+        metadata_medium: { $ref: "#/components/schemas/NKUrl" }
+        metadata_hard: { $ref: "#/components/schemas/NKUrl" }
+    NameQuantity:
+      type: object
+      additionalProperties: false
+      required: [name, quantity]
+      properties:
+        name: { type: string }
+        quantity: { type: integer }
+    OdysseyMetadata:
+      type: object
+      additionalProperties: false
+      required: [id, isExtreme, maxMonkeySeats, maxMonkeysOnBoat, maxPowerSlots, startingHealth, _rewards,
+                 _availablePowers, _availableTowers, _defaultPowers, _defaultTowers, maps]
+      properties:
+        id: { type: string }
+        isExtreme: { type: boolean }
+        maxMonkeySeats: { type: integer }
+        maxMonkeysOnBoat: { type: integer }
+        maxPowerSlots: { type: integer }
+        startingHealth: { type: integer }
+        _rewards:
+          type: array
+          description: "\"Kind:Value\" strings, e.g. MonkeyMoney:100, Power:SuperMonkeyStorm"
+          items: { type: string }
+        _availablePowers: { type: array, items: { $ref: "#/components/schemas/PowerRestriction" } }
+        _availableTowers: { type: array, items: { $ref: "#/components/schemas/TowerRestriction" } }
+        _defaultPowers: { type: array, items: { $ref: "#/components/schemas/NameQuantity" } }
+        _defaultTowers: { type: array, items: { $ref: "#/components/schemas/NameQuantity" } }
+        maps: { $ref: "#/components/schemas/NKUrl" }
+
+    # ───────────── events
+    Event:
+      type: object
+      additionalProperties: false
+      required: [id, type, name, start, end, url]
+      properties:
+        id: { type: string }
+        type:
+          type: string
+          x-known-values: [bossBloon, bossRush, collectableEvent, ct, odysseyEvent, raceEvent, socialseason]
+        name: { type: string, description: "Generic label, e.g. \"A Boss Event\"" }
+        start: { $ref: "#/components/schemas/EpochMs" }
+        end: { $ref: "#/components/schemas/EpochMs" }
+        url: { type: [string, "null"], description: "List URL with ?id= filter, or null" }
+
+    # ───────────── concrete responses
+    RaceListResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - properties: { body: { type: array, items: { $ref: "#/components/schemas/Race" } } }
+    RaceLeaderboardResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - required: [maxPages]
+          properties: { body: { type: array, items: { $ref: "#/components/schemas/RaceLeaderboardEntry" } } }
+    BossListResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - properties: { body: { type: array, items: { $ref: "#/components/schemas/Boss" } } }
+    BossLeaderboardResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - required: [maxPages]
+          properties: { body: { type: array, items: { $ref: "#/components/schemas/BossLeaderboardEntry" } } }
+    ChallengeDocumentResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - properties: { body: { $ref: "#/components/schemas/ChallengeDocument" } }
+    ChallengeDocumentListResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - properties: { body: { type: array, items: { $ref: "#/components/schemas/ChallengeDocument" } } }
+    UserProfileResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - properties: { body: { $ref: "#/components/schemas/UserProfile" } }
+    GuildResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - properties: { body: { $ref: "#/components/schemas/Guild" } }
+    UserSaveResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - properties: { body: { $ref: "#/components/schemas/UserSave" } }
+    ChallengeFilterListResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - properties: { body: { type: array, items: { $ref: "#/components/schemas/ChallengeFilter" } } }
+    ChallengeListResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - properties: { body: { type: array, items: { $ref: "#/components/schemas/ChallengeSummary" } } }
+    MapFilterListResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - properties: { body: { type: array, items: { $ref: "#/components/schemas/MapFilter" } } }
+    MapListResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - properties: { body: { type: array, items: { $ref: "#/components/schemas/MapSummary" } } }
+    MapDocumentResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - properties: { body: { $ref: "#/components/schemas/MapDocument" } }
+    CTListResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - properties: { body: { type: array, items: { $ref: "#/components/schemas/CT" } } }
+    CTTilesResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - properties: { body: { $ref: "#/components/schemas/CTTiles" } }
+    CTPlayerLeaderboardResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - required: [maxPages]
+          properties: { body: { type: array, items: { $ref: "#/components/schemas/CTPlayerEntry" } } }
+    CTTeamLeaderboardResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - required: [maxPages]
+          properties: { body: { type: array, items: { $ref: "#/components/schemas/CTTeamEntry" } } }
+    OdysseyListResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - properties: { body: { type: array, items: { $ref: "#/components/schemas/Odyssey" } } }
+    OdysseyMetadataResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - properties: { body: { $ref: "#/components/schemas/OdysseyMetadata" } }
+    EventListResponse:
+      allOf:
+        - $ref: "#/components/schemas/Envelope"
+        - properties: { body: { type: array, items: { $ref: "#/components/schemas/Event" } } }

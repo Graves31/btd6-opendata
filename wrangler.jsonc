@@ -1,0 +1,50 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "btd6-opendata",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-09-24",
+  "workers_dev": true,
+
+  // Static assets (built by Vite into dist/): served directly by Cloudflare (free, unlimited, no Worker
+  // invocation) except /api/* and the page URLs below, which run the Worker first so the SPA shell carries
+  // link-preview tags (src/worker/og.ts; cached data only, never an NK request). Only these HTML navigations
+  // count as Worker requests: /assets/*, /art/*, sw.js, fonts and images never do. dist/_headers marks
+  // hashed bundles immutable. Keep the page list in sync with web/src/routes.ts.
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": [
+      "/api/*",
+      "/",
+      "/bosses", "/races", "/ct", "/odyssey", "/events",
+      "/boss/*", "/race/*", "/ct/*", "/odyssey/*", "/player/*", "/team/*", "/challenge/*", "/challenges", "/challenges/*",
+      "/tools", "/tools/*"
+    ]
+  },
+
+  // every minute → refreshHot (hot set; KV published ≤ every 2 min)   hourly → runArchive (frozen events → D1)
+  // Keep in sync with CRON_HOT / CRON_ARCHIVE in src/worker/app.ts.
+  "triggers": { "crons": ["* * * * *", "0 * * * *"] },
+
+  // Create with:  npx wrangler kv namespace create HOT   → paste the id here
+  "kv_namespaces": [{ "binding": "HOT", "id": "9bcfc8d07f5641d7b8d4f9895a14861d" }],
+
+  // Create with:  npx wrangler d1 create btd6-opendata   → paste the database_id here
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "btd6-opendata",
+      "database_id": "553b37ef-f157-4b68-b117-248619054023",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  // Hidden /stats page: account id for the Cloudflare GraphQL Analytics API. The token is a secret:
+  //   npx wrangler secret put CF_ANALYTICS_TOKEN   (API token with Account Analytics:Read)
+  // New boss/race notifications: a Discord webhook URL as a secret (unset → none are sent):
+  //   npx wrangler secret put DISCORD_WEBHOOK_URL
+  "vars": { "CF_ACCOUNT_ID": "923b0e4244cbc8a739105c5db9c05ae5" },
+
+  "observability": { "enabled": true }
+}

@@ -1,0 +1,9 @@
+{
+  "env": {
+    "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"
+  },
+  "enabledPlugins": {
+    "code-modernization@claude-plugins-official": false,
+    "jdtls-lsp@claude-plugins-official": false
+  }
+}

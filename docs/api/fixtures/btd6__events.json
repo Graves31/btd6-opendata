@@ -1,0 +1,157 @@
+{
+  "error": null,
+  "success": true,
+  "body": [
+    {
+      "id": "muekpffa",
+      "type": "bossRush",
+      "name": "A Boss Rush Event",
+      "start": 1791410400000,
+      "end": 1791842400000,
+      "url": null
+    },
+    {
+      "id": "muekp4st",
+      "type": "ct",
+      "name": "A Contested Territory",
+      "start": 1790719200000,
+      "end": 1791324000000,
+      "url": null
+    },
+    {
+      "id": "Party_Madness_muekt6x6",
+      "type": "raceEvent",
+      "name": "A Race Event",
+      "start": 1790301600000,
+      "end": 1790650800000,
+      "url": "https://data.ninjakiwi.com/btd6/races?id=Party_Madness_muekt6x6"
+    },
+    {
+      "id": "muekowzs",
+      "type": "odysseyEvent",
+      "name": "An Odyssey Event",
+      "start": 1790215200000,
+      "end": 1790733600000,
+      "url": "https://data.ninjakiwi.com/btd6/odyssey?id=muekowzs"
+    },
+    {
+      "id": "mtv635nu",
+      "type": "bossRush",
+      "name": "A Boss Rush Event",
+      "start": 1790200800000,
+      "end": 1790632800000,
+      "url": null
+    },
+    {
+      "id": "Vortex47_mu62cmt5",
+      "type": "bossBloon",
+      "name": "A Boss Event",
+      "start": 1789783200000,
+      "end": 1790218800000,
+      "url": "https://data.ninjakiwi.com/btd6/bosses?id=Vortex47_mu62cmt5"
+    },
+    {
+      "id": "Gun_Game_mu19oabt",
+      "type": "raceEvent",
+      "name": "A Race Event",
+      "start": 1789696800000,
+      "end": 1790046000000,
+      "url": "https://data.ninjakiwi.com/btd6/races?id=Gun_Game_mu19oabt"
+    },
+    {
+      "id": "mu19o1om",
+      "type": "odysseyEvent",
+      "name": "An Odyssey Event",
+      "start": 1789610400000,
+      "end": 1790128800000,
+      "url": "https://data.ninjakiwi.com/btd6/odyssey?id=mu19o1om"
+    },
+    {
+      "id": "mtv62zza",
+      "type": "ct",
+      "name": "A Contested Territory",
+      "start": 1789509600000,
+      "end": 1790114400000,
+      "url": null
+    },
+    {
+      "id": "Aerial_Support_mtra25qx",
+      "type": "raceEvent",
+      "name": "A Race Event",
+      "start": 1789092000000,
+      "end": 1789441200000,
+      "url": "https://data.ninjakiwi.com/btd6/races?id=Aerial_Support_mtra25qx"
+    },
+    {
+      "id": "Lych61_mtw1v6de",
+      "type": "bossBloon",
+      "name": "A Boss Event",
+      "start": 1789092000000,
+      "end": 1789614000000,
+      "url": "https://data.ninjakiwi.com/btd6/bosses?id=Lych61_mtw1v6de"
+    },
+    {
+      "id": "mtra21ht",
+      "type": "odysseyEvent",
+      "name": "An Odyssey Event",
+      "start": 1789005600000,
+      "end": 1789524000000,
+      "url": "https://data.ninjakiwi.com/btd6/odyssey?id=mtra21ht"
+    },
+    {
+      "id": "mtb654ps",
+      "type": "bossRush",
+      "name": "A Boss Rush Event",
+      "start": 1788819600000,
+      "end": 1789423200000,
+      "url": null
+    },
+    {
+      "id": "mtb6a6op",
+      "type": "socialseason",
+      "name": "A Social Season Event",
+      "start": 1788213600000,
+      "end": 1789423200000,
+      "url": null
+    },
+    {
+      "id": "mtgdqte8",
+      "type": "collectableEvent",
+      "name": "A Collectables Event",
+      "start": 1788213600000,
+      "end": 1789423200000,
+      "url": null
+    }
+  ],
+  "model": {
+    "name": "_btd6event",
+    "parameters": {
+      "id": {
+        "description": "Unique Event ID",
+        "type": "string"
+      },
+      "type": {
+        "description": "Event Type",
+        "type": "string"
+      },
+      "name": {
+        "description": "Event Name",
+        "type": "string"
+      },
+      "start": {
+        "description": "Event start time in unix epoch milliseconds",
+        "type": "number"
+      },
+      "end": {
+        "description": "Event end time in unix epoch milliseconds",
+        "type": "number"
+      },
+      "url": {
+        "description": "URL To Event (or null)",
+        "type": "string"
+      }
+    }
+  },
+  "next": null,
+  "prev": null
+}

@@ -1,0 +1,88 @@
+{
+  "error": null,
+  "success": true,
+  "body": {
+    "name": "HeroicTiger3059's Map",
+    "createdAt": 1790124299575,
+    "id": "ZFVWPYR",
+    "creator": "https://data.ninjakiwi.com/btd6/users/9fbb468fdc91fdf44b10d9185b73e47e980718bacf148c3a",
+    "gameVersion": "56.3",
+    "map": "CustomMap",
+    "mapURL": "https://data.ninjakiwi.com/btd6/maps/map/ZFVWPYR/preview",
+    "plays": 24,
+    "wins": 17,
+    "restarts": 0,
+    "losses": 5,
+    "upvotes": 7,
+    "playsUnique": 22,
+    "winsUnique": 17,
+    "lossesUnique": 0
+  },
+  "model": {
+    "name": "_btd6mapdocument",
+    "parameters": {
+      "name": {
+        "description": "Map Name",
+        "type": "string"
+      },
+      "createdAt": {
+        "description": "Map creation time in unix epoch milliseconds",
+        "type": "number"
+      },
+      "id": {
+        "description": "Unique Map ID",
+        "type": "string"
+      },
+      "creator": {
+        "description": "URL to the creators profile",
+        "type": "string"
+      },
+      "gameVersion": {
+        "description": "Version of the game this map was created in",
+        "type": "string"
+      },
+      "map": {
+        "description": "Map Name",
+        "type": "string"
+      },
+      "mapURL": {
+        "description": "URL to the map icon",
+        "type": "assetURL"
+      },
+      "plays": {
+        "description": "Total number of attempts",
+        "type": "number"
+      },
+      "wins": {
+        "description": "Total number of wins",
+        "type": "number"
+      },
+      "losses": {
+        "description": "Total number of losses",
+        "type": "number"
+      },
+      "upvotes": {
+        "description": "Total number of upvotes",
+        "type": "number"
+      },
+      "playsUnique": {
+        "description": "Total number of unique attempts",
+        "type": "number"
+      },
+      "restarts": {
+        "description": "Total number of restarts",
+        "type": "number"
+      },
+      "winsUnique": {
+        "description": "Total number of unique player wins",
+        "type": "number"
+      },
+      "lossesUnique": {
+        "description": "Total number of unique player losses",
+        "type": "number"
+      }
+    }
+  },
+  "next": null,
+  "prev": null
+}

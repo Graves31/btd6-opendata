@@ -1,0 +1,55 @@
+{
+  "error": null,
+  "success": true,
+  "body": [
+    {
+      "id": "muekowzs",
+      "name": "Not all Heroes wear capes",
+      "description": "But some do, others even wear masks. It's all optional",
+      "start": 1790215200000,
+      "end": 1790733600000,
+      "metadata_easy": "https://data.ninjakiwi.com/btd6/odyssey/muekowzs/easy",
+      "metadata_medium": "https://data.ninjakiwi.com/btd6/odyssey/muekowzs/medium",
+      "metadata_hard": "https://data.ninjakiwi.com/btd6/odyssey/muekowzs/hard"
+    }
+  ],
+  "model": {
+    "name": "_btd6odyssey",
+    "parameters": {
+      "id": {
+        "description": "Odyssey Event ID",
+        "type": "string"
+      },
+      "name": {
+        "description": "Odyssey Name",
+        "type": "string"
+      },
+      "description": {
+        "description": "Odyssey Description",
+        "type": "string"
+      },
+      "start": {
+        "description": "Odyssey start time in unix epoch milliseconds",
+        "type": "number"
+      },
+      "end": {
+        "description": "Odyssey end time in unix epoch milliseconds",
+        "type": "number"
+      },
+      "metadata_easy": {
+        "description": "URL to Easy Mode Settings",
+        "type": "string"
+      },
+      "metadata_medium": {
+        "description": "URL to Medium Mode Settings",
+        "type": "string"
+      },
+      "metadata_hard": {
+        "description": "URL to Hard Mode Settings",
+        "type": "string"
+      }
+    }
+  },
+  "next": null,
+  "prev": null
+}

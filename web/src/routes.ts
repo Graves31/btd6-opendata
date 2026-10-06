@@ -1,0 +1,353 @@
+// URL ⇄ Route, and the data keys each route needs. `needs()` is what makes generic prefetching possible:
+// any link can compute exactly which keys its target page will read, before the user clicks it.
+
+export type EventKind = "boss" | "race" | "ct" | "odyssey";
+export type BossDiff = "standard" | "elite";
+export type OdyDiff = "easy" | "medium" | "hard";
+export type CTTab = "players" | "teams" | "tiles";
+export type ChallengeFilter = "daily" | "newest" | "trending";
+
+export type Route =
+  | { name: "home" }
+  | { name: "events"; kind: EventKind }
+  | { name: "boss"; id: string; d: BossDiff; n: number; p: number }
+  | BossStatsRoute
+  | { name: "race"; id: string; p: number }
+  | { name: "ct"; id: string; tab: CTTab; p: number }
+  | { name: "ctgroup"; id: string; gid: string }
+  | { name: "odyssey"; id: string; d: OdyDiff }
+  | { name: "player"; id: string }
+  | { name: "team"; id: string }
+  | { name: "challenge"; id: string }
+  | { name: "challenges"; filter: ChallengeFilter; p: number }
+  | RoundsRoute
+  | { name: "stats" }
+  | { name: "notfound" };
+
+/** Boss types with a stats page (/bosses/<type>), in display order (the same list as rules.tsx). */
+export const BOSS_TYPES = ["bloonarius", "lych", "vortex", "dreadbloon", "phayze", "blastapopoulos", "diamondback"] as const;
+
+/** Boss stats page (/bosses/<type>): difficulty, selected tier, the event whose modifiers apply, modifiers on/off. */
+export interface BossStatsRoute {
+  name: "bossstats";
+  type: string;
+  d: BossDiff;
+  /** selected tier 1..5 */
+  t: number;
+  /** boss event the reader came from: its ruleset's boss health/speed multipliers apply */
+  ev?: string;
+  /** false (`mod=0`): base values */
+  mod: boolean;
+}
+
+/**
+ * Event modifiers the round visualizer shows (URL params camo/regrow/fort, hp/mhp/bhp, spd/mspd/bspd/rgr): the
+ * event's `_bloonModifiers`. Defaults (false / 1) are left out of the URL.
+ */
+export interface RoundMods {
+  camo: boolean;
+  regrow: boolean;
+  fort: boolean;
+  /** healthMultipliers.bloons / .moabs / .boss */
+  hp: number;
+  mhp: number;
+  bhp: number;
+  /** speedMultiplier / moabSpeedMultiplier / bossSpeedMultiplier / regrowRateMultiplier */
+  spd: number;
+  mspd: number;
+  bspd: number;
+  rgr: number;
+}
+export const NO_MODS: RoundMods = { camo: false, regrow: false, fort: false, hp: 1, mhp: 1, bhp: 1, spd: 1, mspd: 1, bspd: 1, rgr: 1 };
+const MOD_FLAGS = ["camo", "regrow", "fort"] as const;
+/** Filter chips (URL `has=`), in display order. */
+export const HAS_FILTERS = ["changed", "camo", "regrow", "fort", "moabs"] as const;
+export type HasFilter = (typeof HAS_FILTERS)[number];
+const BLOON_KEY = /^[a-z0-9-]{1,32}$/;
+const list = (v: string | null) => (v ?? "").split(",").filter(Boolean);
+/** Canonical filter lists: known values only, no duplicates, fixed order (so equal views have equal URLs). */
+export const normHas = (v: readonly string[]): HasFilter[] => HAS_FILTERS.filter((h) => v.includes(h));
+export const normBloon = (v: readonly string[]): string[] => [...new Set(v.filter((b) => BLOON_KEY.test(b)))].sort().slice(0, 30);
+const MOD_MULTS = ["hp", "mhp", "bhp", "spd", "mspd", "bspd", "rgr"] as const;
+
+/**
+ * Tools → round visualizer (/tools, canonical /tools/rounds). The URL is the whole view: which set, the round
+ * range, the open round, the event's modifiers and where the reader came from. Range values are kept as given
+ * (the page clamps them to the set, whose bounds only the round manifest knows).
+ */
+export interface RoundsRoute {
+  name: "rounds";
+  /** round-set id from the manifest (web/src/data/rounds); absent = resolved from `mode`, else "default" */
+  set?: string;
+  from?: number;
+  to?: number;
+  /** open round */
+  r?: number;
+  /** the event's own range ("Event" preset), written by the rules panel's link */
+  ev?: [number, number];
+  /** ChallengeDocument.mode */
+  mode?: string;
+  mods: RoundMods;
+  /** "Base rounds": every modifier off (still in the URL) */
+  base: boolean;
+  /** focused round view (`view=round`): one round, full width */
+  view?: "round";
+  /** list filters, matched as "any of": variant flags, MOAB-class, rounds a boss set changed */
+  has: HasFilter[];
+  /** list filter by bloon type (BLOON_TYPES keys), also "any of" with `has` */
+  bloon: string[];
+  /** site path of the page that linked here (back link); only a path that parses to a known page */
+  src?: string;
+}
+
+export const LIST_KEY: Record<EventKind, string> = {
+  boss: "/btd6/bosses",
+  race: "/btd6/races",
+  ct: "/btd6/ct",
+  odyssey: "/btd6/odyssey",
+};
+const LIST_PATH: Record<EventKind, string> = { boss: "/bosses", race: "/races", ct: "/ct", odyssey: "/odyssey" };
+
+export const historyKey = (kind: EventKind) => `/api/history/${kind}?limit=50`;
+
+const page = (p: number) => (p > 1 ? `?page=${p}` : "");
+export const bossBoardKey = (id: string, d: BossDiff, n: number, p = 1) => `/btd6/bosses/${id}/leaderboard/${d}/${n}${page(p)}`;
+export const bossMetaKey = (id: string, d: BossDiff) => `/btd6/bosses/${id}/metadata/${d}`;
+export const raceBoardKey = (id: string, p = 1) => `/btd6/races/${id}/leaderboard${page(p)}`;
+export const raceMetaKey = (id: string) => `/btd6/races/${id}/metadata`;
+export const ctKey = (id: string, tab: CTTab, p = 1) =>
+  tab === "tiles" ? `/btd6/ct/${id}/tiles` : `/btd6/ct/${id}/leaderboard/${tab === "players" ? "player" : "team"}${page(p)}`;
+export const ctGroupKey = (id: string, gid: string) => `/btd6/ct/${id}/leaderboard/group/${gid}`;
+export const odyMetaKey = (id: string, d: OdyDiff) => `/btd6/odyssey/${id}/${d}`;
+export const odyMapsKey = (id: string, d: OdyDiff) => `/btd6/odyssey/${id}/${d}/maps`;
+export const userKey = (id: string) => `/btd6/users/${id}`;
+export const guildKey = (id: string) => `/btd6/guild/${id}`;
+export const challengeKey = (id: string) => `/btd6/challenges/challenge/${id}`;
+/** A team's CT placements archived by the server (no NK requests): `{ team, entries }`, see docs/batch-1-19.md. */
+export const teamHistoryKey = (guildId: string) => `/api/history/team/${guildId}`;
+export const challengeListKey = (f: ChallengeFilter, p = 1) => `/btd6/challenges/filter/${f}${page(p)}`;
+export const EVENTS_KEY = "/btd6/events";
+export const DAILY_KEY = "/btd6/challenges/filter/daily";
+
+export const HOME_LISTS = [LIST_KEY.boss, LIST_KEY.race, LIST_KEY.ct, LIST_KEY.odyssey, EVENTS_KEY, DAILY_KEY];
+
+/**
+ * The home page also renders data that depends on the lists (featured boss map + top 3, the race's map, the
+ * odyssey's islands, the CT leader, the daily challenge). Which keys those are is only known from the lists,
+ * so the browser registers a resolver over its store (nav.ts). Without one (tests) home needs only the lists.
+ */
+let homeExtras: () => string[] = () => [];
+export function setHomeExtras(fn: () => string[]): void {
+  homeExtras = fn;
+}
+/** More home resolvers, registered by the views that render the extra data (e.g. the last boss's podium). */
+const moreHomeExtras: (() => string[])[] = [];
+export function addHomeExtras(fn: () => string[]): void {
+  moreHomeExtras.push(fn);
+}
+
+/**
+ * The round visualizer's data is a static, content-hashed set file (web/src/data/rounds, imported with ?url). The
+ * browser registers how a route maps to that file's URL (nav.ts), so that module's asset imports stay out of here.
+ */
+let roundKeys: (r: RoundsRoute) => string[] = () => [];
+export function setRoundKeys(fn: (r: RoundsRoute) => string[]): void {
+  roundKeys = fn;
+}
+
+/** The boss stats file (bosses.json, a content-hashed static asset); registered by nav.ts like the round sets. */
+let bossStatsUrl = "";
+export function setBossStatsUrl(u: string): void {
+  bossStatsUrl = u;
+}
+
+/** The data a route renders. Links prefetch exactly this. */
+export function needs(r: Route): string[] {
+  switch (r.name) {
+    case "home":
+      return [...new Set([...HOME_LISTS, ...homeExtras(), ...moreHomeExtras.flatMap((f) => f())])];
+    case "events":
+      return [LIST_KEY[r.kind], historyKey(r.kind)];
+    case "boss":
+      return [LIST_KEY.boss, bossMetaKey(r.id, r.d), bossBoardKey(r.id, r.d, r.n, r.p)];
+    case "bossstats":
+      // The past-events plate reads the lists; an event's modifiers come from its ruleset (the d tab's metadata).
+      return [...(bossStatsUrl ? [bossStatsUrl] : []), LIST_KEY.boss, historyKey("boss"), ...(r.ev ? [bossMetaKey(r.ev, r.d)] : [])];
+    case "race":
+      return [LIST_KEY.race, raceMetaKey(r.id), raceBoardKey(r.id, r.p)];
+    case "ct":
+      return [LIST_KEY.ct, ctKey(r.id, r.tab, r.p)];
+    case "ctgroup":
+      return [LIST_KEY.ct, ctGroupKey(r.id, r.gid)];
+    case "odyssey":
+      return [LIST_KEY.odyssey, odyMetaKey(r.id, r.d), odyMapsKey(r.id, r.d)];
+    case "player":
+      return [userKey(r.id)];
+    case "team":
+      return [guildKey(r.id), teamHistoryKey(r.id)];
+    case "challenge":
+      return [challengeKey(r.id), DAILY_KEY]; // prev/next + author need the daily feed
+    case "challenges":
+      return [challengeListKey(r.filter, r.p)];
+    case "rounds":
+      return roundKeys(r);
+    case "stats":
+    case "notfound":
+      return []; // /stats fetches its own data (hidden page, reached only by URL)
+  }
+}
+
+// ─────────────────────────────── URL → Route
+
+const int = (v: string | null, def: number, min: number, max: number) => {
+  const n = Number(v);
+  return Number.isInteger(n) && n >= min && n <= max ? n : def;
+};
+/** Any event id NK uses: "Vortex47_mu62cmt5", bare "msi6n2qi" (Dreadbloon #37), "Regene-race_mtjapaiu". */
+export const EVENT_ID = /^[A-Za-z0-9_-]{4,64}$/;
+/** CT group ids: 44 hex during an event; NK's post-event placeholder is 8 hex (`c7fa4bd7`). Same shape as the Worker's. */
+export const CT_GROUP_ID = /^[0-9a-f]{8,64}$/;
+/** The group every team links to once NK has dropped a CT's groups; its page answers "No Group Available". */
+export const CT_GROUP_PLACEHOLDER = "c7fa4bd7";
+const oneOf = <T extends string>(v: string | null, all: readonly T[], def: T): T => (all.includes(v as T) ? (v as T) : def);
+
+export function parse(url: URL): Route {
+  const seg = url.pathname.split("/").filter(Boolean).map(decodeURIComponent);
+  const q = url.searchParams;
+  const [a, b, c, d] = seg;
+  if (!a) return { name: "home" };
+  if (seg.length === 1) {
+    const kind = (Object.keys(LIST_PATH) as EventKind[]).find((k) => LIST_PATH[k] === `/${a}`);
+    if (kind) return { name: "events", kind };
+  }
+  // Event pages: a malformed id is a 404 page, never a request upstream.
+  if (a === "bosses" && b && !c) {
+    if (!(BOSS_TYPES as readonly string[]).includes(b)) return { name: "notfound" };
+    const ev = q.get("ev");
+    const r: BossStatsRoute = { name: "bossstats", type: b, d: oneOf(q.get("d"), ["standard", "elite"] as const, "standard"), t: int(q.get("t"), 5, 1, 5), mod: q.get("mod") !== "0" };
+    if (ev && EVENT_ID.test(ev)) r.ev = ev;
+    return r;
+  }
+  if ((a === "boss" || a === "race" || a === "ct" || a === "odyssey") && b && !EVENT_ID.test(b)) return { name: "notfound" };
+  if (a === "boss" && b && !c) {
+    return { name: "boss", id: b, d: oneOf(q.get("d"), ["standard", "elite"] as const, "standard"), n: int(q.get("n"), 1, 1, 4), p: int(q.get("p"), 1, 1, 40) };
+  }
+  if (a === "race" && b && !c) return { name: "race", id: b, p: int(q.get("p"), 1, 1, 20) };
+  if (a === "ct" && b && !c) {
+    return { name: "ct", id: b, tab: oneOf(q.get("tab"), ["players", "teams", "tiles"] as const, "teams"), p: int(q.get("p"), 1, 1, 40) };
+  }
+  if (a === "ct" && b && c === "group" && d && CT_GROUP_ID.test(d)) return { name: "ctgroup", id: b, gid: d };
+  if (a === "odyssey" && b && !c) return { name: "odyssey", id: b, d: oneOf(q.get("d"), ["easy", "medium", "hard"] as const, "easy") };
+  if (a === "player" && b) return { name: "player", id: b };
+  if (a === "team" && b) return { name: "team", id: b };
+  if (a === "challenge" && b) return { name: "challenge", id: b };
+  if (a === "stats" && !b) return { name: "stats" };
+  if (a === "tools" && (!b || (b === "rounds" && !c))) return parseRounds(q);
+  if (a === "challenges" && !c && (!b || ["daily", "newest", "trending"].includes(b))) {
+    const filter = (b ?? "daily") as ChallengeFilter;
+    return { name: "challenges", filter, p: filter === "daily" ? 1 : int(q.get("p"), 1, 1, 50) };
+  }
+  return { name: "notfound" };
+}
+
+const ROUND_NO = (v: string | null) => (v !== null && /^\d{1,4}$/.test(v) ? Math.max(1, Number(v)) : undefined);
+const mult = (v: string | null) => {
+  const n = v === null || v.trim() === "" ? NaN : Number(v);
+  return Number.isFinite(n) && n > 0 && n <= 100 ? n : 1;
+};
+
+/** A site-relative path to a known page, or undefined (never an open redirect: no scheme, host or "//"). */
+export function safeSrc(v: string | null | undefined): string | undefined {
+  if (!v || v.length > 300 || !v.startsWith("/") || v.startsWith("//") || v.startsWith("/\\")) return undefined;
+  let u: URL;
+  try {
+    u = new URL(v, "https://x.invalid");
+  } catch {
+    return undefined;
+  }
+  if (u.origin !== "https://x.invalid") return undefined;
+  const r = parse(u);
+  return r.name === "notfound" || r.name === "rounds" ? undefined : u.pathname + u.search;
+}
+
+function parseRounds(q: URLSearchParams): RoundsRoute {
+  const set = q.get("set");
+  const mode = q.get("mode");
+  const ev = /^(\d{1,4})-(\d{1,4})$/.exec(q.get("ev") ?? "");
+  const mods = { ...NO_MODS };
+  for (const k of MOD_FLAGS) mods[k] = q.get(k) === "1";
+  for (const k of MOD_MULTS) mods[k] = mult(q.get(k));
+  // `notable=1` (the first version's "Notable only") now means the boss-set filter; sets without one ignore it.
+  const has = normHas([...list(q.get("has")), ...(q.get("notable") === "1" ? ["changed"] : [])]);
+  const r: RoundsRoute = { name: "rounds", mods, base: q.get("base") === "1", has, bloon: normBloon(list(q.get("bloon"))) };
+  if (q.get("view") === "round") r.view = "round";
+  if (set && /^[a-z0-9-]{1,64}$/.test(set)) r.set = set;
+  const from = ROUND_NO(q.get("from"));
+  const to = ROUND_NO(q.get("to"));
+  const open = ROUND_NO(q.get("r"));
+  if (from !== undefined) r.from = from;
+  if (to !== undefined) r.to = to;
+  if (open !== undefined) r.r = open;
+  if (ev) r.ev = [Math.max(1, Number(ev[1])), Math.max(1, Number(ev[2]))];
+  if (mode && /^[A-Za-z0-9-]{1,40}$/.test(mode)) r.mode = mode;
+  const src = safeSrc(q.get("src"));
+  if (src) r.src = src;
+  return r;
+}
+
+// ─────────────────────────────── Route → URL
+
+const qs = (o: Record<string, string | number | undefined>) => {
+  const s = new URLSearchParams();
+  for (const [k, v] of Object.entries(o)) if (v !== undefined) s.set(k, String(v));
+  const t = s.toString();
+  return t ? `?${t}` : "";
+};
+
+export const href = {
+  home: () => "/",
+  events: (kind: EventKind) => LIST_PATH[kind],
+  boss: (id: string, d: BossDiff = "standard", n = 1, p = 1) =>
+    `/boss/${id}${qs({ d: d === "standard" ? undefined : d, n: n === 1 ? undefined : n, p: p === 1 ? undefined : p })}`,
+  /** Boss stats page; only non-default values are written. */
+  bossstats: (type: string, o: { d?: BossDiff; t?: number; ev?: string; mod?: boolean } = {}) =>
+    `/bosses/${type}${qs({ d: o.d === "elite" ? "elite" : undefined, t: o.t !== undefined && o.t !== 5 ? o.t : undefined, ev: o.ev, mod: o.mod === false ? 0 : undefined })}`,
+  race: (id: string, p = 1) => `/race/${id}${qs({ p: p === 1 ? undefined : p })}`,
+  /** No tab → the CT's default (Teams); an explicit tab is always spelled out, so tab links are distinguishable. */
+  ct: (id: string, tab?: CTTab, p = 1) => `/ct/${id}${qs({ tab, p: p === 1 ? undefined : p })}`,
+  ctgroup: (id: string, gid: string) => `/ct/${id}/group/${gid}`,
+  odyssey: (id: string, d: OdyDiff = "easy") => `/odyssey/${id}${qs({ d: d === "easy" ? undefined : d })}`,
+  player: (id: string) => `/player/${id}`,
+  team: (id: string) => `/team/${id}`,
+  challenge: (id: string) => `/challenge/${id}`,
+  challenges: (f: ChallengeFilter = "daily", p = 1) => `/challenges${f === "daily" ? "" : `/${f}`}${f !== "daily" && p > 1 ? `?p=${p}` : ""}`,
+  /** The round visualizer; only non-default values are written. */
+  rounds: (p: Partial<RoundsRoute> = {}) => {
+    const m = { ...NO_MODS, ...p.mods };
+    const o: Record<string, string | number | undefined> = {
+      set: p.set,
+      from: p.from,
+      to: p.to,
+      r: p.r,
+      ev: p.ev ? `${p.ev[0]}-${p.ev[1]}` : undefined,
+      mode: p.mode,
+    };
+    for (const k of MOD_FLAGS) o[k] = m[k] ? 1 : undefined;
+    for (const k of MOD_MULTS) o[k] = m[k] !== 1 ? +m[k].toFixed(4) : undefined;
+    o.base = p.base ? 1 : undefined;
+    const has = normHas(p.has ?? []);
+    const bloon = normBloon(p.bloon ?? []);
+    o.has = has.length ? has.join(",") : undefined;
+    o.bloon = bloon.length ? bloon.join(",") : undefined;
+    o.view = p.view === "round" ? "round" : undefined;
+    o.src = p.src;
+    return `/tools/rounds${qs(o).replace(/%2C/g, ",")}`;
+  },
+};
+
+/** Last path segment of an NK URL (profile, creator, owner, guild links). */
+export const idFromUrl = (u: string | null | undefined) => (u ? (u.split("?")[0].split("/").pop() ?? "") : "");
+
+export function needsForHref(h: string): string[] {
+  return needs(parse(new URL(h, "https://x.invalid")));
+}

@@ -1,0 +1,12 @@
+node_modules/
+.wrangler/
+dist/
+__pycache__/
+.venv-art/
+dist-*/
+.dev.vars
+
+# Local review output, editor-local Claude settings, logs
+.audit/
+.claude/settings.local.json
+*.log

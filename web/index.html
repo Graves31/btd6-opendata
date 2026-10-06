@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Unofficial, instant-loading browser for Bloons TD 6 events, leaderboards and player profiles." />
+    <meta name="theme-color" content="#0a0a0b" />
+    <!-- Light / dark picked on the site (theme.tsx), applied before the first paint -->
+    <script>
+      try {
+        var t = localStorage.getItem("theme");
+        if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
+    <title>BTD6 Open Data</title>
+    <link rel="preload" href="/api/now" as="fetch" crossorigin />
+    <link rel="preconnect" href="https://static-api.nkstatic.com" />
+    <script type="module" src="/src/main.tsx"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <!-- Cloudflare Web Analytics (cookieless; counts SPA route changes as page views) -->
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "ab3888cc15e34f12b66327bed3e00042"}'></script>
+  </body>
+</html>

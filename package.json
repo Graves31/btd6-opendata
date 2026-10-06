@@ -1,0 +1,42 @@
+{
+  "name": "btd6-opendata-site",
+  "private": true,
+  "type": "module",
+  "description": "Aggressively cached front-end for the Ninja Kiwi BTD6 Open Data API",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "test": "node --import ./test/url-imports.ts --test --test-reporter=spec test/worker.test.ts test/store.test.ts test/format.test.ts test/events.test.ts test/rounds.test.ts test/bosses.test.ts",
+    "typecheck": "tsc -p .",
+    "validate": "node scripts/validate-contracts.mjs",
+    "check": "npm run typecheck && npm run validate && npm test",
+    "capture": "python scripts/capture_fixtures.py",
+    "fixture-origin": "node scripts/fixture-server.ts 8788",
+    "dev:offline": "vite build && wrangler d1 migrations apply btd6-opendata --local && wrangler dev --local --test-scheduled --var NK_BASE:http://127.0.0.1:8788",
+    "dev": "vite build && wrangler d1 migrations apply btd6-opendata --local && wrangler dev --local --test-scheduled",
+    "deploy": "vite build && wrangler d1 migrations apply btd6-opendata --remote && wrangler deploy",
+    "build": "vite build",
+    "dev:web": "vite",
+    "smoke": "node scripts/smoke.ts",
+    "e2e": "node scripts/e2e.ts",
+    "art": "python scripts/build_art.py",
+    "art:check": "node scripts/check_art.ts"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "@types/node": "^22.20.4",
+    "ajv": "^8.17.1",
+    "puppeteer-core": "^25.12.0",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.1",
+    "wrangler": "^4.138.0",
+    "yaml": "^2.8.0"
+  },
+  "dependencies": {
+    "@fontsource-variable/archivo": "^5.3.0",
+    "@fontsource-variable/big-shoulders-display": "^5.3.0",
+    "idb-keyval": "^6.3.0",
+    "preact": "^10.29.8"
+  }
+}

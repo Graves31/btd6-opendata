@@ -1,0 +1,3 @@
+{
+  "_non_json": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /btd6/doesnotexist</pre>\n</body>\n</html>\n"
+}

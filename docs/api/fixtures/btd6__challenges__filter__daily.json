@@ -1,0 +1,152 @@
+{
+  "error": null,
+  "success": true,
+  "body": [
+    {
+      "name": "Standard 2966: BrightGiraffe84's Challenge",
+      "createdAt": 1790213763957,
+      "id": "rot296620260924",
+      "creator": null,
+      "metadata": "https://data.ninjakiwi.com/btd6/challenges/challenge/rot296620260924"
+    },
+    {
+      "name": "Standard 2965: CyanRabbit3339's Challenge",
+      "createdAt": 1790127363957,
+      "id": "rot296520260923",
+      "creator": null,
+      "metadata": "https://data.ninjakiwi.com/btd6/challenges/challenge/rot296520260923"
+    },
+    {
+      "name": "Standard 2964: Kancelari's Challenge",
+      "createdAt": 1790040963957,
+      "id": "rot296420260922",
+      "creator": null,
+      "metadata": "https://data.ninjakiwi.com/btd6/challenges/challenge/rot296420260922"
+    },
+    {
+      "name": "Standard 2963: AmberLeader3488's Challenge",
+      "createdAt": 1789954563957,
+      "id": "rot296320260921",
+      "creator": null,
+      "metadata": "https://data.ninjakiwi.com/btd6/challenges/challenge/rot296320260921"
+    },
+    {
+      "name": "Standard 2962: VioletHero3615's Challenge",
+      "createdAt": 1789868163957,
+      "id": "rot296220260920",
+      "creator": null,
+      "metadata": "https://data.ninjakiwi.com/btd6/challenges/challenge/rot296220260920"
+    },
+    {
+      "name": "Standard 2961: SkinnyTechie59's Challenge",
+      "createdAt": 1789781763957,
+      "id": "rot296120260919",
+      "creator": null,
+      "metadata": "https://data.ninjakiwi.com/btd6/challenges/challenge/rot296120260919"
+    },
+    {
+      "name": "Advanced 2953: ChildEater's Challenge",
+      "createdAt": 1790213764566,
+      "id": "adv295320260924",
+      "creator": null,
+      "metadata": "https://data.ninjakiwi.com/btd6/challenges/challenge/adv295320260924"
+    },
+    {
+      "name": "Advanced 2952: ChoralRig298's Challenge",
+      "createdAt": 1790127364566,
+      "id": "adv295220260923",
+      "creator": null,
+      "metadata": "https://data.ninjakiwi.com/btd6/challenges/challenge/adv295220260923"
+    },
+    {
+      "name": "Advanced 2951: AdorbaleHatch729's Challenge",
+      "createdAt": 1790040964566,
+      "id": "adv295120260922",
+      "creator": null,
+      "metadata": "https://data.ninjakiwi.com/btd6/challenges/challenge/adv295120260922"
+    },
+    {
+      "name": "Advanced 2950: HeroicTiger4137s Challenge",
+      "createdAt": 1789954564566,
+      "id": "adv295020260921",
+      "creator": null,
+      "metadata": "https://data.ninjakiwi.com/btd6/challenges/challenge/adv295020260921"
+    },
+    {
+      "name": "Advanced 2949: Flat_Batteries's Chalennge",
+      "createdAt": 1789868164566,
+      "id": "adv294920260920",
+      "creator": null,
+      "metadata": "https://data.ninjakiwi.com/btd6/challenges/challenge/adv294920260920"
+    },
+    {
+      "name": "Advanced 2948: ProtoImmortal643's Challenge",
+      "createdAt": 1789781764566,
+      "id": "adv294820260919",
+      "creator": null,
+      "metadata": "https://data.ninjakiwi.com/btd6/challenges/challenge/adv294820260919"
+    },
+    {
+      "name": "coop - pizzapatrol1234's Challenge",
+      "createdAt": 1789891200000,
+      "id": "coopmtr86jby",
+      "creator": null,
+      "metadata": "https://data.ninjakiwi.com/btd6/challenges/challenge/coopmtr86jby"
+    },
+    {
+      "name": "coop - SoberFern534's Challenge",
+      "createdAt": 1790150400000,
+      "id": "coopmtr86p58",
+      "creator": null,
+      "metadata": "https://data.ninjakiwi.com/btd6/challenges/challenge/coopmtr86p58"
+    },
+    {
+      "name": "coop - Metalboy1's Challenge",
+      "createdAt": 1790496000000,
+      "id": "coopmtr86t0k",
+      "creator": null,
+      "metadata": "https://data.ninjakiwi.com/btd6/challenges/challenge/coopmtr86t0k"
+    },
+    {
+      "name": "coop - TealZebra1732's Challenge",
+      "createdAt": 1790755200000,
+      "id": "coopmtr86urg",
+      "creator": null,
+      "metadata": "https://data.ninjakiwi.com/btd6/challenges/challenge/coopmtr86urg"
+    },
+    {
+      "name": "coop - SuperMonke138177's Challenge",
+      "createdAt": 1791100800000,
+      "id": "coopmtr86ydi",
+      "creator": null,
+      "metadata": "https://data.ninjakiwi.com/btd6/challenges/challenge/coopmtr86ydi"
+    }
+  ],
+  "model": {
+    "name": "_btd6challenge",
+    "parameters": {
+      "name": {
+        "description": "Challenge Filter Name",
+        "type": "string"
+      },
+      "createdAt": {
+        "description": "Challenge creation time in unix epoch milliseconds",
+        "type": "number"
+      },
+      "id": {
+        "description": "Unique Challenge ID",
+        "type": "string"
+      },
+      "creator": {
+        "description": "URL to the creators profile",
+        "type": "string"
+      },
+      "metadata": {
+        "description": "URL to the full challenge information",
+        "type": "string"
+      }
+    }
+  },
+  "next": null,
+  "prev": null
+}

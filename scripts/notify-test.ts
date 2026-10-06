@@ -1,0 +1,34 @@
+// Sends one test boss and one test race message to the Discord webhook, built with the real formatter from
+// the newest boss/race in the docs/api fixtures.
+//   DISCORD_WEBHOOK_URL=... node scripts/notify-test.ts      (or put it in .dev.vars as KEY=value)
+
+import { readFileSync } from "node:fs";
+import { discordChannel, formatNewEvent, type NewEventPayload } from "../src/worker/notify.ts";
+
+const root = new URL("../", import.meta.url);
+let url = process.env.DISCORD_WEBHOOK_URL;
+if (!url) {
+  try {
+    const m = /^DISCORD_WEBHOOK_URL\s*=\s*"?([^"\r\n]+?)"?\s*$/m.exec(readFileSync(new URL(".dev.vars", root), "utf8"));
+    url = m?.[1];
+  } catch {}
+}
+if (!url) {
+  console.error("DISCORD_WEBHOOK_URL not set (environment or .dev.vars)");
+  process.exit(1);
+}
+
+const newest = (kind: "boss" | "race", file: string): NewEventPayload => {
+  const body = (JSON.parse(readFileSync(new URL(`docs/api/fixtures/${file}`, root), "utf8")) as { body: Record<string, unknown>[] }).body;
+  const it = body.reduce((a, b) => ((b.start as number) > (a.start as number) ? b : a));
+  return { kind, id: it.id, name: it.name, bossType: it.bossType, bossTypeURL: it.bossTypeURL, start: it.start, end: it.end } as NewEventPayload;
+};
+
+const channel = discordChannel(fetch, url);
+let failed = false;
+for (const p of [newest("boss", "btd6__bosses.json"), newest("race", "btd6__races.json")]) {
+  const r = await channel.send(formatNewEvent(p, "[Test] "));
+  console.log(p.kind, p.id, "ok" in r ? "sent" : JSON.stringify(r));
+  if (!("ok" in r)) failed = true;
+}
+process.exit(failed ? 1 : 0);

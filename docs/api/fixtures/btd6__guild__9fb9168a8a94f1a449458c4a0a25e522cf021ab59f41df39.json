@@ -1,0 +1,78 @@
+{
+  "error": null,
+  "success": true,
+  "body": {
+    "name": "CHEESINGTHEALG0RITHM",
+    "owner": "https://data.ninjakiwi.com/btd6/users/9fbf1588dd92abf64b14874f5976e426c80714bfcb128e3f",
+    "numMembers": 5,
+    "status": "FILTERED",
+    "banner": "TeamsBanner16",
+    "frame": "TeamsEmblemFrame16",
+    "icon": "TeamsEmblemIcon15",
+    "bannerURL": "https://static-api.nkstatic.com/appdocs/4/assets/opendata/824dbb8d47b693840fe97be25c1c788e_TeamsBanner16.png",
+    "frameURL": "https://static-api.nkstatic.com/appdocs/4/assets/opendata/272150ec542cf87ea483a4a2af8e096a_TeamsEmblemFrame16.png",
+    "iconURL": "https://static-api.nkstatic.com/appdocs/4/assets/opendata/d8a922d6ad4b9c6db612dba26b8093c9_TeamsEmblemIcon15.png",
+    "CtBadges": {
+      "Global_BlackDiamond": {
+        "url": "https://static-api.nkstatic.com/appdocs/4/assets/opendata/76c4fa5482409e3a1d451083b534efb5_CtGlobalTeamBlackDiamondMedal.png",
+        "id": "Global_BlackDiamond"
+      },
+      "Local_BlueDiamond": {
+        "url": "https://static-api.nkstatic.com/appdocs/4/assets/opendata/356f620bbc6d1395ce8a090e82f70786_CtLocalTeamBlueDiamondMedal.png",
+        "id": "Local_BlueDiamond"
+      }
+    }
+  },
+  "model": {
+    "name": "_btd6guildprofile",
+    "parameters": {
+      "name": {
+        "description": "Guild Name",
+        "type": "string"
+      },
+      "owner": {
+        "description": "URL to the Owners public profile",
+        "type": "string"
+      },
+      "numMembers": {
+        "description": "Number of players in Team",
+        "type": "number"
+      },
+      "status": {
+        "description": "Status of the Team (OPEN, FILTERED, DISBANDED, CLOSED)",
+        "type": "string"
+      },
+      "banner": {
+        "description": "Banner Icon Name",
+        "type": "string"
+      },
+      "frame": {
+        "description": "Frame Icon Name",
+        "type": "string"
+      },
+      "icon": {
+        "description": "Team Icon Name",
+        "type": "string"
+      },
+      "bannerURL": {
+        "description": "URL to banner icon",
+        "type": "assetURL"
+      },
+      "frameURL": {
+        "description": "URL to frame icon",
+        "type": "assetURL"
+      },
+      "iconURL": {
+        "description": "URL to icon",
+        "type": "assetURL"
+      },
+      "CtBadges": {
+        "description": "URL to icon",
+        "type": "map",
+        "filtered": false
+      }
+    }
+  },
+  "next": null,
+  "prev": null
+}

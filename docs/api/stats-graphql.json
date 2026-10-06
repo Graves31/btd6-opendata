@@ -1,0 +1,469 @@
+{
+ "data": {
+  "viewer": {
+   "accounts": [
+    {
+     "t7": [
+      {
+       "count": 151,
+       "sum": {
+        "visits": 94
+       }
+      }
+     ],
+     "t30": [
+      {
+       "count": 404,
+       "sum": {
+        "visits": 251
+       }
+      }
+     ],
+     "daily": [
+      {
+       "count": 4,
+       "sum": {
+        "visits": 2
+       },
+       "dimensions": {
+        "date": "2026-09-01"
+       }
+      },
+      {
+       "count": 7,
+       "sum": {
+        "visits": 4
+       },
+       "dimensions": {
+        "date": "2026-09-02"
+       }
+      },
+      {
+       "count": 3,
+       "sum": {
+        "visits": 2
+       },
+       "dimensions": {
+        "date": "2026-09-03"
+       }
+      },
+      {
+       "count": 9,
+       "sum": {
+        "visits": 6
+       },
+       "dimensions": {
+        "date": "2026-09-04"
+       }
+      },
+      {
+       "count": 12,
+       "sum": {
+        "visits": 7
+       },
+       "dimensions": {
+        "date": "2026-09-05"
+       }
+      },
+      {
+       "count": 6,
+       "sum": {
+        "visits": 4
+       },
+       "dimensions": {
+        "date": "2026-09-06"
+       }
+      },
+      {
+       "count": 5,
+       "sum": {
+        "visits": 3
+       },
+       "dimensions": {
+        "date": "2026-09-07"
+       }
+      },
+      {
+       "count": 8,
+       "sum": {
+        "visits": 5
+       },
+       "dimensions": {
+        "date": "2026-09-08"
+       }
+      },
+      {
+       "count": 14,
+       "sum": {
+        "visits": 9
+       },
+       "dimensions": {
+        "date": "2026-09-09"
+       }
+      },
+      {
+       "count": 11,
+       "sum": {
+        "visits": 7
+       },
+       "dimensions": {
+        "date": "2026-09-10"
+       }
+      },
+      {
+       "count": 9,
+       "sum": {
+        "visits": 6
+       },
+       "dimensions": {
+        "date": "2026-09-11"
+       }
+      },
+      {
+       "count": 7,
+       "sum": {
+        "visits": 4
+       },
+       "dimensions": {
+        "date": "2026-09-12"
+       }
+      },
+      {
+       "count": 13,
+       "sum": {
+        "visits": 8
+       },
+       "dimensions": {
+        "date": "2026-09-13"
+       }
+      },
+      {
+       "count": 18,
+       "sum": {
+        "visits": 11
+       },
+       "dimensions": {
+        "date": "2026-09-14"
+       }
+      },
+      {
+       "count": 15,
+       "sum": {
+        "visits": 9
+       },
+       "dimensions": {
+        "date": "2026-09-15"
+       }
+      },
+      {
+       "count": 10,
+       "sum": {
+        "visits": 6
+       },
+       "dimensions": {
+        "date": "2026-09-16"
+       }
+      },
+      {
+       "count": 8,
+       "sum": {
+        "visits": 5
+       },
+       "dimensions": {
+        "date": "2026-09-17"
+       }
+      },
+      {
+       "count": 12,
+       "sum": {
+        "visits": 7
+       },
+       "dimensions": {
+        "date": "2026-09-18"
+       }
+      },
+      {
+       "count": 16,
+       "sum": {
+        "visits": 10
+       },
+       "dimensions": {
+        "date": "2026-09-19"
+       }
+      },
+      {
+       "count": 22,
+       "sum": {
+        "visits": 14
+       },
+       "dimensions": {
+        "date": "2026-09-20"
+       }
+      },
+      {
+       "count": 19,
+       "sum": {
+        "visits": 12
+       },
+       "dimensions": {
+        "date": "2026-09-21"
+       }
+      },
+      {
+       "count": 14,
+       "sum": {
+        "visits": 9
+       },
+       "dimensions": {
+        "date": "2026-09-22"
+       }
+      },
+      {
+       "count": 11,
+       "sum": {
+        "visits": 7
+       },
+       "dimensions": {
+        "date": "2026-09-23"
+       }
+      },
+      {
+       "count": 17,
+       "sum": {
+        "visits": 11
+       },
+       "dimensions": {
+        "date": "2026-09-24"
+       }
+      },
+      {
+       "count": 25,
+       "sum": {
+        "visits": 16
+       },
+       "dimensions": {
+        "date": "2026-09-25"
+       }
+      },
+      {
+       "count": 21,
+       "sum": {
+        "visits": 13
+       },
+       "dimensions": {
+        "date": "2026-09-26"
+       }
+      },
+      {
+       "count": 18,
+       "sum": {
+        "visits": 11
+       },
+       "dimensions": {
+        "date": "2026-09-27"
+       }
+      },
+      {
+       "count": 15,
+       "sum": {
+        "visits": 9
+       },
+       "dimensions": {
+        "date": "2026-09-28"
+       }
+      },
+      {
+       "count": 24,
+       "sum": {
+        "visits": 15
+       },
+       "dimensions": {
+        "date": "2026-09-29"
+       }
+      },
+      {
+       "count": 31,
+       "sum": {
+        "visits": 19
+       },
+       "dimensions": {
+        "date": "2026-09-30"
+       }
+      }
+     ],
+     "pages": [
+      {
+       "count": 190,
+       "sum": {
+        "visits": 120
+       },
+       "dimensions": {
+        "requestPath": "/"
+       }
+      },
+      {
+       "count": 90,
+       "sum": {
+        "visits": 55
+       },
+       "dimensions": {
+        "requestPath": "/bosses"
+       }
+      },
+      {
+       "count": 70,
+       "sum": {
+        "visits": 40
+       },
+       "dimensions": {
+        "requestPath": "/boss/Vortex47_mu62cmt5"
+       }
+      },
+      {
+       "count": 52,
+       "sum": {
+        "visits": 30
+       },
+       "dimensions": {
+        "requestPath": "/tools/rounds"
+       }
+      },
+      {
+       "count": 31,
+       "sum": {
+        "visits": 20
+       },
+       "dimensions": {
+        "requestPath": "/races"
+       }
+      },
+      {
+       "count": 22,
+       "sum": {
+        "visits": 14
+       },
+       "dimensions": {
+        "requestPath": "/ct"
+       }
+      }
+     ],
+     "referrers": [
+      {
+       "count": 210,
+       "sum": {
+        "visits": 140
+       },
+       "dimensions": {
+        "refererHost": ""
+       }
+      },
+      {
+       "count": 95,
+       "sum": {
+        "visits": 60
+       },
+       "dimensions": {
+        "refererHost": "www.reddit.com"
+       }
+      },
+      {
+       "count": 40,
+       "sum": {
+        "visits": 22
+       },
+       "dimensions": {
+        "refererHost": "discord.com"
+       }
+      },
+      {
+       "count": 12,
+       "sum": {
+        "visits": 9
+       },
+       "dimensions": {
+        "refererHost": "www.google.com"
+       }
+      }
+     ],
+     "countries": [
+      {
+       "count": 160,
+       "sum": {
+        "visits": 100
+       },
+       "dimensions": {
+        "countryName": "United States"
+       }
+      },
+      {
+       "count": 70,
+       "sum": {
+        "visits": 40
+       },
+       "dimensions": {
+        "countryName": "France"
+       }
+      },
+      {
+       "count": 55,
+       "sum": {
+        "visits": 35
+       },
+       "dimensions": {
+        "countryName": "United Kingdom"
+       }
+      },
+      {
+       "count": 30,
+       "sum": {
+        "visits": 20
+       },
+       "dimensions": {
+        "countryName": "Germany"
+       }
+      },
+      {
+       "count": 18,
+       "sum": {
+        "visits": 12
+       },
+       "dimensions": {
+        "countryName": "Brazil"
+       }
+      }
+     ],
+     "devices": [
+      {
+       "count": 230,
+       "sum": {
+        "visits": 150
+       },
+       "dimensions": {
+        "deviceType": "desktop"
+       }
+      },
+      {
+       "count": 140,
+       "sum": {
+        "visits": 90
+       },
+       "dimensions": {
+        "deviceType": "mobile"
+       }
+      },
+      {
+       "count": 8,
+       "sum": {
+        "visits": 5
+       },
+       "dimensions": {
+        "deviceType": "tablet"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ "errors": null
+}

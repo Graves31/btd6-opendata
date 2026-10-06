@@ -1,0 +1,6350 @@
+/* BTD6 Open Data — broadcast scoreboard.
+   Night-navy field (not pure black) with a soft per-area colour wash (see "page tint" below), white type, one
+   signal-yellow accent that always means "this one" (current tab, #1, the brand). Status colours are semantic
+   only: green live, blue upcoming, grey ended.
+   Contrast on --bg (dark / light): body text 18.9 / 17.5, secondary 11.6 / 9.5, labels 7.9 / 7.7, accent text
+   13.4 / 5.8, black on yellow 14.0. The tint wash lightens the top corner by at most ~26%: labels stay ≥ 5.5. */
+
+:root {
+  --bg: #0c111d;
+  --s1: #141b2a;
+  --s2: #1c2537;
+  --map-mat: #070a12;
+  --ink: #ffffff;
+  --ink-2: #c4cbd8;
+  --ink-3: #9ea8ba;
+  --rule: #28324a;
+  --rule-2: #67748d;
+  --accent: #ffd60a;
+  --accent-ink: #ffd60a;
+  --on-accent: #0a0a0b;
+  --bronze: #cd7f32; /* #3 plate; near-black text on it in both themes (5.3:1) */
+  --live: #3ddc84;
+  --soon: #62c6ff;
+  --ended: #a3a3ab;
+  --live-fill: #3ddc84;
+  --soon-fill: #62c6ff;
+  --ended-fill: #a3a3ab;
+  --focus: #ffd60a;
+  --bar: #c4cbd8;
+  --shade: rgb(255 255 255 / 0.04);
+  /* leaderboards: rank bands, hover, podium rows */
+  --zebra: rgb(255 255 255 / 0.028);
+  --hover: rgb(255 255 255 / 0.065);
+  --top1: rgb(255 214 10 / 0.1);
+  --top23: rgb(255 255 255 / 0.05);
+  --ban: #ff5a4f;
+  /* Page tint (r g b): set per area on <html data-area … data-boss …> (main.tsx). */
+  --tint: 255 214 10;
+  --tint-2: 70 120 255;
+  --wash: 0.26;
+  /* One neutral page surface (the per-area --tint still colours event cards and bars, not the page). */
+  --surf: 120 140 190;
+  --wash-s: 0.13;
+  --dots: rgb(255 255 255 / 0.04);
+
+  /* RBE strip: bloon layers / MOAB-class layers (validated pair, CVD ΔE ≥ 23 on --bg) */
+  --rv-b: #5b88d6;
+  --rv-m: #d9772a;
+  /* The header is dark in both themes. */
+  --hdr-bg: rgb(9 13 23 / 0.9);
+  --hdr-ink: #fff;
+  --hdr-ink-2: #c2c2c8;
+  --hdr-line: #2a2a2f;
+  --glow-live: rgb(61 220 132 / 0.55);
+  /* Stacking: header above the sticky bits, a hovered tile just above its neighbours' badges. */
+  --z-raised: 1;
+  --z-tile: 4;
+  --z-sticky: 5;
+  --z-header: 10;
+  --z-skip: 20;
+
+  /* "Glyphs" (fonts.css) supplies the arrows/triangles missing from the latin subsets. */
+  --f-display: "Big Shoulders", "Glyphs", "Arial Narrow", "Roboto Condensed", Impact, sans-serif;
+  --f-body: "Archivo", "Glyphs", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 2px;
+  --hdr: 56px;
+  --gut: 24px;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #eef1f6;
+    --s1: #ffffff;
+    --s2: #e4e8ef;
+    --map-mat: #c9d0dc;
+    --ink: #0a0a0b;
+    --ink-2: #3d3d44;
+    --ink-3: #474b55;
+    --rule: #d6d6da;
+    --rule-2: #7c7c84;
+    --accent-ink: #7a5800;
+    --live: #0a7a3d;
+    --soon: #0759a8;
+    --ended: #55555c;
+    --focus: #0a0a0b;
+    --bar: #3d3d44;
+    --shade: rgb(0 0 0 / 0.035);
+    --zebra: rgb(10 20 40 / 0.035);
+    --hover: rgb(10 20 40 / 0.06);
+    --top1: rgb(255 214 10 / 0.24);
+    --top23: rgb(10 20 40 / 0.05);
+    --ban: #c8102e;
+    --wash: 0.16;
+    --wash-s: 0.08;
+    --dots: rgb(10 20 40 / 0.05);
+    --rv-b: #3f6fc4;
+    --rv-m: #c25e00;
+    color-scheme: light;
+  }
+}
+
+/* Light mode picked with the header toggle (theme.tsx): the same values as the device-light block above. */
+:root[data-theme="light"] {
+  --bg: #eef1f6;
+  --s1: #ffffff;
+  --s2: #e4e8ef;
+  --map-mat: #c9d0dc;
+  --ink: #0a0a0b;
+  --ink-2: #3d3d44;
+  --ink-3: #474b55;
+  --rule: #d6d6da;
+  --rule-2: #7c7c84;
+  --accent-ink: #7a5800;
+  --live: #0a7a3d;
+  --soon: #0759a8;
+  --ended: #55555c;
+  --focus: #0a0a0b;
+  --bar: #3d3d44;
+  --shade: rgb(0 0 0 / 0.035);
+  --zebra: rgb(10 20 40 / 0.035);
+  --hover: rgb(10 20 40 / 0.06);
+  --top1: rgb(255 214 10 / 0.24);
+  --top23: rgb(10 20 40 / 0.05);
+  --ban: #c8102e;
+  --wash: 0.16;
+  --wash-s: 0.08;
+  --dots: rgb(10 20 40 / 0.05);
+  --rv-b: #3f6fc4;
+  --rv-m: #c25e00;
+  color-scheme: light;
+}
+
+/* ─────────────────────────────── base */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+}
+/* Keep focused elements clear of the sticky header (56px) + table header (~48px) on desktop. */
+@media (min-width: 701px) {
+  html {
+    scroll-padding-top: calc(var(--hdr) + 48px);
+  }
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  isolation: isolate;
+  color: var(--ink);
+  font: 400 15px/1.5 var(--f-body);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+/* Page background: soft colour washes in the area's tint + a faint dot grid, on a fixed layer behind the
+   page (composited once; scrolling never repaints it). Changes instantly with the page's area. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgb(var(--surf) / calc(var(--wash-s) * 0.35)), transparent 340px),
+    radial-gradient(1100px 560px at 88% -6%, rgb(var(--surf) / var(--wash-s)), transparent 64%),
+    radial-gradient(800px 500px at 60% 115%, rgb(var(--surf) / calc(var(--wash-s) * 0.45)), transparent 60%),
+    radial-gradient(var(--dots) 1px, transparent 1.4px) 0 0 / 22px 22px,
+    var(--bg);
+}
+
+/* Areas: pages feel related (same navy field) but each has its own colour, like the game's event themes. */
+[data-area="race"],
+[data-area="events-race"] {
+  --tint: 255 84 84;
+  --tint-2: 255 170 60;
+}
+[data-area="ct"],
+[data-area="ctgroup"],
+[data-area="team"],
+[data-area="events-ct"] {
+  --tint: 255 150 40;
+  --tint-2: 60 140 255;
+}
+[data-area="odyssey"],
+[data-area="events-odyssey"] {
+  --tint: 30 190 255;
+  --tint-2: 40 220 180;
+}
+[data-area="challenge"] {
+  --tint: 90 220 130;
+  --tint-2: 255 214 10;
+}
+[data-area="player"] {
+  --tint: 80 140 255;
+  --tint-2: 160 90 255;
+}
+[data-area="events-boss"],
+[data-area="boss"] {
+  --tint: 255 214 10;
+  --tint-2: 255 90 60;
+}
+[data-boss="vortex"] {
+  --tint: 60 170 255;
+  --tint-2: 255 200 40;
+}
+[data-boss="lych"] {
+  --tint: 170 90 255;
+  --tint-2: 60 220 170;
+}
+[data-boss="bloonarius"] {
+  --tint: 80 220 110;
+  --tint-2: 200 240 60;
+}
+[data-boss="dreadbloon"] {
+  --tint: 130 140 255;
+  --tint-2: 255 110 60;
+}
+[data-boss="phayze"] {
+  --tint: 200 70 255;
+  --tint-2: 60 120 255;
+}
+[data-boss="blastapopoulos"] {
+  --tint: 255 90 40;
+  --tint-2: 255 190 40;
+}
+[data-boss="diamondback"] {
+  --tint: 40 210 200;
+  --tint-2: 120 160 255;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+main a:not([class]):hover,
+.pl a:hover,
+.meta-line a:hover,
+.profile-sub a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+img {
+  display: block;
+  max-width: 100%;
+}
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+main:focus,
+#rules:focus,
+h1:focus,
+section[tabindex="-1"]:focus {
+  outline: none;
+}
+/* The header is dark in both themes: its focus ring is yellow (the light --focus is near-black). */
+.top :focus-visible {
+  outline-color: #ffd60a;
+}
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+ol,
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+dl,
+dd,
+figure {
+  margin: 0;
+}
+b,
+strong {
+  font-weight: 700;
+}
+.num,
+.mono {
+  font-variant-numeric: tabular-nums;
+}
+.num {
+  text-align: right;
+  white-space: nowrap;
+}
+.mono {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.92em;
+  letter-spacing: 0.02em;
+}
+.nowrap {
+  white-space: nowrap;
+}
+.vh {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.skip {
+  position: absolute;
+  left: 8px;
+  top: -60px;
+  z-index: var(--z-skip);
+  padding: 8px 14px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+}
+.skip:focus {
+  top: 8px;
+}
+
+/* ─────────────────────────────── type */
+
+.title {
+  font: 800 44px/0.92 var(--f-display);
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
+  overflow-wrap: anywhere;
+}
+.title.xl {
+  font-size: clamp(40px, 6.4vw, 84px);
+}
+.eyebrow {
+  font: 700 12px/1.2 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink-2);
+  margin-bottom: 8px;
+}
+.eyebrow a:hover {
+  color: var(--ink);
+}
+.kicker,
+.label,
+.kicker-h {
+  display: block;
+  font: 700 11px/1.3 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.kicker,
+.label {
+  color: var(--ink-3);
+}
+.kicker-h {
+  font: 600 15px/1.3 var(--f-body);
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--rule-2);
+  margin-bottom: 4px;
+}
+.lede {
+  color: var(--ink-2);
+  max-width: 62ch;
+  margin-top: 10px;
+}
+.quiet {
+  color: var(--ink-3);
+  font-size: 14px;
+}
+.up {
+  color: var(--ink);
+  font-weight: 700;
+}
+.down {
+  color: var(--ink);
+}
+
+/* ─────────────────────────────── chrome */
+
+.top {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  display: flex;
+  align-items: stretch;
+  gap: 28px;
+  height: var(--hdr);
+  padding: 0 var(--gut);
+  background: var(--hdr-bg);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  backdrop-filter: blur(10px) saturate(1.3);
+  color: var(--hdr-ink);
+  border-bottom: 1px solid var(--hdr-line);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 800 22px/1 var(--f-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.brand-mark {
+  background: var(--accent);
+  color: var(--on-accent);
+  padding: 3px 6px 2px;
+}
+.top nav {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+}
+.top nav a {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font: 600 15px/1 var(--f-body);
+  color: var(--hdr-ink-2);
+  border-bottom: 4px solid transparent;
+  border-top: 4px solid transparent;
+}
+.top nav a:hover {
+  color: var(--hdr-ink);
+}
+.top nav a.on {
+  color: var(--hdr-ink);
+  border-bottom-color: var(--accent);
+}
+/* Light / dark toggle, far right (phones: top-right corner, beside the logo). It comes before the nav in the DOM
+   (phone tab order = visual order), so on desktop `order` puts it after it. */
+.theme-btn {
+  order: 2;
+  align-self: center;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin-left: auto;
+  color: #e6e6ea;
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  border-radius: var(--r);
+  cursor: pointer;
+}
+.theme-btn:hover {
+  color: var(--hdr-ink);
+  border-color: rgb(255 255 255 / 0.5);
+  background: rgb(255 255 255 / 0.06);
+}
+/* A compact step so brand + 7 tabs + theme button fit from 701 px (the phone header starts at 700). */
+@media (min-width: 701px) and (max-width: 900px) {
+  .top {
+    gap: 16px;
+  }
+  .top nav {
+    gap: 0;
+  }
+  .top nav a {
+    padding: 0 8px;
+    font-size: 14px;
+  }
+}
+
+main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 28px var(--gut) 48px;
+  min-height: 70vh;
+}
+footer {
+  width: calc(100% - 2 * var(--gut));
+  max-width: calc(1280px - 2 * var(--gut));
+  margin: 0 auto;
+  padding: 20px 0 32px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px 24px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--rule);
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+/* ─────────────────────────────── status: score bug + small badge */
+
+.bug {
+  display: inline-flex;
+  align-items: stretch;
+  font: 700 15px/1 var(--f-display);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+  overflow: hidden;
+  white-space: nowrap;
+}
+.bug-s {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px 4px;
+  color: var(--on-accent);
+  font-weight: 900;
+  background: var(--ended-fill);
+}
+.bug.live .bug-s {
+  background: var(--live-fill);
+}
+.bug.upcoming .bug-s {
+  background: var(--soon-fill);
+}
+.bug.live .bug-s::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  background: var(--on-accent);
+  animation: blink 1.6s steps(2, jump-none) 3;
+}
+@keyframes blink {
+  50% {
+    opacity: 0.15;
+  }
+}
+.bug-t {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 4px;
+  background: var(--s2);
+  color: var(--ink);
+}
+.bug-l {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.bug-c {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+.bug-c i {
+  display: inline-block;
+  width: 1ch;
+  text-align: center;
+  font-style: normal;
+}
+.bug.big {
+  font-size: 20px;
+}
+.bug.big .bug-s,
+.bug.big .bug-t {
+  padding: 7px 12px 6px;
+}
+.bugline {
+  margin: 16px 0 10px;
+}
+.when {
+  display: block;
+  color: var(--ink-2);
+  font-size: 14px;
+}
+.when .arrow {
+  color: var(--ink-3);
+}
+.when .tz {
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+.st {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font: 700 12px/1.2 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ended);
+  white-space: nowrap;
+}
+.st::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: currentColor;
+}
+.st.live {
+  color: var(--live);
+}
+.st.upcoming {
+  color: var(--soon);
+}
+
+/* ─────────────────────────────── images */
+
+.img-missing {
+  display: block;
+  width: 100%;
+  background: repeating-linear-gradient(135deg, var(--s2) 0 6px, var(--s1) 6px 12px);
+}
+.emblem {
+  position: relative;
+  display: inline-block;
+  flex: none;
+}
+.emblem img,
+.emblem .img-missing {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ─────────────────────────────── home: featured boss */
+
+.feature {
+  border: 1px solid var(--rule);
+  background: var(--s1);
+}
+.feature-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+}
+.feature-body > * {
+  padding: 24px;
+}
+.feature-body > * + * {
+  border-left: 1px solid var(--rule);
+}
+/* The map, named big, then the two difficulties as tiles (which pick the top 5 while the event is live). */
+.feature-main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.fm-map {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.fm-map .map-art {
+  flex: none;
+  width: 120px;
+  height: 120px;
+  border: 1px solid var(--rule-2);
+}
+.fm-t {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+}
+.fm-name {
+  font: 800 44px/0.95 var(--f-display);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  overflow-wrap: anywhere;
+}
+.fm-sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 15px;
+  color: var(--ink-2);
+}
+.fm-sub .mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.fm-sub .mode .spr {
+  margin: -3px 0;
+}
+.fm-sub > span + span::before {
+  content: "·";
+  margin-right: 8px;
+  color: var(--ink-3);
+}
+.fd-tiles {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.fd-tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 18px;
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+  background: var(--bg);
+  border: 2px solid var(--rule);
+  border-radius: var(--r);
+}
+button.fd-tile {
+  cursor: pointer;
+}
+button.fd-tile:hover {
+  border-color: var(--ink-3);
+}
+.fd-tile.on {
+  background: var(--s2);
+  border-color: var(--ink);
+}
+.fd-sc {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font: 800 30px/1 var(--f-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.fd-n {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.feature-top {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.podium li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.podium .pname {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.podium .pname:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+}
+.podium .num {
+  font: 800 20px/1 var(--f-display);
+  letter-spacing: 0.02em;
+}
+.more {
+  margin-top: auto;
+  align-self: flex-start;
+  font: 800 16px/1 var(--f-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  padding: 8px 0;
+  border-bottom: 2px solid var(--rule-2);
+}
+.more:hover {
+  border-bottom-color: var(--ink);
+}
+
+/* ─────────────────────────────── home: secondary tiles */
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.tile {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  background: var(--s1);
+  border: 1px solid var(--rule);
+  transition: border-color 0.12s;
+}
+.tile:hover {
+  border-color: var(--ink);
+}
+.tile:hover .tile-title {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 4px;
+}
+.tile-art {
+  flex: none;
+  align-self: center;
+  margin: 14px 0 14px 14px;
+}
+.tile-ody {
+  flex-direction: column;
+}
+.tile-ody .mf-row {
+  margin: 0 16px 16px;
+}
+.tile-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px 16px 16px;
+}
+.tile-body .eyebrow {
+  margin: 0;
+}
+.tile-title {
+  font: 800 28px/0.95 var(--f-display);
+  text-transform: uppercase;
+}
+.tile-meta {
+  color: var(--ink-2);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.tile-meta strong {
+  color: var(--ink);
+}
+
+/* ─────────────────────────────── sections */
+
+.sec {
+  margin-top: 40px;
+}
+.sec-h {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--rule-2);
+}
+.sec-h h2 {
+  font: 600 17px/1.2 var(--f-body);
+}
+.sec-aside {
+  color: var(--ink-3);
+  font-size: 13px;
+  text-align: right;
+}
+.page-h {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--ink);
+}
+
+/* ─────────────────────────────── event lists */
+
+/* Each event is a card: its own panel, a status stripe on the left (live / soon / ended; the badge says it in
+   words too), art filling the card's height, and a wash of the area's colour (a boss card wears its boss's,
+   via [data-boss] on the li). A live event gets the big card. */
+.events {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ev-row {
+  --stripe: var(--rule-2);
+  --well: 96px;
+  --art: 340px;
+  --wash-a: 0.13;
+  display: grid;
+  align-items: center;
+  gap: 8px 24px;
+  min-height: 96px;
+  padding-right: 20px;
+  background: linear-gradient(90deg, rgb(var(--tint) / var(--wash-a)), rgb(var(--tint) / 0) 60%), var(--s1);
+  border: 1px solid var(--rule);
+  border-left: 5px solid var(--stripe);
+  transition: border-color 0.12s;
+}
+.ev-row.st-live {
+  --stripe: var(--live-fill);
+}
+.ev-row.st-upcoming {
+  --stripe: var(--soon-fill);
+}
+.events li.now .ev-row {
+  --well: 120px;
+  --art: 440px;
+  --wash-a: 0.24;
+}
+.ev-row:hover {
+  border-color: var(--ink);
+  border-left-color: var(--stripe);
+}
+.ev-row:hover .ev-title {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 4px;
+}
+.k-boss .ev-row {
+  grid-template-columns: var(--art) minmax(0, 1fr) 180px 100px 180px;
+  background: linear-gradient(90deg, rgb(var(--tint) / calc(var(--wash-a) + 0.07)) 20%, rgb(var(--tint) / 0) 80%), var(--s1);
+}
+.k-race .ev-row {
+  grid-template-columns: var(--well) minmax(0, 1fr) 100px 110px 180px;
+}
+.k-ct .ev-row {
+  grid-template-columns: var(--well) minmax(0, 1fr) 110px 110px 180px;
+}
+.k-odyssey .ev-row {
+  grid-template-columns: var(--well) minmax(0, 1fr) 180px;
+}
+.ev-art {
+  align-self: stretch;
+  overflow: hidden;
+  background: var(--s2);
+}
+/* Framed map, centred against the text; the well is its column. */
+.ev-art.well {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--well);
+  background: none;
+}
+/* Boss banner at the card's height, boss end first, fading into the card. */
+.ev-art.banner {
+  background: none;
+}
+.ev-art.banner img,
+.ev-art.banner .img-missing {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: left center;
+  -webkit-mask-image: linear-gradient(90deg, #000 60%, transparent);
+  mask-image: linear-gradient(90deg, #000 60%, transparent);
+}
+.ev-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 12px 0;
+}
+.ev-title {
+  font: 800 26px/1 var(--f-display);
+  text-transform: uppercase;
+}
+.events li.now .ev-title {
+  font-size: 38px;
+  line-height: 0.95;
+}
+.ev-dates,
+.ev-desc {
+  color: var(--ink-2);
+  font-size: 13px;
+}
+.ev-col {
+  font-weight: 600;
+}
+.ev-col .kicker {
+  margin-bottom: 2px;
+}
+.ev-col.num .kicker {
+  text-align: right;
+}
+.ev-st {
+  justify-self: end;
+}
+
+/* ─────────────────────────────── event page header */
+
+.ev-hero {
+  margin-bottom: 20px;
+}
+.ev-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 28px;
+  align-items: start;
+  padding-bottom: 24px;
+  border-bottom: 2px solid var(--ink);
+}
+.ev-head:not(:has(.ev-map)) {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.ev-map {
+  width: auto;
+}
+.ev-map .mf {
+  display: block;
+  width: fit-content;
+}
+.ev-map figcaption {
+  margin-top: 8px;
+  font-size: 13px;
+}
+.mapline {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  color: var(--ink-2);
+}
+.mapline strong {
+  color: var(--ink);
+}
+.mapline .mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.mapline .mode .spr {
+  margin: -3px 0;
+}
+.mapline > span::before {
+  content: "·";
+  margin-right: 8px;
+  color: var(--ink-3);
+}
+.ev-map .mapline {
+  display: flex;
+  flex-direction: column;
+}
+.ev-map .mapline > span::before {
+  content: none;
+}
+.ev-head .stats {
+  display: flex;
+  flex-direction: column;
+  min-width: 190px;
+  border-left: 1px solid var(--rule);
+}
+.ev-head .stat {
+  padding: 4px 0 14px 20px;
+}
+.ev-head .stat + .stat {
+  border-top: 1px solid var(--rule);
+  padding-top: 12px;
+}
+.meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-top: 16px;
+  color: var(--ink-2);
+  font-size: 14px;
+}
+
+/* ─────────────────────────────── stats */
+
+.stat dt {
+  font: 700 11px/1.3 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-3);
+}
+.stat dd {
+  display: flex;
+  flex-direction: column;
+}
+.stat-v {
+  font: 800 38px/1 var(--f-display);
+  letter-spacing: 0.01em;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+.stat.accent .stat-v {
+  color: var(--accent-ink);
+}
+.stat-note {
+  color: var(--ink-2);
+  font-size: 13px;
+  margin-top: 2px;
+}
+/* Rules drawn on the cells, so unfilled tracks in the last row show the page, not a slate block. */
+.stats.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  border: solid var(--rule);
+  border-width: 1px 0 0 1px;
+  margin-top: 24px;
+}
+.stats.grid .stat {
+  background: var(--bg);
+  padding: 14px 16px;
+  box-shadow: inset -1px -1px 0 var(--rule);
+}
+
+/* ─────────────────────────────── controls */
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin: 0 0 20px;
+}
+.tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+}
+.tab {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 16px 9px;
+  font: 600 15px/1 var(--f-body);
+  color: var(--ink-2);
+}
+.tab + .tab {
+  border-left: 1px solid var(--rule-2);
+}
+.tab:hover {
+  color: var(--ink);
+  background: var(--shade);
+}
+.tab-hint {
+  font: 600 12px/1 var(--f-body);
+  letter-spacing: 0;
+  opacity: 0.85;
+}
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 16px 0;
+}
+.pager a,
+.pager span {
+  min-width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  padding: 0 8px;
+  font: 700 18px/1 var(--f-display);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+}
+.pager a:hover {
+  background: var(--shade);
+}
+.pager .off {
+  color: var(--ink-3);
+  border-color: var(--rule);
+}
+.pager .gap {
+  border: 0;
+  min-width: 20px;
+}
+
+/* ─────────────────────────────── layout */
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 40px;
+  align-items: start;
+  margin-top: 36px;
+}
+.controls + .split {
+  margin-top: 0;
+}
+/* Boss board bar: team size and freshness on one line, the pager under them. */
+.lb-bar-t {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-bottom: 14px;
+}
+.lb-bar-t .fresh {
+  margin: 0;
+}
+.split > .sec {
+  margin-top: 0;
+}
+.split.even {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+
+/* ─────────────────────────────── tables */
+
+.board-wrap {
+  border: 1px solid var(--rule);
+  background: var(--s1);
+}
+.board-wrap.narrow {
+  max-width: 760px;
+}
+/* Narrow tables use the column they sit in; a stand-alone narrow section caps as a whole. */
+.split .board-wrap.narrow {
+  max-width: none;
+}
+.ct-hist {
+  max-width: 760px;
+}
+.board-wrap.narrow.play-stats,
+.play-stats ~ .meter {
+  max-width: 520px; /* the win-rate bar spans the table above it */
+}
+.board {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+.board th {
+  position: sticky;
+  top: var(--hdr);
+  z-index: var(--z-raised);
+  background: var(--s2);
+  text-align: left;
+  font: 700 11px/1.2 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-2);
+  padding: 11px 12px;
+  border-bottom: 2px solid var(--ink);
+  white-space: nowrap;
+}
+.board th.num {
+  text-align: right;
+}
+.board td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink-2);
+}
+.board tr:last-child td {
+  border-bottom: 0;
+}
+/* Leaderboards (.lb) paint their own row bands and hover layer, see below. Only rows that open something react
+   to hover: schedule rows without a page, relics. */
+.board:not(.lb) tbody tr:hover td {
+  background: var(--shade);
+}
+.board.sched tbody tr:not(.linkrow):hover td,
+.board.relics tbody tr:hover td {
+  background: none;
+}
+.board td.pl,
+.board td.lead,
+.board td.ev-name {
+  color: var(--ink);
+}
+.board td.pl,
+.board td.ev-name {
+  font-weight: 600;
+}
+.board td.pl {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.board td.lead {
+  font-weight: 700;
+}
+.board .rank {
+  width: 60px;
+  padding-right: 0;
+}
+.board.compact td {
+  padding: 7px 12px;
+}
+.board .nil {
+  color: var(--ink-3);
+}
+.board tr.total td {
+  color: var(--ink);
+  font-weight: 700;
+  border-top: 2px solid var(--ink);
+}
+.plate {
+  display: inline-grid;
+  place-items: center;
+  min-width: 32px;
+  height: 28px;
+  padding: 0 6px;
+  font: 800 18px/1 var(--f-display);
+  color: var(--ink-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+}
+.plate.p1 {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.plate.p2 {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+.plate.p3 {
+  background: var(--bronze);
+  border-color: var(--bronze);
+  color: var(--on-accent);
+}
+.rule-line {
+  color: var(--ink-2);
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+.rule-line strong {
+  color: var(--ink);
+}
+.small-link {
+  font-size: 13px;
+  color: var(--ink-2);
+  border-bottom: 1px solid var(--rule-2);
+}
+.small-link:hover {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+.sched .ev-name a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+}
+/* An event without a page reads as plain text, not as a link. */
+.sched .ev-name span.sched-l {
+  color: var(--ink-2);
+  font-weight: 500;
+}
+
+/* ─────────────────────────────── spec sheet (rules) */
+
+.spec .fact {
+  display: grid;
+  grid-template-columns: 9.5em minmax(0, 1fr);
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.spec dt {
+  font: 700 11px/1.9 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+}
+.spec dd {
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 14px;
+}
+.fact-note {
+  display: block;
+  font-weight: 400;
+  color: var(--ink-2);
+  font-size: 13px;
+}
+/* The side column sticks only when it fits below the header (useFits in events.tsx adds .fits). */
+.rules {
+  position: static;
+  top: calc(var(--hdr) + 16px);
+}
+.rules.fits {
+  position: sticky;
+}
+
+/* ─────────────────────────────── odyssey */
+
+.islands {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+  gap: 16px;
+  counter-reset: island;
+}
+.island {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  background: var(--s1);
+  border: 1px solid var(--rule);
+}
+.island-art {
+  display: block;
+  padding: 12px 0 12px 12px;
+}
+.island .ruleset .spec .fact {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+.island-n .plate {
+  border-color: var(--rule-2);
+  color: var(--ink);
+}
+.island-b {
+  padding: 12px 14px 6px;
+}
+.island-n {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+.island .spec .fact:last-child {
+  border-bottom: 0;
+}
+
+/* ─────────────────────────────── profiles */
+
+.profile {
+  margin-bottom: 8px;
+}
+.profile-banner {
+  background: var(--s2);
+  border-bottom: 2px solid var(--ink);
+}
+.profile-banner img,
+.profile-banner .img-missing {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 8 / 1;
+  object-fit: cover;
+}
+.profile-id {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  padding: 0 0 0 24px;
+  margin-top: -56px;
+}
+.profile-id .avatar,
+.profile-id > .img-missing {
+  width: 132px;
+  height: 132px;
+  flex: none;
+  border: 4px solid var(--bg);
+  background: var(--s2);
+}
+.profile-id > .emblem {
+  flex: none;
+  background: var(--bg);
+  border: 4px solid var(--bg);
+  box-sizing: content-box;
+}
+.profile-t {
+  padding-top: 64px;
+  min-width: 0;
+}
+.profile-sub {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin-top: 12px;
+  color: var(--ink-2);
+}
+.profile-sub b {
+  color: var(--ink);
+}
+.bars li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 12px;
+  padding: 6px 0 7px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--rule);
+}
+.bars li::after {
+  content: "";
+  grid-column: 1 / -1;
+  width: var(--w);
+  height: 4px;
+  background: var(--bar);
+}
+.bars li:first-child::after {
+  background: var(--accent);
+}
+.bars .num {
+  font-weight: 700;
+}
+.meter {
+  height: 10px;
+  margin-top: 12px;
+  background: var(--s2);
+  border: 1px solid var(--rule);
+}
+.meter span {
+  display: block;
+  height: 100%;
+  background: var(--bar);
+}
+
+/* ─────────────────────────────── loading / empty */
+
+.skeleton {
+  display: grid;
+  gap: 1px;
+  border: 1px solid var(--rule);
+  background: var(--rule);
+}
+.sk-row {
+  height: 40px;
+  background: var(--s1);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  50% {
+    background: var(--s2);
+  }
+}
+.empty {
+  padding: 28px 24px;
+  border: 1px dashed var(--rule-2);
+  color: var(--ink-2);
+  display: grid;
+  gap: 6px;
+}
+.empty-t {
+  font: 800 28px/1 var(--f-display);
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.empty a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-row,
+  .bug.live .bug-s::before {
+    animation: none;
+  }
+  .tile {
+    transition: none;
+  }
+}
+
+/* ─────────────────────────────── responsive */
+
+@media (max-width: 1100px) {
+  .feature-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .feature-top {
+    grid-column: 1 / -1;
+    border-left: 0;
+    border-top: 1px solid var(--rule);
+  }
+  .split {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 28px;
+  }
+}
+/* Boss and CT list titles keep their room. (Below 861 the phone card layout replaces these columns.) */
+@media (min-width: 861px) and (max-width: 1100px) {
+  .k-boss .ev-row {
+    --art: 200px;
+    grid-template-columns: var(--art) minmax(0, 1fr) 130px 80px 140px;
+  }
+  .events.k-boss li.now .ev-row {
+    --art: 260px;
+  }
+  .k-ct .ev-row {
+    grid-template-columns: var(--well) minmax(0, 1fr) 90px 90px 140px;
+  }
+  .k-boss .ev-dates,
+  .k-ct .ev-dates {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 860px) {
+  .split,
+  .split.even {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 36px;
+  }
+  .split > aside.rules {
+    position: static;
+  }
+  .ev-head {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .ev-head .stats {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    border-left: 0;
+    border-top: 1px solid var(--rule);
+    padding-top: 12px;
+    min-width: 0;
+  }
+  .ev-head .stat {
+    flex: 1;
+    padding: 0 12px 0 0;
+  }
+  .ev-head .stat + .stat {
+    border-top: 0;
+    border-left: 1px solid var(--rule);
+    padding: 0 0 0 12px;
+  }
+  /* Boss: banner across the top, then the text. Others: square well on the left, text beside it. */
+  .ev-row {
+    --well: 88px;
+    gap: 6px 14px;
+    padding: 0 12px 12px 0;
+  }
+  .events li.now .ev-row {
+    --well: 104px;
+  }
+  .events li.now .ev-title {
+    font-size: 30px;
+  }
+  .k-boss .ev-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding-right: 0;
+    /* text sits on the tint's strongest part here: halve it */
+    background: linear-gradient(90deg, rgb(var(--tint) / calc(var(--wash-a) * 0.5)), rgb(var(--tint) / 0) 70%), var(--s1);
+  }
+  .k-boss .ev-art {
+    grid-column: 1 / -1;
+  }
+  .k-boss .ev-row > :not(.ev-art) {
+    margin: 0 12px;
+  }
+  .k-boss .ev-main {
+    grid-column: 1 / -1;
+    padding: 4px 0 0;
+  }
+  .ev-art.banner img,
+  .ev-art.banner .img-missing {
+    height: auto;
+    aspect-ratio: 1440 / 332;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .k-race .ev-row,
+  .k-ct .ev-row,
+  .k-odyssey .ev-row {
+    grid-template-columns: var(--well) minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+  .ev-art.well {
+    grid-row: 1 / span 4;
+    align-self: start;
+    padding-top: 10px;
+  }
+  .k-race .ev-row > :not(.ev-art),
+  .k-ct .ev-row > :not(.ev-art),
+  .k-odyssey .ev-row > :not(.ev-art) {
+    grid-column: 2 / -1;
+  }
+  /* Stats side by side under the title (CT: Players | Teams). */
+  .k-race .ev-row > .ev-col,
+  .k-ct .ev-row > .ev-col {
+    grid-column: auto;
+  }
+  .k-race .ev-main,
+  .k-ct .ev-main,
+  .k-odyssey .ev-main {
+    padding: 10px 0 0;
+  }
+  .ev-col {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    font-size: 14px;
+  }
+  .ev-col.num {
+    justify-self: start;
+  }
+  .ev-st {
+    justify-self: start;
+  }
+  .k-boss .ev-st {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 700px) {
+  :root {
+    --gut: 16px;
+  }
+  /* The header scrolls away on phones. Seven section tabs share one row; below 380 px only the tab row scrolls
+     (main.tsx keeps the current tab in view). */
+  .top {
+    position: relative;
+    height: auto;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+  }
+  .brand {
+    padding: 12px var(--gut) 10px;
+  }
+  .top nav {
+    justify-content: space-between;
+    gap: 0;
+    padding: 0 6px;
+    border-top: 1px solid var(--hdr-line);
+  }
+  .top nav a {
+    padding: 12px 4px 9px;
+    font-size: 14px;
+  }
+  .theme-btn {
+    position: absolute;
+    top: 7px;
+    right: var(--gut);
+    width: 36px;
+    height: 36px;
+  }
+  main {
+    padding-top: 20px;
+  }
+  .board-wrap {
+    overflow-x: auto;
+    margin: 0 calc(-1 * var(--gut));
+    border-left: 0;
+    border-right: 0;
+  }
+  .board th {
+    position: static;
+  }
+  .board th,
+  .board td {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .board th:first-child,
+  .board td:first-child {
+    padding-left: var(--gut);
+  }
+  .board th:last-child,
+  .board td:last-child {
+    padding-right: var(--gut);
+  }
+  .board td.pl {
+    max-width: 150px;
+  }
+  /* The name cell shrinks (ellipsis), so the score column is never pushed off-screen. */
+  .lb td.pl {
+    width: 100%;
+    max-width: 0;
+  }
+  /* Team CT history: dates wrap instead of ellipsizing. */
+  .ct-hist td.pl {
+    width: auto;
+    max-width: none;
+    white-space: normal;
+  }
+  /* The CT board's "Group" link gets a 44px-high hit area (still inside the row link). */
+  .lb td.grp .small-link {
+    display: inline-block;
+    padding: 10px 4px;
+    margin: -10px -4px;
+  }
+  .feature {
+    margin: 0 calc(-1 * var(--gut));
+    border-left: 0;
+    border-right: 0;
+  }
+  .feature-body {
+    padding: 16px var(--gut) 20px;
+  }
+  .feature-body > * {
+    padding: 0;
+    border: 0;
+  }
+  .feature-main {
+    gap: 16px;
+  }
+  .fm-map {
+    gap: 14px;
+  }
+  .fm-map .map-art {
+    width: 80px;
+    height: 80px;
+  }
+  .fm-name {
+    font-size: 30px;
+  }
+  .fm-sub {
+    font-size: 14px;
+  }
+  /* rounds on a line of their own instead of wrapping behind a dangling "·" */
+  .fm-sub > span:last-child {
+    flex-basis: 100%;
+  }
+  .fm-sub > span:last-child::before {
+    content: none;
+  }
+  .fd-tiles {
+    gap: 8px;
+  }
+  .fd-tile {
+    gap: 10px;
+    padding: 12px;
+  }
+  .fd-sc {
+    gap: 8px;
+    font-size: 20px;
+  }
+  .fd-sc .spr {
+    --s: 32px;
+  }
+  .fd-n {
+    font-size: 13px;
+  }
+  .feature-body > .feature-top {
+    grid-column: 1 / -1;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+  }
+  .profile-banner img,
+  .profile-banner .img-missing {
+    min-height: 72px;
+  }
+  .ev-head .stat-v {
+    font-size: 26px;
+  }
+  .ev-map {
+    width: auto;
+  }
+  .ev-map .mf > .map-art {
+    width: 96px;
+    height: auto;
+  }
+  .ev-map figcaption {
+    display: none;
+  }
+  .ev-head {
+    gap: 16px;
+  }
+  .bug.big {
+    font-size: 17px;
+  }
+  .stat-v {
+    font-size: 30px;
+  }
+  .stats.grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .stats.grid .stat {
+    padding: 12px;
+  }
+  .profile {
+    margin: -20px calc(-1 * var(--gut)) 8px;
+  }
+  .profile-id {
+    padding: 0 var(--gut);
+    gap: 14px;
+    margin-top: -32px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .profile-id .avatar,
+  .profile-id > .img-missing {
+    width: 88px;
+    height: 88px;
+  }
+  .profile-t {
+    padding-top: 0;
+    flex-basis: 100%;
+  }
+  .sec-h h2 {
+    font-size: 22px;
+  }
+  .opt {
+    display: none;
+  }
+  .tab {
+    padding: 9px 12px 8px;
+  }
+}
+@media (max-width: 379px) {
+  .top nav {
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+    /* fade the right edge: more tabs are a swipe away */
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+  }
+  .top nav::-webkit-scrollbar {
+    display: none;
+  }
+  .top nav a {
+    flex: none;
+    padding: 12px 6px 9px;
+  }
+}
+
+@media (max-width: 420px) {
+  .ev-title-block .title.xl {
+    font-size: 40px;
+  }
+  .tiles {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ─────────────────────────────── refinements */
+
+.feature-top .kicker {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.kicker-r {
+  color: var(--ink-3);
+}
+.sched-type {
+  display: block;
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.title.xl.long {
+  font-size: clamp(30px, 4.6vw, 60px);
+  line-height: 0.95;
+}
+@media (max-width: 700px) {
+  /* a long single word in an event title (race name) scales down instead of splitting mid-word */
+  .title.xl.long-word {
+    font-size: clamp(22px, 6.6vw, 64px);
+  }
+  .island-art {
+    padding: 10px 0 10px 10px;
+  }
+  .island-art .mf > .map-art {
+    width: 80px;
+    height: auto;
+  }
+  .island-b {
+    padding: 10px 12px 4px;
+  }
+  .island .spec .fact {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 5px 0;
+  }
+}
+
+/* ─────────────────────────────── game art (sprite.tsx) */
+
+.spr {
+  /* The component's size (inline --s0) is a fallback: CSS overrides it through --s, no !important needed. */
+  --s: var(--s0);
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: var(--s);
+  height: var(--s);
+  vertical-align: middle;
+}
+.spr-i {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-repeat: no-repeat;
+}
+.spr.ban .spr-i,
+.spr.ban.any-hero svg {
+  filter: grayscale(1);
+  opacity: 0.35;
+}
+/* Fallback: the same box as a short text chip (unknown key, or the sheet is not decoded yet). */
+.spr-chip {
+  display: inline-grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--s2);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+}
+.spr-t {
+  max-width: 100%;
+  padding: 1px;
+  font: 700 max(8px, calc(var(--s) * 0.26)) / 1.05 var(--f-body);
+  text-align: center;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.spr.ban .spr-t {
+  opacity: 0.7;
+}
+/* ×N plate (40 px and larger sprites). */
+.spr-n {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  padding: 2px 3px 1px;
+  font: 800 12px/1 var(--f-display);
+  letter-spacing: 0.02em;
+  background: var(--ink);
+  color: var(--bg);
+  border-radius: var(--r);
+}
+.any-hero {
+  background: var(--s2);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+}
+.any-hero svg {
+  fill: var(--ink-2);
+}
+.any-q {
+  font: 800 14px/1 var(--f-display);
+  fill: var(--ink);
+}
+.spr-gap {
+  width: 32px;
+  height: 32px;
+}
+.spr-gap24 {
+  flex: none;
+  width: 24px;
+}
+
+/* Maps: never cropped. Built-in art is square; custom maps (597:400) letterbox on --s2. */
+.map-art {
+  display: block;
+  object-fit: contain;
+  background: var(--s2);
+}
+
+/* The one map-preview frame: dark mat, hairline, faint inner highlight; inset, native aspect, never cropped. */
+.mf {
+  display: inline-block;
+  flex: none;
+  padding: 3px;
+  background: var(--map-mat);
+  border: 1px solid var(--rule-2);
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.05);
+}
+.mf > .map-art {
+  max-width: 100%;
+  border-radius: 1px;
+  background: none;
+}
+.mf > .img-missing {
+  background: repeating-linear-gradient(135deg, var(--s2) 0 6px, var(--s1) 6px 12px);
+}
+.mf-ph {
+  display: grid;
+  place-items: center;
+  background: var(--s2);
+  border-radius: 1px;
+}
+.mf-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.mf-n {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  line-height: 0;
+}
+.mf-n > b {
+  position: absolute;
+  left: 7px;
+  top: 7px;
+  padding: 1px 5px;
+  font: 700 11px/1.3 var(--f-body);
+  color: #fff;
+  background: rgb(7 10 18 / 0.85);
+  border-radius: 2px;
+}
+.mf-n > b.more {
+  left: auto;
+  top: auto;
+  right: 7px;
+  bottom: 7px;
+}
+.mf-more {
+  font: 800 18px/1 var(--f-display);
+  color: var(--ink-2);
+  padding: 0 4px;
+}
+
+/* ─────────────────────────────── rulesets (rules.tsx) */
+
+.ruleset .spec .fact {
+  grid-template-columns: 12em minmax(0, 1fr);
+}
+.ifact {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+/* The rule table: every row (facts, caps, modifiers) the same size, so the block reads the same on every event. */
+.rules-spec .fact {
+  align-items: center;
+}
+.rules-spec dt {
+  line-height: 1.3;
+}
+.rules-spec dd {
+  font-size: 15px;
+}
+.rules-spec .ifact .spr {
+  --s: 28px;
+}
+.rules-spec .spr-gap24 {
+  width: 28px;
+}
+.rgroup {
+  margin-top: 20px;
+}
+.rhead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 8px;
+}
+.rhead .label {
+  display: inline;
+  font: 600 15px/1.3 var(--f-body);
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+.rhead-v {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 13px;
+}
+.rhead-v.quiet,
+.rhead-v .quiet {
+  font-size: 13px;
+}
+.roster {
+  --cell: 48px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--cell));
+  gap: 8px 6px;
+}
+.rules .roster:not(.small) {
+  grid-template-columns: repeat(6, var(--cell));
+}
+.roster.small {
+  --cell: 40px;
+}
+.roster li:not(.ttile) .spr {
+  background-color: var(--s2);
+  border-radius: var(--r);
+}
+.roster li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: var(--cell);
+}
+/* In-game tower tile: category-coloured shop background, portrait, blue count circle (top left, only when
+   limited), red highest-upgrades text (bottom, only when restricted). Sizes follow --cell (48 / 40 px). */
+.roster.ttiles {
+  row-gap: 10px;
+}
+.ttile {
+  position: relative;
+  width: var(--cell);
+  height: calc(var(--cell) * 1.18);
+}
+.roster .ttile .spr.ttile-bg,
+.roster .ttile .spr.ttile-p {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.roster .ttile .spr.ttile-bg {
+  --s: calc(var(--cell) * 1.18);
+  top: 0;
+}
+.roster .ttile .spr.ttile-p {
+  --s: calc(var(--cell) * 0.92);
+  top: calc(var(--cell) * 0.04);
+}
+.ttile {
+  --cat: 255 255 255;
+  transition: transform 0.12s;
+}
+.ttile.c-Primary {
+  --cat: 41 168 255;
+}
+.ttile.c-Military {
+  --cat: 69 208 58;
+}
+.ttile.c-Magic {
+  --cat: 160 96 255;
+}
+.ttile.c-Support {
+  --cat: 255 154 60;
+}
+.ttile.c-Hero {
+  --cat: 255 213 0;
+}
+.ttile.c-Power {
+  --cat: 255 166 30;
+}
+.ttile.c-PowerPro {
+  --cat: 40 150 255;
+}
+.ttile.c-PowerStore {
+  --cat: 170 80 255;
+}
+/* Power icon: centred on its hexagon, ~2/3 of the tile width, as in the game's power buttons. */
+.roster .ttile .spr.ttile-p.pw {
+  --s: calc(var(--cell) * 0.74);
+  top: calc(var(--cell) * 0.22);
+}
+/* The game's power count badge: yellow-orange circle, orange ring, white rim, top-right. */
+.ttile-n.pw {
+  left: auto;
+  right: -6px;
+  background: #ffc61a;
+  border-color: #ff8a00;
+  box-shadow: 0 0 0 1.5px #fff;
+  color: #fff;
+  text-shadow: 0 0 2px #7a3b00, 0 1px 0 #7a3b00;
+}
+.ttile:not(.off):hover {
+  transform: translateY(-2px);
+}
+.ttile:not(.off):hover .ttile-bg .spr-i {
+  filter: brightness(1.12) drop-shadow(0 0 1px rgb(var(--cat))) drop-shadow(0 0 1px rgb(var(--cat))) drop-shadow(0 0 6px rgb(var(--cat) / 0.8));
+}
+@media (prefers-reduced-motion: reduce) {
+  .ttile,
+  .ttile:not(.off):hover {
+    transition: none;
+    transform: none;
+  }
+}
+.ttile.off .spr-i {
+  filter: grayscale(1);
+  opacity: 0.35;
+}
+.ttile-n {
+  position: absolute;
+  z-index: 3;
+  top: -6px;
+  left: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border-radius: 10px;
+  background: #1f8bff;
+  border: 2px solid #06234a;
+  color: #fff;
+  font: 800 14px/16px var(--f-display);
+  text-align: center;
+  text-shadow: 0 1px 0 #06234a;
+}
+.ttile-cap {
+  position: absolute;
+  z-index: 3;
+  left: -4px;
+  right: -4px;
+  bottom: 1px;
+  text-align: center;
+  font: 800 14px/1 var(--f-display);
+  letter-spacing: 0.02em;
+  color: #ff3b2f;
+  text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 1px 0 #000, 0 -1px 0 #000;
+}
+.hero-one {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.rewards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+.rewards li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ─────────────────────────────── scoring */
+
+.sc-l {
+  font: 700 10px/1.2 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+}
+.th-i {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.board .tiercol {
+  width: 1%;
+}
+.sched-l {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.sched-n {
+  display: block;
+}
+
+/* ─────────────────────────────── profile: cabinets, walls */
+
+.main-t {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.cabinet,
+.modeboard {
+  border-top: 1px solid var(--rule);
+}
+.cab-row,
+.mode-row {
+  display: grid;
+  grid-template-columns: 7.5em minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.cab-l {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font: 700 12px/1.2 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.cab-l .quiet {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.cab-slots {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(32px, 1fr));
+  gap: 4px;
+}
+.cab-slots li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 50px;
+}
+.cab-slots .num {
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+@media (max-width: 359px) {
+  /* 400 % zoom: two rows of medals instead of 9 columns needing 320 px */
+  .cab-slots {
+    grid-template-columns: repeat(5, minmax(32px, 1fr));
+  }
+}
+.ghost-o {
+  display: block;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 1.5px dashed var(--rule-2);
+  border-radius: 50%;
+}
+.modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
+  gap: 10px 12px;
+}
+.modes li {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  column-gap: 8px;
+  align-items: center;
+}
+.modes li > :first-child {
+  grid-row: 1 / 3;
+}
+.mode-n {
+  font-size: 12px;
+  line-height: 1.2;
+  color: var(--ink-2);
+}
+.modes .num {
+  text-align: left;
+  font: 800 18px/1 var(--f-display);
+}
+.modes li.nil .num {
+  color: var(--ink-3);
+}
+.bossstrip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 16px 8px;
+}
+.bossstrip li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+.bs-name {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  hyphens: manual;
+}
+.wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 8px;
+}
+.wall li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px 8px;
+  text-align: center;
+  background: var(--s1);
+  border: 1px solid var(--rule);
+}
+.wall-n {
+  font-size: 12px;
+  color: var(--ink-2);
+}
+.wall .num {
+  text-align: center;
+  font: 800 20px/1 var(--f-display);
+}
+.bars li.has-i {
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 10px;
+}
+.bars li.has-i > .spr,
+.bars li.has-i > .spr-gap {
+  grid-row: 1 / 3;
+}
+.bars li.has-i::after {
+  grid-column: 2 / -1;
+}
+.badge-fb {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  padding: 6px;
+  font: 800 16px/1 var(--f-display);
+  text-transform: uppercase;
+  text-align: center;
+  background: var(--s2);
+  border: 1px dashed var(--rule-2);
+}
+
+@media (max-width: 860px) {
+  .rules .roster:not(.small) {
+    grid-template-columns: repeat(auto-fill, var(--cell));
+  }
+}
+@media (max-width: 700px) {
+  .roster:not(.small) {
+    --cell: 40px;
+  }
+  .roster:not(.small) .spr {
+    --s: 40px;
+  }
+  .ttile-n {
+    min-width: 18px;
+    height: 18px;
+    font-size: 13px;
+    line-height: 14px;
+  }
+  .ttile-cap {
+    font-size: 13px;
+  }
+  .tile-art {
+    margin: 10px 0 10px 10px;
+  }
+  .tile-art .mf > img,
+  .tile-art .mf-ph {
+    width: 88px !important;
+    height: auto;
+  }
+  .tile-art .mf-ph {
+    height: 88px !important;
+  }
+  .cab-row,
+  .mode-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cab-l {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .ruleset .spec .fact {
+    grid-template-columns: 11em minmax(0, 1fr);
+  }
+  .bossstrip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  /* Narrow Boss Tier column: the icon above the (small) word. */
+  .tiercol .th-i:has(.spr) {
+    flex-direction: column;
+    gap: 2px;
+  }
+  .tiercol .th-i:has(.spr) .th-t {
+    font-size: 11px;
+  }
+  .sched .nowrap {
+    white-space: normal;
+    min-width: 6em;
+  }
+  .sched-l {
+    gap: 8px;
+  }
+}
+
+/* Whole leaderboard rows open the player/team (LinkRow). */
+.linkrow {
+  cursor: pointer;
+}
+.linkrow:hover .pl a {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+}
+
+/* Phones: a secondary score part rides under the lead value (Parts `stack`) instead of its own column. */
+.m-sub {
+  display: none;
+}
+@media (max-width: 700px) {
+  .board .m-hide {
+    display: none;
+  }
+  .board .m-sub {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.68em;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+}
+/* Map + game-mode line inside event list rows. */
+.ev-main .mapline {
+  display: flex;
+  margin: 2px 0;
+  font-size: 13px;
+}
+/* Home top-5 rows open the player like leaderboard rows. */
+.podium li.linkrow:hover {
+  background: var(--s2);
+}
+
+/* Leaderboard rank cell: the medal this placement earns, then the rank plate. */
+.rank-in {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.medal-slot {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  flex: none;
+}
+.board th.rank,
+.board td.rank {
+  width: 5.6em;
+}
+@media (max-width: 700px) {
+  /* The rank column takes only its content, so the score column is never pushed off-screen. */
+  .board th.rank,
+  .board td.rank {
+    width: 1px;
+    white-space: nowrap;
+  }
+}
+
+/* Phones: a shortcut to the rules, which sit below the leaderboard there. */
+.jump-rules,
+.m-only {
+  display: none;
+}
+@media (max-width: 860px) {
+  .m-only {
+    display: flex;
+  }
+}
+
+/* ── FE-A: event pages & leaderboards (batch 1–19) ─────────────────────────────── */
+
+/* Freshness line ("Updated 3 min ago · Top 1,000 of 13,546", "Final"). */
+.fresh {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 14px;
+  margin: 6px 0 12px;
+  font: 600 12px/1.3 var(--f-body);
+  color: var(--ink-3);
+}
+.fresh .fresh-a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-2);
+}
+.fresh .fresh-a::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+.fresh.final .fresh-a::before {
+  border-radius: 1px;
+  background: var(--ended-fill);
+}
+.page-h .fresh,
+.ev-title-block .fresh {
+  margin-bottom: 0;
+}
+
+/* Pager: phones get a 3-page window (one row at 390 px); wider screens 5. */
+.pager .pg-m {
+  display: none;
+}
+@media (max-width: 520px) {
+  .pager {
+    flex-wrap: nowrap;
+    gap: 3px;
+  }
+  .pager .pg-d {
+    display: none;
+  }
+  .pager .pg-m {
+    display: grid;
+  }
+  .pager a,
+  .pager span {
+    min-width: 36px;
+    padding: 0 6px;
+  }
+  .pager .gap {
+    min-width: 16px;
+    padding: 0;
+  }
+}
+
+/* Medal cut-off strip above boss / race / CT boards: chips wrap onto more rows, never scroll. */
+.cutoffs {
+  margin: 4px 0 16px;
+  min-width: 0;
+}
+.cutoffs .kicker {
+  margin-bottom: 6px;
+}
+.co-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 6px;
+}
+.co-list:empty {
+  min-height: 50px;
+}
+.co {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 6px;
+  background: var(--s1);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+}
+.co-t {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.co-l {
+  /* body face: "1ST" / "TOP 1%" read as "IST" in the display face */
+  font: 800 13px/1.1 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+.co-r {
+  font-size: 11px;
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+.co-s {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+/* What the cut-off numbers are. */
+.co-note {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-3);
+}
+.co-fold .co-note {
+  margin: 0;
+  padding: 0 10px 8px;
+}
+
+/* Submitted column: local date/time, the raw offset in the tooltip. */
+.board .subm {
+  white-space: nowrap;
+  text-decoration: underline dotted var(--rule-2);
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+/* CT team rows: place in their group ("1st of 4"). */
+.board td.grp {
+  white-space: nowrap;
+}
+.grp-in {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.grp-of {
+  color: var(--ink-3);
+}
+@media (max-width: 520px) {
+  .board td.grp .spr,
+  .ct-hist .medal-slot {
+    display: none;
+  }
+}
+
+/* Old CTs whose boards NK no longer serves. */
+.ct-gone {
+  border-left: 3px solid var(--ended);
+}
+
+/* CT relic list: name + game-data description. */
+.relic {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.relic-t {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.relic-n {
+  color: var(--ink);
+  font-weight: 700;
+}
+.relic-d {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--ink-2);
+  max-width: 34em;
+}
+.board.relics td {
+  vertical-align: top;
+}
+/* Footnote under a table ("n/a: …") and the note under a board with "≈" ranks. */
+.tbl-note {
+  margin-top: 8px;
+}
+.approx-note {
+  margin: 8px 0 0;
+  font-size: 13px;
+}
+
+/* Events list: scoring as icon + words; the CT winner line. */
+.sct {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sct-l {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.sct-n {
+  font-weight: 700;
+  color: var(--ink);
+}
+.sct-tag {
+  font: 700 10px/1 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+@media (max-width: 860px) {
+  .sct {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+  }
+}
+.ev-win {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.ev-win strong {
+  color: var(--ink);
+}
+.ev-win-k {
+  font: 700 10px/1 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+}
+.ev-win.gone {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--ink-3);
+}
+
+/* Home between boss events: last boss's final podium with medals. */
+.last-podium .kicker a {
+  color: var(--ink);
+  border-bottom: 1px solid var(--accent);
+}
+.podium.medals .pod-m {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+}
+.last-podium .small {
+  font-size: 13px;
+}
+
+/* ── FE-B: names, error pages, tile labels, hide-banned, challenges, daily nav ─────────────────────────── */
+
+/* Player/team/challenge names are what people typed: never forced to upper case, and set in the body font,
+   whose 0 and O differ clearly (the display face draws them alike). Codes use the monospace face (.mono). */
+.uname,
+.title .uname,
+.pname,
+.board td.pl,
+.tile-meta strong {
+  text-transform: none;
+}
+.uname {
+  font-family: var(--f-body);
+  letter-spacing: -0.01em;
+}
+.title.uname,
+.title .uname {
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+.title.xl.uname,
+.title.xl .uname {
+  font-size: clamp(32px, 5vw, 64px);
+}
+@media (max-width: 700px) {
+  /* long unbroken names shrink instead of splitting mid-word */
+  .title.xl.uname.nlong {
+    font-size: clamp(20px, 6.6vw, 44px);
+  }
+}
+.mono.code {
+  color: var(--ink);
+  font-weight: 700;
+}
+.fresh-line:empty {
+  display: none;
+}
+.fresh-line {
+  margin-top: 8px;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+/* Friendly error / not-found panel. */
+.oops {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 20px 24px;
+  align-items: start;
+  padding: 28px 28px 30px;
+  margin: 8px 0 24px;
+  background: var(--s1);
+  border: 1px solid var(--rule);
+  border-left: 6px solid var(--accent);
+  border-radius: var(--r);
+}
+.oops-warn {
+  border-left-color: var(--ban);
+}
+.oops-info {
+  border-left-color: var(--soon);
+}
+.oops-k {
+  font: 700 12px/1.2 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink-3);
+}
+.oops-h {
+  margin-top: 6px;
+  font: 800 clamp(30px, 4.4vw, 44px) / 0.95 var(--f-display);
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
+  overflow-wrap: anywhere;
+}
+.oops-p {
+  margin-top: 12px;
+  max-width: 60ch;
+  color: var(--ink-2);
+}
+.oops-a {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: 18px;
+}
+.oops-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 16px 9px;
+  font: 800 16px/1 var(--f-display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--on-accent);
+  background: var(--accent);
+  border: 0;
+  border-radius: var(--r);
+  cursor: pointer;
+}
+.oops-btn:hover {
+  filter: brightness(1.08);
+}
+.oops-link {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+@media (max-width: 560px) {
+  .oops {
+    grid-template-columns: 1fr;
+    padding: 20px 18px 22px;
+  }
+  .oops-art .spr {
+    --s: 56px;
+  }
+}
+
+/* Tower / hero / power tiles: tap, focus or hover shows the name (no hover needed on phones). */
+.ttile {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+/* The focusable part is an overlay inside the tile (the <li> itself never takes focus). */
+.ttile-f {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-raised);
+  cursor: pointer;
+  border-radius: var(--r);
+  -webkit-tap-highlight-color: transparent;
+}
+.ttile-f:focus {
+  outline: none;
+}
+.ttile-f:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.ttile-tip {
+  --dx: 0px;
+  position: absolute;
+  z-index: 30;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateX(calc(-50% + var(--dx)));
+  display: none;
+  width: max-content;
+  max-width: 180px;
+  padding: 6px 9px 5px;
+  font: 700 13px/1.2 var(--f-body);
+  text-align: center;
+  color: var(--bg);
+  background: var(--ink);
+  border-radius: var(--r);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.35);
+  /* hoverable name box (WCAG 1.4.13): the pointer can move onto it, ::after bridges the 6px gap */
+  pointer-events: auto;
+  white-space: normal;
+}
+.ttile-tip::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 8px;
+}
+.ttile-tip-n {
+  display: block;
+  font-weight: 600;
+  font-size: 11px;
+  opacity: 0.8;
+}
+.ttile:focus-within .ttile-tip {
+  display: block;
+}
+@media (hover: hover) {
+  .ttile:hover .ttile-tip {
+    display: block;
+  }
+}
+/* Dismissed with Esc until the pointer/focus leaves the tile. */
+.ttile.tip-off .ttile-tip {
+  display: none;
+}
+
+/* "Hide banned" toggle on tower rosters. */
+.hideban {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--ink-2);
+  cursor: pointer;
+  user-select: none;
+  min-height: 24px;
+}
+.hideban input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+.std-rules {
+  margin-top: 4px;
+}
+
+/* Daily challenge prev / all / next. */
+.daynav {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.daynav-a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  font: 600 15px/1 var(--f-body);
+  color: var(--ink-2);
+}
+.daynav-a:hover {
+  color: var(--ink);
+}
+.daynav-a.next {
+  justify-self: end;
+}
+.daynav-all {
+  padding: 8px 14px 7px;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+  font: 700 13px/1 var(--f-body);
+  color: var(--ink);
+}
+.daynav-all:hover {
+  background: var(--shade);
+}
+@media (max-width: 480px) {
+  .daynav-t {
+    font-size: 15px;
+  }
+}
+
+/* Challenge lists. */
+.chl-series .sec + .sec {
+  margin-top: 8px;
+}
+.page-h + .tabs {
+  margin-bottom: 20px;
+}
+.chl {
+  display: grid;
+  border-top: 1px solid var(--rule);
+}
+.chl-item {
+  position: relative;
+  border-bottom: 1px solid var(--rule);
+}
+.chl-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 8px;
+  min-width: 0;
+}
+.chl-row:hover {
+  background: var(--shade);
+}
+.chl-map .mf > .map-art {
+  width: 64px;
+  height: auto;
+}
+.chl-main {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.chl-title {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font: 700 17px/1.2 var(--f-body);
+  overflow-wrap: anywhere;
+}
+.chl-title .uname {
+  font-size: 17px;
+  font-weight: 700;
+}
+.chl-new {
+  padding: 1px 6px;
+  font: 600 12px/1.4 var(--f-body);
+  color: var(--ink-2);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+}
+.chl-by {
+  color: var(--ink-2);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.chl-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  color: var(--ink-2);
+  font-size: 13px;
+}
+.chl-code {
+  color: var(--ink-2);
+}
+.chl-creator {
+  display: inline-block;
+  margin: -6px 0 10px 86px;
+  font-size: 13px;
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-decoration-color: var(--rule-2);
+  text-underline-offset: 3px;
+}
+.chl-creator:hover {
+  color: var(--ink);
+  text-decoration-color: var(--accent);
+}
+.chl-pager {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 18px 0;
+}
+.chl-pg {
+  padding: 8px 14px 7px;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+  font: 700 14px/1 var(--f-body);
+}
+.chl-pg:hover {
+  background: var(--shade);
+}
+@media (max-width: 560px) {
+  .chl-row {
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    padding: 10px 4px;
+  }
+  .chl-map .mf > .map-art {
+    width: 48px;
+    height: auto;
+  }
+  .chl-creator {
+    margin: -8px 0 8px 64px;
+  }
+}
+
+/* One "Hide banned" switch per rules block (heroes, towers, powers). */
+.hideban-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: 10px 0 0;
+}
+
+/* Map lines: the mode's own icon separates it, so no "·" that could start a wrapped line. */
+.mapline .mode:has(.spr)::before {
+  content: none;
+}
+.island-n .mapline {
+  align-items: center;
+  row-gap: 2px;
+}
+
+/* Boss badges: the game's normal (blue) and elite (gold) badge per boss, greyed when none earned. */
+.bs-b {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+.bb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 0;
+}
+.bb .num {
+  font: 800 18px/1 var(--f-display);
+}
+.bb .sc-l {
+  font-size: 10px;
+}
+.bb.nil .spr {
+  filter: grayscale(1);
+  opacity: 0.35;
+}
+.bb.nil .num {
+  color: var(--ink-3);
+}
+
+/* Home: the live boss's top 5 carry the medal each place earns, like the full board. */
+.podium .rank-in .pod-m {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+}
+
+/* "‹ Dreadbloon #38 · page 3": back to the board / list a profile was opened from. */
+.backlink {
+  position: relative;
+  z-index: var(--z-raised);
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  margin: -12px 0 14px;
+  padding: 6px 12px 5px 10px;
+  font: 800 15px/1.1 var(--f-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--s1);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.backlink span {
+  font-size: 20px;
+  line-height: 0.8;
+  color: var(--ink-2);
+}
+.backlink:hover {
+  border-color: var(--ink-2);
+  background: var(--s2);
+}
+
+/* Cut-off chips for medals nobody can earn yet (inside a better bracket on a small board). */
+.co.nil {
+  background: transparent;
+  border-style: dashed;
+}
+.co.nil .spr {
+  filter: grayscale(1);
+  opacity: 0.4;
+}
+.co.nil .co-l {
+  color: var(--ink-3);
+}
+
+/* Co-op rank estimated without the earlier pages. */
+.plate.approx {
+  width: auto;
+  min-width: 2.2em;
+  padding: 0 4px;
+  color: var(--ink-2);
+  border-style: dashed;
+}
+
+/* ── Tools: round visualizer (views/rounds.tsx) ─────────────────────────────── */
+
+[data-area="tools"]:not([data-boss]) {
+  --tint: 255 96 176;
+  --tint-2: 70 190 255;
+}
+
+.rv-back {
+  margin-top: 0;
+}
+
+/* One scroll context: the page. Nothing below sets overflow-y (the phone Edit sheet is a modal dialog). */
+
+/* set bar: the page title once a set is chosen */
+.rv-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 2px solid var(--ink);
+}
+.rv-bar-t {
+  flex: 1;
+  min-width: 0;
+}
+.rv-h1 {
+  font: 800 34px/0.95 var(--f-display);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  overflow-wrap: anywhere;
+}
+.rv-sum {
+  margin-top: 4px;
+  color: var(--ink-2);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rv-edit,
+.rv-focus,
+.rv-tolist {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+  font: 700 16px/1 var(--f-display);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+.rv-edit:hover,
+.rv-focus:hover,
+.rv-tolist:hover {
+  background: var(--shade);
+  border-color: var(--ink-2);
+}
+.rv-edit,
+.rv-focus {
+  padding: 0 14px;
+}
+.rv-edit.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.rv-tolist {
+  padding: 0 10px;
+}
+.rv-tolist span[aria-hidden] {
+  font-size: 24px;
+  line-height: 0.8;
+  color: var(--accent);
+}
+
+/* Edit form (inline on desktop and on a bare /tools; a bottom sheet on phones) */
+.rv-form {
+  display: grid;
+  gap: 12px;
+  padding: 14px 16px 16px;
+  margin-bottom: 14px;
+  background: var(--s1);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+}
+.rv-form-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 24px;
+}
+.rv-x {
+  width: 44px;
+  height: 44px;
+  margin: -10px -8px -10px 0;
+  background: transparent;
+  color: var(--ink);
+  border: 0;
+  font: 400 30px/1 var(--f-body);
+  cursor: pointer;
+}
+.rv-set-f {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.rv select,
+.rv input[type="number"] {
+  height: 44px;
+  min-width: 0;
+  padding: 0 10px;
+  background: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+  font: 700 20px/1 var(--f-display);
+  letter-spacing: 0.03em;
+}
+.rv select {
+  max-width: min(420px, calc(100vw - 2 * var(--gut) - 74px));
+  text-transform: uppercase;
+  padding-right: 6px;
+}
+.rv select option,
+.rv select optgroup {
+  font: 600 15px/1.4 var(--f-body);
+  text-transform: none;
+  background: var(--s1);
+}
+.rv input[type="number"] {
+  width: 4.2em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+}
+.rv input[type="number"]::-webkit-inner-spin-button,
+.rv input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.rv select:hover,
+.rv input[type="number"]:hover {
+  border-color: var(--ink-2);
+}
+.rv-ver {
+  color: var(--ink-3);
+  font-size: 13px;
+}
+.rv-range {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  min-width: 0;
+}
+.rv-fromto {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.rv-fromto legend {
+  float: left;
+  margin-right: 8px;
+}
+.rv-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+.rv-chip {
+  flex: none;
+  min-height: 40px;
+  padding: 8px 12px 7px;
+  background: transparent;
+  color: var(--ink-2);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+  font: 700 15px/1 var(--f-display);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+.rv-chip:hover:not(:disabled) {
+  color: var(--ink);
+  background: var(--shade);
+}
+.rv-chip:disabled {
+  color: var(--ink-3);
+  border-color: var(--rule);
+  cursor: default;
+}
+.rv-chip.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.rv-chip.ev:not(.on) {
+  color: var(--ink);
+  border-color: var(--accent);
+}
+.rv-mods {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+.rv-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.rv-mod {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  min-height: 34px;
+  padding: 4px 10px 4px 5px;
+  background: var(--bg);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+  font-weight: 700;
+  font-size: 14px;
+}
+.rv-mod.na {
+  background: transparent;
+  border-style: dashed;
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.rv-mod.na .spr {
+  opacity: 0.6;
+}
+.rv-na,
+.rv-ok {
+  font: 700 11px/1.2 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.rv-na {
+  color: var(--ink-3);
+}
+.rv-ok {
+  color: var(--ink-2);
+}
+.rv-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+.rv-switch input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+.rv-done {
+  min-height: 48px;
+  width: 100%;
+  background: var(--accent);
+  color: var(--on-accent);
+  border: 0;
+  border-radius: var(--r);
+  font: 800 18px/1 var(--f-display);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+.rv-sheet {
+  position: fixed;
+  inset: auto 0 0 0;
+  width: 100%;
+  max-width: none;
+  max-height: 88vh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-top: 3px solid var(--accent);
+  background: var(--s1);
+  color: var(--ink);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.rv-sheet::backdrop {
+  background: rgb(0 0 0 / 0.6);
+}
+.rv-form.sheet {
+  margin: 0;
+  border: 0;
+  padding: 16px var(--gut) calc(16px + env(safe-area-inset-bottom));
+}
+
+/* filters */
+.rv-filters {
+  margin: 0 0 10px;
+}
+.rv-fscroll {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.rv-fchip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 4px 12px 4px 6px;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+  font: 600 14px/1.1 var(--f-body);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.rv-fchip:hover {
+  background: var(--shade);
+  border-color: var(--ink-2);
+}
+.rv-fchip.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+}
+.rv-fchip.forced {
+  border-style: dashed;
+  color: var(--ink-2);
+  cursor: default;
+}
+.rv-fchip.forced:hover {
+  background: transparent;
+  border-color: var(--rule-2);
+}
+.rv-fchip.menu,
+.rv-fchip.boss {
+  padding-left: 12px;
+}
+.rv-fchip.menu.open {
+  border-color: var(--ink);
+}
+.rv-dia {
+  color: rgb(var(--tint));
+  font-size: 0.8em;
+}
+.rv-fchip.on .rv-dia {
+  color: var(--on-accent);
+}
+/* Light theme: the selected round and boss-changed markers reach 3:1. */
+:root[data-theme="light"] .rv-row.sel .rv-rb {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+:root[data-theme="light"] .rv-row.ovr .rv-rb {
+  border-left-color: color-mix(in srgb, rgb(var(--tint)) 55%, #000);
+}
+:root[data-theme="light"] .rv-dia {
+  color: color-mix(in srgb, rgb(var(--tint)) 55%, #000);
+}
+:root[data-theme="light"] .rv-fchip.on .rv-dia {
+  color: var(--on-accent);
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .rv-row.sel .rv-rb {
+    box-shadow: inset 0 0 0 2px var(--ink);
+  }
+  :root:not([data-theme="dark"]) .rv-row.ovr .rv-rb {
+    border-left-color: color-mix(in srgb, rgb(var(--tint)) 55%, #000);
+  }
+  :root:not([data-theme="dark"]) .rv-dia {
+    color: color-mix(in srgb, rgb(var(--tint)) 55%, #000);
+  }
+  :root:not([data-theme="dark"]) .rv-fchip.on .rv-dia {
+    color: var(--on-accent);
+  }
+}
+.rv-bmenu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 10px;
+  background: var(--s1);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+}
+
+/* sticky scrubber (the only pinned part) */
+.rv-sticky {
+  position: sticky;
+  top: var(--hdr);
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  background: var(--bg);
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+.rv-ov {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rv-strip {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 64px;
+  cursor: pointer;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.rv-strip.sk {
+  flex: 1;
+  background: repeating-linear-gradient(90deg, var(--s1) 0 3px, transparent 3px 5px);
+  cursor: default;
+}
+.rv-strip:focus-visible {
+  outline-offset: 3px;
+}
+.rv-bars {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 7px;
+  width: 100%;
+  height: calc(100% - 14px);
+  display: block;
+}
+.rv-bars .b {
+  fill: var(--rv-b);
+}
+.rv-bars .m {
+  fill: var(--rv-m);
+}
+.rv-bars .sel rect {
+  fill: var(--accent);
+}
+.rv-marks {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 5px;
+}
+.rv-mk {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  min-width: 2px;
+  background: var(--ink);
+  box-shadow: inset -1px 0 var(--bg);
+}
+.rv-ribbon {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5px;
+}
+.rv-ribbon span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  min-width: 3px;
+  background: repeating-linear-gradient(135deg, rgb(var(--tint)) 0 3px, transparent 3px 5px);
+  border-top: 1px solid rgb(var(--tint));
+}
+.rv-cursor {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  width: 0;
+  border-left: 2px solid var(--accent);
+  margin-left: -1px;
+  pointer-events: none;
+}
+.rv-read {
+  flex: none;
+  width: 72px;
+  display: grid;
+  gap: 2px;
+  text-align: right;
+  font-size: 12px;
+  line-height: 1.15;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.rv-read b {
+  font: 800 22px/1 var(--f-display);
+  color: var(--ink);
+}
+.rv-jump {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rv-jump label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rv-jump input[type="number"] {
+  height: 40px;
+  width: 3.8em;
+}
+.rv-step {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  padding: 0 0 3px;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+  font: 800 26px/1 var(--f-display);
+  cursor: pointer;
+}
+.rv-step:hover:not(:disabled) {
+  background: var(--shade);
+  border-color: var(--ink-2);
+}
+.rv-step:disabled {
+  color: var(--ink-3);
+  border-color: var(--rule);
+  cursor: default;
+}
+
+/* list: one-line rows, in the page's own flow */
+.rv-body {
+  margin-top: 10px;
+}
+.rv-count {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding: 2px 0 8px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.rv-count b {
+  color: var(--ink);
+}
+.rv-lh,
+.rv-rb,
+.rv-un {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 84px;
+  align-items: center;
+  gap: 8px;
+}
+.rv-lh {
+  padding: 0 8px 6px;
+  font: 700 11px/1.3 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-3);
+  border-bottom: 2px solid var(--ink);
+}
+.rv-list {
+  border-bottom: 1px solid var(--rule);
+}
+.rv-row {
+  border-top: 1px solid var(--rule);
+  scroll-margin-top: var(--rv-sm, 96px);
+}
+.rv-row:first-child {
+  border-top: 0;
+}
+.rv-rb,
+.rv-un {
+  height: 48px;
+  padding: 0 8px 0 5px;
+  color: var(--ink);
+  border-left: 3px solid transparent;
+}
+.rv-rb:hover,
+.rv-un:hover {
+  background: var(--shade);
+}
+.rv-row.ovr .rv-rb {
+  border-left-color: rgb(var(--tint));
+}
+.rv-row.sel .rv-rb {
+  background: var(--s1);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.rv-row.sel .rv-n {
+  color: var(--accent-ink);
+}
+.rv-n {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  font: 800 24px/1 var(--f-display);
+  font-variant-numeric: tabular-nums;
+}
+.rv-sprs {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  overflow: hidden;
+}
+.rv-more {
+  padding: 0 4px;
+  font: 700 13px/1 var(--f-display);
+  color: var(--ink-2);
+}
+.rv-rbe {
+  font-weight: 700;
+  font-size: 14px;
+}
+.spr.dim,
+.bspr.dim {
+  opacity: 0.35;
+}
+.bspr.dim .spr.dim {
+  opacity: 1;
+}
+.rv-none {
+  padding: 16px 8px;
+}
+.bspr {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.bflag {
+  padding: 1px 4px;
+  font: 700 10px/1.2 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+  white-space: nowrap;
+}
+.rv-sk-row {
+  height: 48px;
+}
+.rv-empty {
+  margin-top: 20px;
+}
+
+/* one round (desktop detail pane and the round view) */
+.rv-card {
+  padding: 14px 14px 16px;
+  background: var(--s1);
+  border-top: 3px solid var(--accent);
+}
+.rv-card.sk {
+  min-height: 360px;
+  border-top-color: var(--rule-2);
+}
+.rv-card.focus {
+  margin-top: 12px;
+  touch-action: pan-y;
+}
+.rv-ch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rv-ch-t {
+  flex: 1;
+  min-width: 0;
+}
+.rv-ch h2 {
+  font: 800 32px/1 var(--f-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.rv-card.focus .rv-ch-t {
+  text-align: center;
+}
+.rv-card.focus .rv-ch .rv-step {
+  width: 48px;
+  height: 48px;
+  font-size: 32px;
+}
+.rv-chg {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.rv-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+  margin: 14px 0 16px;
+}
+.rv-stat dt {
+  font: 700 11px/1.3 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-3);
+}
+.rv-stat dd {
+  display: flex;
+  flex-direction: column;
+  font: 800 26px/1.05 var(--f-display);
+  font-variant-numeric: tabular-nums;
+}
+.rv-note {
+  font: 400 12px/1.3 var(--f-body);
+  color: var(--ink-2);
+}
+.rv-tl {
+  --who: 108px;
+  position: relative;
+  padding-top: 20px;
+}
+.rv-ax {
+  position: absolute;
+  top: 0;
+  left: var(--who);
+  right: 8px;
+  height: 18px;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.rv-ax span {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.rv-ax span:first-child {
+  transform: none;
+}
+.rv-lane {
+  display: grid;
+  grid-template-columns: var(--who) minmax(0, 1fr);
+  align-items: center;
+  min-height: 48px;
+  border-top: 1px solid var(--rule);
+}
+.rv-who {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.rv-cnt {
+  font: 800 17px/1 var(--f-display);
+  font-variant-numeric: tabular-nums;
+}
+.rv-track {
+  position: relative;
+  height: 18px;
+  margin-right: 8px;
+}
+.rv-grid {
+  position: absolute;
+  top: -15px;
+  bottom: -15px;
+  border-left: 1px dashed var(--rule);
+}
+.rv-span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  min-width: 4px;
+  background: var(--bar);
+  border-radius: 2px;
+}
+.rv-span.ticks {
+  background: repeating-linear-gradient(90deg, var(--bar) 0 max(2px, calc(100% / var(--n) - 2px)), transparent 0 calc(100% / var(--n)));
+}
+.rv-gt {
+  margin-top: 12px;
+}
+.rv-gt summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font: 700 13px/1 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.rv-gt summary:hover {
+  color: var(--ink);
+}
+.rv-gt summary::-webkit-details-marker {
+  display: none;
+}
+.rv-gt summary::before {
+  content: "▸";
+  width: 1.1em;
+  font-size: 14px;
+}
+.rv-gt[open] summary::before {
+  content: "▾";
+}
+.rv-gt table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.rv-gt th {
+  padding: 6px 8px;
+  font: 700 11px/1.3 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+  text-align: left;
+  border-bottom: 2px solid var(--ink);
+}
+.rv-gt td {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--rule);
+}
+.rv-gt th.num,
+.rv-gt td.num {
+  text-align: right;
+}
+.rv-gtb {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.rv-matchnav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 16px;
+}
+.rv-matchnav .rv-chip {
+  min-height: 44px;
+}
+.rv-upnext {
+  margin-top: 18px;
+}
+.rv-upnext .label {
+  margin-bottom: 6px;
+}
+.rv-un {
+  width: 100%;
+  background: transparent;
+  border-top: 1px solid var(--rule);
+  border-right: 0;
+  border-bottom: 0;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* the rules panel's "Round set" link */
+.rs-link {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 3px;
+  min-height: 44px;
+  margin: -8px 0;
+  padding: 2px 2px;
+}
+.rs-go {
+  color: var(--ink-2);
+  font: 700 13px/1 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+.rs-link:hover .rs-go,
+.rs-link:focus-visible .rs-go {
+  color: var(--accent-ink);
+}
+.rs-link:hover .rs-name {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+@media (min-width: 1024px) {
+  .rv-body {
+    display: grid;
+    grid-template-columns: 400px minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+  }
+  /* sticky only while it fits under the scrubber (DetailPane measures): never an inner scroller */
+  .rv-detailpane.fits {
+    position: sticky;
+    top: var(--rv-sm, 96px);
+  }
+  .rv-card {
+    padding: 18px 20px 20px;
+  }
+  .rv-detailpane .rv-card {
+    border-top: 0;
+    border-left: 3px solid var(--accent);
+  }
+  .rv-ch h2 {
+    font-size: 38px;
+  }
+  .rv-card.focus .rv-ch h2 {
+    font-size: 48px;
+  }
+  .rv-tl {
+    --who: 132px;
+  }
+  .rv-lane {
+    min-height: 56px;
+  }
+  .rv-upnext ul {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0 16px;
+  }
+}
+@media (max-width: 700px) {
+  .rv-h1 {
+    font-size: 28px;
+  }
+  .rv-bar {
+    gap: 10px;
+  }
+  /* phones: preset and filter chips wrap, so every one is visible (no cut-off row) */
+  .rv-fscroll {
+    padding: 2px 0;
+  }
+  .rv-presets {
+    flex-basis: 100%;
+  }
+  .rv-fchip {
+    min-height: 44px;
+  }
+  .rv-sticky {
+    top: 0; /* the header scrolls away on phones */
+    gap: 8px;
+    padding: 6px var(--gut);
+    margin: 0 calc(-1 * var(--gut));
+  }
+  .rv-strip,
+  .rv-strip.sk {
+    height: 44px;
+  }
+  .rv-read {
+    width: auto;
+    min-width: 52px;
+    font-size: 11px;
+  }
+  .rv-read span {
+    white-space: nowrap;
+  }
+  .rv-read b {
+    font-size: 19px;
+  }
+  .rv-tolist-t {
+    display: none;
+  }
+  .rv-lh,
+  .rv-rb,
+  .rv-un {
+    grid-template-columns: 46px minmax(0, 1fr) 70px;
+    gap: 6px;
+  }
+  .rv-rb,
+  .rv-un {
+    padding-right: 4px;
+  }
+  .rv-n {
+    font-size: 22px;
+  }
+  .rv-card {
+    margin-left: calc(-1 * var(--gut));
+    margin-right: calc(-1 * var(--gut));
+    padding: 12px var(--gut) 16px;
+  }
+  .rv-tl {
+    --who: 92px;
+  }
+  .rv-stats {
+    gap: 8px 20px;
+  }
+  .rv-stat dd {
+    font-size: 22px;
+  }
+  .rv-form {
+    padding: 12px;
+  }
+  .rv-mods > .label {
+    flex-basis: 100%;
+  }
+}
+
+/* A tile showing its name label sits above its neighbours (their count badges and red cap text), but under
+   the header. */
+.ttile:hover,
+.ttile:focus-within {
+  z-index: var(--z-tile);
+}
+
+/* Event list cards on phones: every info column is label-over-value, top-aligned, so a two-line Scoring
+   block and a one-line Entries count line up; the status sits on its own row. */
+@media (max-width: 860px) {
+  .ev-row {
+    align-items: start;
+    row-gap: 10px;
+  }
+  .ev-row .ev-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .ev-row .ev-col .kicker {
+    margin: 0;
+    text-align: left;
+  }
+  .k-boss .ev-row .ev-col.num {
+    justify-self: end;
+    align-items: flex-end;
+  }
+  .ev-main .mapline {
+    row-gap: 2px;
+  }
+}
+
+
+/* Player: season badges, all of them, compact (8 in a row on desktop, 4 on a phone); unearned greyed. */
+.seasons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 14px 8px;
+}
+.seasons li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  text-align: center;
+}
+.seasons .ss-n {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.seasons .num {
+  font: 700 14px/16px var(--f-body);
+}
+.seasons .badge-fb {
+  width: 48px;
+  height: 48px;
+  padding: 2px;
+  font-size: 10px;
+}
+.seasons .nil .spr,
+.seasons .nil img {
+  filter: grayscale(1);
+  opacity: 0.35;
+}
+.seasons .nil .num,
+.seasons .nil .ss-n {
+  color: var(--ink-3);
+}
+.seasons .nil .num {
+  font: 700 11px/16px var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Event lists: the live event's card is plainly featured by its green frame (and the countdown in it). */
+.ev-row {
+  position: relative;
+}
+.events li.now .ev-row,
+.events li.now .ev-row:hover {
+  border-color: var(--live-fill);
+  border-width: 2px 2px 2px 5px;
+}
+.events li.now + li {
+  margin-top: 8px;
+}
+
+/* Team: CT badges, one labelled row per ranking (Global: 9 tiers, Group: 4), season-badge style. */
+.ctbadges {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.ctb-row .cab-l {
+  margin-bottom: 10px;
+}
+.seasons .nil .num,
+.ctbadges .num {
+  white-space: nowrap;
+}
+.ctbadges li:not(.nil) .num {
+  font: 700 11px/16px var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+}
+
+/* ─────────────────────────────── boss header (boss page + home) */
+
+/* NK's banner is the title: shown whole (scaled, never cropped), the event number, status and dates beside
+   it; one compact facts line under it; one yellow rule under the whole block. */
+.bhero {
+  margin-bottom: 20px;
+}
+.bh-top {
+  display: grid;
+  grid-template-columns: minmax(0, 868fr) minmax(260px, 364fr);
+  background: var(--s1);
+  border: 1px solid var(--rule);
+}
+.bh-art {
+  display: block;
+  min-width: 0;
+  background: var(--s2);
+}
+.bh-art img,
+.bh-art .img-missing {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1440 / 332;
+}
+/* No art (lists still loading, or the image failed): the name as big text in the banner's place. */
+.bh-noart {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1440 / 332;
+  padding: 0 16px;
+  font: 800 clamp(30px, 5vw, 64px)/0.95 var(--f-display);
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--ink);
+  background: linear-gradient(100deg, rgb(var(--tint) / 0.35), rgb(var(--tint-2) / 0.2)), var(--s2);
+}
+.bh-side {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  align-items: center;
+  gap: 0 14px;
+  min-width: 0;
+  padding: 16px 22px;
+  border-left: 1px solid var(--rule);
+}
+.bh-side .eyebrow,
+.bh-side .when {
+  flex-basis: 100%;
+}
+.bh-side .eyebrow {
+  margin-bottom: 6px;
+}
+.bh-title {
+  font: 800 64px/0.9 var(--f-display);
+  text-transform: uppercase;
+}
+.bh-title a:hover .bh-no {
+  outline: 3px solid var(--ink);
+}
+.bh-no {
+  display: inline-block;
+  padding: 0 0.12em;
+  background: var(--accent);
+  color: var(--on-accent);
+  line-height: 0.95;
+}
+.bh-no-name {
+  padding: 0;
+  font-size: 0.55em;
+  background: none;
+  color: var(--ink);
+}
+.bh-side .bugline {
+  flex-basis: 100%;
+  margin: 12px 0 8px;
+}
+/* Boss page, the banner's bottom band: the event-wide map (art + big name), difficulty, mode, rounds. */
+.bh-maprow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 20px;
+  font-size: 15px;
+  background: var(--s1);
+  border: 1px solid var(--rule);
+  border-top: 0;
+}
+.bh-maprow .mf > .map-art {
+  width: 88px;
+  height: auto;
+}
+/* The map name set big (as on the home card), "Medium · Standard · Rounds 1–140" under it. */
+.bh-mapline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.bh-mapname {
+  font: 800 34px/0.95 var(--f-display);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.bh-mapsub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 8px;
+  color: var(--ink-2);
+}
+.bh-mapsub .mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.bh-mapsub .mode .spr {
+  margin: -3px 0;
+}
+.bh-mapsub > span + span::before {
+  content: "·";
+  margin-right: 8px;
+  color: var(--ink-3);
+}
+/* Everything below follows Normal / Elite, so it sits in one panel and the two tabs are its top edge (folder
+   tabs: the selected one opens into the panel, the other stays outside it). */
+.bh-panel {
+  --panel: color-mix(in srgb, var(--s1) 55%, var(--bg));
+  background: var(--panel);
+  border: 1px solid var(--rule-2);
+  border-top: 0;
+}
+.bh-panel > .split {
+  margin-top: 0;
+  padding: 20px 20px 4px;
+}
+.bh-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 0 -1px;
+  border: 0;
+  border-radius: 0;
+}
+.bh-tabs .tab {
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  color: var(--ink-3);
+  background: var(--bg);
+  border: 1px solid var(--rule-2);
+}
+.bh-tabs .tab + .tab {
+  border-left: 0;
+}
+.bh-tabs .tab:hover {
+  color: var(--ink);
+  background: var(--shade);
+}
+.bh-tabs .tab.on {
+  color: var(--ink);
+  background: var(--panel);
+  border-bottom-color: transparent;
+  box-shadow: inset 0 3px var(--ink);
+}
+.bh-tabs .tab:not(.on) .spr {
+  opacity: 0.6;
+}
+.bt-t {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.bt-d {
+  font-size: 22px;
+}
+.bt-s {
+  font: 600 14px/1 var(--f-body);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.tab.on .bt-s {
+  color: var(--ink-2);
+}
+/* Home: the hero sits inside the featured card (its border). */
+.feature-hero .bh-top {
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+}
+.feature-hero .bh-title a:hover {
+  text-decoration: none;
+}
+
+/* Up to 1100 the banner spans the top and the facts sit under it, so the banner has no empty band beside it. */
+@media (max-width: 1100px) {
+  .bh-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .bh-side {
+    padding: 12px 16px 10px;
+    border-left: 0;
+  }
+  .bh-side .eyebrow {
+    display: none;
+  }
+  .bh-title {
+    font-size: 44px;
+  }
+  /* "#38" and the status side by side, the dates under them. */
+  .bh-side .bugline {
+    flex-basis: auto;
+    margin: 0;
+  }
+  .bh-side .when {
+    margin-top: 8px;
+  }
+}
+@media (max-width: 860px) {
+  .bhero {
+    margin-bottom: 16px;
+  }
+  .bh-tabs .tab {
+    gap: 10px;
+    padding: 10px 14px;
+  }
+  .bh-tabs .spr {
+    --s: 28px;
+  }
+  /* phones: difficulty over its scoring */
+  .bt-t {
+    flex-direction: column;
+    gap: 3px;
+  }
+  .bt-d {
+    font-size: 19px;
+  }
+  .bt-s {
+    font-size: 12px;
+  }
+  .bh-panel > .split {
+    padding: 16px 16px 4px;
+  }
+  .bh-maprow {
+    font-size: 14px;
+  }
+}
+/* Full-bleed on phones only, like .board-wrap, .feature and .profile. */
+@media (max-width: 700px) {
+  .bhero {
+    margin: 0 calc(-1 * var(--gut)) 16px;
+  }
+  .bh-top,
+  .bh-maprow {
+    border-left: 0;
+    border-right: 0;
+  }
+  .bh-maprow {
+    gap: 14px;
+    padding: 12px var(--gut);
+  }
+  .bh-maprow .mf > .map-art {
+    width: 64px;
+    height: auto;
+  }
+  .bh-mapline {
+    gap: 6px;
+  }
+  .bh-mapname {
+    font-size: 24px;
+  }
+  /* rounds on a line of their own instead of wrapping behind a dangling "·" */
+  .bh-mapsub > span:last-child::before {
+    content: none;
+  }
+  .bh-mapsub > span:last-child {
+    flex-basis: 100%;
+  }
+  .bh-panel {
+    margin: 0 calc(-1 * var(--gut));
+    border-left: 0;
+    border-right: 0;
+  }
+  .bh-tabs {
+    margin: 0;
+  }
+  .bh-tabs .tab:first-child {
+    border-left: 0;
+  }
+  .bh-tabs .tab:last-child {
+    border-right: 0;
+  }
+  .bh-panel > .split {
+    padding: 14px var(--gut) 4px;
+  }
+  .bh-side {
+    padding: 12px var(--gut) 10px;
+  }
+  /* the full-bleed hero meets the header (cancel main's 20px top padding, as .profile does) */
+  main > .bhero:first-child,
+  main > .vh + .feature {
+    margin-top: -20px;
+  }
+}
+.feature-hero {
+  margin: 0;
+}
+
+/* Medal cut-offs, out of the leaderboard's way: in the right-hand column on desktop (above the rules), a
+   folded bar above the board on phones that opens in place (several rows, never a sideways scroll). */
+.co-side {
+  margin: 0 0 28px;
+}
+.co-side .co-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.co-fold {
+  display: none;
+}
+.ct-split {
+  margin-top: 0;
+}
+.co-aside {
+  position: static;
+  top: calc(var(--hdr) + 16px);
+}
+.co-aside.fits {
+  position: sticky;
+}
+.co-aside:empty {
+  display: none;
+}
+@media (max-width: 860px) {
+  .co-side,
+  .co-aside {
+    display: none;
+  }
+  .co-fold {
+    display: block;
+    margin: 4px 0 14px;
+    background: var(--s1);
+    border: 1px solid var(--rule);
+    border-radius: var(--r);
+  }
+  .co-fold > summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    min-height: 44px;
+    padding: 8px 10px;
+    list-style: none;
+    cursor: pointer;
+  }
+  .co-fold > summary::-webkit-details-marker {
+    display: none;
+  }
+  .co-fold .kicker {
+    margin: 0;
+  }
+  .co-more {
+    margin-left: auto;
+    font: 800 14px/1 var(--f-display);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-2);
+  }
+  .co-hide,
+  .co-fold[open] .co-show,
+  .co-fold[open] .co-peek {
+    display: none;
+  }
+  .co-fold[open] .co-hide {
+    display: inline;
+  }
+  .co-peek {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    flex-basis: 100%;
+  }
+  .co-fold .co-list {
+    padding: 0 8px 8px;
+  }
+}
+
+/* ─────────────────────────────── leaderboards (boss, race, CT): table.board.lb */
+
+/* Rows grouped by rank in soft bands (a co-op team is one band) instead of a rule under every row; the top 3
+   stand out; the key score is the hero; tier / dates / secondary times recede; medal brackets end in a labelled
+   divider row. */
+.lb td {
+  border-bottom: 0;
+}
+.lb tbody tr.band td {
+  background: var(--zebra);
+}
+.lb tr.pod td {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+.lb tr.pod1 td {
+  background: var(--top1);
+}
+.lb tr.pod1 td:first-child {
+  box-shadow: inset 3px 0 var(--accent);
+}
+.lb tr.pod2 td,
+.lb tr.pod3 td {
+  background: var(--top23);
+}
+.lb tr.pod td.pl {
+  font-size: 17px;
+  font-weight: 700;
+}
+.lb tbody tr.linkrow:hover td,
+.lb tbody tr:has(a:focus-visible) td {
+  background-image: linear-gradient(var(--hover), var(--hover));
+}
+.lb tbody tr.linkrow:not(.pod1):hover td:first-child,
+.lb tbody tr:not(.pod1):has(a:focus-visible) td:first-child {
+  box-shadow: inset 3px 0 var(--ink-2);
+}
+
+/* Rank: medal + plate. Podium: 40 px medal, bigger plate; rank 4+: a 24 px medal and a bare numeral. */
+.lb .medal-slot {
+  width: 24px;
+  height: 24px;
+}
+.lb .medal-slot .spr {
+  --s: 24px;
+}
+.lb tr.pod .medal-slot {
+  width: 40px;
+  height: 40px;
+}
+.lb tr.pod .medal-slot .spr {
+  --s: 40px;
+}
+.lb tr.pod .plate {
+  height: 32px;
+  min-width: 36px;
+  font-size: 21px;
+}
+.lb .plate:not(.p1):not(.p2):not(.p3):not(.approx) {
+  border-color: transparent;
+  padding: 0 2px;
+  min-width: 28px;
+  color: var(--ink-3);
+}
+
+/* Scores: the one that tells the story, big; the rest muted. */
+.lb td.hero {
+  font: 800 20px/1.05 var(--f-display);
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+.lb tr.pod td.hero {
+  font-size: 24px;
+}
+.lb td.num:not(.hero) {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+.lb td.tiercol.low {
+  color: var(--ink);
+  font-weight: 700;
+}
+.lb td.hero .m-sub {
+  font: 600 12px/1.3 var(--f-body);
+  color: var(--ink-2);
+  letter-spacing: 0;
+}
+.lb .gap {
+  display: block;
+  margin-top: 3px;
+  font: 600 11px/1.2 var(--f-body);
+  letter-spacing: 0;
+  color: var(--ink-3);
+}
+.lb .subm {
+  text-decoration: none;
+}
+.lb td.grp {
+  font-size: 13px;
+}
+
+/* A medal bracket's end: "▲ Top 50 · cut-off 7:01.116" across the table. */
+.lb tr.cut td {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  border-top: 1px solid var(--rule-2);
+  background: none;
+}
+.cut-in {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 700 11px/1.2 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+}
+.cut-l {
+  color: var(--ink-2);
+}
+.cut-s {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-weight: 600;
+}
+
+@media (min-width: 861px) {
+  .lb td,
+  .lb th {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+@media (max-width: 700px) {
+  .lb tr.pod .medal-slot {
+    width: 32px;
+    height: 32px;
+  }
+  .lb tr.pod .medal-slot .spr {
+    --s: 32px;
+  }
+  .lb tr.pod td {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  .lb tr.pod td.pl {
+    font-size: 16px;
+  }
+  .lb td.hero {
+    font-size: 18px;
+  }
+  .lb tr.pod td.hero {
+    font-size: 20px;
+  }
+  /* A stacked second value already sits under the score: keep the row to two lines. */
+  .lb .gap.m-gap {
+    display: none;
+  }
+}
+/* Co-op: a teammate row repeats the team's score; only the team's first row carries it big. */
+.lb tr.mate td.hero {
+  font: 600 13px/1.2 var(--f-body);
+  color: var(--ink-3);
+}
+
+/* ─────────────────────────────── calmer boss / event pages (2026-09-27) */
+
+/* Wide / narrow label variants inside one element (e.g. "Solo" / "1P"). */
+.m-only-i {
+  display: none;
+}
+
+/* Yellow is for what's first or the event itself (the #N plate, the #1 row); selected controls are
+   white-on-dark (dark-on-light in the light theme). */
+.tab.on,
+.pager a.on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+@media (max-width: 860px) {
+  .d-only {
+    display: none;
+  }
+  .m-only-i {
+    display: inline;
+  }
+  /* "Rules ↓": a text link at the end of the map line. */
+  .jump-rules {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+    margin-left: auto;
+    font: 800 14px/1 var(--f-display);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    background: none;
+    border-bottom: 2px solid var(--rule-2);
+    border-radius: 0;
+  }
+  /* in the race header, not a row of its own */
+  .ev-title-block .jump-rules {
+    margin: 10px 0 0;
+    align-self: flex-start;
+  }
+  /* One control row: Standard / Elite and 1P–4P side by side. */
+  .controls {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .controls .tab {
+    gap: 5px;
+    padding: 8px 9px 7px;
+    font-size: 15px;
+  }
+  .controls .tab-hint {
+    font-size: 11px;
+  }
+  /* Boss: team size, then the freshness line. */
+  .lb-bar-t {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px 14px;
+  }
+  .lb-bar .tab {
+    gap: 5px;
+    padding: 8px 9px 7px;
+    font-size: 15px;
+  }
+  /* Status row: "Updated … · Showing top 1,000 of N". */
+  .lb-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0 0 10px;
+  }
+  .lb-bar .fresh {
+    margin: 0;
+    min-width: 0;
+  }
+}
+
+/* ─────────────────────────────── hidden stats page (/stats) */
+
+.st-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.st-tile,
+.st-card {
+  border: 1px solid var(--rule);
+  background: var(--shade);
+  padding: 16px 18px;
+}
+.st-v {
+  font: 800 44px/1 var(--f-display);
+  color: var(--ink);
+}
+.st-l {
+  margin-top: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.st-s {
+  color: var(--ink-3);
+  font-size: 13px;
+}
+.st-card {
+  margin-bottom: 14px;
+  min-width: 0;
+}
+.st-h {
+  font: 800 20px/1 var(--f-display);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 12px;
+}
+.st-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.st-bar {
+  fill: var(--accent);
+}
+.st-bar:hover {
+  fill: var(--ink);
+}
+.st-grid {
+  stroke: var(--rule);
+  stroke-width: 1;
+}
+.st-axis {
+  fill: var(--ink-3);
+  font-size: 11px;
+}
+.st-grid2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 14px;
+}
+.st-rank {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.st-rank li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 8px;
+  background: linear-gradient(90deg, rgb(var(--tint) / 0.2) var(--w), transparent var(--w));
+}
+.st-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.st-n {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+.st-foot {
+  margin-top: 4px;
+}
+@media (max-width: 720px) {
+  .st-tiles {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .st-v {
+    font-size: 36px;
+  }
+  .st-grid2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ─────────────────────────────── boss stats page (/bosses/<type>) and the portrait strip on /bosses */
+
+/* The 7 portraits on the boss list: one row on desktop, wrapping on phones. */
+.bs-strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.bs-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px 4px 8px;
+  font: 700 14px/1.1 var(--f-display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--ink-2);
+  background: var(--s1);
+  border: 1px solid var(--rule);
+  /* neutral top edge: yellow is kept for the current selection and rank #1 */
+  border-radius: var(--r);
+}
+.bs-pick:hover {
+  color: var(--ink);
+  background: var(--s2);
+}
+.bs-pick span:last-child {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .bs-strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* The link from a boss event's banner row to its stats page: text link on desktop, a pill on phones. */
+.bs-link {
+  margin-left: auto;
+  padding: 8px 14px;
+  font: 800 16px/1 var(--f-display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+}
+.bs-link:hover {
+  background: var(--s2);
+}
+@media (max-width: 900px) {
+  .bh-maprow:has(.bs-link) {
+    flex-wrap: wrap;
+  }
+  .bs-link {
+    margin-left: 0;
+    flex-basis: 100%;
+    text-align: center;
+    border-radius: 999px;
+  }
+}
+
+.bs-hero {
+  margin-bottom: 12px;
+}
+.bs-hero .bh-art img,
+.bs-hero .bh-art .img-missing,
+.bs-hero .bh-noart {
+  aspect-ratio: 1440 / 249;
+  object-fit: cover;
+  object-position: 50% 0; /* the boss logo sits at the top of the banner art */
+}
+.bs-hero .bh-side {
+  padding: 12px 18px;
+}
+.bs-title {
+  flex-basis: 100%;
+  font: 800 clamp(34px, 4.4vw, 52px)/0.95 var(--f-display);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+.bs-tag {
+  flex-basis: 100%;
+  margin-top: 8px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.bs-tag2 {
+  flex-basis: 100%;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.bs-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex-basis: 100%;
+  margin-top: 8px;
+  list-style: none;
+}
+.bs-chips li {
+  padding: 3px 9px;
+  font: 700 12px/1.2 var(--f-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--s2);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+}
+.bs-page {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.bs-page > * {
+  min-width: 0;
+}
+.bs-plate {
+  min-width: 0;
+  padding: 14px;
+  background: var(--s1);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+}
+.bs-plate .kicker-h {
+  margin-bottom: 10px;
+}
+.bs-count {
+  color: var(--ink-3);
+  letter-spacing: 0;
+}
+.bs-note {
+  margin-top: 8px;
+  font-size: 13px;
+}
+.bs-base {
+  margin-left: 6px;
+  font: 600 12px/1 var(--f-body);
+  color: var(--ink-3);
+}
+.bs-int {
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+/* Normal / Elite, styled like the event page's tabs; the active one has a yellow top rule. */
+.bs-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 20px;
+}
+/* T1-T5 as one segmented control (sets the tier; the health rows do the same) */
+.bs-seg {
+  display: inline-flex;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+.bs-seg button {
+  min-width: 44px;
+  padding: 9px 12px;
+  font: 800 16px/1 var(--f-display);
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+  background: var(--s1);
+  border: 0;
+  cursor: pointer;
+}
+.bs-seg button + button {
+  border-left: 1px solid var(--rule-2);
+}
+.bs-seg button:hover {
+  background: var(--s2);
+}
+.bs-seg button.on {
+  color: var(--on-accent);
+  background: var(--accent);
+}
+.bs-tabs {
+  display: inline-flex;
+}
+.bs-tabs .tab {
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px;
+  color: var(--ink-3);
+  background: var(--bg);
+}
+.bs-tabs .tab.on {
+  color: var(--ink);
+  background: var(--s1);
+  box-shadow: inset 0 3px var(--accent);
+}
+.bs-tabs .tab:not(.on) .spr {
+  opacity: 0.6;
+}
+.bs-mod {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.bs-switch {
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 24px;
+  padding: 0;
+  background: var(--s2);
+  border: 1px solid var(--rule-2);
+  border-radius: 12px;
+  cursor: pointer;
+}
+.bs-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: var(--ink-3);
+  border-radius: 50%;
+}
+.bs-switch.on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.bs-switch.on .bs-knob {
+  left: 22px;
+  background: var(--on-accent);
+}
+
+/* Desktop: 12-column grid (health 5 + skulls 7, then pairs of 6); below 1000 px one column, skulls first. */
+.bs-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.bs-grid > .bs-plate {
+  grid-column: span 6;
+}
+.bs-grid > .bs-stack {
+  display: grid;
+  gap: 12px;
+  grid-column: span 5;
+}
+.bs-grid > .bs-skulls-plate {
+  grid-column: span 7;
+}
+.bs-grid > .bs-plate.wide {
+  grid-column: 1 / -1;
+}
+.bs-th,
+.bs-tier {
+  display: grid;
+  grid-template-columns: 30px minmax(0, auto) minmax(30px, 1fr) minmax(40px, auto);
+  align-items: center;
+  gap: 10px;
+}
+.bs-th {
+  padding: 0 8px 4px;
+  font: 700 10px/1 var(--f-body);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.bs-th span:last-child,
+.bs-sp {
+  text-align: right;
+}
+.bs-tiers {
+  display: grid;
+  gap: 3px;
+  list-style: none;
+}
+.bs-tier {
+  width: 100%;
+  min-height: 30px;
+  padding: 3px 8px;
+  font: inherit;
+  text-align: left;
+  color: var(--ink-2);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+  cursor: pointer;
+}
+.bs-tier:hover {
+  background: var(--shade);
+}
+.bs-tier.on {
+  color: var(--ink);
+  background: var(--s2);
+  border-color: var(--rule-2);
+  box-shadow: inset 3px 0 var(--accent);
+}
+.bs-tl {
+  font: 800 16px/1 var(--f-display);
+}
+.bs-tier.on .bs-tl,
+.bs-tier.on .bs-hp {
+  color: var(--accent-ink);
+}
+.bs-hp {
+  font: 700 18px/1.1 var(--f-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+.bs-hbar {
+  height: 6px;
+  background: var(--bg);
+  border-radius: var(--r);
+}
+.bs-hbar i {
+  display: block;
+  height: 100%;
+  background: rgb(var(--tint));
+  border-radius: var(--r);
+}
+.bs-sp {
+  font: 700 14px/1.1 var(--f-body);
+  font-variant-numeric: tabular-nums;
+}
+.bs-lines {
+  display: grid;
+  gap: 6px;
+  padding-left: 0;
+  color: var(--ink);
+}
+
+/* Boss bar: the in-game bar (art + layout from BOSS_BAR), drawn full, scaled to the plate; 1 game unit = var(--u). */
+.hb {
+  container-type: inline-size;
+  max-width: 920px;
+  margin: 0 auto;
+}
+.hb-stage {
+  position: relative;
+  width: 100%;
+}
+.hb-p,
+.hb-clip {
+  position: absolute;
+  display: block;
+  box-sizing: border-box;
+}
+.hb-clip {
+  overflow: hidden;
+}
+.hb-clip-in {
+  position: relative;
+  height: 100%;
+}
+.hb-skull {
+  background-repeat: no-repeat;
+}
+.hb .bs-tick {
+  width: auto;
+  height: auto;
+  border-radius: 1px;
+}
+.hb-end {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font: 700 11px/1 var(--f-body);
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+}
+.hb-labels {
+  position: relative;
+  height: 20px;
+  margin-top: -6px;
+}
+.hb-labels .bs-pc {
+  top: 0;
+}
+.hb-labels .bs-trig {
+  transform: translateX(-8px);
+}
+.bs-skull {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  display: block;
+  width: 28px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+}
+.bs-skull .spr,
+.bs-skull svg {
+  display: block;
+}
+.bs-skull-svg {
+  fill: var(--ink);
+}
+.bs-skull.sm {
+  position: relative;
+  top: 0;
+  left: 0;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  transform: none;
+}
+.bs-pc {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  transform: translateX(-50%);
+  font: 700 12px/1 var(--f-body);
+  white-space: nowrap;
+  color: var(--ink-2);
+}
+.bs-tick {
+  display: block;
+  flex: none;
+  width: 3px;
+  height: 22px;
+  background: var(--ink);
+  border-radius: 1px;
+}
+.bs-every {
+  margin-top: 4px;
+}
+/* the stretch table: one grid row per stretch (skull icon | label + to go | immunity | effects) */
+.bs-skull-list {
+  display: grid;
+  margin-top: 10px;
+  list-style: none;
+}
+.bs-skull-list li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  gap: 4px 10px;
+  padding: 5px 0;
+  border-top: 1px solid var(--rule);
+}
+.bs-skull-list.has-imm li {
+  grid-template-columns: 24px minmax(0, 1fr) minmax(0, auto);
+}
+.bs-skull-list.has-fx li {
+  grid-template-columns: 24px minmax(0, 1fr) minmax(0, 0.9fr);
+}
+.bs-skull-list.has-imm.has-fx li {
+  grid-template-columns: 24px minmax(0, 1fr) minmax(0, auto) minmax(0, 0.9fr);
+}
+.bs-sk-main {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  color: var(--ink-2);
+}
+.bs-sk-n strong {
+  color: var(--ink);
+}
+.bs-go {
+  color: var(--ink);
+}
+.bs-go b {
+  color: var(--accent);
+}
+.bs-imm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+}
+/* the last stretch (skull → defeat): a plain end mark instead of a skull */
+.bs-ko {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--ink-3);
+  border-radius: 50%;
+}
+.bs-do {
+  min-width: 0;
+  color: var(--ink);
+}
+.bs-spawns {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+}
+.bs-spawn {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 6px 8px;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+}
+.bs-sprite {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 56px;
+  min-height: 48px;
+}
+.bs-chip {
+  padding: 4px 6px;
+  font: 700 11px/1.1 var(--f-body);
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  background: var(--s2);
+  border-radius: var(--r);
+}
+.bs-spawn-b {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.bs-spawn-n {
+  font: 800 18px/1 var(--f-display);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.bs-lv {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+.bs-lv span {
+  display: grid;
+  gap: 2px;
+}
+.bs-lv small {
+  font: 700 10px/1 var(--f-body);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.bs-lv b {
+  font: 700 16px/1 var(--f-display);
+  font-variant-numeric: tabular-nums;
+}
+.bs-past {
+  display: grid;
+  list-style: none;
+}
+.bs-past li {
+  border-top: 1px solid var(--rule);
+}
+.bs-past li.on {
+  background: var(--shade);
+  box-shadow: inset 3px 0 var(--accent);
+}
+.bs-ev {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 5px 6px;
+}
+a.bs-ev:hover {
+  background: var(--shade);
+}
+/* Wiki-only past events and the "not on record" line: plain rows, a step quieter than the archive's links. */
+.bs-past .plate {
+  min-width: 3.4em;
+  justify-content: center;
+  text-align: center;
+}
+.bs-past li.old .plate {
+  opacity: 0.75;
+}
+.bs-note-t {
+  font: 700 11px/1 var(--f-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.bs-gap {
+  padding: 8px 6px;
+  font-size: 13px;
+  color: var(--ink-3);
+  font-style: italic;
+}
+.bs-src {
+  margin-top: 10px;
+  font-size: 12px;
+}
+.bs-ev-m {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+}
+.bs-more {
+  margin-top: 10px;
+  padding: 8px 14px;
+  font: 700 13px/1 var(--f-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+  cursor: pointer;
+}
+.bs-more:hover {
+  background: var(--s2);
+}
+.bs-words {
+  display: grid;
+  gap: 6px;
+  padding-left: 18px;
+  color: var(--ink-2);
+}
+.bs-foot {
+  font-size: 13px;
+  max-width: 80ch;
+}
+@media (max-width: 999px) {
+  .bs-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .bs-grid > .bs-plate,
+  .bs-grid > .bs-plate.wide {
+    grid-column: 1;
+  }
+  .bs-grid > .bs-stack {
+    display: contents;
+  }
+  .bs-skulls-plate {
+    order: -1;
+  }
+}
+@media (max-width: 700px) {
+  .bs-hero .bh-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .bs-hero .bh-side {
+    border-left: 0;
+    border-top: 1px solid var(--rule);
+  }
+  .bs-controls {
+    gap: 8px;
+  }
+  .bs-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+  .bs-tabs .tab {
+    padding: 8px 12px;
+  }
+  .bs-tabs .bt-d {
+    font-size: 18px;
+  }
+  .bs-tabs .bt-s {
+    font-size: 12px;
+  }
+  .bs-seg {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    width: 100%;
+  }
+  .bs-th,
+  .bs-tier {
+    grid-template-columns: 26px minmax(0, auto) minmax(20px, 1fr) minmax(36px, auto);
+    gap: 8px;
+  }
+  .bs-hp {
+    font-size: 16px;
+  }
+  .bs-base {
+    display: block;
+    margin: 2px 0 0;
+  }
+  .bs-skull-list li,
+  .bs-skull-list.has-imm li,
+  .bs-skull-list.has-fx li,
+  .bs-skull-list.has-imm.has-fx li {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+  .bs-sk-main {
+    display: block;
+  }
+  .bs-sk-n {
+    margin-right: 8px;
+  }
+  .bs-imm,
+  .bs-do {
+    grid-column: 2;
+  }
+  .bs-skull {
+    width: 24px;
+    height: 24px;
+  }
+  .bs-skull .spr {
+    --s: 24px;
+  }
+  .bs-skull svg {
+    width: 24px;
+    height: 24px;
+  }
+  .hb-labels {
+    height: 14px;
+    margin-top: 0;
+  }
+  /* 5+ skulls: every other % label on phones (Elite keeps 75 / 50 / 25) so they never collide */
+  .hb-labels.many .bs-pc.alt {
+    display: none;
+  }
+}
+
+/* ── UI-C: boss stats calm-down ── */
+.bs-hbar i {
+  background: var(--ink-3);
+}
+.bs-tier.on .bs-hbar i {
+  background: var(--accent);
+}
+.bs-go b {
+  color: var(--ink);
+}
+.bs-ctl-l {
+  font: 700 12px/1 var(--f-body);
+  color: var(--ink-3);
+  margin-right: -10px;
+}
+.bs-about {
+  padding: 0;
+}
+.bs-about summary {
+  padding: 14px;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.bs-about[open] summary {
+  color: var(--ink);
+}
+.bs-about > :not(summary) {
+  margin: 0 14px 14px;
+}
+.bs-about .bs-foot {
+  margin-top: 10px;
+}
+.bs-skull-list.plain .bs-sk-main {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* ── UI-B: calm typography, neutral page, rules/people/challenges */
+.chl-row.nomap {
+  grid-template-columns: 1fr;
+  padding-left: 4px;
+}
+.cab-none {
+  margin-top: 8px;
+}
+.lt-fold {
+  margin-top: 32px;
+}
+.lt-fold > summary {
+  cursor: pointer;
+  padding: 10px 0;
+  font: 600 17px/1.2 var(--f-body);
+  border-bottom: 1px solid var(--rule-2);
+}
+.lt-fold > summary:hover {
+  color: var(--accent-ink);
+}
+.lt-fold[open] > summary {
+  margin-bottom: -16px;
+}
+
+/* ── UI-A: calmer lists, home and boss page ───────────────────────────────────────── */
+
+/* Facts that sat under a label per row ("SCORING", "ENTRIES") are plain muted lines. */
+.ev-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.ev-facts > span:first-child {
+  color: var(--ink);
+  font-weight: 600;
+}
+.ev-fold {
+  padding: 12px 4px 4px;
+  font-size: 14px;
+  color: var(--ink-3);
+}
+@media (min-width: 861px) {
+  .k-boss .ev-row {
+    grid-template-columns: var(--art) minmax(0, 1fr) 230px 150px;
+  }
+  .k-race .ev-row,
+  .k-ct .ev-row {
+    grid-template-columns: var(--well) minmax(0, 1fr) 170px 150px;
+  }
+  .k-odyssey .ev-row {
+    grid-template-columns: var(--well) minmax(0, 1fr) 150px;
+  }
+  /* No art (old odyssey): a compact text row, no empty well. */
+  .k-odyssey .ev-row.no-art {
+    grid-template-columns: minmax(0, 1fr) 150px;
+    min-height: 0;
+    padding-left: 20px;
+  }
+}
+@media (max-width: 860px) {
+  .k-odyssey .ev-row.no-art {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+    padding-left: 12px;
+  }
+  .k-odyssey .ev-row.no-art > :not(.ev-art) {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Boss list: the stats strip has a label and never splits a name mid-word. */
+.bs-strip-l {
+  grid-column: 1 / -1;
+  font: 700 13px/1 var(--f-body);
+  color: var(--ink-3);
+}
+.bs-pick {
+  font-size: 13px;
+  letter-spacing: 0.03em;
+}
+.bs-pick span:last-child {
+  overflow-wrap: normal;
+  hyphens: none;
+}
+@media (max-width: 700px) {
+  .bs-pick {
+    padding-inline: 2px;
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+}
+
+/* Boss headline: name first, "#47" and the map secondary plain text (home and boss page). */
+.bh-title {
+  font-size: 44px;
+  line-height: 0.95;
+}
+.bh-no {
+  display: inline;
+  padding: 0;
+  color: var(--ink-2);
+  background: none;
+}
+.bh-sub {
+  font-size: 0.55em;
+  letter-spacing: 0.02em;
+  color: var(--ink-2);
+}
+@media (max-width: 1100px) {
+  .bh-title {
+    font-size: 34px;
+  }
+}
+
+/* Home on phones: the other live events as a compact 2x2 grid before the top 5; the big tiles are for wide screens. */
+.minis {
+  display: none;
+}
+@media (max-width: 860px) {
+  .tiles {
+    display: none;
+  }
+  .minis {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .mini {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-radius: var(--r);
+  }
+  .mini .eyebrow {
+    margin: 0;
+  }
+  .mini-t {
+    font: 800 18px/1.05 var(--f-display);
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+  }
+  .mini .st {
+    font-size: 11px;
+    white-space: normal;
+  }
+}
+
+/* Boss board: "Players 1 2 3 4"; the folded medal cut-offs show their top values as text. */
+.lb-bar-l {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-3);
+  margin-right: -10px;
+}
+.co-fold .co-peek {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 860px) {
+  .bh-maprow {
+    flex-wrap: wrap;
+  }
+  /* "Rules ↓" as a button, on a row of its own under the map line. */
+  .bh-maprow .jump-rules {
+    flex-basis: 100%;
+    justify-content: center;
+    margin: 0;
+    padding: 12px 14px;
+    min-height: 44px;
+    border: 1px solid var(--rule-2);
+    border-radius: 999px;
+    background: var(--s2);
+  }
+}
+.ct-hist-none {
+  margin-top: 24px;
+}
+
+/* Odyssey islands: same structure on every card (number + map name, difficulty and mode under it). */
+.island-n .mapline {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px 0;
+}
+.island-n .mapline > span::before {
+  content: none;
+}
+.island-n .mapline > span.mode {
+  display: inline-flex;
+}
+
+/* ── label on the stacked score part (item 20) */
+.m-sub-l {
+  font-weight: 500;
+  color: var(--ink-3);
+}
+
+/* ── Owner feedback batch: ended bug, map names, event-type icons, roomier home cards */
+
+/* Ended: the live bug, neutral fill (--ended-fill on .bug-s). */
+.bug.sm {
+  font-size: 12px;
+}
+.bug.sm .bug-s,
+.bug.sm .bug-t {
+  padding: 4px 7px 3px;
+}
+
+/* Event-type logos sit inline before kickers and page titles; absent art leaves nothing behind. */
+.ti {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.eyebrow.ti {
+  gap: 8px;
+}
+.ti .ev-icon {
+  flex: none;
+}
+h1.title.ti {
+  gap: 14px;
+}
+h1.title.ti .ev-icon {
+  margin-block: -12px;
+}
+@media (max-width: 700px) {
+  h1.title.ti .ev-icon {
+    --s: 52px;
+    margin-block: -8px;
+  }
+}
+
+/* Live boss card: a second row across the card (map and rules, then each difficulty with its current #1). */
+.ev-more {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px 24px;
+  padding: 14px 0 16px 20px;
+  border-top: 1px solid var(--rule);
+}
+@media (min-width: 861px) {
+  .events.k-boss li.now .ev-row {
+    grid-template-columns: var(--art) minmax(0, 1fr) auto;
+  }
+  .events.k-boss li.now .ev-st {
+    grid-area: 1 / 3;
+  }
+}
+.evm-map {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.evm-t {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.evm-t strong {
+  font: 700 21px/1.05 var(--f-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+.evm-d {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding-left: 20px;
+  border-left: 1px solid var(--rule);
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.evm-d .kicker {
+  margin: 0;
+}
+.evm-sc {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 700 18px/1.1 var(--f-body);
+  color: var(--ink);
+}
+.evm-top {
+  overflow-wrap: anywhere;
+}
+.evm-top strong,
+.evm-top .num {
+  color: var(--ink);
+  font-weight: 700;
+}
+.evm-k {
+  color: var(--accent-ink);
+  font-weight: 800;
+}
+@media (max-width: 860px) {
+  .ev-more {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    padding: 12px 0 0;
+  }
+  .evm-map {
+    grid-column: 1 / -1;
+  }
+  .evm-d {
+    padding-left: 12px;
+  }
+}
+
+/* Map name in event list rows: display face, just below the event title. */
+.ev-main .mapline strong {
+  font: 700 21px/1.05 var(--f-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.ev-main .mapline {
+  align-items: baseline;
+  margin: 3px 0;
+  font-size: 13px;
+}
+
+/* Boss card: each ranking mode on its own line with its scoring icon. */
+.ev-mode {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ev-mode .spr {
+  margin: -3px 0;
+}
+.ev-facts > .ev-n {
+  margin-top: 2px;
+  color: var(--ink-3);
+  font-weight: 400;
+}
+
+/* Boss page: the stats link carries the boss icon. */
+.bs-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  line-height: 1.15;
+}
+@media (max-width: 900px) {
+  .bs-link {
+    justify-content: center;
+  }
+}
+
+/* Home sub-cards: more air between kicker, title and meta. */
+.tile-body {
+  gap: 12px;
+  padding: 18px 20px 20px;
+}
+.tile-meta {
+  line-height: 1.65;
+}
+@media (max-width: 860px) {
+  .mini {
+    gap: 8px;
+    padding: 14px 14px;
+  }
+  .mini-t {
+    line-height: 1.2;
+  }
+}
