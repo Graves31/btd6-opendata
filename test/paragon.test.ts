@@ -40,11 +40,11 @@ describe("paragon maths", () => {
     assert.ok(r.buckets.filter((b) => b.key !== "totems").every((b) => b.full));
     assert.equal(bucket(evaluate(zero), "pops").full, false);
   });
-  it("slider is less efficient than cash by the penalty", () => {
+  it("slider is less efficient than cash by the penalty, rounded up", () => {
     const cash = 1e6;
     const a = bucket(evaluate({ ...zero, cash }), "cash").raw;
     const b = bucket(evaluate({ ...zero, slider: cash }), "cash").raw;
-    assert.ok(Math.abs(b - a / (1 + D.paidContributionPenalty)) < 1e-9);
+    assert.equal(b, Math.ceil(a / (1 + D.paidContributionPenalty)));
   });
   it("totems are uncapped", () => {
     const r = evaluate({ ...zero, totems: 1000 });

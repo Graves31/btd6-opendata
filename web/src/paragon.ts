@@ -1,11 +1,16 @@
 // Paragon degree calculator maths on top of web/src/data/paragons.json (generated from the game). Pure functions, no DOM.
 import data from "./data/paragons.json" with { type: "json" };
 
-/** Values that are not in the game data. */
+/**
+ * Values not in paragons.json, read from the v56.3 game (GameAssembly code + game_data) by hand:
+ * totemPower = ParagonSacrificeBonusModel.bonus on the totem (ParagonTower.GetTowerInvestment, uncapped);
+ * costMods = GlobalCostModModel multipliers applied in turn (Impoppable = the Hard difficulty plus the
+ * Impoppable mode); costRounding = TowerManager.GetTowerUpgradeCost's final round to 5.
+ */
 export const REF = {
-  totemPower: 2000, // provisional: reference source, pending verification
-  difficultyMult: { easy: 0.85, medium: 1, hard: 1.08, impoppable: 1.2 }, // provisional: reference source, pending verification
-  costRounding: 5, // provisional: reference source, pending verification
+  totemPower: 2000,
+  costMods: { easy: [0.85], medium: [], hard: [1.08], impoppable: [1.08, 1.1111111640930176] } as Record<Difficulty, number[]>,
+  costRounding: 5,
 };
 
 const D = data.degreeData;
@@ -20,9 +25,14 @@ export const PARAGON_TOWERS = Object.keys(data.paragons) as ParagonTower[];
 /** Game version the data was generated from. */
 export const GAME_VERSION: string = data.gameVersion;
 
-/** Cost of the paragon on a difficulty (medium cost from the data, scaled and rounded). */
+/** Cost of the paragon on a difficulty, as the game prices it: each cost mod adds trunc((m-1)*cost) in
+ *  float32, then the total is rounded to the nearest 5 (ties to even). */
 export function paragonCost(tower: ParagonTower, diff: Difficulty): number {
-  return Math.round((data.paragons[tower].cost * REF.difficultyMult[diff]) / REF.costRounding) * REF.costRounding;
+  let cost = data.paragons[tower].cost;
+  for (const m of REF.costMods[diff]) cost += Math.trunc(Math.fround(Math.fround(Math.fround(m) - 1) * cost));
+  const q = cost / REF.costRounding;
+  const r = Math.abs(q % 1) === 0.5 ? 2 * Math.round(q / 2) : Math.round(q);
+  return r * REF.costRounding;
 }
 
 /** Everything the calculator takes. */
@@ -70,7 +80,8 @@ export interface ParagonResult {
 function rawPowers(i: ParagonInput): Record<Bucket["key"], number> {
   const unit = paragonCost(i.tower, i.diff) / D.moneySpentOverX;
   return {
-    cash: i.cash / unit + i.slider / (unit * (1 + D.paidContributionPenalty)),
+    // Sacrificed towers' cash is not rounded; the slider's share is rounded up (ParagonTower.StartSacrifice).
+    cash: i.cash / unit + Math.ceil(i.slider / unit / (1 + D.paidContributionPenalty)),
     pops: (i.pops + i.income * D.cashEarnedContributionModifier) / D.popsOverX,
     tiers: i.tiers * D.nonTier5TowersMultByX,
     t5: i.extraT5 * D.tier5TowersMultByX,
@@ -124,7 +135,8 @@ export function evaluate(i: ParagonInput): ParagonResult {
     const r = raw[key];
     return { key, power: Math.floor(cap === null ? r : Math.min(r, cap)), raw: r, cap, full: cap !== null && r >= cap };
   });
-  const power = buckets.reduce((s, b) => s + b.power, 0);
+  // The game sums the capped sources as floats; requirements are integers, so flooring the total is exact.
+  const power = Math.floor(buckets.reduce((s, b) => s + (b.cap === null ? b.raw : Math.min(b.raw, b.cap)), 0));
   const degree = degreeFor(power);
   const reqs = D.powerDegreeRequirements;
   const next = degree >= reqs.length ? null : { degree: degree + 1, power: reqs[degree], gap: reqs[degree] - power };

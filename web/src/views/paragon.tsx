@@ -470,8 +470,6 @@ function ScalingFold(p: { degree: number }) {
   );
 }
 
-const Prov = () => <span class="pg-prov">provisional</span>;
-
 function MethodFold(p: { s: ParagonRoute }) {
   const unit = paragonCost(p.s.tower, p.s.diff) / D.moneySpentOverX;
   return (
@@ -491,10 +489,10 @@ function MethodFold(p: { s: ParagonRoute }) {
           <b>Extra tier 5s:</b> {fmtInt(D.tier5TowersMultByX)} power each, up to {fmtInt(D.maxPowerFromTier5Count)}.
         </li>
         <li>
-          <b>Power totems:</b> {fmtInt(REF.totemPower)} power each, no cap. <Prov /> reference value, not in the game data.
+          <b>Power totems:</b> {fmtInt(REF.totemPower)} power each, no cap (read from the game's code).
         </li>
         <li>
-          <b>Cost by difficulty:</b> Medium cost × {Object.entries(REF.difficultyMult).map(([k, v]) => `${k} ${v}`).join(", ")}, rounded to {REF.costRounding}. <Prov /> reference values.
+          <b>Cost by difficulty:</b> {PG_DIFFS.map((d) => `${d[0].toUpperCase()}${d.slice(1)} $${fmtInt(paragonCost(p.s.tower, d))}`).join(" · ")}. The game's cost mods: Easy ×0.85, Hard ×1.08, Impoppable is Hard then ×1.111; rounded to ${REF.costRounding}.
         </li>
         <li>
           <b>Degree:</b> the highest degree whose power requirement you meet: degree 2 at {fmtInt(REQS[1])}, degree 100 at {fmtInt(REQS[99])}. Boss damage grows {+(D.bonusBossDamagePercent * 100).toFixed(0)}% every {D.bonusBossDamagePerDegrees} degrees; elites take double.
