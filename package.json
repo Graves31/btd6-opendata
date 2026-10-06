@@ -7,7 +7,7 @@
     "node": ">=22.18"
   },
   "scripts": {
-    "test": "node --import ./test/url-imports.ts --test --test-reporter=spec test/worker.test.ts test/store.test.ts test/format.test.ts test/events.test.ts test/rounds.test.ts test/bosses.test.ts",
+    "test": "node --import ./test/url-imports.ts --test --test-reporter=spec test/worker.test.ts test/store.test.ts test/format.test.ts test/events.test.ts test/rounds.test.ts test/bosses.test.ts test/paragon.test.ts",
     "typecheck": "tsc -p .",
     "validate": "node scripts/validate-contracts.mjs",
     "check": "npm run typecheck && npm run validate && npm test",
