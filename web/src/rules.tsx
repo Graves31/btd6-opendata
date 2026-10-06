@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import type { ChallengeDocument, PowerRestriction, TowerRestriction } from "../../src/nk/types.ts";
 import { cap, fmtInt, fmtRounds, human, mapName, unitName } from "./format.ts";
 import { roundsFor, type RulesRounds } from "./rounds.ts";
+import { href } from "./routes.ts";
 import { AnyHero, artName, hasArt, MODE_NAME, Spr } from "./sprite.tsx";
 import { A, Fact } from "./ui.tsx";
 
@@ -439,6 +440,16 @@ function RoundsLink(p: { href: string; name: string }) {
   );
 }
 
+/** "Paragon calculator →" under the paragon limit, with the event's difficulty when it is one the calculator knows. */
+function ParagonLink(p: { d: ChallengeDocument }) {
+  const diff = p.d.mode === "Impoppable" ? "impoppable" : ({ Easy: "easy", Medium: "medium", Hard: "hard" } as const)[p.d.difficulty as "Easy"];
+  return (
+    <A href={diff ? href.paragon({ diff }, true) : href.paragon()} class="pg-rlink">
+      Paragon calculator <span aria-hidden="true">→</span>
+    </A>
+  );
+}
+
 /** The "Round set" row(s): linked when the set is known, "Random rounds" for random-round modes, else as named. */
 function roundSetRows(d: ChallengeDocument, rs: RulesRounds, keyed = false): ComponentChildren[] {
   const sets = d.roundSets?.filter((r) => r !== "default") ?? [];
@@ -490,7 +501,7 @@ export function RuleFacts(p: { d: ChallengeDocument; compact?: boolean }) {
       <IFact icon="StartingCash" k="Starting cash" v={`$${fmtInt(d.startingCash)}`} />
       <IFact icon="StartingLives" k="Lives" v={lives} />
       <IFact icon="MaxTowers" k="Max towers" v={towers} />
-      <IFact icon="ParagonLimit" k="Max paragons" v={paragons} />
+      <IFact icon="ParagonLimit" k="Max paragons" v={<>{paragons}{d.maxParagons > 0 && <ParagonLink d={d} />}</>} />
       {roundSetRows(d, rs)}
       {d.leastCashUsed >= 0 && <IFact icon="LeastCashRule" k="Cash cap" v={`$${fmtInt(d.leastCashUsed)}`} />}
       {d.leastTiersUsed >= 0 && <IFact icon="LeastTiersRule" k="Tier cap" v={fmtInt(d.leastTiersUsed)} />}

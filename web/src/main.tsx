@@ -14,7 +14,9 @@ import { ChallengesPage } from "./views/challenges.tsx";
 import { NotFound } from "./views/errors.tsx";
 import { BossStatsPage } from "./views/bossstats.tsx";
 import { ChallengePage, PlayerPage, TeamPage } from "./views/people.tsx";
+import { ParagonPage } from "./views/paragon.tsx";
 import { RoundsPage, roundsTitle, roundsBoss } from "./views/rounds.tsx";
+import { ToolsHub } from "./views/tools.tsx";
 import { StatsPage } from "./views/stats.tsx";
 import { ThemeToggle } from "./theme.tsx";
 
@@ -46,6 +48,10 @@ function Page(props: { r: Route }) {
       return <ChallengePage id={r.id} />;
     case "rounds":
       return <RoundsPage r={r} />;
+    case "tools":
+      return <ToolsHub />;
+    case "paragon":
+      return <ParagonPage r={r} />;
     case "stats":
       return <StatsPage />;
     case "challenges":
@@ -109,6 +115,10 @@ export function title(r: Route): string {
       return t(dailyTitle(r.id) ?? peekBody<ChallengeDocument>(challengeKey(r.id))?.name ?? "Challenge");
     case "rounds":
       return t(`${roundsTitle(r)} · Round visualizer`);
+    case "tools":
+      return t("Tools");
+    case "paragon":
+      return t("Paragon degree calculator");
     case "stats":
       return t("Site stats");
     default:
@@ -161,7 +171,7 @@ function section(r: Route): string {
   if (r.name === "events") return r.kind;
   if (r.name === "ctgroup") return "ct";
   if (r.name === "challenge") return "challenges";
-  if (r.name === "rounds") return "tools";
+  if (r.name === "rounds" || r.name === "paragon") return "tools";
   if (r.name === "bossstats") return "boss";
   return n;
 }

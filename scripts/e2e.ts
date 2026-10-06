@@ -1,8 +1,8 @@
 // End-to-end check in a real browser. By default fully offline (fake NK origin replaying docs/api/fixtures):
 //   home → Bosses → newest boss → Elite tab → 2 players → page 2 → a player profile → Now
 //   → race → Now → CT → Teams tab → a team → Now → odyssey → Now → daily challenge → Now
-//   (+ boss rules → See rounds (focused round) → next round → back; Now → Tools → Camo filter → Focus → next match
-//   → List; phones: a row opens the round view and Back returns to the list)
+//   (+ boss rules → See rounds (focused round) → next round → back; Now → Tools hub → Round visualizer → Camo filter → Focus → next match
+//   → List; Tools → Paragon calculator → type totems (URL updates in place) → pick a tower; boss rules → Paragon calculator; phones: a row opens the round view and Back returns to the list)
 // Between clicks the script "reads" (waits for prefetching to go quiet), like a user would. Every navigation
 // must open from memory: `cached` true and paint within 50 ms. Screenshots (desktop 1280×900 and mobile
 // 390×844) of home, events list, boss, player, challenge and odyssey go to .wrangler/e2e-shots.
@@ -256,6 +256,11 @@ async function main() {
     if (!(await has(".bs-tiers .bs-tier")) || !(await has(".hb-stage .hb-skull")) || !((await has(".bs-skull-list li")) || (await has(".bs-every")))) problems.push("boss stats: tiers / skull bar / skull stretches missing");
     await step("Boss stats → back to the event", "a.backlink");
     if (!(await here()).startsWith("/boss/")) problems.push(`boss stats back link went to ${await here()}`);
+    // The rules' "Max paragons" row links to the paragon calculator (no data to fetch: opens from memory).
+    await step("Boss rules → Paragon calculator", "a.pg-rlink[href^='/tools/paragon']");
+    if (!(await has(".pg-picker")) || !(await has(".pg-res"))) problems.push("boss → paragon calculator: page didn't render");
+    await page.goBack();
+    await page.waitForFunction(() => location.pathname.startsWith("/boss/"), { timeout: 3000 }).catch(() => problems.push("paragon calculator: Back didn't return to the boss"));
     await step("Boss → Elite tab", "nav.tabs a.tab[href*='d=elite']");
     // The rules' "Round set" row links to the round visualizer with the event applied (set file prefetched).
     await step("Boss rules → See rounds", "a.rs-link[href^='/tools/rounds']");
@@ -298,6 +303,8 @@ async function main() {
     await home();
 
     await step("Now → Tools", 'header nav a[href="/tools"]', "tools");
+    if ((await page.evaluate(() => document.querySelectorAll(".tools-tiles a.tile").length)) !== 2) problems.push("tools hub: want 2 tool cards");
+    await step("Tools → Round visualizer", ".tools-tiles a.tile[href^='/tools/rounds']", "rounds-tool");
     if (!(await has("ol.rv-list li.rv-row"))) problems.push("tools: no round rows");
     // One scroll context: nothing on the page may be an inner vertical scroller, and the wheel over the list
     // must scroll the page all the way back up to the controls.
@@ -329,6 +336,24 @@ async function main() {
     if (!(Number(m1) > Number(m0))) problems.push(`next match: r ${m0} → ${m1}`);
     await step("Focused → List", "button.rv-tolist");
     if ((await here()).includes("view=round")) problems.push("‹ List: still on the round view");
+
+    // Tools → Paragon calculator: the URL is the state; changing an input rewrites it in place (no new history entry).
+    await step("→ Tools hub", 'header nav a[href="/tools"]');
+    await step("Tools → Paragon calculator", ".tools-tiles a.tile[href^='/tools/paragon']", "paragon");
+    if (!(await has(".pg-picker button[aria-pressed='true']")) || !(await has(".pg-res .pg-buckets li"))) problems.push("paragon: picker / result missing");
+    const hist = await page.evaluate(() => history.length);
+    await page.click("#pg-totems");
+    await new Promise((r) => setTimeout(r, 150));
+    await page.keyboard.type("3");
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => location.search.includes("to=3"), { timeout: 3000 }).catch(() => problems.push(`paragon: totems input didn't update the URL (${location.search})`));
+    if ((await page.evaluate(() => history.length)) !== hist) problems.push("paragon: an input change added a history entry");
+    if ((await page.evaluate(() => document.querySelector(".pg-res .stat-v")?.textContent ?? "")) === "1") problems.push("paragon: degree didn't move after 3 totems");
+    await page.click(".pg-picker button:nth-child(3)");
+    await page.waitForFunction(() => location.search.includes("p=bomb"), { timeout: 3000 }).catch(() => problems.push("paragon: picking a tower didn't update the URL"));
+    await shoot(page, "desktop-paragon-set");
+    await api.quiet();
+    pages["paragon-set"] = "/tools/paragon?p=dart&d=h&c=85000000&to=2&x=1&adv=1&po=4500000";
     await home();
 
     await step("Now → Challenges", 'header nav a[href="/challenges"]', "challenges");
@@ -414,6 +439,15 @@ async function main() {
       if (overflow > 0) problems.push(`mobile rounds list: page scrolls sideways by ${overflow}px`);
       await shoot(page, "mobile-rounds-list");
     }
+
+    // 360 px (the narrowest phone): the paragon calculator must not scroll sideways there either.
+    await page.setViewport({ width: 360, height: 740, isMobile: true, hasTouch: true });
+    await load(pages["paragon-set"] ?? "/tools/paragon");
+    await page.waitForSelector(".pg-res");
+    await api.quiet();
+    const o360 = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+    if (o360 > 0) problems.push(`paragon at 360 px: page scrolls sideways by ${o360}px`);
+    await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
 
     if (!REMOTE) await statsCheck("mobile");
 

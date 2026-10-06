@@ -8,7 +8,7 @@ import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import type { ChallengeDocument } from "../src/nk/types.ts";
 import { BLOON_TYPES, BLOONS, ROUND_SET_BY_ID, ROUND_SETS, type RoundSetData } from "../web/src/data/rounds/index.ts";
-import { href, needs, NO_MODS, parse, safeSrc, setRoundKeys, type RoundMods, type RoundsRoute } from "../web/src/routes.ts";
+import { href, needs, NO_MODS, parse, PG_MAX, safeSrc, setRoundKeys, type ParagonRoute, type RoundMods, type RoundsRoute } from "../web/src/routes.ts";
 import {
   applyFlags,
   bloonLabel,
@@ -64,8 +64,11 @@ describe("rounds route: URL ⇄ route", () => {
   it("the first version's notable=1 becomes the boss-set filter", () => {
     assert.deepEqual((parse(U("/tools/rounds?set=vortex&notable=1")) as RoundsRoute).has, ["changed"]);
   });
-  it("/tools is the visualizer too", () => {
-    assert.deepEqual(parse(U("/tools")), route());
+  it("bare /tools is the hub; /tools with round params is still the visualizer", () => {
+    assert.deepEqual(parse(U("/tools")), { name: "tools" });
+    assert.equal(parse(U("/tools?set=vortex")).name, "rounds");
+    assert.equal(parse(U("/tools?utm=x")).name, "tools");
+    assert.deepEqual(parse(U("/tools/rounds")), route());
     assert.equal(parse(U("/tools/other")).name, "notfound");
   });
   it("ignores malformed values", () => {
@@ -84,7 +87,7 @@ describe("rounds route: URL ⇄ route", () => {
   it("needs() is the set's static file (once the browser registers the resolver)", () => {
     setRoundKeys(roundSetKeys);
     try {
-      assert.deepEqual(needs(parse(U("/tools"))), [ROUND_SET_BY_ID.default!.url]);
+      assert.deepEqual(needs(parse(U("/tools/rounds"))), [ROUND_SET_BY_ID.default!.url]);
       assert.deepEqual(needs(parse(U("/tools/rounds?set=vortex"))), [ROUND_SET_BY_ID.vortex!.url]);
       assert.deepEqual(needs(parse(U("/tools/rounds?mode=AlternateBloonsRounds"))), [ROUND_SET_BY_ID.alternate!.url]);
       assert.deepEqual(needs(parse(U("/tools/rounds?set=nope"))), []);
@@ -299,5 +302,34 @@ describe("rounds: bloonVariant sprite sheet covers the variants", () => {
         if (f !== "0" && icon !== t.icons["0"]) assert.ok(keys.has(`${k}:${f}`), `${k}:${f}`);
       }
     }
+  });
+});
+
+describe("tools hub and paragon calculator routes", () => {
+  it("/tools/paragon: defaults, short keys, clamping, ignored junk", () => {
+    const d = parse(U("/tools/paragon")) as ParagonRoute;
+    assert.equal(d.name, "paragon");
+    assert.equal(d.picked, false);
+    assert.equal(d.diff, "medium");
+    assert.equal(d.cash + d.pops + d.totems, 0);
+    const r = parse(U("/tools/paragon?p=dart&d=i&co=1&c=85000000&to=3&tg=60&adv=1&x=abc&po=-5&t=99999999")) as ParagonRoute;
+    assert.deepEqual([r.tower, r.diff, r.coop, r.cash, r.totems, r.target, r.adv, r.picked], ["DartMonkey", "impoppable", true, 85_000_000, 3, 60, true, true]);
+    assert.equal(r.extraT5, 0);
+    assert.equal(r.pops, 0);
+    assert.equal(r.tiers, PG_MAX.tiers);
+    assert.equal((parse(U("/tools/paragon?tg=1")) as ParagonRoute).target, undefined);
+    assert.equal((parse(U("/tools/paragon?p=nope&d=z")) as ParagonRoute).picked, false);
+    assert.equal(parse(U("/tools/paragon/x")).name, "notfound");
+  });
+  it("href.paragon leaves defaults out and round-trips", () => {
+    assert.equal(href.paragon(), "/tools/paragon");
+    assert.equal(href.tools(), "/tools");
+    const r = parse(U("/tools/paragon?p=ninja&d=h&c=1200000&to=2&tg=40")) as ParagonRoute;
+    assert.equal(href.paragon(r), "/tools/paragon?p=ninja&d=h&c=1200000&to=2&tg=40");
+    assert.equal(href.paragon({ diff: "medium" }, true), "/tools/paragon?p=dart&d=m");
+  });
+  it("needs no data", () => {
+    assert.deepEqual(needs(parse(U("/tools"))), []);
+    assert.deepEqual(needs(parse(U("/tools/paragon?p=ice"))), []);
   });
 });

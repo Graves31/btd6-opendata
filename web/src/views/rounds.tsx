@@ -204,9 +204,13 @@ export function RoundsPage(props: { r: RoundsRoute }) {
 
   return (
     <div class="rv">
-      {src && back && (
+      {src && back ? (
         <A href={src} class="backlink rv-back">
           <span aria-hidden="true">‹</span> {back}
+        </A>
+      ) : (
+        <A href={href.tools()} class="backlink rv-back">
+          <span aria-hidden="true">‹</span> Tools
         </A>
       )}
       {pick.kind === "set" ? (

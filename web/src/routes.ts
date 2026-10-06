@@ -1,6 +1,8 @@
 // URL ⇄ Route, and the data keys each route needs. `needs()` is what makes generic prefetching possible:
 // any link can compute exactly which keys its target page will read, before the user clicks it.
 
+import { PARAGON_TOWERS, type Difficulty, type ParagonTower } from "./paragon.ts";
+
 export type EventKind = "boss" | "race" | "ct" | "odyssey";
 export type BossDiff = "standard" | "elite";
 export type OdyDiff = "easy" | "medium" | "hard";
@@ -21,6 +23,8 @@ export type Route =
   | { name: "challenge"; id: string }
   | { name: "challenges"; filter: ChallengeFilter; p: number }
   | RoundsRoute
+  | { name: "tools" }
+  | ParagonRoute
   | { name: "stats" }
   | { name: "notfound" };
 
@@ -99,6 +103,52 @@ export interface RoundsRoute {
   /** site path of the page that linked here (back link); only a path that parses to a known page */
   src?: string;
 }
+
+/**
+ * Tools → Paragon degree calculator (/tools/paragon). The URL is the whole state (short keys, defaults left out):
+ * p tower slug, d e/m/h/i, co=1, c cash, s slider, po pops, in income, t tiers, x extra tier 5s, to totems,
+ * tg target degree, adv=1 advanced fold open. Invalid values are ignored, too-large ones clamped.
+ */
+export interface ParagonRoute {
+  name: "paragon";
+  tower: ParagonTower;
+  diff: Difficulty;
+  coop: boolean;
+  cash: number;
+  slider: number;
+  pops: number;
+  income: number;
+  tiers: number;
+  extraT5: number;
+  totems: number;
+  /** target degree 2..100; absent = the next boss breakpoint */
+  target?: number;
+  adv: boolean;
+  /** the URL named a tower or difficulty (else the page may preselect the last one used) */
+  picked: boolean;
+}
+
+/** Short URL slug of each paragon's tower (the full id is accepted too). */
+export const PARAGON_SLUG: Record<ParagonTower, string> = {
+  BombShooter: "bomb",
+  BoomerangMonkey: "boomerang",
+  DartMonkey: "dart",
+  Druid: "druid",
+  EngineerMonkey: "engineer",
+  IceMonkey: "ice",
+  MonkeyAce: "ace",
+  MonkeyBuccaneer: "buccaneer",
+  MonkeySub: "sub",
+  NinjaMonkey: "ninja",
+  SpikeFactory: "spike",
+  TackShooter: "tack",
+  WizardMonkey: "wizard",
+};
+const DIFF_KEY: Record<Difficulty, string> = { easy: "e", medium: "m", hard: "h", impoppable: "i" };
+export const PG_DIFFS = ["easy", "medium", "hard", "impoppable"] as const;
+/** Largest value each paragon input takes (the page clamps to these). */
+export const PG_MAX = { cash: 10_000_000_000, slider: 10_000_000_000, pops: 1_000_000_000, income: 10_000_000_000, tiers: 1000, extraT5: 100, totems: 1000 };
+export const PG_DEFAULT: { tower: ParagonTower; diff: Difficulty } = { tower: "DartMonkey", diff: "medium" };
 
 export const LIST_KEY: Record<EventKind, string> = {
   boss: "/btd6/bosses",
@@ -191,6 +241,9 @@ export function needs(r: Route): string[] {
       return [challengeListKey(r.filter, r.p)];
     case "rounds":
       return roundKeys(r);
+    case "tools":
+    case "paragon":
+      return []; // static pages: no NK data
     case "stats":
     case "notfound":
       return []; // /stats fetches its own data (hidden page, reached only by URL)
@@ -242,13 +295,18 @@ export function parse(url: URL): Route {
   if (a === "team" && b) return { name: "team", id: b };
   if (a === "challenge" && b) return { name: "challenge", id: b };
   if (a === "stats" && !b) return { name: "stats" };
-  if (a === "tools" && (!b || (b === "rounds" && !c))) return parseRounds(q);
+  if (a === "tools" && !b) return ROUNDS_PARAMS.some((k) => q.has(k)) ? parseRounds(q) : { name: "tools" }; // old shared /tools?… links
+  if (a === "tools" && b === "rounds" && !c) return parseRounds(q);
+  if (a === "tools" && b === "paragon" && !c) return parseParagon(q);
   if (a === "challenges" && !c && (!b || ["daily", "newest", "trending"].includes(b))) {
     const filter = (b ?? "daily") as ChallengeFilter;
     return { name: "challenges", filter, p: filter === "daily" ? 1 : int(q.get("p"), 1, 1, 50) };
   }
   return { name: "notfound" };
 }
+
+/** Query keys that make a bare /tools the round visualizer (the page it was before the hub existed). */
+const ROUNDS_PARAMS = ["set", "from", "to", "r", "ev", "mode", "camo", "regrow", "fort", ...MOD_MULTS, "base", "has", "bloon", "view", "src", "notable"];
 
 const ROUND_NO = (v: string | null) => (v !== null && /^\d{1,4}$/.test(v) ? Math.max(1, Number(v)) : undefined);
 const mult = (v: string | null) => {
@@ -268,6 +326,37 @@ export function safeSrc(v: string | null | undefined): string | undefined {
   if (u.origin !== "https://x.invalid") return undefined;
   const r = parse(u);
   return r.name === "notfound" || r.name === "rounds" ? undefined : u.pathname + u.search;
+}
+
+/** A non-negative integer; unparsable → def, above max → max. */
+const clampInt = (v: string | null, max: number) => {
+  const n = v === null || v.trim() === "" ? NaN : Number(v);
+  return Number.isFinite(n) && n >= 0 ? Math.min(max, Math.floor(n)) : 0;
+};
+
+function parseParagon(q: URLSearchParams): ParagonRoute {
+  const p = (q.get("p") ?? "").toLowerCase();
+  const tower = PARAGON_TOWERS.find((t) => PARAGON_SLUG[t] === p || t.toLowerCase() === p);
+  const dk = q.get("d");
+  const diff = PG_DIFFS.find((x) => DIFF_KEY[x] === dk);
+  const tg = Number(q.get("tg"));
+  const r: ParagonRoute = {
+    name: "paragon",
+    tower: tower ?? PG_DEFAULT.tower,
+    diff: diff ?? PG_DEFAULT.diff,
+    coop: q.get("co") === "1",
+    cash: clampInt(q.get("c"), PG_MAX.cash),
+    slider: clampInt(q.get("s"), PG_MAX.slider),
+    pops: clampInt(q.get("po"), PG_MAX.pops),
+    income: clampInt(q.get("in"), PG_MAX.income),
+    tiers: clampInt(q.get("t"), PG_MAX.tiers),
+    extraT5: clampInt(q.get("x"), PG_MAX.extraT5),
+    totems: clampInt(q.get("to"), PG_MAX.totems),
+    adv: q.get("adv") === "1",
+    picked: !!tower || !!diff,
+  };
+  if (Number.isInteger(tg) && tg >= 2 && tg <= 100) r.target = tg;
+  return r;
 }
 
 function parseRounds(q: URLSearchParams): RoundsRoute {
@@ -343,6 +432,23 @@ export const href = {
     o.src = p.src;
     return `/tools/rounds${qs(o).replace(/%2C/g, ",")}`;
   },
+  tools: () => "/tools",
+  /** The paragon calculator; only non-default values are written (`pin`: tower and difficulty always, so a link keeps them). */
+  paragon: (s: Partial<Omit<ParagonRoute, "name" | "picked">> = {}, pin = false) =>
+    `/tools/paragon${qs({
+      p: pin || (s.tower && s.tower !== PG_DEFAULT.tower) ? PARAGON_SLUG[s.tower ?? PG_DEFAULT.tower] : undefined,
+      d: pin || (s.diff && s.diff !== PG_DEFAULT.diff) ? DIFF_KEY[s.diff ?? PG_DEFAULT.diff] : undefined,
+      co: s.coop ? 1 : undefined,
+      c: s.cash || undefined,
+      s: s.slider || undefined,
+      po: s.pops || undefined,
+      in: s.income || undefined,
+      t: s.tiers || undefined,
+      x: s.extraT5 || undefined,
+      to: s.totems || undefined,
+      tg: s.target,
+      adv: s.adv ? 1 : undefined,
+    })}`,
 };
 
 /** Last path segment of an NK URL (profile, creator, owner, guild links). */

@@ -90,6 +90,9 @@ const LISTS: Record<string, [string, string]> = {
 
 const TOOLS: [string, string] = ["Round visualizer · Tools", "Bloons TD 6 round sets from the game's own data: the bloons, RBE and spawn timeline of every round."];
 
+const TOOLS_HUB: [string, string] = ["Tools", "Bloons TD 6 tools built on the game's own data: the round visualizer and the paragon degree calculator."];
+const PARAGON: [string, string] = ["Paragon degree calculator · Tools", "Bloons TD 6 paragon degree calculator: how much sacrificed cash, pops, towers and totems a degree takes, and the quickest way to the next boss breakpoint."];
+
 /** Route-specific tags from cached data only; null/GENERIC when nothing usable is cached. */
 export async function describe(deps: Deps, pathname: string): Promise<PageMeta> {
   let seg: string[];
@@ -101,8 +104,10 @@ export async function describe(deps: Deps, pathname: string): Promise<PageMeta> 
   const [a, b, c, d] = seg;
   if (!a) return GENERIC;
   if (seg.length === 1 && LISTS[a]) return page(...LISTS[a]);
-  // Tools (/tools, /tools/rounds): static pages, no lookup.
-  if (a === "tools" && (!b || (b === "rounds" && !c))) return page(...TOOLS);
+  // Tools (/tools, /tools/rounds, /tools/paragon): static pages, no lookup.
+  if (a === "tools" && b === "rounds" && !c) return page(...TOOLS);
+  if (a === "tools" && b === "paragon" && !c) return page(...PARAGON);
+  if (a === "tools" && !b) return page(...TOOLS_HUB); // old /tools?set=… links are the visualizer, but the hub text is true of both
   if (!b) return GENERIC;
 
   if ((a === "boss" || a === "race" || a === "ct" || a === "odyssey") && EVENT_ID.test(b)) {
