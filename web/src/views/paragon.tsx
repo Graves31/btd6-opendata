@@ -243,6 +243,9 @@ function Picker(props: { s: ParagonRoute; go: (p: Patch) => void }) {
         {PICK_ORDER.map((t) => (
           <button key={t} type="button" class="pg-tile" aria-pressed={t === s.tower} aria-label={paragonName(t)} title={paragonName(t)} onClick={() => go({ tower: t })}>
             {paragonIcon(t, 48)}
+            <span class="pg-tile-mk" aria-hidden="true">
+              <Spr family="tower" k={t} size={26} />
+            </span>
           </button>
         ))}
       </div>
@@ -349,10 +352,10 @@ function TargetSection(p: { s: ParagonRoute; input: ParagonInput; res: ParagonRe
           <button type="button" class="pg-step" aria-label="Lower target degree" disabled={target <= 2} onClick={() => step(target - 1)}>
             −
           </button>
-          <span class="pg-tval" aria-live="polite">
+          <label class="pg-tval">
             <span class="pg-tk">Degree</span>
-            <b>{target}</b>
-          </span>
+            <TargetInput value={target} onChange={step} />
+          </label>
           <button type="button" class="pg-step" aria-label="Higher target degree" disabled={target >= 100} onClick={() => step(target + 1)}>
             +
           </button>
@@ -360,6 +363,42 @@ function TargetSection(p: { s: ParagonRoute; input: ParagonInput; res: ParagonRe
         <div class="pg-ans">{answer}</div>
       </div>
     </Section>
+  );
+}
+
+/** The target degree, typed directly (2–100); arrows step it, Enter or leaving the field applies it. */
+function TargetInput(p: { value: number; onChange: (n: number) => void }) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const commit = (text: string) => {
+    setDraft(null);
+    const n = parseInt(text, 10);
+    if (Number.isFinite(n) && n !== p.value) p.onChange(n);
+  };
+  return (
+    <input
+      class="pg-tin"
+      type="text"
+      inputMode="numeric"
+      enterKeyHint="done"
+      autocomplete="off"
+      maxLength={3}
+      aria-label="Target degree"
+      value={draft ?? String(p.value)}
+      onFocus={(e) => {
+        const el = e.currentTarget;
+        setTimeout(() => el.select(), 0);
+      }}
+      onInput={(e) => setDraft(e.currentTarget.value.replace(/\D/g, ""))}
+      onBlur={(e) => commit(e.currentTarget.value)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") e.currentTarget.blur();
+        else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+          e.preventDefault();
+          setDraft(null);
+          p.onChange(p.value + (e.key === "ArrowUp" ? 1 : -1));
+        }
+      }}
+    />
   );
 }
 
