@@ -99,3 +99,5 @@ Commits: Conventional Commits, no AI / Co-Authored-By trailer. One logical chang
   Python/JS edit scripts to the session scratchpad instead of inline heredocs with quotes/regexes.
 - Leftover `wrangler dev` / `workerd` on 8787/8788 break the e2e: find by command line and stop them.
 - Puppeteer: use `waitUntil: "load"` + a short wait (the app keeps connections open; `networkidle0` can hang).
+- The first live e2e right after a deploy can see the previous build (service-worker shell): rerun once before
+  digging. Offline e2e "NOT INSTANT" on rounds steps = Silent power plan; switch to performance mode.
