@@ -19,6 +19,9 @@ describe("paragon maths", () => {
   it("cost medium equals the data", () => {
     for (const t of PARAGON_TOWERS) assert.equal(paragonCost(t, "medium"), json.paragons[t].cost);
   });
+  it("Impoppable price matches the game (checked in game, v56.3: Apex Plasma Master $180,000)", () => {
+    assert.equal(paragonCost("DartMonkey", "impoppable"), 180_000);
+  });
   it("degree from exact threshold powers", () => {
     for (const d of [1, 2, 10, 50, 100]) {
       const r = evaluate({ ...zero, totems: totemsFor(reqs[d - 1]) });
