@@ -262,7 +262,7 @@ function App() {
         <Page r={r} />
       </main>
       <footer>
-        <span>Unofficial fan site. Data and images from the Ninja Kiwi Open Data API. Game art © Ninja Kiwi. Times are in your time zone.</span>
+        <span>Unofficial fan site, not affiliated with Ninja Kiwi. Data and images from the Ninja Kiwi Open Data API. Game art © Ninja Kiwi. Times are in your time zone.</span>
       </footer>
     </>
   );
