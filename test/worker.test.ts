@@ -1369,6 +1369,20 @@ describe("notifications (new boss / race → Discord)", () => {
     assert.equal(e.thumbnail.url, item.bossTypeURL);
   });
 
+  it("new race with its ruleset cached → map, rules and map picture in the embed", async () => {
+    const { t, discord, list } = await setup();
+    const meta = fixture("btd6__races__Party_Madness_muekt6x6__metadata.json") as unknown as { body: Record<string, any> };
+    t.origin.override.set(`/btd6/races/${NEW_RACE}/metadata`, JSON.stringify(meta));
+    await list();
+    const e = discord.posts[0].body.embeds[0];
+    const m = meta.body;
+    assert.ok(e.description.includes(String(m.difficulty)), e.description);
+    const rules = e.fields.find((f: { name: string }) => f.name === "Rules").value;
+    assert.ok(rules.includes(`Rounds ${m.startRound}–${m.endRound}`), rules);
+    assert.ok(rules.includes(`${m.lives} lives`), rules);
+    assert.equal(e.thumbnail.url, m.mapURL);
+  });
+
   it("an id already stored in events → nothing", async () => {
     const { t, discord, list, rows } = await setup();
     addEvent(t, "race", NEW_RACE, t.clock.now, t.clock.now + DAY);
