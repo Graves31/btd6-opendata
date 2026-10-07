@@ -5,18 +5,15 @@
 
 import type { ComponentChildren } from "preact";
 import { useEffect, useMemo, useState } from "preact/hooks";
-import data from "../data/paragons.json" with { type: "json" };
 import { ART } from "../art/index.ts";
 import { fmtInt, unitName } from "../format.ts";
 import { navigate } from "../nav.ts";
-import { evaluate, GAME_VERSION, inputMax, paragonCost, PARAGON_TOWERS, powerForDegree, REF, scaling, waysTo, type Bucket, type Difficulty, type ParagonInput, type ParagonResult, type ParagonTower, type Way } from "../paragon.ts";
+import { degreeData, evaluate, gameVersion, inputMax, paragonCost, paragonName, paragonTowers, powerForDegree, REF, scaling, waysTo, type Bucket, type Difficulty, type GameVer, type ParagonInput, type ParagonResult, type ParagonTower, type Way } from "../paragon.ts";
 import { href, PG_DIFFS, type ParagonRoute } from "../routes.ts";
 import { TOWER_GROUPS } from "../rules.tsx";
 import { Spr } from "../sprite.tsx";
 import { A, Stat } from "../ui.tsx";
 
-const D = data.degreeData;
-const REQS = D.powerDegreeRequirements;
 const DIFF_NAME: Record<Difficulty, string> = { easy: "Easy", medium: "Medium", hard: "Hard", impoppable: "Impoppable" };
 const BUCKET_NAME: Record<string, string> = {
   cash: "Sacrificed cash",
@@ -31,15 +28,15 @@ export function paragonIcon(tower: ParagonTower, size = 64) {
   return <Spr family="paragon" k={tower} size={size} label />;
 }
 
-const paragonName = (t: ParagonTower) => data.paragons[t].name;
-/** Picker runs = the game's shop categories in shop order; a paragon of an unknown tower goes last, in sprite-sheet order. */
-const PICK_RUNS: [string, ParagonTower[]][] = (() => {
-  const isParagon = (t: string): t is ParagonTower => (PARAGON_TOWERS as string[]).includes(t);
+/** Picker runs of a version = the game's shop categories in shop order; a paragon of an unknown tower goes last, in sprite-sheet order. */
+const pickRuns = (ver: GameVer): [string, ParagonTower[]][] => {
+  const all = paragonTowers(ver);
+  const isParagon = (t: string): t is ParagonTower => (all as string[]).includes(t);
   const known = TOWER_GROUPS.map(([cat, ids]): [string, ParagonTower[]] => [cat, ids.filter(isParagon)]);
   const placed = new Set<string>(known.flatMap(([, t]) => t));
-  const rest = PARAGON_TOWERS.filter((t) => !placed.has(t)).sort((a, b) => (ART.tower?.keys[a] ?? 99) - (ART.tower?.keys[b] ?? 99));
+  const rest = all.filter((t) => !placed.has(t)).sort((a, b) => (ART.tower?.keys[a] ?? 99) - (ART.tower?.keys[b] ?? 99));
   return [...known, ["Other", rest] as [string, ParagonTower[]]].filter(([, t]) => t.length > 0);
-})();
+};
 /** Short tower names on the picker tiles (wide screens). */
 const SHORT: Record<string, string> = {
   DartMonkey: "Dart",
@@ -48,6 +45,7 @@ const SHORT: Record<string, string> = {
   TackShooter: "Tack",
   IceMonkey: "Ice",
   MonkeySub: "Sub",
+  SniperMonkey: "Sniper",
   MonkeyBuccaneer: "Buccaneer",
   MonkeyAce: "Ace",
   WizardMonkey: "Wizard",
@@ -60,10 +58,10 @@ const SHORT: Record<string, string> = {
 // ─────────────────────────────── helpers
 
 const LAST_KEY = "pg-last";
-function lastUsed(): { tower: ParagonTower; diff: Difficulty } | undefined {
+function lastUsed(ver: GameVer): { tower: ParagonTower; diff: Difficulty } | undefined {
   try {
     const v = JSON.parse(localStorage.getItem(LAST_KEY) ?? "null");
-    const tower = PARAGON_TOWERS.find((t) => t === v?.tower);
+    const tower = paragonTowers(ver).find((t) => t === v?.tower);
     const diff = PG_DIFFS.find((d) => d === v?.diff);
     return tower && diff ? { tower, diff } : undefined;
   } catch {
@@ -190,17 +188,17 @@ const IN_KEYS: InKey[] = ["cash", "slider", "pops", "income", "tiers", "extraT5"
 type Max = Record<InKey, number>;
 
 export function ParagonPage(props: { r: ParagonRoute }) {
-  const last = useMemo(lastUsed, []);
   const r = props.r;
+  const last = useMemo(() => lastUsed(r.ver), [r.ver]);
   const picked: ParagonRoute = !r.picked && last ? { ...r, tower: last.tower, diff: last.diff } : r;
   useEffect(() => remember(picked.tower, picked.diff), [picked.tower, picked.diff]);
   // The URL accepts generous values; each input stops where its source fills (per paragon and difficulty).
-  const max = inputMax(picked.tower, picked.diff);
+  const max = inputMax(picked.tower, picked.diff, picked.ver);
   const s: ParagonRoute = { ...picked };
   for (const k of IN_KEYS) s[k] = Math.min(max[k], s[k]);
 
   const go = (patch: Patch) => navigate(href.paragon({ ...s, ...patch }, true), { replace: true, keepScroll: true });
-  const input: ParagonInput = { tower: s.tower, diff: s.diff, coop: s.coop, cash: s.cash, slider: s.slider, pops: s.pops, income: s.income, tiers: s.tiers, extraT5: s.extraT5, totems: s.totems, boost: s.boost };
+  const input: ParagonInput = { tower: s.tower, diff: s.diff, ver: s.ver, coop: s.coop, cash: s.cash, slider: s.slider, pops: s.pops, income: s.income, tiers: s.tiers, extraT5: s.extraT5, totems: s.totems, boost: s.boost };
   const res = evaluate(input);
   const defTarget = res.breakpoint?.degree ?? res.next?.degree ?? 100;
   const target = s.target ?? defTarget;
@@ -245,28 +243,40 @@ export function ParagonPage(props: { r: ParagonRoute }) {
           <InputsPanel s={s} res={res} max={max} go={go} />
         </div>
         <aside class="pg-side" id="pg-result" aria-label="Result">
-          <ResultCard res={res} boost={s.boost} copied={copied} copy={copy} />
+          <ResultCard res={res} ver={s.ver} boost={s.boost} copied={copied} copy={copy} />
         </aside>
       </div>
 
-      <ScalingFold degree={res.degree} />
+      <ScalingFold degree={res.degree} ver={s.ver} />
       <MethodFold s={s} max={max} />
-      <p class="pg-foot">Data from game v{GAME_VERSION} · unofficial</p>
+      <p class="pg-foot">Data from game v{gameVersion(s.ver)} · unofficial</p>
     </div>
   );
 }
 
 // ─────────────────────────────── picker, difficulty, co-op, boost
 
+const VERS: [GameVer, string][] = [
+  ["57", "v57"],
+  ["56", "v56.3"],
+];
+
+/** The version's power caps, from its data ("upgrade tiers give no power" when that cap is 0). */
+function verHint(ver: GameVer): string {
+  const d = degreeData(ver);
+  const tiers = d.maxPowerFromNonTier5Count ? `upgrade tiers ${fmtInt(d.maxPowerFromNonTier5Count)}` : "upgrade tiers none";
+  return `${ver === "56" ? "Before the paragon rework. " : ""}Power caps: cash ${fmtInt(d.maxPowerFromMoneySpent)}, pops ${fmtInt(d.maxPowerFromPops)}, ${tiers}`;
+}
+
 function Picker(props: { s: ParagonRoute; go: (p: Patch) => void }) {
   const { s, go } = props;
   return (
     <section class="pg-pick" aria-label="Paragon">
       <div class="pg-picker">
-        {PICK_RUNS.map(([cat, towers]) => (
+        {pickRuns(s.ver).map(([cat, towers]) => (
           <div key={cat} class="pg-run" role="group" aria-label={cat}>
             {towers.map((t) => (
-              <button key={t} type="button" class={`pg-tile c-${cat}`} data-k={t} aria-pressed={t === s.tower} aria-label={`${paragonName(t)} (${unitName(t)})`} title={paragonName(t)} onClick={() => go({ tower: t })}>
+              <button key={t} type="button" class={`pg-tile c-${cat}`} data-k={t} aria-pressed={t === s.tower} aria-label={`${paragonName(t, s.ver)} (${unitName(t)})`} title={paragonName(t, s.ver)} onClick={() => go({ tower: t })}>
                 <span class="pg-tile-art">{paragonIcon(t, 72)}</span>
                 <span class="pg-tile-ft" aria-hidden="true">
                   <Spr family="tower" k={t} size={24} label />
@@ -278,13 +288,13 @@ function Picker(props: { s: ParagonRoute; go: (p: Patch) => void }) {
         ))}
       </div>
       <p class="pg-picked">
-        <strong>{paragonName(s.tower)}</strong>
+        <strong>{paragonName(s.tower, s.ver)}</strong>
         <span class="pg-picked-t">
           <Spr family="tower" k={s.tower} size={28} label />
           {unitName(s.tower)}
         </span>
         <span>
-          · ${fmtInt(paragonCost(s.tower, s.diff))} on {DIFF_NAME[s.diff]}
+          · ${fmtInt(paragonCost(s.tower, s.diff, s.ver))} on {DIFF_NAME[s.diff]}
         </span>
       </p>
       <div class="pg-opts">
@@ -294,6 +304,16 @@ function Picker(props: { s: ParagonRoute; go: (p: Patch) => void }) {
               {DIFF_NAME[d]}
             </button>
           ))}
+        </div>
+        <div class="pg-tog">
+          <div class="rv-chips" role="group" aria-label="Game version">
+            {VERS.map(([v, label]) => (
+              <button key={v} type="button" class={`rv-chip${v === s.ver ? " on" : ""}`} aria-pressed={v === s.ver} onClick={() => go({ ver: v })}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <span class="pg-hint">{verHint(s.ver)}</span>
         </div>
         <div class="pg-tog">
           <button type="button" class={`rv-chip${s.coop ? " on" : ""}`} aria-pressed={s.coop} onClick={() => go({ coop: !s.coop })}>
@@ -322,7 +342,7 @@ function Picker(props: { s: ParagonRoute; go: (p: Patch) => void }) {
 function TargetPanel(p: { s: ParagonRoute; input: ParagonInput; res: ParagonResult; target: number; go: (p: Patch) => void }) {
   const { res, target, go } = p;
   const explicit = p.s.target !== undefined;
-  const need = powerForDegree(target, p.s.boost);
+  const need = powerForDegree(target, p.s.boost, p.s.ver);
   const ways = res.degree < 100 && target > res.degree ? waysTo(p.input, need, p.s.noTotems) : [];
   const [best, ...others] = ways;
   const step = (n: number) => go({ target: Math.min(100, Math.max(2, n)) });
@@ -427,14 +447,15 @@ function InputsPanel(p: { s: ParagonRoute; res: ParagonResult; max: Max; go: (p:
       </div>
     );
   };
-  const empty = IN_KEYS.every((k) => s[k] === 0);
+  const keys = degreeData(s.ver).maxPowerFromNonTier5Count ? IN_KEYS : IN_KEYS.filter((k) => k !== "tiers"); // v57: tiers give no power
+  const empty = keys.every((k) => s[k] === 0);
   return (
     <section class="pg-panel pg-in" aria-label="Your inputs">
       <div class="pg-ph">
         <p class="eyebrow">Your inputs</p>
         <span class="pg-ph-a">
           <span class="pg-hint">type 85m · 1.2b · 40k</span>
-          <button type="button" class="pg-copy" disabled={empty} onClick={() => go(Object.fromEntries(IN_KEYS.map((k) => [k, 0])))}>
+          <button type="button" class="pg-copy" disabled={empty} onClick={() => go(Object.fromEntries(keys.map((k) => [k, 0])))}>
             Reset all
           </button>
         </span>
@@ -443,7 +464,7 @@ function InputsPanel(p: { s: ParagonRoute; res: ParagonResult; max: Max; go: (p:
         "cash",
         <>
           {field("cash", "pg-cash", "Sacrificed cash", "paid for same-type towers below tier 5", 10_000, true)}
-          {field("slider", "pg-slider", "Cash slider", `paid on top of the price · up to ${pct(max.slider, paragonCost(s.tower, s.diff))}%`, 10_000, true)}
+          {field("slider", "pg-slider", "Cash slider", `paid on top of the price · up to ${pct(max.slider, paragonCost(s.tower, s.diff, s.ver))}%`, 10_000, true)}
         </>,
       )}
       {block(
@@ -453,7 +474,7 @@ function InputsPanel(p: { s: ParagonRoute; res: ParagonResult; max: Max; go: (p:
           {field("income", "pg-income", "Income", "income counters, e.g. merchantmen", 100_000, true)}
         </>,
       )}
-      {block("tiers", field("tiers", "pg-tiers", "Upgrade tiers", "towers below tier 5 · a 2-0-3 counts 5", 1))}
+      {res.buckets.find((x) => x.key === "tiers")!.cap !== 0 && block("tiers", field("tiers", "pg-tiers", "Upgrade tiers", "towers below tier 5 · a 2-0-3 counts 5", 1))}
       {block("t5", field("extraT5", "pg-t5", "Extra tier 5s", "beyond the three needed · co-op +3 per teammate", 1))}
       {block("totems", field("totems", "pg-totems", "Power totems", "yours and teammates' · no cap", 1))}
     </section>
@@ -498,10 +519,10 @@ function TargetInput(p: { value: number; onChange: (n: number) => void }) {
 
 // ─────────────────────────────── result
 
-function ResultCard(p: { res: ParagonResult; boost: boolean; copied: boolean; copy: () => void }) {
+function ResultCard(p: { res: ParagonResult; ver: GameVer; boost: boolean; copied: boolean; copy: () => void }) {
   const { res } = p;
   const bp = res.breakpoint;
-  const at = bp ? scaling(bp.degree) : undefined;
+  const at = bp ? scaling(bp.degree, p.ver) : undefined;
   return (
     <div class="pg-res">
       <div class="pg-res-h">
@@ -528,7 +549,7 @@ function ResultCard(p: { res: ParagonResult; boost: boolean; copied: boolean; co
         </p>
       )}
       <ul class="pg-buckets">
-        {res.buckets.map((b) => {
+        {res.buckets.filter((b) => b.cap !== 0).map((b) => {
           const pct = b.cap ? Math.min(100, (b.power / b.cap) * 100) : 0;
           return (
             <li key={b.key} class={b.full ? "pg-b full" : "pg-b"}>
@@ -553,7 +574,7 @@ function ResultCard(p: { res: ParagonResult; boost: boolean; copied: boolean; co
 
 // ─────────────────────────────── folds
 
-function ScalingFold(p: { degree: number }) {
+function ScalingFold(p: { degree: number; ver: GameVer }) {
   const set = new Set<number>([20, 40, 60, 80, 100]);
   for (let d = p.degree - 3; d <= p.degree + 3; d++) if (d >= 1 && d <= 100) set.add(d);
   const rows = [...set].sort((a, b) => a - b);
@@ -580,7 +601,7 @@ function ScalingFold(p: { degree: number }) {
         </thead>
         <tbody>
           {rows.map((d) => {
-            const x = scaling(d);
+            const x = scaling(d, p.ver);
             return (
               <tr key={d} class={d === p.degree ? "on" : undefined} aria-current={d === p.degree ? "true" : undefined}>
                 <th scope="row">{d}</th>
@@ -605,7 +626,9 @@ function ScalingFold(p: { degree: number }) {
 
 function MethodFold(p: { s: ParagonRoute; max: Max }) {
   const { s, max } = p;
-  const cost = paragonCost(s.tower, s.diff);
+  const D = degreeData(s.ver);
+  const REQS = D.powerDegreeRequirements;
+  const cost = paragonCost(s.tower, s.diff, s.ver);
   const unit = cost / D.moneySpentOverX;
   const pen = +(D.paidContributionPenalty * 100).toFixed(1);
   return (
@@ -624,9 +647,11 @@ function MethodFold(p: { s: ParagonRoute; max: Max }) {
         <li>
           <b>Pops:</b> damage dealt by all absorbed towers, tier 5s included (their damage counters): 1 power per {fmtInt(D.popsOverX)}. <b>Income</b> (cash generated, the income counters) counts ×{D.cashEarnedContributionModifier} as pops: ${+(D.popsOverX / D.cashEarnedContributionModifier).toFixed(2)} = 1 power. Both share one cap of {fmtInt(D.maxPowerFromPops)} power ({fmtInt(max.pops)} pops).
         </li>
-        <li>
-          <b>Upgrade tiers</b> of the absorbed towers below tier 5: {fmtInt(D.nonTier5TowersMultByX)} power each; fills at {fmtInt(max.tiers)} tiers ({fmtInt(D.maxPowerFromNonTier5Count)} power).
-        </li>
+        {D.maxPowerFromNonTier5Count > 0 && (
+          <li>
+            <b>Upgrade tiers</b> of the absorbed towers below tier 5: {fmtInt(D.nonTier5TowersMultByX)} power each; fills at {fmtInt(max.tiers)} tiers ({fmtInt(D.maxPowerFromNonTier5Count)} power).
+          </li>
+        )}
         <li>
           <b>Extra tier 5s</b> beyond the three lowest-investment ones the paragon is built from: {fmtInt(D.tier5TowersMultByX)} power each; fills at {fmtInt(max.extraT5)} ({fmtInt(D.maxPowerFromTier5Count)} power).
         </li>
@@ -637,7 +662,7 @@ function MethodFold(p: { s: ParagonRoute; max: Max }) {
           <b>Paragon Boost:</b> +{REF.boostDegrees} degrees on the game's first paragon, added after the power (degree 100 at most).
         </li>
         <li>
-          <b>Cost by difficulty:</b> {PG_DIFFS.map((d) => `${d[0].toUpperCase()}${d.slice(1)} $${fmtInt(paragonCost(s.tower, d))}`).join(" · ")}. The game's cost mods: Easy ×0.85, Hard ×1.08, Impoppable is Hard then ×1.111; rounded to ${REF.costRounding}.
+          <b>Cost by difficulty:</b> {PG_DIFFS.map((d) => `${d[0].toUpperCase()}${d.slice(1)} $${fmtInt(paragonCost(s.tower, d, s.ver))}`).join(" · ")}. The game's cost mods: Easy ×0.85, Hard ×1.08, Impoppable is Hard then ×1.111; rounded to ${REF.costRounding}.
         </li>
         <li>
           <b>Degree:</b> the highest degree whose power requirement you meet: degree 2 at {fmtInt(REQS[1])}, degree 100 at {fmtInt(REQS[99])}. Boss damage grows {+(D.bonusBossDamagePercent * 100).toFixed(0)}% every {D.bonusBossDamagePerDegrees} degrees; elites take double.
