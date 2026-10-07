@@ -6374,8 +6374,10 @@ h1.title.ti .ev-icon {
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
+/* Under the paragon limit, on a line of its own (like "See rounds" under the round set). */
 .pg-rlink {
-  display: inline-block;
+  display: block;
+  width: fit-content;
   margin-top: 2px;
   padding: 6px 0;
   color: var(--ink-2);
