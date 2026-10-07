@@ -1,0 +1,23 @@
+#!/bin/sh
+# Commit message rules (CLAUDE.md "Git"). Enabled per clone with: git config core.hooksPath .githooks
+msg=$(grep -v '^#' "$1" | sed '/^# -* >8 -*$/,$d')
+subject=$(printf '%s\n' "$msg" | head -n 1)
+case "$subject" in Merge\ *|Revert\ *|fixup!*|squash!*) exit 0 ;; esac
+
+fail() { echo "commit-msg: $1" >&2; echo "  see CLAUDE.md, section Git" >&2; exit 1; }
+
+types='feat|fix|perf|refactor|style|docs|test|build|chore|data'
+scopes='worker|nk|web|events|boss|race|ct|odyssey|challenges|people|rounds|tools|stats|art|data|e2e|deps|docs'
+printf '%s\n' "$subject" | grep -Eq "^($types)(\(($scopes)\))?!?: [^A-Z ].*[^.]\$" ||
+  fail "subject must be '<type>(<scope>): <summary>', lowercase, no period: $subject"
+[ "${#subject}" -le 72 ] || fail "subject is ${#subject} chars (max 72)"
+
+body=$(printf '%s\n' "$msg" | sed '1d')
+[ -z "$(printf '%s\n' "$body" | head -n 1)" ] || fail "leave a blank line after the subject"
+printf '%s\n' "$body" | grep -Eiq '^(co-authored-by|claude-session|signed-off-by):|generated with' &&
+  fail "no AI / co-author / generated-with lines"
+printf '%s\n' "$body" | grep -Eq '^[[:space:]]*([-*]|[0-9]+\.)[[:space:]]' && fail "no bullet lists in the body"
+printf '%s\n' "$body" | awk 'length > 100 { exit 1 }' || fail "body lines wrap at 100"
+n=$(printf '%s\n' "$body" | grep -v '^BREAKING CHANGE:' | grep -c '[^[:space:]]')
+[ "$n" -le 3 ] || fail "body is $n lines (max 3): say why and what changes on the site, no more"
+exit 0

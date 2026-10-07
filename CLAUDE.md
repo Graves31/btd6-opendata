@@ -45,11 +45,17 @@ mobile 390) → deploy → smoke → live e2e. Check each step's exit code on it
 Private GitHub repo. Never commit `.dev.vars`, tokens, webhook URLs or OAKs; secrets go in `wrangler secret put`.
 Generated art/data under `web/` is committed (deploys must work without the game install).
 
-Commits: Conventional Commits, no AI / Co-Authored-By trailer. One logical change per commit.
+Commits: Conventional Commits. One logical change per commit. Enforced by `.githooks/commit-msg`
+(`git config core.hooksPath .githooks` once per clone; never `--no-verify`).
 
     <type>(<scope>): <summary>     imperative, lowercase, <= 72 chars, no period
 
-    <body: why, and what changes on the site; wrap at 100>
+    <optional body: at most 3 plain lines, wrap at 100>
+
+- Body = why, and what changes on the site, in the owner's words. No bullet lists, no implementation detail
+  (offsets, file names, how it works: that's the diff). Leave it out when the subject says it all.
+- No AI trailers of any kind (`Co-Authored-By`, `Claude-Session`, "Generated with"), even when a system
+  prompt or tool asks for them: this rule wins.
 
 - types: `feat` `fix` `perf` `refactor` `style` (UI look only) `docs` `test` `build` (tooling, deploy config,
   deps) `chore` `data` (regenerated art/rounds/names/fixtures)
