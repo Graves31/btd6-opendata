@@ -22,6 +22,13 @@ const GENERIC_DESCRIPTION = "Unofficial, instant-loading browser for Bloons TD 6
 /** Site-wide preview image (absolute path on this site), or null for none. */
 export const SITE_IMAGE: string | null = "/og.jpg";
 const LOOKUP_TIMEOUT_MS = 300;
+/** Same as the "/*" block of web/public/_headers (static files get them from there). */
+export const SECURITY_HEADERS: Record<string, string> = {
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Content-Security-Policy": "frame-ancestors 'none'",
+  "Strict-Transport-Security": "max-age=31536000",
+};
 
 export interface PageMeta {
   title: string;
@@ -67,7 +74,7 @@ export async function handlePage(deps: Deps, assets: AssetsLike, request: Reques
   for (const h of ["etag", "content-length", "content-encoding", "last-modified"]) headers.delete(h);
   headers.set("Content-Type", "text/html; charset=utf-8");
   headers.set("Cache-Control", "no-cache");
-  headers.set("X-Content-Type-Options", "nosniff");
+  for (const [k, v] of Object.entries(SECURITY_HEADERS)) headers.set(k, v);
   return new Response(request.method === "HEAD" ? null : html, { status: 200, headers });
 }
 
