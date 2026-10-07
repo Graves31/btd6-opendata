@@ -5050,11 +5050,6 @@ button.fd-tile:hover {
     border-bottom: 2px solid var(--rule-2);
     border-radius: 0;
   }
-  /* in the race header, not a row of its own */
-  .ev-title-block .jump-rules {
-    margin: 10px 0 0;
-    align-self: flex-start;
-  }
   /* One control row: Standard / Elite and 1P–4P side by side. */
   .controls {
     gap: 8px;
@@ -6128,8 +6123,9 @@ a.bs-ev:hover {
   .bh-maprow {
     flex-wrap: wrap;
   }
-  /* "Rules ↓" as a button, on a row of its own under the map line. */
-  .bh-maprow .jump-rules {
+  /* "Rules ↓" as a button, on a row of its own under the map line (boss) or the dates (race header). */
+  .bh-maprow .jump-rules,
+  .ev-title-block .jump-rules {
     flex-basis: 100%;
     justify-content: center;
     margin: 0;
@@ -6138,6 +6134,10 @@ a.bs-ev:hover {
     border: 1px solid var(--rule-2);
     border-radius: 999px;
     background: var(--s2);
+  }
+  .ev-title-block .jump-rules {
+    margin-top: 12px;
+    align-self: stretch;
   }
 }
 .ct-hist-none {

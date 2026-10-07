@@ -152,9 +152,8 @@ const KIND_LABEL: Record<EventKind, string> = {
   ct: "Contested Territory",
   odyssey: "Odysseys",
 };
-const KIND_BLURB: Record<EventKind, string> = {
-  boss: "Beat the boss bloon on a fixed ruleset. Ranked on Normal and Elite, solo and in teams of 2–4.",
-  race: "Everyone plays the same ruleset; fastest time to the last round wins.",
+/** Lists with a lede (bosses have their stats strip; races explain themselves). */
+const KIND_BLURB: Partial<Record<EventKind, string>> = {
   ct: "Teams claim hexagon tiles over a week. Players and teams are ranked separately.",
   odyssey:
     "A chain of islands with one boat crew. No leaderboards; clear it to collect the rewards.",
@@ -847,7 +846,7 @@ export function EventList(props: { kind: EventKind }) {
           <EvIcon k={kind} size={64} />
           {KIND_LABEL[kind]}
         </h1>
-        {kind !== "boss" && <p class="lede">{KIND_BLURB[kind]}</p>}
+        {KIND_BLURB[kind] && <p class="lede">{KIND_BLURB[kind]}</p>}
         <Freshness k={LIST_KEY[kind]} />
       </header>
       {kind === "boss" && (
