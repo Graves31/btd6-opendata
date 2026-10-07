@@ -1396,6 +1396,13 @@ def build(sim: bytes, bloons: dict, text: dict, version: str) -> tuple[dict, dic
                     lst.append({"id": bid, "health": bloons[bid]["hp"], "speed": _num(speed[bid]),
                                 "used": is_used(bid)})
                 sp[mode] = lst
+            if skey == "Tombstone":  # the model's health is a placeholder: each Lych tier sets its tombstones'
+                for mode in ("normal", "elite"):
+                    for x, r in zip(sp[mode], tiers[mode]):
+                        t = [p for p in r.get("passives", []) if p["kind"] == "tombstones"]
+                        if len(t) != 1:
+                            fail(f"lych {mode}: no tombstone health override")
+                        x["health"] = _num(t[0]["tombstoneHealthOverride"])
             if skey in bloons:  # an untiered model of the same name: only if a behaviour spawns it
                 if is_used(skey):
                     sp["untiered"] = {"id": skey, "health": bloons[skey]["hp"], "speed": _num(speed[skey])}

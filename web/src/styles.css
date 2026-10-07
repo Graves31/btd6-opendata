@@ -5738,6 +5738,10 @@ button.fd-tile:hover {
   font: 700 16px/1 var(--f-display);
   font-variant-numeric: tabular-nums;
 }
+.bs-lv .on small,
+.bs-lv .on b {
+  color: var(--accent-ink);
+}
 .bs-past {
   display: grid;
   list-style: none;

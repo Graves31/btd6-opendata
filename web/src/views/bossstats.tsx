@@ -869,8 +869,8 @@ function StatsBody(props: {
                       <strong class="bs-spawn-n">{nm}</strong>
                       <span class="bs-lv">
                         {levels.map((l) => (
-                          <span key={l.lv}>
-                            <small>Lv {l.lv}</small>
+                          <span key={l.lv} class={l.lv === r.t ? "on" : undefined}>
+                            <small>T{l.lv}</small>
                             <b class="num">{fmtInt(l.health)}</b>
                           </span>
                         ))}
@@ -881,8 +881,7 @@ function StatsBody(props: {
               })}
             </ul>
             <p class="bs-note quiet">
-              HP of one bloon. Which boss tier spawns which level isn't in the
-              game data.
+              HP of one, by the boss tier that spawns it.
             </p>
           </section>
         )}
@@ -939,6 +938,18 @@ function StatsBody(props: {
           {!all && pastAll.length > PAST_SHOWN && (
             <button type="button" class="bs-more" onClick={() => setAll(true)}>
               Show all {shown}
+            </button>
+          )}
+          {all && pastAll.length > PAST_SHOWN && (
+            <button
+              type="button"
+              class="bs-more"
+              onClick={() => {
+                setAll(false);
+                document.getElementById("bs-pe-h")?.scrollIntoView({ block: "nearest" });
+              }}
+            >
+              Show fewer
             </button>
           )}
           {wiki > 0 && (all || pastAll.length <= PAST_SHOWN) && (

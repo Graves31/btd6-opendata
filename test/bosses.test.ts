@@ -259,3 +259,22 @@ describe("speed comparison and identical stretches", () => {
     assert.equal(commonStretch([row(10)]), null);
   });
 });
+
+describe("boss spawns", () => {
+  it("tier N spawns level N only (the page labels spawn levels by boss tier)", () => {
+    for (const [type, b] of Object.entries(data.bosses))
+      for (const s of b.spawns ?? [])
+        for (const m of ["normal", "elite"] as const)
+          s[m].forEach((lv, i) =>
+            b[m].forEach((tier, j) => {
+              const refs = JSON.stringify(tier).includes(`"${lv.id}"`);
+              if (i !== j) assert.ok(!refs, `${type} ${m} tier ${j + 1} spawns ${lv.id}`);
+              else if (lv.used && !(type === "diamondback" && m === "normal")) assert.ok(refs, `${type} ${m} tier ${j + 1} misses ${lv.id}`);
+            }),
+          );
+  });
+  it("Lych tombstone health is each tier's override, not the model's placeholder", () => {
+    const t = data.bosses.lych.spawns!.find((s) => s.key === "Tombstone")!;
+    assert.deepEqual(t.normal.map((x) => x.health), [1120, 4200, 17600, 42000, 168000]);
+  });
+});

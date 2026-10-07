@@ -9,6 +9,8 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
   add an old/new calculation toggle on /tools/paragon. Before running `npm run art` on v57, freeze the v56.3
   `web/src/data/paragons.json` as its own file (e.g. `paragons-56.json`) and version the formula block in
   `web/src/paragon.ts`; re-verify totem power and the formulas against the new game code.
+  The owner's install is on v57.0 (2026-10-07) and `build_bosses.py` stops at "variant flags 1 of 'Bad' disagree
+  with its camo/regrow/fortified bytes" (sim_model layout change): fix the parser before the next `npm run art`.
 
 - **UI audit follow-ups (fixes deployed 2026-09-30, version 89a3822d).** Objective findings from the six reports in `.audit/`
   fixed by 4 parallel agents + a CSS fold pass (layers merged into styles.css; pre-fold copy in
@@ -40,8 +42,8 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
 
 - **Boss stats page: Lych soul / tombstone icons** (2026-10-02). Their bloon models have no usable icon (soul: none,
   tombstone: the ZOMG icon), so the page shows text chips. Unused game sprites that might fit, for the owner to pick
-  by eye: ref/LychSoulDroplet, ref/GraveGrey, scene/GraveGhost. Boss-tier → spawn-level pairing and spawn counts are
-  not decoded (game behaviours, not data).
+  by eye: ref/LychSoulDroplet, ref/GraveGrey, scene/GraveGhost. Spawn counts are not decoded (tier N spawns level N:
+  checked in the data and on the wiki, pinned in test/bosses.test.ts).
 
 - **Boss page header, option B** (kept as a fallback, 2026-09-30). The owner chose option A (Normal/Elite tabs form
   the top edge of the details card; the card shows only the selected difficulty). Option B, if A doesn't work out:
