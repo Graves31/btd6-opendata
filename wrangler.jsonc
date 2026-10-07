@@ -46,5 +46,9 @@
   //   npx wrangler secret put DISCORD_WEBHOOK_URL
   "vars": { "CF_ACCOUNT_ID": "923b0e4244cbc8a739105c5db9c05ae5" },
 
+  // Per-client cap on Ninja Kiwi fetches, shared by the isolates of one Cloudflare location (src/worker/limit.ts).
+  // Same rate as the in-isolate bucket (CLIENT_ORIGIN_PER_MIN). namespace_id: any number unique in the account.
+  "ratelimits": [{ "name": "ORIGIN_LIMITER", "namespace_id": "1001", "simple": { "limit": 100, "period": 60 } }],
+
   "observability": { "enabled": true }
 }
