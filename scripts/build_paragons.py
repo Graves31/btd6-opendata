@@ -50,7 +50,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "web" / "src" / "data" / "paragons.json"
 FORMAT_VERSION = 1
-EXPECTED_PARAGONS = 13  # raise when NK ships a new paragon (after checking the new one decodes like the others)
+EXPECTED_PARAGONS = 14  # raise when NK ships a new paragon (after checking the new one decodes like the others)
 
 # ParagonDegreeDataModel fields in declaration order: (name, struct code). powerDegreeRequirements is the int[].
 FIELDS = [
@@ -134,7 +134,8 @@ def parse_degree_data(b: bytes) -> dict:
         if p < 0 or p + BLOCK_LEN > len(b):
             continue
         v = dict(zip((n for n, _ in SCALARS), struct.unpack_from(BLOCK, b, p)))
-        ints_ok = all(v[n] > 0 for n, c in SCALARS if c == "i")
+        # caps may be 0 (v57: upgrade tiers no longer add power); the counts may not
+        ints_ok = all(v[n] >= 0 for n, c in SCALARS if c == "i") and v["degreeCount"] > 0 and v["bonusBossDamagePerDegrees"] > 0
         rates_ok = all(_sane_float(v[n], True) for n in ("popsOverX", "moneySpentOverX", "nonTier5TowersMultByX",
                                                          "tier5TowersMultByX"))
         rest_ok = all(_sane_float(v[n], False) for n, c in SCALARS if c == "f")

@@ -135,12 +135,16 @@ def load_game_version() -> str:
 #
 # Layout observed in sim_model (reverse-engineered, validated below):
 #   header list:  [int32 type][u8 0][int32 x][u8 0][7-bit-len string name]  one per BloonModel, all the same type
-#   data records: [u8 0][str id][u8 0][str baseId][str display guid][str icon "Atlas[Sprite]"] + a 110-byte block:
-#       +24 int32 bloonProperties bitmask     +32 u8 isMoab   +33 u8 isBoss   +34 u8 camo  +35 u8 regrow
-#       +36 u8 fortified                      +52 int32 health                  +105 int32 variant flags (1|2|4, -1=all)
+#   data records: [u8 0][str id][u8 0][str baseId][str display guid][str icon "Atlas[Sprite]"] + a 112-byte block
+#       (v57; v56 was 110 bytes, without +35 and with health at +52, variant flags at +105):
+#       +24 int32 bloonProperties bitmask     +32 u8 isMoab   +33 u8 isBoss   +34 u8 camo  +35 u8 (0 on every bloon)
+#       +36 u8 regrow   +37 u8 fortified      +54 int32 health   +93 f32 speed  +107 int32 variant flags (1|2|4, -1=all)
 #   string[] stream (elsewhere): [int32 n] n x ([u8 0][str]) per array, in BloonModel order: each bloon's tags array,
 #       followed (for bloons that spawn children) by its children id array (one entry per child).
 
+BLOCK = 112  # BloonModel block size; HP_AT / SPEED_AT: offsets of health (i32) and speed (f32) in it
+HP_AT = 54
+SPEED_AT = 93
 _VARIANT_TAGS = {"Camo": 1, "Grow": 2, "Fortified": 4}
 _SUFFIX = (("Regrow", 2), ("Fortified", 4), ("Camo", 1))  # order the game uses in ids: <Base>Regrow?Fortified?Camo?
 
@@ -209,20 +213,20 @@ def parse_bloon_models(b: bytes) -> dict:
         base, p = _read_str(b, p + 1)
         _display, p = _read_str(b, p)
         icon, p = _read_str(b, p)
-        blk = b[p:p + 110]
-        pos = p + 110
-        bools = blk[32:37]
-        if any(x > 1 for x in bools):
+        blk = b[p:p + BLOCK]
+        pos = p + BLOCK
+        bools = blk[32:38]
+        if any(x > 1 for x in bools) or bools[3]:
             sys.exit(f"sim_model: unexpected BloonModel layout at {bid!r} (flag bytes {bools.hex()})")
-        camo, grow, fort = bools[2], bools[3], bools[4]
+        camo, grow, fort = bools[2], bools[4], bools[5]
         flags = camo | grow << 1 | fort << 2
-        var = struct.unpack_from("<i", blk, 105)[0]
+        var = struct.unpack_from("<i", blk, 107)[0]
         if (7 if var == -1 else var) != flags:
             sys.exit(f"sim_model: variant flags {var} of {bid!r} disagree with its camo/regrow/fortified bytes")
         m_icon = re.fullmatch(r"(\w+)\[(\w+)\]", icon)
         out[s_id] = {
             "base": base, "moab": bools[0], "boss": bools[1], "flags": flags,
-            "hp": struct.unpack_from("<i", blk, 52)[0], "props": struct.unpack_from("<i", blk, 24)[0],
+            "hp": struct.unpack_from("<i", blk, HP_AT)[0], "props": struct.unpack_from("<i", blk, 24)[0],
             "icon": f"{m_icon.group(1)}/{m_icon.group(2)}" if m_icon else None,
         }
     # Self-check: wherever an id spells <base><Regrow?><Fortified?><Camo?>, the decoded flags must say the same.

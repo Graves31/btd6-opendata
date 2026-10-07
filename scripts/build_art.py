@@ -57,6 +57,32 @@ try:
 except ImportError as e:  # pragma: no cover
     sys.exit(f"missing dependency ({e}); create .venv-art as described in scripts/requirements-art.txt")
 
+
+def _slice_bundle_nodes() -> None:
+    """Since v57 (Unity 6) the asset_references bundle is ~4.4 GB decompressed and UnityPy copies each node out of
+    that buffer (bytes), which runs out of memory. Hand each node a slice of the buffer instead: same bytes, no copy."""
+    from UnityPy.files import File, SerializedFile
+    from UnityPy.helpers import ImportHelper
+    from UnityPy.streams.EndianBinaryReader import EndianBinaryReader, EndianBinaryReader_Memoryview
+    copy = File.read_files
+
+    def read_files(self, reader, files):
+        if not isinstance(reader, EndianBinaryReader_Memoryview):
+            return copy(self, reader, files)
+        for node in files:  # File.read_files, with reader.view[...] for reader.read(node.size)
+            data = reader.view[node.offset:node.offset + node.size]
+            f = ImportHelper.parse_file(EndianBinaryReader(data, offset=reader.BaseOffset + node.offset), self,
+                                        node.path, is_dependency=self.is_dependency)
+            if isinstance(f, (EndianBinaryReader, SerializedFile)) and self.environment:
+                self.environment.register_cab(node.path, f)
+            f.flags = getattr(node, "flags", 0)
+            self.files[node.path] = f
+
+    File.read_files = read_files
+
+
+_slice_bundle_nodes()
+
 ART_DIR = ROOT / "web" / "src" / "art"
 MAPS_DIR = ROOT / "web" / "public" / "art" / "maps"
 CACHE_DIR = ROOT / ".wrangler" / "art-cache"
@@ -1227,7 +1253,7 @@ export type Family =
    *  Techbot, AlchemistTouch, CamoFlogged, Fortifried, SuperMonkeyStorm, … all 45 relics the game defines
    *  (incl. MonkeyShield, MonkeyShieldMark2/3, PsiVision, OpenSeason, PrimaryPrimates, MonkeyTycoon, …). */
   | "relic"
-  /** Paragon upgrade icons keyed by TowerId (the 13 keys of src/data/paragons.json: DartMonkey, BoomerangMonkey, …
+  /** Paragon upgrade icons keyed by TowerId (the keys of src/data/paragons.json: DartMonkey, BoomerangMonkey, …
    *  EngineerMonkey), plus ParagonPowerTotem (the Paragon Power Totem tower's portrait). */
   | "paragon"
   /** Social Season badges keyed by UserProfile.seasonBadges ids: SeasonTier1–4, SeasonUltimate1–3 (one per

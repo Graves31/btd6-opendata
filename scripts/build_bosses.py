@@ -8,7 +8,7 @@ Sources (all read-only):
                                    speed, the tags pointer, and the bosses' health-percent triggers (skulls).
   localization_assets_all_*.bundle English text (boss name, taglines, info-panel bullets), via build_names.
   globalgamemanagers               game version, via build_rounds.load_game_version.
-  il2cpp_data/Metadata/global-metadata.dat   the game's IL2CPP metadata (v31): the TowerSet enum (value -> name) and
+  il2cpp_data/Metadata/global-metadata.dat   the game's IL2CPP metadata (v39): the TowerSet enum (value -> name) and
                                    the names + declaration order of the fields of every model class under
                                    Assets.Scripts.Models.Bloons* (HealthPercentTriggerModel, TimeTriggerModel, ...).
 
@@ -21,9 +21,9 @@ sim_model layout used here (reverse-engineered; every assumption is re-checked o
   - Then object sections: [i32 first object number][i32 count] + count headers
     ([i32 type][u8 0][i32][u8 0][str name]) + count data records. The BloonModel section is the one
     build_rounds finds (build_rounds._header_run).
-  - BloonModel 110-byte block (on top of build_rounds' fields): +4 i32 = object number of the bloon's tags
+  - BloonModel block (br.BLOCK bytes; on top of build_rounds' fields): +4 i32 = object number of the bloon's tags
     string[]; +8 i32 = a per-bloon marker that also heads the bloon's reference list (the object numbers of
-    its behaviours); +91 f32 = speed.
+    its behaviours); +br.SPEED_AT f32 = speed.
   - Health-percent triggers ("skulls"): fixed-size records holding, side by side, an i32 pointer to a float[]
     of health fractions (strictly descending, in (0, 1)) and an i32 pointer to the string[] of action names
     run at each threshold. They are found by that shape, not by their (unnamed) type number.
@@ -102,7 +102,7 @@ max health for *Percent / threshold values (0.01 = 1 %), plain multipliers for *
         PhayzeTimer (restore), PlayAnim (only when it pauses the boss: pauseMovementDuration).
   "noModel": [ids]   action ids a trigger runs that have no model in the tier (Lych 1: SpawnLychSoul3 - only two soul
         spawns exist for it).
-  Speed: BloonModel.speed (f32 at +91 of the 110-byte block; its *Frames twin is not stored); Red = the top-level
+  Speed: BloonModel.speed (f32 at +br.SPEED_AT of the block; its *Frames twin is not stored); Red = the top-level
   "speed.Red" (25), so a boss's "% of a Red bloon" is speed / speed.Red.
 
 CHECKS (any failure exits loudly; nothing is written unless every check passes):
@@ -113,7 +113,7 @@ CHECKS (any failure exits loudly; nothing is written unless every check passes):
      some strictly slower (the MOAB itself equals Red in the data);
      identical across every Camo/Regrow/Fortified variant of a bloon.
   4. float pool numbering: every trigger record's float[] must be strictly descending fractions in (0, 1)
-     (exactly one candidate pool may pass).
+     (exactly one numbering of the float[] items may fit; since v57 the pool counts don't give it).
   5. skull ownership, two independent ways that must agree on EVERY trigger record: (a) the record's object
      number appears in a bloon's reference list, right after that bloon's +8 marker; (b) its action string[]
      lies in the string pool between that bloon's tags array and the next bloon's.
@@ -125,7 +125,7 @@ CHECKS (any failure exits loudly; nothing is written unless every check passes):
   9. immunity: rows' owners (5a) are boss tiers whose skull actions contain the row's action; pointers consecutive;
      exactly one array pool of that shape; array k belongs to row k; entries are TowerSet values and
      len == skulls + 1 on every tier; the game's own "<Boss><Set>Immunity" text exists for every set used;
-     TowerSet enum: metadata version 31, names Primary/Military/Magic/Support are distinct powers of two,
+     TowerSet enum: metadata version 39, names Primary/Military/Magic/Support are distinct powers of two,
      AllMonkeyTowerSets == their OR, None == 0.
  10. model classes: the DamageStateModel and BloonModel anchors agree; every _SPEC class exists once in the metadata with
      its decoded fields in declaration order; every section of such a class parses to exactly its end; BloonModel has
@@ -224,8 +224,8 @@ def bloon_blocks(sim: bytes, bloons: dict) -> tuple[dict, int, int, int]:
         _disp, q = br._read_str(sim, q)
         _icon, q = br._read_str(sim, q)
         blocks[bid] = q
-        pos = q + 110
-        if _i32(sim, q + 52) != bloons[bid]["hp"]:
+        pos = q + br.BLOCK
+        if _i32(sim, q + br.HP_AT) != bloons[bid]["hp"]:
             fail(f"block walk disagrees with build_rounds on {bid!r}")
     return blocks, first_obj, start - 8, pos
 
@@ -328,36 +328,25 @@ def _solve(sim: bytes, p: int, depth: int):
     return None
 
 
-def float_pool_candidates(sim: bytes, start: int, first_obj: int, stop: int) -> list:
-    """Walk the pools after the string pool; every pool of 4-byte-element arrays whose values all look like real
-    float32s (0 or |v| in [1e-6, 1e9], at least one non-integer) is a candidate float[] pool:
-    -> [({object number: [floats]})]."""
-    out, p, n = [], start, first_obj
+def float_items(sim: bytes, start: int, stop: int) -> list:
+    """The float[] pool items ([i32 n][n x f32]), read from the first item of the first 4-byte-element pool after
+    the string pool for as long as items parse. Since v57 the pool walk's counts no longer give their object
+    numbers (it lands 392 short) and the items run on past that pool's count, so they are numbered by the
+    skull triggers instead (anchor_floats)."""
+    p = start
     while p < stop:
         s = _solve(sim, p, 2)
         if not s:
             break
         kind, a, e = s[0]
-        cnt = _i32(sim, a)
         if kind == "A4":
-            arrs, q, ok, frac = {}, a + 4, True, False
-            for i in range(cnt):
-                k = _i32(sim, q)
-                vals = list(struct.unpack_from(f"<{k}f", sim, q + 4))
-                for v in vals:
-                    if v != v or abs(v) > 1e9 or (v != 0 and abs(v) < 1e-6):
-                        ok = False
-                        break
-                    frac = frac or v != int(v)
-                if not ok:
-                    break
-                arrs[n + i] = vals
-                q += 4 + 4 * k
-            if ok and frac:
-                out.append(arrs)
-        n += cnt
+            items, q = [], a + 4
+            while 0 <= (n := _i32(sim, q)) < 5000 and q + 4 + 4 * n <= stop:
+                items.append(list(struct.unpack_from(f"<{n}f", sim, q + 4)))
+                q += 4 + 4 * n
+            return items
         p = e
-    return out
+    fail("float[] pool not found after the string pool")
 
 
 # ─────────────────────────────────────────────────────────────── object sections, trigger records
@@ -389,7 +378,8 @@ def object_sections(sim: bytes, bloon_sec: int, first_obj: int) -> list:
 
 
 def _is_thresholds(v) -> bool:
-    return bool(v) and all(0 < x < 1 for x in v) and all(x > y for x, y in zip(v, v[1:]))
+    # 1e-6: int[] items ([1]) read as floats are denormals, not fractions
+    return bool(v) and all(1e-6 < x < 1 for x in v) and all(x > y for x, y in zip(v, v[1:]))
 
 
 def trigger_records(sim: bytes, secs: list, floats: dict, strings: dict, lo: int, hi: int) -> list:
@@ -412,6 +402,38 @@ def trigger_records(sim: bytes, secs: list, floats: dict, strings: dict, lo: int
             out.append(dict(obj=s["base"] + k, at=floats[_i32(r, o)], do=strings[_i32(r, o + 4)],
                             sref=_i32(r, o + 4)))
     return out
+
+
+def anchor_floats(sim: bytes, secs: list, items: list, strings: dict, lo: int, hi: int) -> dict:
+    """CHECK 4: number the float[] items so that some fixed-size section has, in every record, a pointer to a
+    threshold array (strictly descending fractions) right before a pointer to an action string[] of the bloons'
+    part of the string pool. Exactly one numbering may fit. -> {object number: [floats]}."""
+    th = [i for i, v in enumerate(items) if _is_thresholds(v)]
+    bases: dict = {}
+    for s in secs[1:]:
+        size = (s["dend"] - s["dstart"]) / s["cnt"]
+        if size != int(size) or not 8 <= size <= 1024:
+            continue
+        size = int(size)
+        recs = [sim[s["dstart"] + k * size:s["dstart"] + (k + 1) * size] for k in range(s["cnt"])]
+        for o in range(size - 7):
+            if not all(lo <= _i32(r, o + 4) < hi and _i32(r, o + 4) in strings for r in recs):
+                continue
+            fit = None
+            for r in recs:
+                v = _i32(r, o)
+                fit = {v - t for t in th} if fit is None else fit & {v - t for t in th}
+                if not fit:
+                    break
+            for x in fit or ():
+                if x >= hi:  # float[] items come after the string pool
+                    bases[x] = bases.get(x, 0) + len(recs)
+    # A column of one or two records fits by chance; the skull triggers are one section of many records.
+    best = sorted(bases.items(), key=lambda kv: -kv[1])[:2]
+    if not best or best[0][1] < 20 or (len(best) > 1 and best[1][1] * 4 > best[0][1]):
+        fail(f"float[] numbering not unique (records fitted per numbering: {best})")
+    base = best[0][0]
+    return {base + i: v for i, v in enumerate(items)}
 
 
 def owner_by_reflist(sim: bytes, obj: int, by_marker: dict) -> set:
@@ -520,43 +542,47 @@ def shield_records(sim: bytes, secs: list, by_marker: dict, skull_do: dict) -> t
 
 
 def _meta():
-    """-> (metadata bytes, header ints, name_at(i)) of the game's IL2CPP global-metadata.dat (v31 only)."""
+    """-> (metadata bytes, sec(k) -> (offset, size, count) of header section k, name_at(i), types()) of the game's
+    IL2CPP global-metadata.dat (v39, the game's Unity since v57). Sections used: 2 strings, 7 field default values,
+    8 default value data, 11 fields (12-byte records), 19 type definitions (82-byte records: +0 name, +4 namespace,
+    +26 i32 first field, +62 u16 field count)."""
     path = br.DATA_DIR / "il2cpp_data" / "Metadata" / "global-metadata.dat"
     if not path.exists():
         fail(f"{path} not found")
     b = path.read_bytes()
     magic, ver = struct.unpack_from("<Ii", b, 0)
-    if magic != 0xFAB11BAF or ver != 31:
-        fail(f"global-metadata.dat magic {magic:#x} version {ver} (decoded for version 31 only)")
-    hdr = struct.unpack_from("<80i", b, 8)
-    str_o = hdr[4]
+    if magic != 0xFAB11BAF or ver != 39:
+        fail(f"global-metadata.dat magic {magic:#x} version {ver} (decoded for version 39 only)")
+
+    def sec(k: int) -> tuple:
+        return struct.unpack_from("<3i", b, 8 + 12 * k)
+
+    str_o = sec(2)[0]
+    typ_o, typ_s, typ_n = sec(19)
+    if typ_s != 82 * typ_n:
+        fail("metadata type table is not 82-byte records")
 
     def name_at(i: int) -> str:
         return b[str_o + i:b.index(b"\0", str_o + i)].decode("utf-8", "replace")
 
-    return b, hdr, name_at
+    def types():  # -> (name, namespace, first field, field count) per type definition
+        for i in range(typ_n):
+            o = typ_o + 82 * i
+            yield name_at(_i32(b, o)), name_at(_i32(b, o + 4)), _i32(b, o + 26), struct.unpack_from("<H", b, o + 62)[0]
 
+    return b, sec, name_at, types
 
 def tower_set_enum() -> dict:
-    """-> {value: name} of the TowerSet flags enum, from the game's IL2CPP metadata (v31). CHECK 9 (enum part)."""
-    b, hdr, name_at = _meta()
-    # (offset, size) pairs in header order: 2 strings, 7 field default values, 8 default value data, 11 fields,
-    # 19 type definitions
-    fdv_o, data_o, fld_o, typ_o = hdr[14], hdr[16], hdr[22], hdr[38]
-    typ_n = hdr[39]
-
-    if typ_n % 88:
-        fail("metadata type table is not a whole number of 88-byte records")
-    hits = []
-    for i in range(typ_n // 88):
-        v = struct.unpack_from("<16i", b, typ_o + 88 * i)
-        if name_at(v[0]) == "TowerSet" and name_at(v[1]).endswith(".TowerSets"):
-            hits.append((v[8], struct.unpack_from("<8H", b, typ_o + 88 * i + 64)[2]))
+    """-> {value: name} of the TowerSet flags enum, from the game's IL2CPP metadata. CHECK 9 (enum part)."""
+    b, sec, name_at, types = _meta()
+    fdv_o, fdv_s, _ = sec(7)
+    data_o, fld_o = sec(8)[0], sec(11)[0]
+    hits = [(f, n) for name, ns, f, n in types() if name == "TowerSet" and ns.endswith(".TowerSets")]
     if len(hits) != 1:
         fail(f"metadata: {len(hits)} TowerSet enums (need 1)")
     first, nfields = hits[0]
     dflt = {}
-    for k in range(hdr[15] // 12):
+    for k in range(fdv_s // 12):
         f, _t, d = struct.unpack_from("<3i", b, fdv_o + 12 * k)
         dflt[f] = d
 
@@ -889,16 +915,12 @@ def model_classes(sim: bytes, secs: list) -> tuple:
     namespaces (where every boss behaviour lives) that rank, shifted by a constant, is the type number: the shift is
     fixed by the section whose object names read "DamageStateModel_<n>" and must give the BloonModel section's type.
     -> (class name by type number (function), {class name: [field names in declaration order]})."""
-    b, hdr, name_at = _meta()
-    fld_o, typ_o, typ_n = hdr[22], hdr[38], hdr[39]
+    b, sec, name_at, types = _meta()
+    fld_o = sec(11)[0]
     tds = []
-    for i in range(typ_n // 88):
-        v = struct.unpack_from("<16i", b, typ_o + 88 * i)
-        ns = name_at(v[1])
-        name = name_at(v[0])
+    for name, ns, first, nf in types():
         if ns.startswith(_BOSS_BLOONS_NS) and "<" not in name:
-            nf = struct.unpack_from("<8H", b, typ_o + 88 * i + 64)[2]
-            fields = [name_at(_i32(b, fld_o + 12 * j)) for j in range(v[8], v[8] + nf)]
+            fields = [name_at(_i32(b, fld_o + 12 * j)) for j in range(first, first + nf)]
             tds.append((f"{ns}.{name}".lower(), name, ns, fields))
     tds.sort(key=lambda t: t[0])
     rank = {t[0]: k for k, t in enumerate(tds)}
@@ -1252,7 +1274,7 @@ def _num(x: float):
 
 def build(sim: bytes, bloons: dict, text: dict, version: str) -> tuple[dict, dict]:
     blocks, first_obj, bloon_sec, bloon_end = bloon_blocks(sim, bloons)
-    speed = {b: _f32(sim, p + 91) for b, p in blocks.items()}
+    speed = {b: _f32(sim, p + br.SPEED_AT) for b, p in blocks.items()}
     check_speed(bloons, speed)
     prop_names = property_names(bloons)
 
@@ -1271,14 +1293,8 @@ def build(sim: bytes, bloons: dict, text: dict, version: str) -> tuple[dict, dic
     secs = object_sections(sim, bloon_sec, first_obj)
     if not secs or secs[0]["off"] != bloon_sec:
         fail("object sections not found after the BloonModel section")
-    passing = []
-    for floats in float_pool_candidates(sim, s_end, s_next, bloon_sec):
-        trig = trigger_records(sim, secs, floats, strings, tag_vals[0], s_next)
-        if trig:
-            passing.append((trig, floats))
-    if len(passing) != 1:
-        fail(f"{len(passing)} float-pool numberings yield threshold records (need exactly 1)")
-    trig, floats = passing[0]
+    floats = anchor_floats(sim, secs, float_items(sim, s_end, bloon_sec), strings, tag_vals[0], s_next)
+    trig = trigger_records(sim, secs, floats, strings, tag_vals[0], s_next)
     for t in trig:
         a, b = owner_by_reflist(sim, t["obj"], by_marker), owner_by_strings(t["sref"])
         if a != {b}:
