@@ -71,6 +71,7 @@ export const MAP_NAMES: Record<string, string> = {
   "Resort": "Resort",
   "Sanctuary": "Sanctuary",
   "Scrapyard": "Scrapyard",
+  "ShipCapture": "Ship Capture",
   "Skates": "Skates",
   "SkullTweak": "Skull Tweak",
   "SpaPits": "Spa Pits",
@@ -256,6 +257,6 @@ export const RELIC_INFO: Record<string, { name: string; description: string }> =
   "StartingStash": { name: "Starting Stash", description: "Start each game with an extra 250 cash (stacks with More Cash on Regular Tiles)" },
   "SuperMonkeyStorm": { name: "SMS", description: "Grants the use of 2 SMS per game" },
   "SupportSimians": { name: "Support Simians", description: "Reduces cost of all Support Monkeys by 10%" },
-  "Techbot": { name: "Techbot", description: "Grants the use of 1 Tech Bot Powerup per game" },
+  "Techbot": { name: "Tech Bot", description: "Grants the use of 1 Tech Bot Powerup per game" },
   "Thrive": { name: "Thrive", description: "Grants the use of 2 Thrive Powerups per game" },
 };

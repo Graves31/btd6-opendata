@@ -2,9 +2,9 @@
  "generatedBy": "scripts/build_art.py",
  "pipelineVersion": 1,
  "sourceBundles": [
-  "asset_references_assets_all_13a2637cf43d7a9151436094977e3212.bundle",
-  "game_data_assets_all_ebe324747bd283aa433630f6cc02f731.bundle",
-  "sprite_atlases_assets_all_aabbbf34942fe3e7d0d5a3a471143c38.bundle"
+  "asset_references_assets_all_c6671e64accd07faefb63fbd82d6b790.bundle",
+  "game_data_assets_all_133fc141235d4426deae0eb92a824938.bundle",
+  "sprite_atlases_assets_all_fda943e6414f6b15ed6c8480b88d3fbb.bundle"
  ],
  "families": {
   "tower": {
@@ -554,7 +554,7 @@
    "cell": 96,
    "cols": 4,
    "rows": 4,
-   "bytes": 60412,
+   "bytes": 64608,
    "keys": [
     "BombShooter",
     "BoomerangMonkey",
@@ -567,6 +567,7 @@
     "MonkeySub",
     "NinjaMonkey",
     "ParagonPowerTotem",
+    "SniperMonkey",
     "SpikeFactory",
     "TackShooter",
     "WizardMonkey"
@@ -606,24 +607,33 @@
    "missingOptional": []
   }
  },
- "totalSheetBytes": 784952,
+ "totalSheetBytes": 789148,
  "bossBar": {
   "parts": {
    "armour:diamondback:edge": {
-    "h": 160,
-    "mode": "simple",
     "rect": [
      1454.91,
      -28.86,
      36,
      160
     ],
+    "mode": "simple",
     "w": 36,
+    "h": 160,
     "file": "armour-diamondback-edge.webp",
     "source": "PhayzeHealthbarEnd",
     "bytes": 760
    },
    "armour:diamondback:fill": {
+    "rect": [
+     -21.54,
+     -28.87,
+     1550.3,
+     160
+    ],
+    "mode": "tiled",
+    "w": 512,
+    "h": 160,
     "clip": [
      -21.54,
      -5.12,
@@ -631,55 +641,55 @@
      112.5
     ],
     "fill": "horizontal",
-    "h": 160,
-    "mode": "tiled",
-    "rect": [
-     -21.54,
-     -28.87,
-     1550.3,
-     160
-    ],
-    "w": 512,
     "file": "armour-diamondback-fill.webp",
     "source": "DiamondBackHealthBarTile",
     "bytes": 10340
    },
    "armour:diamondback:frame": {
-    "center": false,
-    "h": 128,
-    "mode": "sliced",
     "rect": [
      -15,
      -15,
      1530,
      136.36
     ],
+    "mode": "sliced",
+    "w": 128,
+    "h": 128,
     "slice": [
      42,
      42,
      42,
      42
     ],
-    "w": 128,
+    "center": false,
     "file": "armour-diamondback-frame.webp",
     "source": "BossFrame",
     "bytes": 1520
    },
    "armour:dreadbloon:edge": {
-    "h": 160,
-    "mode": "simple",
     "rect": [
      1467.61,
      -26.82,
      64,
      160
     ],
+    "mode": "simple",
     "w": 64,
+    "h": 160,
     "file": "armour-dreadbloon-edge.webp",
     "source": "DreadbloonHealthbarEdge",
     "bytes": 2242
    },
    "armour:dreadbloon:fill": {
+    "rect": [
+     -21.54,
+     -36.82,
+     1550.3,
+     180
+    ],
+    "mode": "simple",
+    "w": 1500,
+    "h": 180,
     "clip": [
      -21.54,
      -49.32,
@@ -687,40 +697,40 @@
      205
     ],
     "fill": "horizontal",
-    "h": 180,
-    "mode": "simple",
-    "rect": [
-     -21.54,
-     -36.82,
-     1550.3,
-     180
-    ],
-    "w": 1500,
     "file": "armour-dreadbloon-fill.webp",
     "source": "DreadbloonHealthbarLarge",
     "bytes": 31902
    },
    "armour:lych:edge": {
-    "h": 160,
-    "mode": "sliced",
     "rect": [
      1494.38,
      -26.82,
      36,
      160
     ],
+    "mode": "sliced",
+    "w": 36,
+    "h": 160,
     "slice": [
      36,
      0,
      36,
      0
     ],
-    "w": 36,
     "file": "armour-lych-edge.webp",
     "source": "LychHealthbarEnd",
     "bytes": 682
    },
    "armour:lych:fill": {
+    "rect": [
+     -21.54,
+     -26.82,
+     1550.3,
+     160
+    ],
+    "mode": "tiled",
+    "w": 512,
+    "h": 160,
     "clip": [
      -21.54,
      -26.82,
@@ -728,34 +738,34 @@
      160
     ],
     "fill": "horizontal",
-    "h": 160,
-    "mode": "tiled",
-    "rect": [
-     -21.54,
-     -26.82,
-     1550.3,
-     160
-    ],
-    "w": 512,
     "file": "armour-lych-fill.webp",
     "source": "LychHealthBarTile",
     "bytes": 7330
    },
    "armour:phayze:edge": {
-    "h": 160,
-    "mode": "simple",
     "rect": [
      1494.38,
      -26.82,
      36,
      160
     ],
+    "mode": "simple",
     "w": 36,
+    "h": 160,
     "file": "armour-phayze-edge.webp",
     "source": "PhayzeHealthbarEnd",
     "bytes": 760
    },
    "armour:phayze:fill": {
+    "rect": [
+     -21.54,
+     -26.82,
+     1550.3,
+     160
+    ],
+    "mode": "tiled",
+    "w": 512,
+    "h": 160,
     "clip": [
      -21.54,
      -26.82,
@@ -763,76 +773,68 @@
      160
     ],
     "fill": "horizontal",
-    "h": 160,
-    "mode": "tiled",
-    "rect": [
-     -21.54,
-     -26.82,
-     1550.3,
-     160
-    ],
-    "w": 512,
     "file": "armour-phayze-fill.webp",
     "source": "PhayzeHealthBarTile",
     "bytes": 2666
    },
    "bar:heatGauge": {
     "art": "bar:heatGauge",
-    "h": 106,
-    "mode": "simple",
     "rect": [
      1040.41,
      -130.68,
      106,
      106
     ],
-    "w": 106
+    "w": 106,
+    "h": 106,
+    "mode": "simple"
    },
    "bar:heatNeedle": {
     "art": "bar:heatNeedle",
-    "h": 106,
-    "mode": "simple",
     "rect": [
      1044.21,
      -128.28,
      106,
      106
     ],
-    "w": 106
+    "w": 106,
+    "h": 106,
+    "mode": "simple"
    },
    "bar:tailOff": {
     "art": "bar:tailOff",
-    "h": 106,
-    "mode": "simple",
     "rect": [
      -29.34,
      -151.22,
      106,
      106
     ],
-    "w": 106
+    "w": 106,
+    "h": 106,
+    "mode": "simple"
    },
    "bar:tailOn": {
     "art": "bar:tailOn",
-    "h": 106,
-    "mode": "simple",
     "rect": [
      -29.34,
      -151.22,
      106,
      106
     ],
-    "w": 106
+    "w": 106,
+    "h": 106,
+    "mode": "simple"
    },
    "heat:bg": {
-    "h": 128,
-    "mode": "sliced",
     "rect": [
      102.86,
      -103.78,
      910.23,
      53.04
     ],
+    "mode": "sliced",
+    "w": 128,
+    "h": 128,
     "slice": [
      22,
      22,
@@ -840,76 +842,76 @@
      22
     ],
     "tint": "#0000003f",
-    "w": 128,
     "file": "heat-bg.webp",
     "source": "SmallSquareWhite",
     "bytes": 360
    },
    "heat:fill": {
-    "fill": "horizontal",
-    "h": 8,
-    "mode": "filled",
     "rect": [
      102.86,
      -103.78,
      908.22,
      53.04
     ],
+    "mode": "filled",
     "w": 512,
+    "h": 8,
+    "fill": "horizontal",
     "file": "heat-fill.webp",
     "source": "HeatGuageBarGradient",
     "bytes": 268
    },
    "heat:frame": {
-    "center": false,
-    "h": 88,
-    "mode": "sliced",
     "rect": [
      89.1,
      -116.71,
      935.31,
      78.07
     ],
+    "mode": "sliced",
+    "w": 88,
+    "h": 88,
     "slice": [
      40,
      40,
      40,
      40
     ],
-    "w": 88,
+    "center": false,
     "file": "heat-frame.webp",
     "source": "HeatGuageFrame",
     "bytes": 1548
    },
    "heat:highlight": {
-    "mode": "color",
     "rect": [
      90.84,
      -100.78,
      932.28,
      53.54
     ],
+    "mode": "color",
     "tint": "#ffffff3f"
    },
    "heat:shade": {
-    "mode": "color",
     "rect": [
      90.84,
      -100.78,
      932.28,
      53.54
     ],
+    "mode": "color",
     "tint": "#2a145918"
    },
    "hp:bg": {
-    "h": 128,
-    "mode": "sliced",
     "rect": [
      0,
      0,
      1500,
      106.36
     ],
+    "mode": "sliced",
+    "w": 128,
+    "h": 128,
     "slice": [
      22,
      22,
@@ -917,133 +919,133 @@
      22
     ],
     "tint": "#0000003f",
-    "w": 128,
     "file": "hp-bg.webp",
     "source": "SmallSquareWhite",
     "bytes": 360
    },
    "hp:fill": {
-    "fill": "horizontal",
-    "h": 8,
-    "mode": "filled",
     "rect": [
      5,
      0,
      1493,
      106.36
     ],
+    "mode": "filled",
     "w": 512,
+    "h": 8,
+    "fill": "horizontal",
     "file": "hp-fill.webp",
     "source": "BossBarGradient",
     "bytes": 222
    },
    "hp:frame": {
-    "center": false,
-    "h": 128,
-    "mode": "sliced",
     "rect": [
      -15,
      -15,
      1530,
      136.36
     ],
+    "mode": "sliced",
+    "w": 128,
+    "h": 128,
     "slice": [
      42,
      42,
      42,
      42
     ],
-    "w": 128,
+    "center": false,
     "file": "hp-frame.webp",
     "source": "BossFrame",
     "bytes": 1520
    },
    "hp:highlight": {
-    "mode": "color",
     "rect": [
      -7.03,
      82.5,
      1517.06,
      27.36
     ],
+    "mode": "color",
     "tint": "#ffffff3f"
    },
    "hp:shade": {
-    "mode": "color",
     "rect": [
      -7.03,
      3,
      1517.06,
      27.36
     ],
+    "mode": "color",
     "tint": "#2a145918"
    },
    "hud": {
-    "art": "hud:<boss>",
-    "mode": "simple",
     "rect": [
      -275.77,
      -94.82,
      300,
      300
-    ]
+    ],
+    "mode": "simple",
+    "art": "hud:<boss>"
    },
    "marker:firel": {
-    "art": "bar:skullFire",
-    "h": 64,
-    "mode": "simple",
     "rect": [
      21.1,
      6.9,
      32,
      64
     ],
-    "w": 32
+    "mode": "simple",
+    "w": 32,
+    "h": 64,
+    "art": "bar:skullFire"
    },
    "marker:firer": {
-    "art": "bar:skullFire",
-    "h": 64,
-    "mode": "simple",
     "rect": [
      57.9,
      13.9,
      32,
      64
     ],
-    "w": 32
+    "mode": "simple",
+    "w": 32,
+    "h": 64,
+    "art": "bar:skullFire"
    },
    "marker:line": {
-    "mode": "color",
     "rect": [
      44,
      0,
      12,
      98.69
     ],
+    "mode": "color",
     "tint": "#0000003c"
    },
    "marker:skull": {
-    "art": "skull",
-    "artOff": "skull:off",
-    "h": 112,
-    "mode": "simple",
     "rect": [
      -6,
      -38,
      112,
      112
     ],
-    "w": 112
+    "mode": "simple",
+    "w": 112,
+    "h": 112,
+    "art": "skull",
+    "artOff": "skull:off"
    },
    "tail:bg": {
-    "h": 128,
-    "mode": "sliced",
     "rect": [
      102.86,
      -103.78,
      910.23,
      53.04
     ],
+    "mode": "sliced",
+    "w": 128,
+    "h": 128,
     "slice": [
      22,
      22,
@@ -1051,22 +1053,32 @@
      22
     ],
     "tint": "#0000003f",
-    "w": 128,
     "file": "tail-bg.webp",
     "source": "SmallSquareWhite",
     "bytes": 360
    },
    "tail:color": {
-    "mode": "color",
     "rect": [
      102.86,
      -103.78,
      908.22,
      53.04
     ],
+    "mode": "color",
     "tint": "#60ffd6ff"
    },
    "tail:fill": {
+    "rect": [
+     102.86,
+     -103.78,
+     908.22,
+     53.04
+    ],
+    "mode": "tiled",
+    "w": 160,
+    "h": 100,
+    "ppum": 2,
+    "tint": "#ffffff00",
     "clip": [
      102.86,
      -103.78,
@@ -1074,50 +1086,39 @@
      53.04
     ],
     "fill": "horizontal",
-    "h": 100,
-    "mode": "tiled",
-    "ppum": 2,
-    "rect": [
-     102.86,
-     -103.78,
-     908.22,
-     53.04
-    ],
-    "tint": "#ffffff00",
-    "w": 160,
     "file": "tail-fill.webp",
     "source": "DiamondbackTailTile",
     "bytes": 602
    },
    "tail:frame": {
-    "center": false,
-    "h": 88,
-    "mode": "sliced",
     "rect": [
      89.1,
      -116.71,
      935.31,
      78.07
     ],
+    "mode": "sliced",
+    "w": 88,
+    "h": 88,
     "slice": [
      40,
      40,
      40,
      40
     ],
-    "w": 88,
+    "center": false,
     "file": "tail-frame.webp",
     "source": "HeatGuageFrame",
     "bytes": 1548
    },
    "tail:highlight": {
-    "mode": "color",
     "rect": [
      90.84,
      -100.78,
      932.28,
      53.54
     ],
+    "mode": "color",
     "tint": "#ffffff3f"
    }
   },
@@ -1166,14 +1167,14 @@
    ]
   },
   "marker": {
+   "w": 100,
+   "h": 98.69,
    "group": [
     0,
     0,
     1660,
     106.36
-   ],
-   "h": 98.69,
-   "w": 100
+   ]
   },
   "hud": {
    "hud:blastapopoulos": {
@@ -1266,250 +1267,250 @@
   "#ouch": {
    "source": "MapSelect#ouchButton",
    "px": 510,
-   "bytes": 28836,
-   "s96": "/art/maps/ouch.aaeef784-96.webp",
-   "s200": "/art/maps/ouch.aaeef784-200.webp",
-   "s400": "/art/maps/ouch.aaeef784-400.webp"
+   "bytes": 28860,
+   "s96": "/art/maps/ouch.327ca51b-96.webp",
+   "s200": "/art/maps/ouch.327ca51b-200.webp",
+   "s400": "/art/maps/ouch.327ca51b-400.webp"
   },
   "AdorasTemple": {
    "source": "MapSelectAdorasTemple",
    "px": 510,
-   "bytes": 36938,
-   "s96": "/art/maps/AdorasTemple.7d257a68-96.webp",
-   "s200": "/art/maps/AdorasTemple.7d257a68-200.webp",
-   "s400": "/art/maps/AdorasTemple.7d257a68-400.webp"
+   "bytes": 36984,
+   "s96": "/art/maps/AdorasTemple.6a045103-96.webp",
+   "s200": "/art/maps/AdorasTemple.6a045103-200.webp",
+   "s400": "/art/maps/AdorasTemple.6a045103-400.webp"
   },
   "AlpineRun": {
    "source": "MapSelectAlpineRunButton",
    "px": 510,
-   "bytes": 16014,
-   "s96": "/art/maps/AlpineRun.43d063a7-96.webp",
-   "s200": "/art/maps/AlpineRun.43d063a7-200.webp",
-   "s400": "/art/maps/AlpineRun.43d063a7-400.webp"
+   "bytes": 16040,
+   "s96": "/art/maps/AlpineRun.c59459f5-96.webp",
+   "s200": "/art/maps/AlpineRun.c59459f5-200.webp",
+   "s400": "/art/maps/AlpineRun.c59459f5-400.webp"
   },
   "AncientPortal": {
    "source": "MapSelectAncientPortalMapButton",
    "px": 510,
-   "bytes": 26766,
-   "s96": "/art/maps/AncientPortal.57ad7673-96.webp",
-   "s200": "/art/maps/AncientPortal.57ad7673-200.webp",
-   "s400": "/art/maps/AncientPortal.57ad7673-400.webp"
+   "bytes": 26828,
+   "s96": "/art/maps/AncientPortal.c76dbabe-96.webp",
+   "s200": "/art/maps/AncientPortal.c76dbabe-200.webp",
+   "s400": "/art/maps/AncientPortal.c76dbabe-400.webp"
   },
   "AnotherBrick": {
    "source": "MapSelectAnotherBrickButton",
    "px": 510,
-   "bytes": 25536,
-   "s96": "/art/maps/AnotherBrick.8345880a-96.webp",
-   "s200": "/art/maps/AnotherBrick.8345880a-200.webp",
-   "s400": "/art/maps/AnotherBrick.8345880a-400.webp"
+   "bytes": 25590,
+   "s96": "/art/maps/AnotherBrick.391cc1ae-96.webp",
+   "s200": "/art/maps/AnotherBrick.391cc1ae-200.webp",
+   "s400": "/art/maps/AnotherBrick.391cc1ae-400.webp"
   },
   "Ascent": {
    "source": "MapSelectAscentButton",
    "px": 510,
-   "bytes": 37772,
-   "s96": "/art/maps/Ascent.211e7352-96.webp",
-   "s200": "/art/maps/Ascent.211e7352-200.webp",
-   "s400": "/art/maps/Ascent.211e7352-400.webp"
+   "bytes": 38032,
+   "s96": "/art/maps/Ascent.ebb32c89-96.webp",
+   "s200": "/art/maps/Ascent.ebb32c89-200.webp",
+   "s400": "/art/maps/Ascent.ebb32c89-400.webp"
   },
   "Balance": {
    "source": "MapSelectBalanceMapButton",
    "px": 510,
-   "bytes": 49020,
-   "s96": "/art/maps/Balance.63893ae5-96.webp",
-   "s200": "/art/maps/Balance.63893ae5-200.webp",
-   "s400": "/art/maps/Balance.63893ae5-400.webp"
+   "bytes": 49014,
+   "s96": "/art/maps/Balance.7e4a1a41-96.webp",
+   "s200": "/art/maps/Balance.7e4a1a41-200.webp",
+   "s400": "/art/maps/Balance.7e4a1a41-400.webp"
   },
   "Bazaar": {
    "source": "MapSelectBazaarButton",
    "px": 510,
-   "bytes": 41644,
-   "s96": "/art/maps/Bazaar.8610fe1b-96.webp",
-   "s200": "/art/maps/Bazaar.8610fe1b-200.webp",
-   "s400": "/art/maps/Bazaar.8610fe1b-400.webp"
+   "bytes": 41766,
+   "s96": "/art/maps/Bazaar.75df45a7-96.webp",
+   "s200": "/art/maps/Bazaar.75df45a7-200.webp",
+   "s400": "/art/maps/Bazaar.75df45a7-400.webp"
   },
   "Blons": {
    "source": "MapSelectBlonsMapButton",
    "px": 510,
-   "bytes": 14520,
-   "s96": "/art/maps/Blons.f7bf2ab1-96.webp",
-   "s200": "/art/maps/Blons.f7bf2ab1-200.webp",
-   "s400": "/art/maps/Blons.f7bf2ab1-400.webp"
+   "bytes": 14574,
+   "s96": "/art/maps/Blons.dbdae28a-96.webp",
+   "s200": "/art/maps/Blons.dbdae28a-200.webp",
+   "s400": "/art/maps/Blons.dbdae28a-400.webp"
   },
   "BloodyPuddles": {
    "source": "MapSelectBloodyPuddlesButton",
    "px": 510,
-   "bytes": 18716,
-   "s96": "/art/maps/BloodyPuddles.86413f0d-96.webp",
-   "s200": "/art/maps/BloodyPuddles.86413f0d-200.webp",
-   "s400": "/art/maps/BloodyPuddles.86413f0d-400.webp"
+   "bytes": 18742,
+   "s96": "/art/maps/BloodyPuddles.0c7889a9-96.webp",
+   "s200": "/art/maps/BloodyPuddles.0c7889a9-200.webp",
+   "s400": "/art/maps/BloodyPuddles.0c7889a9-400.webp"
   },
   "BloonariusPrime": {
    "source": "MapSelectBloonariusPrimeButton",
    "px": 510,
-   "bytes": 19568,
-   "s96": "/art/maps/BloonariusPrime.95bc5f94-96.webp",
-   "s200": "/art/maps/BloonariusPrime.95bc5f94-200.webp",
-   "s400": "/art/maps/BloonariusPrime.95bc5f94-400.webp"
+   "bytes": 19544,
+   "s96": "/art/maps/BloonariusPrime.eecc9e78-96.webp",
+   "s200": "/art/maps/BloonariusPrime.eecc9e78-200.webp",
+   "s400": "/art/maps/BloonariusPrime.eecc9e78-400.webp"
   },
   "CandyFalls": {
    "source": "MapSelectCandyfallsButton",
    "px": 510,
-   "bytes": 50382,
-   "s96": "/art/maps/CandyFalls.bee0efcf-96.webp",
-   "s200": "/art/maps/CandyFalls.bee0efcf-200.webp",
-   "s400": "/art/maps/CandyFalls.bee0efcf-400.webp"
+   "bytes": 50364,
+   "s96": "/art/maps/CandyFalls.172fdf64-96.webp",
+   "s200": "/art/maps/CandyFalls.172fdf64-200.webp",
+   "s400": "/art/maps/CandyFalls.172fdf64-400.webp"
   },
   "Cargo": {
    "source": "MapSelectCargoButton",
    "px": 510,
-   "bytes": 30544,
-   "s96": "/art/maps/Cargo.4160f4ad-96.webp",
-   "s200": "/art/maps/Cargo.4160f4ad-200.webp",
-   "s400": "/art/maps/Cargo.4160f4ad-400.webp"
+   "bytes": 30612,
+   "s96": "/art/maps/Cargo.954a1ba1-96.webp",
+   "s200": "/art/maps/Cargo.954a1ba1-200.webp",
+   "s400": "/art/maps/Cargo.954a1ba1-400.webp"
   },
   "Carved": {
    "source": "MapSelectCarvedButton",
    "px": 510,
    "bytes": 20724,
-   "s96": "/art/maps/Carved.1523e670-96.webp",
-   "s200": "/art/maps/Carved.1523e670-200.webp",
-   "s400": "/art/maps/Carved.1523e670-400.webp"
+   "s96": "/art/maps/Carved.2e425243-96.webp",
+   "s200": "/art/maps/Carved.2e425243-200.webp",
+   "s400": "/art/maps/Carved.2e425243-400.webp"
   },
   "CastleRevenge": {
    "source": "MapSelectCastleRevengeMapButton",
    "px": 510,
-   "bytes": 33898,
-   "s96": "/art/maps/CastleRevenge.a5c59bbe-96.webp",
-   "s200": "/art/maps/CastleRevenge.a5c59bbe-200.webp",
-   "s400": "/art/maps/CastleRevenge.a5c59bbe-400.webp"
+   "bytes": 33840,
+   "s96": "/art/maps/CastleRevenge.86e2abcd-96.webp",
+   "s200": "/art/maps/CastleRevenge.86e2abcd-200.webp",
+   "s400": "/art/maps/CastleRevenge.86e2abcd-400.webp"
   },
   "Chutes": {
    "source": "MapSelectChutesButton",
    "px": 510,
-   "bytes": 24690,
-   "s96": "/art/maps/Chutes.c82887b5-96.webp",
-   "s200": "/art/maps/Chutes.c82887b5-200.webp",
-   "s400": "/art/maps/Chutes.c82887b5-400.webp"
+   "bytes": 24566,
+   "s96": "/art/maps/Chutes.6a947885-96.webp",
+   "s200": "/art/maps/Chutes.6a947885-200.webp",
+   "s400": "/art/maps/Chutes.6a947885-400.webp"
   },
   "Cornfield": {
    "source": "MapSelectCornfieldsButton",
    "px": 510,
-   "bytes": 51760,
-   "s96": "/art/maps/Cornfield.a195ed6a-96.webp",
-   "s200": "/art/maps/Cornfield.a195ed6a-200.webp",
-   "s400": "/art/maps/Cornfield.a195ed6a-400.webp"
+   "bytes": 51822,
+   "s96": "/art/maps/Cornfield.a272c1b7-96.webp",
+   "s200": "/art/maps/Cornfield.a272c1b7-200.webp",
+   "s400": "/art/maps/Cornfield.a272c1b7-400.webp"
   },
   "CoveredGarden": {
    "source": "MapSelectCoveredGardenMapButton",
    "px": 510,
-   "bytes": 47720,
-   "s96": "/art/maps/CoveredGarden.1922bf06-96.webp",
-   "s200": "/art/maps/CoveredGarden.1922bf06-200.webp",
-   "s400": "/art/maps/CoveredGarden.1922bf06-400.webp"
+   "bytes": 47828,
+   "s96": "/art/maps/CoveredGarden.f5dc0fa0-96.webp",
+   "s200": "/art/maps/CoveredGarden.f5dc0fa0-200.webp",
+   "s400": "/art/maps/CoveredGarden.f5dc0fa0-400.webp"
   },
   "Cracked": {
    "source": "MapSelectCrackedButton",
    "px": 510,
-   "bytes": 35666,
-   "s96": "/art/maps/Cracked.37cd3c1d-96.webp",
-   "s200": "/art/maps/Cracked.37cd3c1d-200.webp",
-   "s400": "/art/maps/Cracked.37cd3c1d-400.webp"
+   "bytes": 36014,
+   "s96": "/art/maps/Cracked.8b0123e1-96.webp",
+   "s200": "/art/maps/Cracked.8b0123e1-200.webp",
+   "s400": "/art/maps/Cracked.8b0123e1-400.webp"
   },
   "Cubism": {
    "source": "MapSelectCubismButton",
    "px": 510,
-   "bytes": 21082,
-   "s96": "/art/maps/Cubism.a2a80e92-96.webp",
-   "s200": "/art/maps/Cubism.a2a80e92-200.webp",
-   "s400": "/art/maps/Cubism.a2a80e92-400.webp"
+   "bytes": 21124,
+   "s96": "/art/maps/Cubism.0578c268-96.webp",
+   "s200": "/art/maps/Cubism.0578c268-200.webp",
+   "s400": "/art/maps/Cubism.0578c268-400.webp"
   },
   "DarkCastle": {
    "source": "MapSelectDarkCastleButton",
    "px": 510,
    "bytes": 28544,
-   "s96": "/art/maps/DarkCastle.f35d91b2-96.webp",
-   "s200": "/art/maps/DarkCastle.f35d91b2-200.webp",
-   "s400": "/art/maps/DarkCastle.f35d91b2-400.webp"
+   "s96": "/art/maps/DarkCastle.cc2efa21-96.webp",
+   "s200": "/art/maps/DarkCastle.cc2efa21-200.webp",
+   "s400": "/art/maps/DarkCastle.cc2efa21-400.webp"
   },
   "DarkDungeons": {
    "source": "MapSelectDarkDungeonsButton",
    "px": 510,
-   "bytes": 20880,
-   "s96": "/art/maps/DarkDungeons.300ba6c9-96.webp",
-   "s200": "/art/maps/DarkDungeons.300ba6c9-200.webp",
-   "s400": "/art/maps/DarkDungeons.300ba6c9-400.webp"
+   "bytes": 20904,
+   "s96": "/art/maps/DarkDungeons.ac8eb4b4-96.webp",
+   "s200": "/art/maps/DarkDungeons.ac8eb4b4-200.webp",
+   "s400": "/art/maps/DarkDungeons.ac8eb4b4-400.webp"
   },
   "DarkPath": {
    "source": "MapSelectDarkPathButton",
    "px": 510,
-   "bytes": 22168,
-   "s96": "/art/maps/DarkPath.088e3691-96.webp",
-   "s200": "/art/maps/DarkPath.088e3691-200.webp",
-   "s400": "/art/maps/DarkPath.088e3691-400.webp"
+   "bytes": 22194,
+   "s96": "/art/maps/DarkPath.9a9020d1-96.webp",
+   "s200": "/art/maps/DarkPath.9a9020d1-200.webp",
+   "s400": "/art/maps/DarkPath.9a9020d1-400.webp"
   },
   "Downstream": {
    "source": "MapSelectDownstreamButton",
    "px": 510,
-   "bytes": 39884,
-   "s96": "/art/maps/Downstream.f931964b-96.webp",
-   "s200": "/art/maps/Downstream.f931964b-200.webp",
-   "s400": "/art/maps/Downstream.f931964b-400.webp"
+   "bytes": 39836,
+   "s96": "/art/maps/Downstream.384c51ce-96.webp",
+   "s200": "/art/maps/Downstream.384c51ce-200.webp",
+   "s400": "/art/maps/Downstream.384c51ce-400.webp"
   },
   "EnchantedGlade": {
    "source": "MapSelectEnchantedGladeMapButton",
    "px": 510,
-   "bytes": 42780,
-   "s96": "/art/maps/EnchantedGlade.e65b21f7-96.webp",
-   "s200": "/art/maps/EnchantedGlade.e65b21f7-200.webp",
-   "s400": "/art/maps/EnchantedGlade.e65b21f7-400.webp"
+   "bytes": 42872,
+   "s96": "/art/maps/EnchantedGlade.a126be28-96.webp",
+   "s200": "/art/maps/EnchantedGlade.a126be28-200.webp",
+   "s400": "/art/maps/EnchantedGlade.a126be28-400.webp"
   },
   "Encrypted": {
    "source": "MapSelectEncryptedButton",
    "px": 510,
-   "bytes": 39556,
-   "s96": "/art/maps/Encrypted.d12272cb-96.webp",
-   "s200": "/art/maps/Encrypted.d12272cb-200.webp",
-   "s400": "/art/maps/Encrypted.d12272cb-400.webp"
+   "bytes": 39566,
+   "s96": "/art/maps/Encrypted.80dc6b93-96.webp",
+   "s200": "/art/maps/Encrypted.80dc6b93-200.webp",
+   "s400": "/art/maps/Encrypted.80dc6b93-400.webp"
   },
   "EndOfTheRoad": {
    "source": "MapSelectEndOfTheRoadButton",
    "px": 510,
-   "bytes": 13120,
-   "s96": "/art/maps/EndOfTheRoad.0b6aaffd-96.webp",
-   "s200": "/art/maps/EndOfTheRoad.0b6aaffd-200.webp",
-   "s400": "/art/maps/EndOfTheRoad.0b6aaffd-400.webp"
+   "bytes": 13124,
+   "s96": "/art/maps/EndOfTheRoad.bbf09cde-96.webp",
+   "s200": "/art/maps/EndOfTheRoad.bbf09cde-200.webp",
+   "s400": "/art/maps/EndOfTheRoad.bbf09cde-400.webp"
   },
   "Erosion": {
    "source": "MapSelectErosionButton",
    "px": 510,
-   "bytes": 16138,
-   "s96": "/art/maps/Erosion.3dfeddcb-96.webp",
-   "s200": "/art/maps/Erosion.3dfeddcb-200.webp",
-   "s400": "/art/maps/Erosion.3dfeddcb-400.webp"
+   "bytes": 16240,
+   "s96": "/art/maps/Erosion.ea04495c-96.webp",
+   "s200": "/art/maps/Erosion.ea04495c-200.webp",
+   "s400": "/art/maps/Erosion.ea04495c-400.webp"
   },
   "FiringRange": {
    "source": "MapSelectFiringRangeButton",
    "px": 510,
-   "bytes": 30142,
-   "s96": "/art/maps/FiringRange.c3b4f56d-96.webp",
-   "s200": "/art/maps/FiringRange.c3b4f56d-200.webp",
-   "s400": "/art/maps/FiringRange.c3b4f56d-400.webp"
+   "bytes": 30154,
+   "s96": "/art/maps/FiringRange.3b38f8ee-96.webp",
+   "s200": "/art/maps/FiringRange.3b38f8ee-200.webp",
+   "s400": "/art/maps/FiringRange.3b38f8ee-400.webp"
   },
   "FloodedValley": {
    "source": "MapSelectFloodedValleyButton",
    "px": 510,
-   "bytes": 23780,
-   "s96": "/art/maps/FloodedValley.c094af20-96.webp",
-   "s200": "/art/maps/FloodedValley.c094af20-200.webp",
-   "s400": "/art/maps/FloodedValley.c094af20-400.webp"
+   "bytes": 23764,
+   "s96": "/art/maps/FloodedValley.95aafba7-96.webp",
+   "s200": "/art/maps/FloodedValley.95aafba7-200.webp",
+   "s400": "/art/maps/FloodedValley.95aafba7-400.webp"
   },
   "FourCircles": {
    "source": "MapSelectFourCirclesButton",
    "px": 510,
-   "bytes": 31534,
-   "s96": "/art/maps/FourCircles.61757825-96.webp",
-   "s200": "/art/maps/FourCircles.61757825-200.webp",
-   "s400": "/art/maps/FourCircles.61757825-400.webp"
+   "bytes": 31610,
+   "s96": "/art/maps/FourCircles.3597f923-96.webp",
+   "s200": "/art/maps/FourCircles.3597f923-200.webp",
+   "s400": "/art/maps/FourCircles.3597f923-400.webp"
   },
   "FrozenOver": {
    "source": "MapSelectFrozenOverButton",
@@ -1522,34 +1523,34 @@
   "Geared": {
    "source": "MapSelectGearedButton",
    "px": 510,
-   "bytes": 38032,
-   "s96": "/art/maps/Geared.67cd262a-96.webp",
-   "s200": "/art/maps/Geared.67cd262a-200.webp",
-   "s400": "/art/maps/Geared.67cd262a-400.webp"
+   "bytes": 37922,
+   "s96": "/art/maps/Geared.81922288-96.webp",
+   "s200": "/art/maps/Geared.81922288-200.webp",
+   "s400": "/art/maps/Geared.81922288-400.webp"
   },
   "GlacialTrail": {
    "source": "MapSelectGlacialTrailButton",
    "px": 510,
-   "bytes": 28710,
-   "s96": "/art/maps/GlacialTrail.be93f613-96.webp",
-   "s200": "/art/maps/GlacialTrail.be93f613-200.webp",
-   "s400": "/art/maps/GlacialTrail.be93f613-400.webp"
+   "bytes": 28734,
+   "s96": "/art/maps/GlacialTrail.9f08f6bd-96.webp",
+   "s200": "/art/maps/GlacialTrail.9f08f6bd-200.webp",
+   "s400": "/art/maps/GlacialTrail.9f08f6bd-400.webp"
   },
   "Haunted": {
    "source": "MapSelectHauntedButton",
    "px": 510,
-   "bytes": 22328,
-   "s96": "/art/maps/Haunted.67a60457-96.webp",
-   "s200": "/art/maps/Haunted.67a60457-200.webp",
-   "s400": "/art/maps/Haunted.67a60457-400.webp"
+   "bytes": 22358,
+   "s96": "/art/maps/Haunted.7e9a5414-96.webp",
+   "s200": "/art/maps/Haunted.7e9a5414-200.webp",
+   "s400": "/art/maps/Haunted.7e9a5414-400.webp"
   },
   "Hedge": {
    "source": "MapSelectHedgeButton",
    "px": 510,
-   "bytes": 25266,
-   "s96": "/art/maps/Hedge.93444fdd-96.webp",
-   "s200": "/art/maps/Hedge.93444fdd-200.webp",
-   "s400": "/art/maps/Hedge.93444fdd-400.webp"
+   "bytes": 25328,
+   "s96": "/art/maps/Hedge.05ff9f50-96.webp",
+   "s200": "/art/maps/Hedge.05ff9f50-200.webp",
+   "s400": "/art/maps/Hedge.05ff9f50-400.webp"
   },
   "HighFinance": {
    "source": "MapSelectHighFinanceButton",
@@ -1562,202 +1563,202 @@
   "InTheLoop": {
    "source": "MapSelectInTheLoopButton",
    "px": 510,
-   "bytes": 52748,
-   "s96": "/art/maps/InTheLoop.7f9d2285-96.webp",
-   "s200": "/art/maps/InTheLoop.7f9d2285-200.webp",
-   "s400": "/art/maps/InTheLoop.7f9d2285-400.webp"
+   "bytes": 52752,
+   "s96": "/art/maps/InTheLoop.8cc56bb0-96.webp",
+   "s200": "/art/maps/InTheLoop.8cc56bb0-200.webp",
+   "s400": "/art/maps/InTheLoop.8cc56bb0-400.webp"
   },
   "Infernal": {
    "source": "MapSelectInfernal",
    "px": 510,
-   "bytes": 38782,
-   "s96": "/art/maps/Infernal.9f80ec89-96.webp",
-   "s200": "/art/maps/Infernal.9f80ec89-200.webp",
-   "s400": "/art/maps/Infernal.9f80ec89-400.webp"
+   "bytes": 38630,
+   "s96": "/art/maps/Infernal.a81c2538-96.webp",
+   "s200": "/art/maps/Infernal.a81c2538-200.webp",
+   "s400": "/art/maps/Infernal.a81c2538-400.webp"
   },
   "KartsNDarts": {
    "source": "MapSelectKartsNDarts",
    "px": 510,
-   "bytes": 43114,
-   "s96": "/art/maps/KartsNDarts.0ebf06e5-96.webp",
-   "s200": "/art/maps/KartsNDarts.0ebf06e5-200.webp",
-   "s400": "/art/maps/KartsNDarts.0ebf06e5-400.webp"
+   "bytes": 42658,
+   "s96": "/art/maps/KartsNDarts.ffeea0f6-96.webp",
+   "s200": "/art/maps/KartsNDarts.ffeea0f6-200.webp",
+   "s400": "/art/maps/KartsNDarts.ffeea0f6-400.webp"
   },
   "LastResort": {
    "source": "MapSelectLastResortMapButton",
    "px": 510,
-   "bytes": 31262,
-   "s96": "/art/maps/LastResort.c3f45a44-96.webp",
-   "s200": "/art/maps/LastResort.c3f45a44-200.webp",
-   "s400": "/art/maps/LastResort.c3f45a44-400.webp"
+   "bytes": 31160,
+   "s96": "/art/maps/LastResort.775baa31-96.webp",
+   "s200": "/art/maps/LastResort.775baa31-200.webp",
+   "s400": "/art/maps/LastResort.775baa31-400.webp"
   },
   "Logs": {
    "source": "MapSelectLogsButton",
    "px": 510,
-   "bytes": 27444,
-   "s96": "/art/maps/Logs.4a70d686-96.webp",
-   "s200": "/art/maps/Logs.4a70d686-200.webp",
-   "s400": "/art/maps/Logs.4a70d686-400.webp"
+   "bytes": 27448,
+   "s96": "/art/maps/Logs.aa6ea0d9-96.webp",
+   "s200": "/art/maps/Logs.aa6ea0d9-200.webp",
+   "s400": "/art/maps/Logs.aa6ea0d9-400.webp"
   },
   "LostCrevasse": {
    "source": "MapSelectLostCrevasseMapButton",
    "px": 510,
-   "bytes": 31648,
-   "s96": "/art/maps/LostCrevasse.3830e136-96.webp",
-   "s200": "/art/maps/LostCrevasse.3830e136-200.webp",
-   "s400": "/art/maps/LostCrevasse.3830e136-400.webp"
+   "bytes": 35914,
+   "s96": "/art/maps/LostCrevasse.89edb4ad-96.webp",
+   "s200": "/art/maps/LostCrevasse.89edb4ad-200.webp",
+   "s400": "/art/maps/LostCrevasse.89edb4ad-400.webp"
   },
   "LotusIsland": {
    "source": "MapSelectLotusIslandButton",
    "px": 510,
-   "bytes": 30802,
-   "s96": "/art/maps/LotusIsland.fdfc3b7a-96.webp",
-   "s200": "/art/maps/LotusIsland.fdfc3b7a-200.webp",
-   "s400": "/art/maps/LotusIsland.fdfc3b7a-400.webp"
+   "bytes": 30804,
+   "s96": "/art/maps/LotusIsland.ad91acf1-96.webp",
+   "s200": "/art/maps/LotusIsland.ad91acf1-200.webp",
+   "s400": "/art/maps/LotusIsland.ad91acf1-400.webp"
   },
   "LuminousCove": {
    "source": "MapSelectLuminousCoveMapButton",
    "px": 510,
-   "bytes": 31672,
-   "s96": "/art/maps/LuminousCove.2cc32744-96.webp",
-   "s200": "/art/maps/LuminousCove.2cc32744-200.webp",
-   "s400": "/art/maps/LuminousCove.2cc32744-400.webp"
+   "bytes": 31790,
+   "s96": "/art/maps/LuminousCove.e633b845-96.webp",
+   "s200": "/art/maps/LuminousCove.e633b845-200.webp",
+   "s400": "/art/maps/LuminousCove.e633b845-400.webp"
   },
   "Mesa": {
    "source": "MapSelectMesaButton",
    "px": 510,
-   "bytes": 33412,
-   "s96": "/art/maps/Mesa.b98ec9ea-96.webp",
-   "s200": "/art/maps/Mesa.b98ec9ea-200.webp",
-   "s400": "/art/maps/Mesa.b98ec9ea-400.webp"
+   "bytes": 33392,
+   "s96": "/art/maps/Mesa.19afe5d4-96.webp",
+   "s200": "/art/maps/Mesa.19afe5d4-200.webp",
+   "s400": "/art/maps/Mesa.19afe5d4-400.webp"
   },
   "MiddleOfTheRoad": {
    "source": "MapSelectMiddleOfTheRoadMapButton",
    "px": 510,
-   "bytes": 28554,
-   "s96": "/art/maps/MiddleOfTheRoad.694d9069-96.webp",
-   "s200": "/art/maps/MiddleOfTheRoad.694d9069-200.webp",
-   "s400": "/art/maps/MiddleOfTheRoad.694d9069-400.webp"
+   "bytes": 28508,
+   "s96": "/art/maps/MiddleOfTheRoad.73655a18-96.webp",
+   "s200": "/art/maps/MiddleOfTheRoad.73655a18-200.webp",
+   "s400": "/art/maps/MiddleOfTheRoad.73655a18-400.webp"
   },
   "MidnightMansion": {
    "source": "MapSelectMidnightMansionMapButton",
    "px": 510,
-   "bytes": 30018,
-   "s96": "/art/maps/MidnightMansion.70e009f3-96.webp",
-   "s200": "/art/maps/MidnightMansion.70e009f3-200.webp",
-   "s400": "/art/maps/MidnightMansion.70e009f3-400.webp"
+   "bytes": 30012,
+   "s96": "/art/maps/MidnightMansion.a8e92e4e-96.webp",
+   "s200": "/art/maps/MidnightMansion.a8e92e4e-200.webp",
+   "s400": "/art/maps/MidnightMansion.a8e92e4e-400.webp"
   },
   "MoonLanding": {
    "source": "MapSelectMoonLandingButton",
    "px": 510,
-   "bytes": 22054,
-   "s96": "/art/maps/MoonLanding.694fb9fd-96.webp",
-   "s200": "/art/maps/MoonLanding.694fb9fd-200.webp",
-   "s400": "/art/maps/MoonLanding.694fb9fd-400.webp"
+   "bytes": 22076,
+   "s96": "/art/maps/MoonLanding.2044c3dc-96.webp",
+   "s200": "/art/maps/MoonLanding.2044c3dc-200.webp",
+   "s400": "/art/maps/MoonLanding.2044c3dc-400.webp"
   },
   "MuddyPuddles": {
    "source": "MapSelectMuddyPuddlesButton",
    "px": 510,
-   "bytes": 15288,
-   "s96": "/art/maps/MuddyPuddles.3f5e5dc8-96.webp",
-   "s200": "/art/maps/MuddyPuddles.3f5e5dc8-200.webp",
-   "s400": "/art/maps/MuddyPuddles.3f5e5dc8-400.webp"
+   "bytes": 15252,
+   "s96": "/art/maps/MuddyPuddles.bbd3bb07-96.webp",
+   "s200": "/art/maps/MuddyPuddles.bbd3bb07-200.webp",
+   "s400": "/art/maps/MuddyPuddles.bbd3bb07-400.webp"
   },
   "MushroomGrotto": {
    "source": "MapSelectMushroomGrottoButton",
    "px": 510,
-   "bytes": 21090,
-   "s96": "/art/maps/MushroomGrotto.5a5569ad-96.webp",
-   "s200": "/art/maps/MushroomGrotto.5a5569ad-200.webp",
-   "s400": "/art/maps/MushroomGrotto.5a5569ad-400.webp"
+   "bytes": 21094,
+   "s96": "/art/maps/MushroomGrotto.11ac20d3-96.webp",
+   "s200": "/art/maps/MushroomGrotto.11ac20d3-200.webp",
+   "s400": "/art/maps/MushroomGrotto.11ac20d3-400.webp"
   },
   "OffTheCoast": {
    "source": "MapSelectOffTheCoastButton",
    "px": 510,
-   "bytes": 23658,
-   "s96": "/art/maps/OffTheCoast.03eb7458-96.webp",
-   "s200": "/art/maps/OffTheCoast.03eb7458-200.webp",
-   "s400": "/art/maps/OffTheCoast.03eb7458-400.webp"
+   "bytes": 23620,
+   "s96": "/art/maps/OffTheCoast.15db48b4-96.webp",
+   "s200": "/art/maps/OffTheCoast.15db48b4-200.webp",
+   "s400": "/art/maps/OffTheCoast.15db48b4-400.webp"
   },
   "OneTwoTree": {
    "source": "MapSelectOneTwoTreeButton",
    "px": 510,
-   "bytes": 57756,
-   "s96": "/art/maps/OneTwoTree.bdcf2006-96.webp",
-   "s200": "/art/maps/OneTwoTree.bdcf2006-200.webp",
-   "s400": "/art/maps/OneTwoTree.bdcf2006-400.webp"
+   "bytes": 57806,
+   "s96": "/art/maps/OneTwoTree.3d26e740-96.webp",
+   "s200": "/art/maps/OneTwoTree.3d26e740-200.webp",
+   "s400": "/art/maps/OneTwoTree.3d26e740-400.webp"
   },
   "ParkPath": {
    "source": "MapSelectParkPathButton",
    "px": 510,
-   "bytes": 42316,
-   "s96": "/art/maps/ParkPath.c7a2ef29-96.webp",
-   "s200": "/art/maps/ParkPath.c7a2ef29-200.webp",
-   "s400": "/art/maps/ParkPath.c7a2ef29-400.webp"
+   "bytes": 42284,
+   "s96": "/art/maps/ParkPath.18426270-96.webp",
+   "s200": "/art/maps/ParkPath.18426270-200.webp",
+   "s400": "/art/maps/ParkPath.18426270-400.webp"
   },
   "PartyParade": {
    "source": "MapSelectPartyParadeButton",
    "px": 510,
-   "bytes": 57214,
-   "s96": "/art/maps/PartyParade.b7bf1ae8-96.webp",
-   "s200": "/art/maps/PartyParade.b7bf1ae8-200.webp",
-   "s400": "/art/maps/PartyParade.b7bf1ae8-400.webp"
+   "bytes": 57190,
+   "s96": "/art/maps/PartyParade.b4800bd3-96.webp",
+   "s200": "/art/maps/PartyParade.b4800bd3-200.webp",
+   "s400": "/art/maps/PartyParade.b4800bd3-400.webp"
   },
   "PatsPond": {
    "source": "MapSelectPatsPondButton",
    "px": 510,
-   "bytes": 39136,
-   "s96": "/art/maps/PatsPond.3b91ff9c-96.webp",
-   "s200": "/art/maps/PatsPond.3b91ff9c-200.webp",
-   "s400": "/art/maps/PatsPond.3b91ff9c-400.webp"
+   "bytes": 39120,
+   "s96": "/art/maps/PatsPond.57c182c8-96.webp",
+   "s200": "/art/maps/PatsPond.57c182c8-200.webp",
+   "s400": "/art/maps/PatsPond.57c182c8-400.webp"
   },
   "Peninsula": {
    "source": "MapSelectPeninsulaButton",
    "px": 510,
-   "bytes": 17874,
-   "s96": "/art/maps/Peninsula.f5467bdc-96.webp",
-   "s200": "/art/maps/Peninsula.f5467bdc-200.webp",
-   "s400": "/art/maps/Peninsula.f5467bdc-400.webp"
+   "bytes": 17872,
+   "s96": "/art/maps/Peninsula.17fcac03-96.webp",
+   "s200": "/art/maps/Peninsula.17fcac03-200.webp",
+   "s400": "/art/maps/Peninsula.17fcac03-400.webp"
   },
   "Polyphemus": {
    "source": "MapSelectPolyphemusMapButton",
    "px": 510,
-   "bytes": 39224,
-   "s96": "/art/maps/Polyphemus.9954db64-96.webp",
-   "s200": "/art/maps/Polyphemus.9954db64-200.webp",
-   "s400": "/art/maps/Polyphemus.9954db64-400.webp"
+   "bytes": 39226,
+   "s96": "/art/maps/Polyphemus.230b6667-96.webp",
+   "s200": "/art/maps/Polyphemus.230b6667-200.webp",
+   "s400": "/art/maps/Polyphemus.230b6667-400.webp"
   },
   "ProtectTheYacht": {
    "source": "MapSelectProtectTheYachtMapButton",
    "px": 510,
-   "bytes": 26870,
-   "s96": "/art/maps/ProtectTheYacht.b6595ea6-96.webp",
-   "s200": "/art/maps/ProtectTheYacht.b6595ea6-200.webp",
-   "s400": "/art/maps/ProtectTheYacht.b6595ea6-400.webp"
+   "bytes": 26958,
+   "s96": "/art/maps/ProtectTheYacht.26560e91-96.webp",
+   "s200": "/art/maps/ProtectTheYacht.26560e91-200.webp",
+   "s400": "/art/maps/ProtectTheYacht.26560e91-400.webp"
   },
   "Quad": {
    "source": "MapSelectQuadButton",
    "px": 510,
-   "bytes": 45712,
-   "s96": "/art/maps/Quad.9e2ca860-96.webp",
-   "s200": "/art/maps/Quad.9e2ca860-200.webp",
-   "s400": "/art/maps/Quad.9e2ca860-400.webp"
+   "bytes": 45462,
+   "s96": "/art/maps/Quad.d26bda2d-96.webp",
+   "s200": "/art/maps/Quad.d26bda2d-200.webp",
+   "s400": "/art/maps/Quad.d26bda2d-400.webp"
   },
   "Quarry": {
    "source": "MapSelectQuarryMapButton",
    "px": 510,
-   "bytes": 24134,
-   "s96": "/art/maps/Quarry.01d0a162-96.webp",
-   "s200": "/art/maps/Quarry.01d0a162-200.webp",
-   "s400": "/art/maps/Quarry.01d0a162-400.webp"
+   "bytes": 24170,
+   "s96": "/art/maps/Quarry.6b63539c-96.webp",
+   "s200": "/art/maps/Quarry.6b63539c-200.webp",
+   "s400": "/art/maps/Quarry.6b63539c-400.webp"
   },
   "QuietStreet": {
    "source": "MapSelectQuietSteetMapButton",
    "px": 510,
-   "bytes": 34654,
-   "s96": "/art/maps/QuietStreet.5f0a3c91-96.webp",
-   "s200": "/art/maps/QuietStreet.5f0a3c91-200.webp",
-   "s400": "/art/maps/QuietStreet.5f0a3c91-400.webp"
+   "bytes": 34672,
+   "s96": "/art/maps/QuietStreet.1d19299e-96.webp",
+   "s200": "/art/maps/QuietStreet.1d19299e-200.webp",
+   "s400": "/art/maps/QuietStreet.1d19299e-400.webp"
   },
   "Rake": {
    "source": "MapSelectRakeButton",
@@ -1770,106 +1771,114 @@
   "Ravine": {
    "source": "MapSelectRavineButton",
    "px": 510,
-   "bytes": 30702,
-   "s96": "/art/maps/Ravine.ad005200-96.webp",
-   "s200": "/art/maps/Ravine.ad005200-200.webp",
-   "s400": "/art/maps/Ravine.ad005200-400.webp"
+   "bytes": 30716,
+   "s96": "/art/maps/Ravine.0a7526cf-96.webp",
+   "s200": "/art/maps/Ravine.0a7526cf-200.webp",
+   "s400": "/art/maps/Ravine.0a7526cf-400.webp"
   },
   "Resort": {
    "source": "MapSelectResortMapButton",
    "px": 510,
-   "bytes": 24820,
-   "s96": "/art/maps/Resort.e97a9368-96.webp",
-   "s200": "/art/maps/Resort.e97a9368-200.webp",
-   "s400": "/art/maps/Resort.e97a9368-400.webp"
+   "bytes": 24836,
+   "s96": "/art/maps/Resort.c1844b27-96.webp",
+   "s200": "/art/maps/Resort.c1844b27-200.webp",
+   "s400": "/art/maps/Resort.c1844b27-400.webp"
   },
   "Sanctuary": {
    "source": "MapSelectSanctuaryMapButton",
    "px": 510,
-   "bytes": 31442,
-   "s96": "/art/maps/Sanctuary.d5cbd6d4-96.webp",
-   "s200": "/art/maps/Sanctuary.d5cbd6d4-200.webp",
-   "s400": "/art/maps/Sanctuary.d5cbd6d4-400.webp"
+   "bytes": 31384,
+   "s96": "/art/maps/Sanctuary.90be4025-96.webp",
+   "s200": "/art/maps/Sanctuary.90be4025-200.webp",
+   "s400": "/art/maps/Sanctuary.90be4025-400.webp"
   },
   "Scrapyard": {
    "source": "MapSelectScrapyardMapButton",
    "px": 510,
-   "bytes": 36100,
-   "s96": "/art/maps/Scrapyard.867217e9-96.webp",
-   "s200": "/art/maps/Scrapyard.867217e9-200.webp",
-   "s400": "/art/maps/Scrapyard.867217e9-400.webp"
+   "bytes": 36056,
+   "s96": "/art/maps/Scrapyard.b3af2f08-96.webp",
+   "s200": "/art/maps/Scrapyard.b3af2f08-200.webp",
+   "s400": "/art/maps/Scrapyard.b3af2f08-400.webp"
+  },
+  "ShipCapture": {
+   "source": "MapSelectShipCaptureButton",
+   "px": 510,
+   "bytes": 44298,
+   "s96": "/art/maps/ShipCapture.cc6ad916-96.webp",
+   "s200": "/art/maps/ShipCapture.cc6ad916-200.webp",
+   "s400": "/art/maps/ShipCapture.cc6ad916-400.webp"
   },
   "Skates": {
    "source": "MapSelectSkatesButton",
    "px": 510,
-   "bytes": 48924,
-   "s96": "/art/maps/Skates.f81aeaa2-96.webp",
-   "s200": "/art/maps/Skates.f81aeaa2-200.webp",
-   "s400": "/art/maps/Skates.f81aeaa2-400.webp"
+   "bytes": 48806,
+   "s96": "/art/maps/Skates.9f0edc40-96.webp",
+   "s200": "/art/maps/Skates.9f0edc40-200.webp",
+   "s400": "/art/maps/Skates.9f0edc40-400.webp"
   },
   "SkullTweak": {
    "source": "MapSelectSkullPeakButton",
    "px": 510,
-   "bytes": 33306,
-   "s96": "/art/maps/SkullTweak.a7f8dad8-96.webp",
-   "s200": "/art/maps/SkullTweak.a7f8dad8-200.webp",
-   "s400": "/art/maps/SkullTweak.a7f8dad8-400.webp"
+   "bytes": 33284,
+   "s96": "/art/maps/SkullTweak.b59431c9-96.webp",
+   "s200": "/art/maps/SkullTweak.b59431c9-200.webp",
+   "s400": "/art/maps/SkullTweak.b59431c9-400.webp"
   },
   "SpaPits": {
    "source": "MapSelectSpaPitsButton",
    "px": 510,
-   "bytes": 39180,
-   "s96": "/art/maps/SpaPits.2a58a434-96.webp",
-   "s200": "/art/maps/SpaPits.2a58a434-200.webp",
-   "s400": "/art/maps/SpaPits.2a58a434-400.webp"
+   "bytes": 39494,
+   "s96": "/art/maps/SpaPits.401303d6-96.webp",
+   "s200": "/art/maps/SpaPits.401303d6-200.webp",
+   "s400": "/art/maps/SpaPits.401303d6-400.webp"
   },
   "SpiceIslands": {
    "source": "MapSelectSpiceIslandsButton",
    "px": 510,
-   "bytes": 17424,
-   "s96": "/art/maps/SpiceIslands.4606c3fa-96.webp",
-   "s200": "/art/maps/SpiceIslands.4606c3fa-200.webp",
-   "s400": "/art/maps/SpiceIslands.4606c3fa-400.webp"
+   "bytes": 17434,
+   "s96": "/art/maps/SpiceIslands.f7e0a2ea-96.webp",
+   "s200": "/art/maps/SpiceIslands.f7e0a2ea-200.webp",
+   "s400": "/art/maps/SpiceIslands.f7e0a2ea-400.webp"
   },
   "Spillway": {
    "source": "MapSelectSpillwayButton",
    "px": 510,
-   "bytes": 35962,
-   "s96": "/art/maps/Spillway.2892dd64-96.webp",
-   "s200": "/art/maps/Spillway.2892dd64-200.webp",
-   "s400": "/art/maps/Spillway.2892dd64-400.webp"
+   "bytes": 35936,
+   "s96": "/art/maps/Spillway.337374b1-96.webp",
+   "s200": "/art/maps/Spillway.337374b1-200.webp",
+   "s400": "/art/maps/Spillway.337374b1-400.webp"
   },
   "SpringSpring": {
    "source": "MapSelectSpringSpringButton",
    "px": 510,
-   "bytes": 35098,
-   "s96": "/art/maps/SpringSpring.4706f0d0-96.webp",
-   "s200": "/art/maps/SpringSpring.4706f0d0-200.webp",
-   "s400": "/art/maps/SpringSpring.4706f0d0-400.webp"
+   "bytes": 35154,
+   "s96": "/art/maps/SpringSpring.51ad4362-96.webp",
+   "s200": "/art/maps/SpringSpring.51ad4362-200.webp",
+   "s400": "/art/maps/SpringSpring.51ad4362-400.webp"
   },
   "Streambed": {
    "source": "MapSelectStreambedButton",
    "px": 510,
-   "bytes": 38194,
-   "s96": "/art/maps/Streambed.dad77463-96.webp",
-   "s200": "/art/maps/Streambed.dad77463-200.webp",
-   "s400": "/art/maps/Streambed.dad77463-400.webp"
+   "bytes": 38260,
+   "s96": "/art/maps/Streambed.08147b16-96.webp",
+   "s200": "/art/maps/Streambed.08147b16-200.webp",
+   "s400": "/art/maps/Streambed.08147b16-400.webp"
   },
   "SulfurSprings": {
    "source": "MapSelectSulfurSpringsButton",
    "px": 510,
-   "bytes": 39380,
-   "s96": "/art/maps/SulfurSprings.0616441e-96.webp",
-   "s200": "/art/maps/SulfurSprings.0616441e-200.webp",
-   "s400": "/art/maps/SulfurSprings.0616441e-400.webp"
+   "bytes": 39526,
+   "s96": "/art/maps/SulfurSprings.461def99-96.webp",
+   "s200": "/art/maps/SulfurSprings.461def99-200.webp",
+   "s400": "/art/maps/SulfurSprings.461def99-400.webp"
   },
   "SunkenColumns": {
    "source": "MapSelectSunkenColumnsMapButton",
    "px": 510,
-   "bytes": 20710,
-   "s96": "/art/maps/SunkenColumns.b6e0c1db-96.webp",
-   "s200": "/art/maps/SunkenColumns.b6e0c1db-200.webp",
-   "s400": "/art/maps/SunkenColumns.b6e0c1db-400.webp"
+   "bytes": 20738,
+   "s96": "/art/maps/SunkenColumns.2ef43a0c-96.webp",
+   "s200": "/art/maps/SunkenColumns.2ef43a0c-200.webp",
+   "s400": "/art/maps/SunkenColumns.2ef43a0c-400.webp"
   },
   "SunsetGulch": {
    "source": "MapSelectSunsetGulchMapButton",
@@ -1882,98 +1891,98 @@
   "TheCabin": {
    "source": "MapSelectTheCabinMapButton",
    "px": 510,
-   "bytes": 17906,
-   "s96": "/art/maps/TheCabin.6ae993c4-96.webp",
-   "s200": "/art/maps/TheCabin.6ae993c4-200.webp",
-   "s400": "/art/maps/TheCabin.6ae993c4-400.webp"
+   "bytes": 17912,
+   "s96": "/art/maps/TheCabin.289fda30-96.webp",
+   "s200": "/art/maps/TheCabin.289fda30-200.webp",
+   "s400": "/art/maps/TheCabin.289fda30-400.webp"
   },
   "ThreeMinesAround": {
    "source": "MapSelectThreeMinesAroundMapButton",
    "px": 510,
-   "bytes": 26204,
-   "s96": "/art/maps/ThreeMinesAround.5f508e65-96.webp",
-   "s200": "/art/maps/ThreeMinesAround.5f508e65-200.webp",
-   "s400": "/art/maps/ThreeMinesAround.5f508e65-400.webp"
+   "bytes": 26170,
+   "s96": "/art/maps/ThreeMinesAround.194f30ab-96.webp",
+   "s200": "/art/maps/ThreeMinesAround.194f30ab-200.webp",
+   "s400": "/art/maps/ThreeMinesAround.194f30ab-400.webp"
   },
   "Tinkerton": {
    "source": "MapSelectTinkertonMapButton",
    "px": 510,
-   "bytes": 39174,
-   "s96": "/art/maps/Tinkerton.65d82298-96.webp",
-   "s200": "/art/maps/Tinkerton.65d82298-200.webp",
-   "s400": "/art/maps/Tinkerton.65d82298-400.webp"
+   "bytes": 39204,
+   "s96": "/art/maps/Tinkerton.87e956f1-96.webp",
+   "s200": "/art/maps/Tinkerton.87e956f1-200.webp",
+   "s400": "/art/maps/Tinkerton.87e956f1-400.webp"
   },
   "TownCentre": {
    "source": "MapSelectTownCentreButton",
    "px": 510,
-   "bytes": 46074,
-   "s96": "/art/maps/TownCentre.bda3f1fb-96.webp",
-   "s200": "/art/maps/TownCentre.bda3f1fb-200.webp",
-   "s400": "/art/maps/TownCentre.bda3f1fb-400.webp"
+   "bytes": 46110,
+   "s96": "/art/maps/TownCentre.04e85269-96.webp",
+   "s200": "/art/maps/TownCentre.04e85269-200.webp",
+   "s400": "/art/maps/TownCentre.04e85269-400.webp"
   },
   "TreeStump": {
    "source": "MapSelectTreeStumpButton",
    "px": 510,
-   "bytes": 51304,
-   "s96": "/art/maps/TreeStump.bbfaba46-96.webp",
-   "s200": "/art/maps/TreeStump.bbfaba46-200.webp",
-   "s400": "/art/maps/TreeStump.bbfaba46-400.webp"
+   "bytes": 51308,
+   "s96": "/art/maps/TreeStump.b3d35aa0-96.webp",
+   "s200": "/art/maps/TreeStump.b3d35aa0-200.webp",
+   "s400": "/art/maps/TreeStump.b3d35aa0-400.webp"
   },
   "TrickyTracks": {
    "source": "MapSelectTrickyTracksButton",
    "px": 510,
-   "bytes": 55578,
-   "s96": "/art/maps/TrickyTracks.3ec35aad-96.webp",
-   "s200": "/art/maps/TrickyTracks.3ec35aad-200.webp",
-   "s400": "/art/maps/TrickyTracks.3ec35aad-400.webp"
+   "bytes": 55562,
+   "s96": "/art/maps/TrickyTracks.e05ac69a-96.webp",
+   "s200": "/art/maps/TrickyTracks.e05ac69a-200.webp",
+   "s400": "/art/maps/TrickyTracks.e05ac69a-400.webp"
   },
   "Tutorial": {
    "source": "MapSelectMonkeyMeadowButton",
    "px": 510,
-   "bytes": 36220,
-   "s96": "/art/maps/Tutorial.59c67544-96.webp",
-   "s200": "/art/maps/Tutorial.59c67544-200.webp",
-   "s400": "/art/maps/Tutorial.59c67544-400.webp"
+   "bytes": 36232,
+   "s96": "/art/maps/Tutorial.c54328f6-96.webp",
+   "s200": "/art/maps/Tutorial.c54328f6-200.webp",
+   "s400": "/art/maps/Tutorial.c54328f6-400.webp"
   },
   "Underground": {
    "source": "MapSelectUndergroundButton",
    "px": 510,
-   "bytes": 27826,
-   "s96": "/art/maps/Underground.af690685-96.webp",
-   "s200": "/art/maps/Underground.af690685-200.webp",
-   "s400": "/art/maps/Underground.af690685-400.webp"
+   "bytes": 27798,
+   "s96": "/art/maps/Underground.bcbdef2b-96.webp",
+   "s200": "/art/maps/Underground.bcbdef2b-200.webp",
+   "s400": "/art/maps/Underground.bcbdef2b-400.webp"
   },
   "WaterPark": {
    "source": "MapSelectWaterparkMapButton",
    "px": 510,
-   "bytes": 43014,
-   "s96": "/art/maps/WaterPark.b775e4d0-96.webp",
-   "s200": "/art/maps/WaterPark.b775e4d0-200.webp",
-   "s400": "/art/maps/WaterPark.b775e4d0-400.webp"
+   "bytes": 42832,
+   "s96": "/art/maps/WaterPark.f9bf5579-96.webp",
+   "s200": "/art/maps/WaterPark.f9bf5579-200.webp",
+   "s400": "/art/maps/WaterPark.f9bf5579-400.webp"
   },
   "WinterPark": {
    "source": "MapSelectWinterPark",
    "px": 510,
-   "bytes": 29886,
-   "s96": "/art/maps/WinterPark.a1d3bd61-96.webp",
-   "s200": "/art/maps/WinterPark.a1d3bd61-200.webp",
-   "s400": "/art/maps/WinterPark.a1d3bd61-400.webp"
+   "bytes": 29852,
+   "s96": "/art/maps/WinterPark.65399562-96.webp",
+   "s200": "/art/maps/WinterPark.65399562-200.webp",
+   "s400": "/art/maps/WinterPark.65399562-400.webp"
   },
   "Workshop": {
    "source": "MapSelectWorkshopButton",
    "px": 510,
-   "bytes": 34960,
-   "s96": "/art/maps/Workshop.903af63b-96.webp",
-   "s200": "/art/maps/Workshop.903af63b-200.webp",
-   "s400": "/art/maps/Workshop.903af63b-400.webp"
+   "bytes": 34954,
+   "s96": "/art/maps/Workshop.7f164e3f-96.webp",
+   "s200": "/art/maps/Workshop.7f164e3f-200.webp",
+   "s400": "/art/maps/Workshop.7f164e3f-400.webp"
   },
   "XFactor": {
    "source": "MapSelectXFactorButton",
    "px": 510,
-   "bytes": 35886,
-   "s96": "/art/maps/XFactor.cdbc17fc-96.webp",
-   "s200": "/art/maps/XFactor.cdbc17fc-200.webp",
-   "s400": "/art/maps/XFactor.cdbc17fc-400.webp"
+   "bytes": 35888,
+   "s96": "/art/maps/XFactor.e9c1f81b-96.webp",
+   "s200": "/art/maps/XFactor.e9c1f81b-200.webp",
+   "s400": "/art/maps/XFactor.e9c1f81b-400.webp"
   }
  }
 }
