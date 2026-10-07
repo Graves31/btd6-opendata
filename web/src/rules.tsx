@@ -191,43 +191,58 @@ export function Roster(p: { family: "tower" | "hero" | "power"; cells: Cell[]; l
   );
 }
 
-// "Hide banned towers": one preference for every roster on the page, remembered on this device.
+// Banned filter: all / hide banned / only banned. One preference for every roster on the page, remembered on
+// this device ("1" = hide, "2" = only, as stored by the old two-state toggle).
+type BanView = "all" | "hide" | "only";
 const HIDE_KEY = "btd6od.hideBanned";
-const hideListeners = new Set<(v: boolean) => void>();
-function readHide(): boolean {
+const hideListeners = new Set<(v: BanView) => void>();
+function readBanView(): BanView {
   try {
-    return localStorage.getItem(HIDE_KEY) === "1";
+    const v = localStorage.getItem(HIDE_KEY);
+    return v === "1" ? "hide" : v === "2" ? "only" : "all";
   } catch {
-    return false;
+    return "all";
   }
 }
-let hideBanned = typeof window !== "undefined" ? readHide() : false;
-function setHideBanned(v: boolean): void {
-  hideBanned = v;
+let banView: BanView = typeof window !== "undefined" ? readBanView() : "all";
+function setBanView(v: BanView): void {
+  banView = v;
   try {
-    localStorage.setItem(HIDE_KEY, v ? "1" : "0");
+    localStorage.setItem(HIDE_KEY, v === "hide" ? "1" : v === "only" ? "2" : "0");
   } catch {
     // private mode / blocked storage: the choice lasts for this visit only
   }
   for (const fn of hideListeners) fn(v);
 }
-function useHideBanned(): boolean {
-  const [v, set] = useState(hideBanned);
+function useBanView(): BanView {
+  const [v, set] = useState(banView);
   useEffect(() => {
     hideListeners.add(set);
     return () => void hideListeners.delete(set);
   }, []);
   return v;
 }
+/** The cells the banned filter leaves on screen. */
+function byBan<T extends { max: number }>(v: BanView, cells: T[]): T[] {
+  return v === "all" ? cells : cells.filter((c) => (c.max === 0) === (v === "only"));
+}
 
-/** One "Hide banned" switch for a rules block: hides banned heroes, towers and powers together. */
+const BAN_VIEWS: [BanView, string][] = [
+  ["all", "All"],
+  ["hide", "Hide banned"],
+  ["only", "Only banned"],
+];
+/** One banned filter for a rules block (heroes, towers and powers together): All · Hide banned · Only banned. */
 export function HideBannedToggle() {
-  const hide = useHideBanned();
+  const v = useBanView();
   return (
-    <label class="hideban">
-      <input type="checkbox" checked={hide} onChange={(e) => setHideBanned((e.currentTarget as HTMLInputElement).checked)} />
-      Hide banned
-    </label>
+    <span class="hideban" role="group" aria-label="Banned">
+      {BAN_VIEWS.map(([k, t]) => (
+        <button key={k} type="button" class={v === k ? "on" : undefined} aria-pressed={v === k} onClick={() => setBanView(k)}>
+          {t}
+        </button>
+      ))}
+    </span>
   );
 }
 
@@ -246,7 +261,7 @@ export function hasBans(towers: TowerRestriction[] | null | undefined, powers: P
 
 /** Tower roster for a ruleset: every tower in game order; absent from the list = not available. */
 export function TowerRoster(p: { towers: TowerRestriction[]; label?: string }) {
-  const hide = useHideBanned();
+  const ban = useBanView();
   const by = new Map(p.towers.filter((t) => !t.isHero).map((t) => [t.tower as string, t]));
   const cells: Cell[] = inOrder(TOWER_ORDER, by.keys()).map((id) => {
     const t = by.get(id);
@@ -265,7 +280,7 @@ export function TowerRoster(p: { towers: TowerRestriction[]; label?: string }) {
           {banned === 0 && !limit && !capped.length ? "Every tower, no limits" : sum}{banned > 0 && " · greyed out = banned"}
         </span>
       </p>
-      <Roster family="tower" cells={hide ? allowed : cells} label={p.label ?? "Towers"} />
+      <Roster family="tower" cells={byBan(ban, cells)} label={p.label ?? "Towers"} />
     </div>
   );
 }
@@ -280,7 +295,7 @@ const HeroRuleIcon = (p: { k: "AnyHero" | "NoHero" }) =>
 
 /** The hero rule: your selected hero / a forced hero / a restricted roster / no heroes. */
 export function HeroRule(p: { towers: TowerRestriction[]; roster?: boolean }) {
-  const hide = useHideBanned();
+  const ban = useBanView();
   const listed = p.towers.filter((t) => t.isHero && t.tower !== "ChosenPrimaryHero");
   // `roster`: the list only names what's available (odyssey); every other hero is unavailable.
   const heroes = p.roster
@@ -328,9 +343,10 @@ export function HeroRule(p: { towers: TowerRestriction[]; roster?: boolean }) {
       <Roster
         family="hero"
         label="Heroes"
-        cells={inOrder(HERO_ORDER, by.keys())
-          .map((id) => ({ id, max: by.get(id)?.max ?? 0 }))
-          .filter((c) => !hide || c.max !== 0)}
+        cells={byBan(
+          ban,
+          inOrder(HERO_ORDER, by.keys()).map((id) => ({ id, max: by.get(id)?.max ?? 0 })),
+        )}
       />
     );
   }
@@ -350,7 +366,7 @@ export function HeroRule(p: { towers: TowerRestriction[]; roster?: boolean }) {
  */
 export function PowerGrid(p: { powers: PowerRestriction[]; all?: boolean; label?: string }) {
   const label = p.label ?? "Powers";
-  const hide = useHideBanned();
+  const ban = useBanView();
   const allowed = p.powers.filter((x) => x.max !== 0);
   return (
     <div class="rgroup">
@@ -360,7 +376,7 @@ export function PowerGrid(p: { powers: PowerRestriction[]; all?: boolean; label?
           {!p.powers.length ? "No restrictions" : allowed.length === p.powers.length ? "All allowed" : `${allowed.length} of ${p.powers.length} allowed · greyed out = banned`}
         </span>
       </p>
-      {p.powers.length > 0 && <Roster family="power" label={label} small cells={(hide ? allowed : p.powers).map((x) => ({ id: x.power, max: x.max }))} />}
+      {p.powers.length > 0 && <Roster family="power" label={label} small cells={byBan(ban, p.powers).map((x) => ({ id: x.power, max: x.max }))} />}
     </div>
   );
 }

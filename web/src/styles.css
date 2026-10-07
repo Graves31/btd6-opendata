@@ -3034,23 +3034,32 @@ button.fd-tile:hover {
   display: none;
 }
 
-/* "Hide banned" toggle on tower rosters. */
+/* Banned filter on rules blocks: All · Hide banned · Only banned (one segmented control). */
 .hideban {
   display: inline-flex;
-  align-items: center;
-  gap: 6px;
   margin-left: auto;
-  font-size: 13px;
-  color: var(--ink-2);
-  cursor: pointer;
-  user-select: none;
-  min-height: 24px;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+  overflow: hidden;
 }
-.hideban input {
-  width: 16px;
-  height: 16px;
-  margin: 0;
-  accent-color: var(--accent);
+.hideban button {
+  min-height: 32px;
+  padding: 6px 10px;
+  font: 700 13px/1 var(--f-body);
+  color: var(--ink-2);
+  background: var(--s1);
+  border: 0;
+  cursor: pointer;
+}
+.hideban button + button {
+  border-left: 1px solid var(--rule-2);
+}
+.hideban button:hover {
+  background: var(--s2);
+}
+.hideban button.on {
+  color: var(--on-accent);
+  background: var(--accent);
 }
 .std-rules {
   margin-top: 4px;
