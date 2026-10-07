@@ -107,7 +107,7 @@ export interface RoundsRoute {
 /**
  * Tools → Paragon degree calculator (/tools/paragon). The URL is the whole state (short keys, defaults left out):
  * p tower slug, d e/m/h/i, co=1, c cash, s slider, po pops, in income, t tiers, x extra tier 5s, to totems,
- * tg target degree, b=1 Paragon Boost. Invalid values are ignored, too-large ones clamped (the page clamps further).
+ * tg target degree, b=1 Paragon Boost, nt=1 never suggest totems (no Geraldo). Invalid values are ignored, too-large ones clamped (the page clamps further).
  * adv=1 (the old Advanced fold) is still parsed for old links but never written.
  */
 export interface ParagonRoute {
@@ -126,6 +126,8 @@ export interface ParagonRoute {
   target?: number;
   /** Paragon Boost (+25 degrees on the game's first paragon) */
   boost: boolean;
+  /** never suggest power totems (the player has no Geraldo) */
+  noTotems: boolean;
   /** old links: the Advanced fold was open (no longer used or written) */
   adv: boolean;
   /** the URL named a tower or difficulty (else the page may preselect the last one used) */
@@ -357,6 +359,7 @@ function parseParagon(q: URLSearchParams): ParagonRoute {
     extraT5: clampInt(q.get("x"), PG_MAX.extraT5),
     totems: clampInt(q.get("to"), PG_MAX.totems),
     boost: q.get("b") === "1",
+    noTotems: q.get("nt") === "1",
     adv: q.get("adv") === "1",
     picked: !!tower || !!diff,
   };
@@ -453,6 +456,7 @@ export const href = {
       to: s.totems || undefined,
       tg: s.target,
       b: s.boost ? 1 : undefined,
+      nt: s.noTotems ? 1 : undefined,
     })}`,
 };
 

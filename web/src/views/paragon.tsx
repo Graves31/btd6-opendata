@@ -307,6 +307,11 @@ function Picker(props: { s: ParagonRoute; go: (p: Patch) => void }) {
           </button>
           <span class="pg-hint">+{REF.boostDegrees} degrees on the game's first paragon</span>
         </div>
+        <label class="pg-tog pg-check">
+          <input type="checkbox" checked={s.noTotems} onChange={() => go({ noTotems: !s.noTotems })} />
+          No Geraldo totems
+          <span class="pg-hint">never suggest power totems</span>
+        </label>
       </div>
     </section>
   );
@@ -318,7 +323,7 @@ function TargetPanel(p: { s: ParagonRoute; input: ParagonInput; res: ParagonResu
   const { res, target, go } = p;
   const explicit = p.s.target !== undefined;
   const need = powerForDegree(target, p.s.boost);
-  const ways = res.degree < 100 && target > res.degree ? waysTo(p.input, need) : [];
+  const ways = res.degree < 100 && target > res.degree ? waysTo(p.input, need, p.s.noTotems) : [];
   const [best, ...others] = ways;
   const step = (n: number) => go({ target: Math.min(100, Math.max(2, n)) });
   let answer: ComponentChildren;
@@ -336,7 +341,7 @@ function TargetPanel(p: { s: ParagonRoute; input: ParagonInput; res: ParagonResu
       <>
         <p class="pg-ans-t">No single change gets there</p>
         <p class="pg-ans-s">
-          Degree {target} needs {fmtInt(need)} power. Combine several inputs, or add totems.
+          Degree {target} needs {fmtInt(need)} power. Combine several inputs{p.s.noTotems ? "" : ", or add totems"}.
         </p>
       </>
     );

@@ -6604,6 +6604,16 @@ h1.title.ti .ev-icon {
   gap: 6px 12px;
   min-width: 0;
 }
+.pg-check {
+  font-weight: 600;
+  cursor: pointer;
+}
+.pg-check input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--accent);
+}
 
 /* panels: grey top border = something you type, yellow = an answer (as the result card) */
 .pg-panel {
@@ -6665,6 +6675,21 @@ h1.title.ti .ev-icon {
     position: sticky;
     top: 72px;
     margin-top: 0;
+  }
+  /* The target answer changes height with every input; below the inputs it never moves what you type in. */
+  .pg-main {
+    display: flex;
+    flex-direction: column;
+  }
+  .pg-main .pg-target-p {
+    order: 1;
+    margin-top: 16px;
+  }
+  .pg-main .pg-in {
+    margin-top: 0;
+  }
+  .pg-ans {
+    min-height: 200px;
   }
 }
 

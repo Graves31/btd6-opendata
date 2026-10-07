@@ -85,6 +85,7 @@ describe("paragon maths", () => {
     }
     const low = waysTo(zero, reqs[40]);
     assert.ok(low.some((w) => w.key === "totems"));
+    assert.ok(!waysTo(zero, reqs[40], true).some((w) => w.key === "totems"));
     assert.equal(low.some((w) => w.key === "tiers"), reqs[40] <= D.maxPowerFromNonTier5Count);
   });
   it("Paragon Boost adds its degrees after the power, capped at 100", () => {

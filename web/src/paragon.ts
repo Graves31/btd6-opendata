@@ -189,14 +189,14 @@ export interface Way {
   add: number;
 }
 
-/** For each single input, the minimum addition that alone reaches the target power; skips full or capped-out buckets (order: cash, totems, t5, tiers, pops). */
-export function waysTo(i: ParagonInput, target: number): Way[] {
+/** For each single input, the minimum addition that alone reaches the target power; skips full or capped-out buckets (order: cash, totems, t5, tiers, pops), and totems when `noTotems`. */
+export function waysTo(i: ParagonInput, target: number, noTotems = false): Way[] {
   const base = evaluate(i);
   if (base.power >= target) return [];
   const ways: Way[] = [];
   for (const key of WAY_ORDER) {
     const b = base.buckets.find((x) => x.key === key)!;
-    if (b.full) continue;
+    if (b.full || (noTotems && key === "totems")) continue;
     const need = target - (base.power - b.power); // power this bucket must supply
     if (b.cap !== null && need > b.cap) continue;
     const apply = (add: number): ParagonInput => {
