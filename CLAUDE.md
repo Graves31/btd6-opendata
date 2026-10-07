@@ -22,7 +22,7 @@ architecture; this file is how to work on it.
 - Generated from the owner's game install (`C:\Program Files (x86)\Steam\steamapps\common\BloonsTD6`) by
   `npm run art` (venv `.venv-art`): `web/src/art/*` sprite sheets, `web/public/art/maps`, `web/src/data/names.ts`
   (map/ability/relic names), `web/src/data/rounds/*` (54 round sets), `web/src/data/paragons.json` (`build_paragons.py`; v56.3 frozen in
-  `paragons-56.json` for the old/new toggle). `scripts/build_og.py` → `web/public/og.jpg`. `node scripts/boss_history.ts` → `web/src/data/bossHistory.ts`
+  `paragons-56.json` for the old/new toggle). `scripts/build_og.py` → `web/public/og.jpg`; `scripts/build_icons.py` → site icon (favicon.svg/.ico, apple-touch-icon.png). `node scripts/boss_history.ts` → `web/src/data/bossHistory.ts`
   (boss events before the archive, from the Bloons Wiki; numbering checked against archived NK ids).
 
 ## Commands
