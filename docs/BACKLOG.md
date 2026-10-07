@@ -32,7 +32,14 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
   Apr–Jul 2026 (incl. Diamondback #1–#6) show as "not on record yet". Rerun `node scripts/boss_history.ts` once the
   Bloons Wiki has its "Version 54.0" list page (the script picks new version pages up by itself).
 
+- **Drop the old workers.dev host from /stats** (after 2026-11-07, when its 30 days have rolled off; `STATS_HOSTS`
+  in src/worker/stats.ts).
+
 ## Ideas (not approved)
+
+- **Cheaper home page** (2026-10-07). A visit (home → boss board → races → a race) costs ~12 Worker requests, 7 of
+  them on the home page (/api/now, a batch, 4 separate /api/history calls), so the free 100k/day ≈ 7–8k visits.
+  Folding the history calls and /api/now into the one batch would make the home page ~2 requests.
 
 - **Art pipeline: fresh vs cached run differ** (2026-10-03). After the BOSS_UI_VERSION bump, the first
   `build_art.py --skip-maps` run (rebuilding the BossUi cache) wrote index.ts/manifest.json with different hashes
