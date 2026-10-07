@@ -3,13 +3,25 @@
 // Stamped per build by vite.config.ts (stampServiceWorker): a new deploy = a new worker = a new cache; the
 // activate handler below deletes every older build's cache, so stale bundles and sprite sheets never pile up.
 const CACHE = "shell-__BUILD__";
+// The site moved to btd6data.com. On the old workers.dev address this worker clears its cache, unregisters
+// and reloads the open tabs, so their next page load reaches the Worker and its redirect.
+const RETIRED = location.hostname.endsWith(".workers.dev");
 
 self.addEventListener("install", (e) => {
   self.skipWaiting();
-  e.waitUntil(caches.open(CACHE).then((c) => c.add("/")));
+  if (!RETIRED) e.waitUntil(caches.open(CACHE).then((c) => c.add("/")));
 });
 
 self.addEventListener("activate", (e) => {
+  if (RETIRED) {
+    e.waitUntil(
+      caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+        .then(() => self.registration.unregister())
+        .then(() => self.clients.matchAll({ type: "window" }))
+        .then((tabs) => Promise.all(tabs.map((t) => t.navigate(t.url).catch(() => {})))),
+    );
+    return;
+  }
   e.waitUntil(
     caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()),
   );
@@ -18,7 +30,7 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   const url = new URL(req.url);
-  if (req.method !== "GET" || url.origin !== location.origin || url.pathname.startsWith("/api/")) return;
+  if (RETIRED || req.method !== "GET" || url.origin !== location.origin || url.pathname.startsWith("/api/")) return;
 
   // Any in-app URL → the cached shell (stale-while-revalidate).
   if (req.mode === "navigate") {

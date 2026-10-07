@@ -17,6 +17,8 @@ export interface AssetsLike {
   fetch(request: Request): Promise<Response>;
 }
 
+/** The site's one public address: canonical links, link previews, Discord posts, redirects from other hosts. */
+export const SITE = "https://btd6data.com";
 export const SITE_NAME = "BTD6 Open Data";
 const GENERIC_DESCRIPTION = "Unofficial, instant-loading browser for Bloons TD 6 events, leaderboards and player profiles.";
 /** Site-wide preview image (absolute path on this site), or null for none. */
@@ -238,7 +240,7 @@ export function injectMeta(html: string, m: PageMeta, url: URL): string {
     prop("og:type", "website"),
     prop("og:title", m.title),
     prop("og:description", m.description),
-    prop("og:url", url.origin + url.pathname + url.search),
+    prop("og:url", SITE + url.pathname + url.search),
     ...(image ? [prop("og:image", image)] : []),
     name("twitter:card", image && m.wide ? "summary_large_image" : "summary"),
     name("twitter:title", m.title),
@@ -254,5 +256,6 @@ export function injectMeta(html: string, m: PageMeta, url: URL): string {
   out = /<meta\s+name="description"[^>]*>/i.test(out)
     ? out.replace(/<meta\s+name="description"[^>]*>/i, () => desc)
     : out.replace(/<\/head>/i, () => `${desc}</head>`);
-  return out.replace(/<\/head>/i, () => `${tags.join("\n    ")}\n  </head>`);
+  const canonical = `<link rel="canonical" href="${esc(SITE + url.pathname + url.search)}" />`;
+  return out.replace(/<\/head>/i, () => `${[canonical, ...tags].join("\n    ")}\n  </head>`);
 }

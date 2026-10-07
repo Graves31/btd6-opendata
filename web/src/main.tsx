@@ -278,4 +278,5 @@ warmAllOnIdle();
 
 setInterval(() => document.visibilityState === "visible" && void store.loadNow(), 5 * 60_000);
 document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && void store.loadNow());
-if ("serviceWorker" in navigator && import.meta.env.PROD) void navigator.serviceWorker.register("/sw.js");
+// Not on the old workers.dev address: the worker there only retires itself (sw.js).
+if ("serviceWorker" in navigator && import.meta.env.PROD && !location.hostname.endsWith(".workers.dev")) void navigator.serviceWorker.register("/sw.js");

@@ -92,7 +92,7 @@ npx wrangler login
 npx wrangler kv namespace create HOT        # paste the id into wrangler.jsonc
 npx wrangler d1 create btd6-opendata        # paste the database_id into wrangler.jsonc
 npm run deploy                              # build + remote migrations + deploy
-node scripts/smoke.ts https://btd6-opendata.<subdomain>.workers.dev   # post-deploy check, ~13–20 requests
+node scripts/smoke.ts https://btd6data.com   # post-deploy check, ~13–20 requests
 ```
 
 The smoke test checks the static site (HTML, immutable hashed assets, `no-cache` service worker), `/api/health`, and `/api/now`. `/api/now` is polled for up to ~3 min until the first cron has run. It then checks a cache hit on `/api/nk`, a streamed 3-key batch, a local 404 and 403, and `/api/history`. It prints a table with timings and exits 1 on any failure.

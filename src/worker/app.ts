@@ -21,7 +21,7 @@ import { refreshHot } from "./hot.ts";
 import { clientBuckets, clientKey, isolateBucket, MAX_ORIGIN_PER_REQUEST, OriginGate, type RateLimiterLike } from "./limit.ts";
 import { errorBody, type ErrorCode } from "./errors.ts";
 import { handleBatch, handleNk, jsonResponse, parseBatchKeys } from "./proxy.ts";
-import { handlePage, type AssetsLike } from "./og.ts";
+import { handlePage, SITE, type AssetsLike } from "./og.ts";
 import { handleStats, STATS_GRAPHQL_URL } from "./stats.ts";
 import { getHot, getHotText } from "./store.ts";
 import { GUILD_ID, teamHistory } from "./teams.ts";
@@ -73,8 +73,11 @@ export function makeDeps(env: Env, ctx: Ctx): Deps {
  * link-preview tags (og.ts). Everything else is served by Cloudflare's asset handler without invoking us.
  */
 export async function handleRequest(deps: Deps, env: Pick<Env, "ASSETS">, request: Request): Promise<Response> {
-  const { pathname } = new URL(request.url);
+  const { pathname, search, hostname } = new URL(request.url);
   if (pathname === "/api" || pathname.startsWith("/api/") || !env.ASSETS) return handleApi(deps, request);
+  // Pages on the old workers.dev address and on www move to the one public address. /api/* stays answered on
+  // every host, so tabs still open on the old address keep working.
+  if (hostname.endsWith(".workers.dev") || hostname.startsWith("www.")) return Response.redirect(SITE + pathname + search, 301);
   try {
     return await handlePage(deps, env.ASSETS, request);
   } catch (err) {

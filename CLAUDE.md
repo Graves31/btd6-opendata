@@ -1,7 +1,7 @@
 # BTD6 Open Data site — working notes for Claude
 
 Unofficial, non-commercial fan site over Ninja Kiwi's BTD6 Open Data API (BTD6 endpoints only), on the
-Cloudflare Workers **free** plan. Live: https://btd6-opendata.btd6-opendata-site.workers.dev (`npx wrangler
+Cloudflare Workers **free** plan. Live: https://btd6data.com (old workers.dev address redirects; `npx wrangler
 whoami` shows the account; `npx wrangler login` if the token expired). README.md explains the
 architecture; this file is how to work on it.
 

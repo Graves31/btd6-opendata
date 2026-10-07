@@ -1079,7 +1079,7 @@ describe("link previews (og tags on page navigations)", () => {
     assert.match(meta(html, "og:image")!, /^https:\/\/static-api\.nkstatic\.com\/.*vortex\.png$/);
     assert.match(meta(html, "description")!, /^Boss event, \d+ Sep – \d+ Sep 2026\./);
     assert.equal(meta(html, "twitter:card"), "summary");
-    assert.equal(meta(html, "og:url"), "https://site.test/boss/Vortex47_mu62cmt5?d=elite");
+    assert.equal(meta(html, "og:url"), "https://btd6data.com/boss/Vortex47_mu62cmt5?d=elite");
     assert.equal((html.match(/og:title/g) ?? []).length, 1, "the shell's own og tags are replaced");
     assert.equal(r.headers.get("ETag"), null);
     assert.equal(t.origin.calls.length, calls);
@@ -1139,6 +1139,22 @@ describe("link previews (og tags on page navigations)", () => {
     assert.equal((await api.json()).code, "not_found");
     await handleRequest(t.deps, { ASSETS: a }, new Request("https://site.test/boss/x", { method: "POST" }));
     assert.deepEqual(a.seen, ["/", "/boss/x"]);
+  });
+
+  it("pages on workers.dev and www move to btd6data.com; the API answers on every host", async () => {
+    const t = makeEnv();
+    const a = assets();
+    for (const host of ["btd6-opendata.x.workers.dev", "www.btd6data.com"]) {
+      const r = await handleRequest(t.deps, { ASSETS: a }, new Request(`https://${host}/race/x?p=2`));
+      assert.equal(r.status, 301);
+      assert.equal(r.headers.get("Location"), "https://btd6data.com/race/x?p=2");
+      const api = await handleRequest(t.deps, { ASSETS: a }, new Request(`https://${host}/api/nope`));
+      assert.equal(api.status, 404);
+    }
+    assert.deepEqual(a.seen, []);
+    const { r, html } = await page(t, "/races?x=1", a);
+    assert.match(html, /<link rel="canonical" href="https:\/\/btd6data\.com\/races\?x=1" \/>/);
+    assert.equal(r.headers.get("Content-Security-Policy"), "frame-ancestors 'none'");
   });
 });
 
@@ -1349,7 +1365,7 @@ describe("notifications (new boss / race → Discord)", () => {
     assert.deepEqual(allowed_mentions, { parse: [] });
     assert.equal(embeds.length, 1);
     assert.equal(embeds[0].title, "New race: Brand New");
-    assert.equal(embeds[0].url, `https://btd6-opendata.btd6-opendata-site.workers.dev/race/${NEW_RACE}`);
+    assert.equal(embeds[0].url, `https://btd6data.com/race/${NEW_RACE}`);
     const start = Math.floor(item.start / 1000);
     assert.equal(embeds[0].fields[0].value, `<t:${start}:F> (<t:${start}:R>)`);
     assert.ok(!JSON.stringify(rows()).includes("secret-token"));
@@ -1365,7 +1381,7 @@ describe("notifications (new boss / race → Discord)", () => {
     assert.equal(rows().length, 1);
     const e = discord.posts[0].body.embeds[0];
     assert.equal(e.title, "New boss event: Lych #99");
-    assert.equal(e.url, "https://btd6-opendata.btd6-opendata-site.workers.dev/boss/Lych99_mzzzzzzz");
+    assert.equal(e.url, "https://btd6data.com/boss/Lych99_mzzzzzzz");
     assert.equal(e.thumbnail.url, item.bossTypeURL);
   });
 

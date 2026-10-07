@@ -3,7 +3,12 @@
   "name": "btd6-opendata",
   "main": "src/worker/index.ts",
   "compatibility_date": "2026-09-24",
+  // Public address. workers_dev stays on: page visits there (and on www) get a 301 to SITE (src/worker/og.ts).
   "workers_dev": true,
+  "routes": [
+    { "pattern": "btd6data.com", "custom_domain": true },
+    { "pattern": "www.btd6data.com", "custom_domain": true }
+  ],
 
   // Static assets (built by Vite into dist/): served directly by Cloudflare (free, unlimited, no Worker
   // invocation) except /api/* and the page URLs below, which run the Worker first so the SPA shell carries

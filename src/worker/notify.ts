@@ -13,9 +13,9 @@ import type { EventKind } from "../nk/routes.ts";
 import type { D1Like, Deps } from "./deps.ts";
 import type { ListItem } from "./events.ts";
 import { OriginGate } from "./limit.ts";
+import { SITE } from "./og.ts";
 import { resolveKey } from "./proxy.ts";
 
-export const SITE = "https://btd6-opendata.btd6-opendata-site.workers.dev";
 const MAX_ATTEMPTS = 5;
 const MAX_AGE_MS = 24 * 60 * 60_000;
 

@@ -1,0 +1,6 @@
+# Player and team pages are left out: there are tens of thousands, and each crawl costs a Ninja Kiwi request.
+User-agent: *
+Disallow: /player/
+Disallow: /team/
+
+Sitemap: https://btd6data.com/sitemap.xml

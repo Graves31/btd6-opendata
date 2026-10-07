@@ -4,12 +4,14 @@
 //
 // Dataset: viewer.accounts(filter:{accountTag}).rumPageloadEventsAdaptiveGroups — `count` is page views,
 // `sum { visits }` is visits (sessions); dimensions date / requestPath / refererHost / countryName / deviceType;
-// filter datetime_geq / datetime_leq / requestHost; orderBy count_DESC.
+// filter datetime_geq / datetime_leq / requestHost_in; orderBy count_DESC.
 // (Cloudflare Web Analytics GraphQL; see https://developers.cloudflare.com/analytics/graphql-api/.)
 
 import { jsonResponse } from "./proxy.ts";
 
-export const STATS_HOST = "btd6-opendata.btd6-opendata-site.workers.dev";
+export const STATS_HOST = "btd6data.com";
+// ponytail: the site moved here on 2026-10-07; drop the old host once its 30 days have rolled off (2026-11-07).
+const STATS_HOSTS = [STATS_HOST, "btd6-opendata.btd6-opendata-site.workers.dev"];
 export const STATS_GRAPHQL_URL = "https://api.cloudflare.com/client/v4/graphql";
 export const STATS_TTL_MS = 15 * 60_000;
 const DAY_MS = 86_400_000;
@@ -40,7 +42,8 @@ export interface Stats {
 
 const GROUP = "limit: 10, orderBy: [count_DESC]";
 /** Filters are inlined (built only from our own constants and numbers), so no input-type names are needed. */
-const filterOf = (host: string, from: string, to: string) => `{ requestHost: "${host}", datetime_geq: "${from}", datetime_leq: "${to}" }`;
+const filterOf = (hosts: string[], from: string, to: string) =>
+  `{ requestHost_in: ${JSON.stringify(hosts)}, datetime_geq: "${from}", datetime_leq: "${to}" }`;
 export function statsQuery(account: string, f7: string, f30: string): string {
   const g = (alias: string, args: string, f: string, dim?: string) =>
     `${alias}: rumPageloadEventsAdaptiveGroups(${args}, filter: ${f}) { count sum { visits }${dim ? ` dimensions { ${dim} }` : ""} }`;
@@ -110,7 +113,7 @@ export async function handleStats(cfg: StatsConfig, fetchFn: typeof fetch, now: 
   if (memo && now - memo.at < STATS_TTL_MS) return jsonResponse(memo.json, 200, cc, HEADERS);
   const iso = (ms: number) => new Date(ms).toISOString();
   const day0 = Math.floor(now / DAY_MS) * DAY_MS; // UTC midnight: the daily buckets are whole days
-  const f = (days: number) => filterOf(STATS_HOST, iso(day0 - (days - 1) * DAY_MS), iso(now));
+  const f = (days: number) => filterOf(STATS_HOSTS, iso(day0 - (days - 1) * DAY_MS), iso(now));
   if (!/^[0-9a-f]{32}$/.test(cfg.accountId)) return fail(503, "not-configured");
   let res: Response;
   try {
