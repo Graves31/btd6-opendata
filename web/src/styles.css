@@ -3098,6 +3098,26 @@ button.fd-tile:hover {
 .chl-series .sec + .sec {
   margin-top: 8px;
 }
+/* The three dailies live now (standard, advanced, co-op), above the older ones. */
+.chl-now {
+  margin-bottom: 24px;
+}
+.chl-now-tiles {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+@media (min-width: 1024px) {
+  .chl-now-tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .chl-now .tile {
+    flex-direction: column;
+  }
+  .chl-now .tile-art {
+    align-self: flex-start;
+  }
+}
 .page-h + .tabs {
   margin-bottom: 20px;
 }

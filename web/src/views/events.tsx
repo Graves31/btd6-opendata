@@ -640,7 +640,8 @@ function NoMapFrame(props: { size: number }) {
   );
 }
 
-function DailyTile(props: { id: string; name: string }) {
+/** A daily challenge's tile (home, and the challenges page's "today" card). `eyebrow` defaults to the home one. */
+export function DailyTile(props: { id: string; name: string; icon?: string; eyebrow?: string }) {
   const c = body<ChallengeDocument>(challengeKey(props.id));
   const rate = c?.playsUnique ? c.winsUnique / c.playsUnique : null;
   const by = dailyAuthor(props.name);
@@ -651,8 +652,8 @@ function DailyTile(props: { id: string; name: string }) {
       </span>
       <span class="tile-body">
         <span class="eyebrow ti">
-          <EvIcon k="daily" size={24} />
-          Daily challenge
+          <EvIcon k={props.icon ?? "daily"} size={24} />
+          {props.eyebrow ?? "Daily challenge"}
         </span>
         <h2 class="tile-title">
           {dailyTitle(props.id) ?? props.name.replace(/^(\w+ \d+): /, "")}
