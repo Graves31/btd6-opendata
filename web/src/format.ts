@@ -206,13 +206,22 @@ export function dailyInfo(id: string): DailyInfo | null {
   return null;
 }
 
+/** Hour (UTC) the game switches to a numbered daily on its date: 10:00 CEST, seen in game by the owner (2026-10-07). */
+export const DAILY_START_H = 8;
+
+/** When a numbered daily goes live in game (ms), or null (co-op, player challenges). */
+export function dailyStart(id: string): number | null {
+  const d = dailyInfo(id)?.day;
+  return d == null ? null : d + DAILY_START_H * 3_600_000;
+}
+
 /**
  * NK lists the next day's dailies in the feed before they start (e.g. rot…20260927 on the 26th, with ~1 test
- * play). A numbered daily counts as out from UTC midnight of its date; co-op ids carry no date (always out).
+ * play). A numbered daily counts as out from its start; co-op ids carry no date (always out).
  */
 export function dailyIsOut(id: string, now: number): boolean {
-  const d = dailyInfo(id);
-  return !d || d.day === null || d.day <= now;
+  const s = dailyStart(id);
+  return s === null || s <= now;
 }
 
 /** "Daily #2966", "Advanced daily #2953", "Co-op daily"; null for player challenges. */

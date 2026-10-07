@@ -1,5 +1,5 @@
 import type { ChallengeDocument, ChallengeSummary, Guild, UserProfile } from "../../../src/nk/types.ts";
-import { dailyIsOut, abilityName, cap, dailyAuthor, dailyInfo, dailyNeighbour, dailyTitle, fmtCompact, fmtDate, fmtDay, fmtInt, fmtPct, human, unitName } from "../format.ts";
+import { dailyIsOut, dailyStart, fmtWhen, abilityName, cap, dailyAuthor, dailyInfo, dailyNeighbour, dailyTitle, fmtCompact, fmtDate, fmtInt, fmtPct, human, unitName } from "../format.ts";
 import { Freshness } from "../fresh.tsx";
 import { Ruleset } from "../rules.tsx";
 import { challengeKey, DAILY_KEY, guildKey, href, idFromUrl, userKey } from "../routes.ts";
@@ -515,7 +515,7 @@ function DailyNav(props: { id: string }) {
         <span class="daynav-a off" />
       )}
       {backTo()?.href === href.challenges("daily") ? (
-        <span class="daynav-all" />
+        <span />
       ) : (
         <A href={href.challenges("daily")} class="daynav-all">
           All dailies
@@ -592,7 +592,7 @@ export function ChallengePage(props: { id: string }) {
             {isDaily ? "ID" : "Code"} <span class="mono code">{c.id}</span>
           </span>
           {daily?.day != null ? (
-            <span>{fmtDay(daily.day + 12 * 3_600_000)}</span>
+            <span>{fmtWhen(dailyStart(props.id)!)}</span>
           ) : (
             c.createdAt > 0 && <span>Created {fmtDate(c.createdAt)}</span>
           )}
@@ -642,11 +642,6 @@ export function ChallengePage(props: { id: string }) {
               </tbody>
             </table>
           </div>
-          {rate !== null && (
-            <div class="meter" role="img" aria-label={`${fmtPct(rate)} of players won`}>
-              <span style={{ width: `${rate * 100}%` }} />
-            </div>
-          )}
         </Section>
         <aside class="rules" id="rules">
           <header class="sec-h">

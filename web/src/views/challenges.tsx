@@ -4,7 +4,7 @@
 // never fans out into 25 upstream requests by itself.
 
 import type { ChallengeDocument, ChallengeSummary, UserProfile } from "../../../src/nk/types.ts";
-import { dailyAuthor, dailyInfo, dailyNeighbour, dailyTitle, fmtDay, fmtPct, mapName } from "../format.ts";
+import { dailyAuthor, dailyInfo, dailyNeighbour, dailyStart, dailyTitle, fmtDay, fmtPct, mapName } from "../format.ts";
 import { Freshness } from "../fresh.tsx";
 import { challengeListKey, href, idFromUrl, userKey, type ChallengeFilter } from "../routes.ts";
 import { MapArt } from "../sprite.tsx";
@@ -85,12 +85,14 @@ const SERIES: [NonNullable<ReturnType<typeof dailyInfo>>["kind"], string][] = [
   ["coop", "Co-op daily"],
 ];
 
-/** "Today" only for the viewer's local date of the challenge's day, "Tomorrow" for the next one, else nothing. */
-function dayBadge(createdAt: number, now: number): string | undefined {
-  const d = new Date(createdAt);
-  const n = new Date(now);
-  const diff = Math.round((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - Date.UTC(n.getFullYear(), n.getMonth(), n.getDate())) / 86_400_000);
-  return diff === 0 ? "Today" : diff === 1 ? "Tomorrow" : undefined;
+const hm = new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" });
+
+/** "Today" for the daily live in game now, "Starts 10:00" (viewer's time) for the next one, else nothing. */
+function dayBadge(id: string, now: number): string | undefined {
+  const s = dailyStart(id);
+  if (s === null) return undefined;
+  if (now >= s) return now < s + 86_400_000 ? "Today" : undefined;
+  return s - now <= 86_400_000 ? `Starts ${hm.format(s)}` : undefined;
 }
 
 function DailyLists(props: { list: ChallengeSummary[] }) {
@@ -116,7 +118,7 @@ function DailyLists(props: { list: ChallengeSummary[] }) {
             aside={older ? <A href={href.challenge(older)}>Older: {dailyTitle(older)} →</A> : undefined}>
             <ul class="chl">
               {items.map((c) => (
-                <ChallengeRow key={c.id} c={c} badge={kind !== "coop" ? dayBadge(c.createdAt, now) : undefined} />
+                <ChallengeRow key={c.id} c={c} badge={kind !== "coop" ? dayBadge(c.id, now) : undefined} />
               ))}
             </ul>
           </Section>

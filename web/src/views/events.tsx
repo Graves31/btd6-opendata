@@ -43,7 +43,6 @@ import {
   human,
   mapName,
   partLabel,
-  SCORING,
   scoringShort,
   status,
 } from "../format.ts";
@@ -1448,7 +1447,14 @@ export function EventHead(props: {
             />
             {map && (
               <figcaption>
-                <MapLine doc={map} />
+                <strong class="bh-mapname">{mapName(map.map)}</strong>
+                <span class="bh-mapsub">
+                  <span>{map.difficulty}</span>
+                  <span class="mode">
+                    <Spr family="ui" k={modeIcon(map)} size={24} label optional />
+                    {MODE_NAME[map.mode] ?? map.mode}
+                  </span>
+                </span>
               </figcaption>
             )}
           </figure>
@@ -2114,10 +2120,6 @@ export function RacePage(props: { id: string; p: number }) {
           <h2 class="vh" id="lb-h">
             Race leaderboard
           </h2>
-          <p class="rule-line">
-            <strong>{SCORING.GameTime.short}.</strong> Ranked by in-game time to
-            beat round {meta?.endRound ?? "the last round"}.
-          </p>
           <div class="lb-bar">
             <Freshness
               k={key}

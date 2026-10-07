@@ -116,9 +116,11 @@ describe("daily challenges", () => {
 });
 
 describe("upcoming dailies", () => {
-  it("a numbered daily is out from UTC midnight of its date; co-op ids always", () => {
+  it("a numbered daily is out from 08:00 UTC on its date; co-op ids always", () => {
     const now = Date.UTC(2026, 8, 26, 19, 50);
     assert.equal(dailyIsOut("rot296820260926", now), true);
+    assert.equal(dailyIsOut("rot296820260926", Date.UTC(2026, 8, 26, 7, 59)), false);
+    assert.equal(dailyIsOut("rot296820260926", Date.UTC(2026, 8, 26, 8, 0)), true);
     assert.equal(dailyIsOut("rot296920260927", now), false);
     assert.equal(dailyIsOut("adv295620260927", now), false);
     assert.equal(dailyIsOut("coopmtr86jby", now), true);

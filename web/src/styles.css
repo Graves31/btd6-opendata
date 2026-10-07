@@ -38,9 +38,6 @@
   --tint: 255 214 10;
   --tint-2: 70 120 255;
   --wash: 0.26;
-  /* One neutral page surface (the per-area --tint still colours event cards and bars, not the page). */
-  --surf: 120 140 190;
-  --wash-s: 0.13;
   --dots: rgb(255 255 255 / 0.04);
 
   /* RBE strip: bloon layers / MOAB-class layers (validated pair, CVD ΔE ≥ 23 on --bg) */
@@ -92,7 +89,6 @@
     --top23: rgb(10 20 40 / 0.05);
     --ban: #c8102e;
     --wash: 0.16;
-    --wash-s: 0.08;
     --dots: rgb(10 20 40 / 0.05);
     --rv-b: #3f6fc4;
     --rv-m: #c25e00;
@@ -124,7 +120,6 @@
   --top23: rgb(10 20 40 / 0.05);
   --ban: #c8102e;
   --wash: 0.16;
-  --wash-s: 0.08;
   --dots: rgb(10 20 40 / 0.05);
   --rv-b: #3f6fc4;
   --rv-m: #c25e00;
@@ -165,9 +160,10 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    linear-gradient(180deg, rgb(var(--surf) / calc(var(--wash-s) * 0.35)), transparent 340px),
-    radial-gradient(1100px 560px at 88% -6%, rgb(var(--surf) / var(--wash-s)), transparent 64%),
-    radial-gradient(800px 500px at 60% 115%, rgb(var(--surf) / calc(var(--wash-s) * 0.45)), transparent 60%),
+    linear-gradient(180deg, rgb(var(--tint) / calc(var(--wash) * 0.35)), transparent 340px),
+    radial-gradient(1100px 560px at 88% -6%, rgb(var(--tint) / var(--wash)), transparent 64%),
+    radial-gradient(900px 640px at -14% 34%, rgb(var(--tint-2) / calc(var(--wash) * 0.6)), transparent 62%),
+    radial-gradient(800px 500px at 60% 115%, rgb(var(--tint) / calc(var(--wash) * 0.45)), transparent 60%),
     radial-gradient(var(--dots) 1px, transparent 1.4px) 0 0 / 22px 22px,
     var(--bg);
 }
@@ -1000,8 +996,15 @@ button.fd-tile:hover {
   width: fit-content;
 }
 .ev-map figcaption {
-  margin-top: 8px;
-  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 200px;
+  margin-top: 12px;
+  font-size: 15px;
+}
+.ev-map .bh-mapname {
+  font-size: 26px;
 }
 .mapline {
   display: inline-flex;
@@ -1024,13 +1027,6 @@ button.fd-tile:hover {
   content: "·";
   margin-right: 8px;
   color: var(--ink-3);
-}
-.ev-map .mapline {
-  display: flex;
-  flex-direction: column;
-}
-.ev-map .mapline > span::before {
-  content: none;
 }
 .ev-head .stats {
   display: flex;
@@ -1308,14 +1304,6 @@ button.fd-tile:hover {
   border-color: var(--bronze);
   color: var(--on-accent);
 }
-.rule-line {
-  color: var(--ink-2);
-  font-size: 14px;
-  margin-bottom: 12px;
-}
-.rule-line strong {
-  color: var(--ink);
-}
 .small-link {
   font-size: 13px;
   color: var(--ink-2);
@@ -1483,17 +1471,6 @@ button.fd-tile:hover {
 }
 .bars .num {
   font-weight: 700;
-}
-.meter {
-  height: 10px;
-  margin-top: 12px;
-  background: var(--s2);
-  border: 1px solid var(--rule);
-}
-.meter span {
-  display: block;
-  height: 100%;
-  background: var(--bar);
 }
 
 /* ─────────────────────────────── loading / empty */

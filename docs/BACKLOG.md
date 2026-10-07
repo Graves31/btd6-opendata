@@ -71,5 +71,5 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
 - NK publishes only the top 1,000 per board; CT groups disappear a few days after a CT ends.
 - Co-op ranks are exact only when earlier pages are in memory (else "≈N", no medal).
 - Round data has no cash per round and no boss spawn timing (game code, not data).
-- Upcoming dailies: a numbered daily counts as started from UTC midnight of its date (exact NK switch time
-  unconfirmed).
+- Dailies: a numbered daily counts as started at 08:00 UTC on its date (`DAILY_START_H`, owner saw 10:00 CEST in
+  game, 2026-10-07). NK publishes no start time; if it shifts to 09:00 CEST in winter, NK follows DST.
