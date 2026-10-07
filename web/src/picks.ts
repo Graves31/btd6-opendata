@@ -60,8 +60,9 @@ export function ctLeader(get: Get, ct: CT | undefined): CTTeamEntry | undefined 
 /** Keys the home page reads beyond the lists. */
 export function homeExtraKeys(get: Get, p: HomePicks): string[] {
   const keys: string[] = [];
-  // Both top 5s (the home switch flips between them instantly).
-  if (p.boss) keys.push(bossMetaKey(p.boss.id, "standard"), bossBoardKey(p.boss.id, "standard", 1), bossBoardKey(p.boss.id, "elite", 1));
+  // Both top 5s (the home switch flips between them instantly), once the boss has started.
+  if (p.boss) keys.push(bossMetaKey(p.boss.id, "standard"));
+  if (p.boss && p.boss.start <= Date.now()) keys.push(bossBoardKey(p.boss.id, "standard", 1), bossBoardKey(p.boss.id, "elite", 1));
   if (p.race) keys.push(raceMetaKey(p.race.id));
   if (p.racePrev) keys.push(raceBoardKey(p.racePrev.id));
   const ct = p.ctPrev ?? p.ct;

@@ -198,11 +198,6 @@ let homeExtras: () => string[] = () => [];
 export function setHomeExtras(fn: () => string[]): void {
   homeExtras = fn;
 }
-/** More home resolvers, registered by the views that render the extra data (e.g. the last boss's podium). */
-const moreHomeExtras: (() => string[])[] = [];
-export function addHomeExtras(fn: () => string[]): void {
-  moreHomeExtras.push(fn);
-}
 
 /**
  * The round visualizer's data is a static, content-hashed set file (web/src/data/rounds, imported with ?url). The
@@ -223,7 +218,7 @@ export function setBossStatsUrl(u: string): void {
 export function needs(r: Route): string[] {
   switch (r.name) {
     case "home":
-      return [...new Set([...HOME_LISTS, ...homeExtras(), ...moreHomeExtras.flatMap((f) => f())])];
+      return [...new Set([...HOME_LISTS, ...homeExtras()])];
     case "events":
       return [LIST_KEY[r.kind], historyKey(r.kind)];
     case "boss":

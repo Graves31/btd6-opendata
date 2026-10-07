@@ -2843,20 +2843,6 @@ button.fd-tile:hover {
   color: var(--ink-3);
 }
 
-/* Home between boss events: last boss's final podium with medals. */
-.last-podium .kicker a {
-  color: var(--ink);
-  border-bottom: 1px solid var(--accent);
-}
-.podium.medals .pod-m {
-  display: inline-grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-}
-.last-podium .small {
-  font-size: 13px;
-}
 
 /* ── FE-B: names, error pages, tile labels, hide-banned, challenges, daily nav ─────────────────────────── */
 

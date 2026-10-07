@@ -62,7 +62,6 @@ import {
 import { backTo, store } from "../nav.ts";
 import { ctLeader, homePicks } from "../picks.ts";
 import {
-  addHomeExtras,
   bossBoardKey,
   CT_GROUP_PLACEHOLDER,
   BOSS_TYPES,
@@ -261,23 +260,6 @@ function keyPart(raw: ScorePart[], scoring?: string): ScorePart | undefined {
 
 // ─────────────────────────────── home
 
-/** The most recently finished boss event (from NK's list), for the home podium between events. */
-function lastEndedBoss(now = Date.now()): Boss | undefined {
-  return body<Boss[]>(LIST_KEY.boss)
-    ?.filter((b) => b.end <= now)
-    .sort((a, b) => b.end - a.end)[0];
-}
-
-// Home also renders the last boss's final podium when no boss is live: prefetch that board with the page.
-addHomeExtras(() => {
-  const now = Date.now();
-  const live = body<Boss[]>(LIST_KEY.boss)?.some(
-    (b) => b.start <= now && now < b.end,
-  );
-  const last = live ? undefined : lastEndedBoss(now);
-  return last ? [bossBoardKey(last.id, "standard", 1)] : [];
-});
-
 export function Home() {
   const p = homePicks(body, store.featured);
   const events = body<NKEvent[]>(EVENTS_KEY);
@@ -305,7 +287,7 @@ export function Home() {
       <h1 class="vh">What's on in BTD6 right now</h1>
       {p.boss && (
         <FeaturedBoss boss={p.boss}>
-          {/* Phones: the other live events as a compact 2x2 grid before the top 5 (the big tiles below are hidden there). */}
+          {/* Phones: the other live events as a compact 2x2 grid after the top 5 (the big tiles below are hidden there). */}
           <MiniGrid p={p} />
         </FeaturedBoss>
       )}
@@ -327,10 +309,12 @@ function FeaturedBoss(props: { boss: Boss; children?: ComponentChildren }) {
   const b = props.boss;
   const meta = body<ChallengeDocument>(bossMetaKey(b.id, "standard"));
   const live = status(b.start, b.end).s === "live";
+  // Live or over: the Normal/Elite tiles pick the top 5. Not started: no board (never the previous boss's).
+  const started = b.start <= Date.now();
   const [d, setD] = useState<BossDiff>(homeDiff);
   const elite = d === "elite";
   const scoringNow = elite ? b.eliteScoringType : b.normalScoringType;
-  const top = live
+  const top = started
     ? body<BossLeaderboardEntry[]>(bossBoardKey(b.id, d, 1))?.slice(0, 5)
     : undefined;
   const to = href.boss(b.id);
@@ -385,8 +369,8 @@ function FeaturedBoss(props: { boss: Boss; children?: ComponentChildren }) {
           {/* The two difficulties side by side; while the event is live they also pick the top 5 beside them. */}
           <div
             class="fd-tiles"
-            role={live ? "group" : undefined}
-            aria-label={live ? "Top 5 leaderboard" : undefined}
+            role={started ? "group" : undefined}
+            aria-label={started ? "Top 5 leaderboard" : undefined}
           >
             {(["standard", "elite"] as const).map((x) => {
               const t =
@@ -410,7 +394,7 @@ function FeaturedBoss(props: { boss: Boss; children?: ComponentChildren }) {
                   </span>
                 </>
               );
-              return live ? (
+              return started ? (
                 <button
                   key={x}
                   type="button"
@@ -428,10 +412,10 @@ function FeaturedBoss(props: { boss: Boss; children?: ComponentChildren }) {
             })}
           </div>
         </div>
-        {props.children}
-        {live ? (
+        {started ? (
           <div class="feature-top">
             <h3 class="kicker">
+              {live ? "" : "Final · "}
               {elite ? "Elite" : "Normal"} solo · top {top?.length || 5}
               {top?.[0] && (
                 <span class="kicker-r">
@@ -480,82 +464,18 @@ function FeaturedBoss(props: { boss: Boss; children?: ComponentChildren }) {
               <p class="quiet">No scores yet.</p>
             )}
             <A href={boardTo} class="more">
-              Full {elite ? "elite " : ""}leaderboard{" "}
+              {live ? "Full" : "Final"} {elite ? "elite " : ""}leaderboard{" "}
               <span aria-hidden="true">→</span>
             </A>
           </div>
         ) : (
-          <LastPodium upcoming={b.start > Date.now() ? b : undefined} />
+          <div class="feature-top">
+            <p class="quiet">Scores open {fmtWhen(b.start)}.</p>
+          </div>
         )}
+        {props.children}
       </div>
     </section>
-  );
-}
-
-/** Between boss events: the last boss's final top 3 (standard solo), with the medals they earned. */
-function LastPodium(props: { upcoming?: Boss }) {
-  const last = lastEndedBoss();
-  const rows = last
-    ? body<BossLeaderboardEntry[]>(bossBoardKey(last.id, "standard", 1))?.slice(
-        0,
-        3,
-      )
-    : undefined;
-  if (!last) {
-    return (
-      <div class="feature-top">
-        <p class="quiet">
-          {props.upcoming
-            ? `Scores open ${fmtWhen(props.upcoming.start)}.`
-            : "No scores yet."}
-        </p>
-      </div>
-    );
-  }
-  const to = href.boss(last.id);
-  const kp0 = rows?.[0] && keyPart(rows[0].scoreParts, last.normalScoringType);
-  return (
-    <div class="feature-top last-podium">
-      <h3 class="kicker">
-        <span>
-          {props.upcoming ? "Last boss" : "Final"} ·{" "}
-          <A href={to}>{bossLabel(last)}</A>
-        </span>
-        {kp0 && <span class="kicker-r">{partLabel(kp0.name)}</span>}
-      </h3>
-      {rows?.length ? (
-        <ol class="podium medals">
-          {rows.map((r, i) => {
-            const kp = keyPart(r.scoreParts, last.normalScoringType);
-            return (
-              <LinkRow
-                as="li"
-                key={r.profile + i}
-                href={href.player(idFromUrl(r.profile))}
-              >
-                <span class="pod-m">
-                  <Medal board="boss" rank={i + 1} size={36} />
-                </span>
-                <A href={href.player(idFromUrl(r.profile))} class="pname">
-                  {r.displayName}
-                </A>
-                <span class="num">{kp ? fmtPart(kp) : fmtInt(r.score)}</span>
-              </LinkRow>
-            );
-          })}
-        </ol>
-      ) : (
-        <Skeleton rows={3} />
-      )}
-      {props.upcoming && (
-        <p class="quiet small">
-          Next boss event starts {fmtWhen(props.upcoming.start)}.
-        </p>
-      )}
-      <A href={to} class="more">
-        Final leaderboard <span aria-hidden="true">→</span>
-      </A>
-    </div>
   );
 }
 
