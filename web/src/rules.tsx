@@ -637,13 +637,17 @@ export function MapLine(props: { doc: ChallengeDocument; brief?: boolean }) {
   );
 }
 
-/** The whole ruleset. `compact`: numbers and modifiers only (odyssey islands, whose roster is event-wide). */
-export function Ruleset(props: { doc: ChallengeDocument; compact?: boolean }) {
+/**
+ * The whole ruleset. `compact`: numbers and modifiers only (odyssey islands, whose roster is event-wide).
+ * `noPowers`: no power grid (boss events and races, where it never says anything).
+ */
+export function Ruleset(props: { doc: ChallengeDocument; compact?: boolean; noPowers?: boolean }) {
   const d = props.doc;
+  const powers = !d.disablePowers && !props.noPowers;
   return (
     <div class="ruleset">
       <RuleFacts d={d} compact={props.compact} />
-      {!props.compact && hasBans(d._towers, d.disablePowers ? [] : d._powers) && (
+      {!props.compact && hasBans(d._towers, powers ? d._powers : []) && (
         <p class="hideban-row">
           <HideBannedToggle />
         </p>
@@ -654,7 +658,7 @@ export function Ruleset(props: { doc: ChallengeDocument; compact?: boolean }) {
           <TowerRoster towers={d._towers} />
         </>
       )}
-      {!props.compact && !d.disablePowers && <PowerGrid powers={d._powers} />}
+      {!props.compact && powers && <PowerGrid powers={d._powers} />}
     </div>
   );
 }

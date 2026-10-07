@@ -1969,7 +1969,7 @@ export function BossPage(props: {
             )}
             <h2 class="kicker-h">{d === "elite" ? "Elite" : "Normal"} rules</h2>
             {!full ? null : meta ? (
-              <Ruleset doc={meta} />
+              <Ruleset doc={meta} noPowers />
             ) : (
               <Gate k={metaKey} rows={4} />
             )}
@@ -2166,7 +2166,7 @@ export function RacePage(props: { id: string; p: number }) {
           )}
           <h2 class="kicker-h">Rules</h2>
           {!full ? null : meta ? (
-            <Ruleset doc={meta} />
+            <Ruleset doc={meta} noPowers />
           ) : (
             <Gate k={raceMetaKey(id)} rows={4} />
           )}
