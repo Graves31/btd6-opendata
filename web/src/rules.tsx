@@ -73,7 +73,7 @@ interface Cell {
  * readers get a real list. `tabStop`: whether this tile is the roster's single Tab stop (Roster moves it with
  * the arrow keys); a tile used alone is always one.
  */
-export function Tile(p: { family: "tower" | "hero" | "power"; cell: Cell; tabStop?: boolean; onFocusTile?: () => void; plain?: boolean }) {
+export function Tile(p: { family: "tower" | "hero" | "power"; cell: Cell; tabStop?: boolean; onFocusTile?: () => void }) {
   const { id, max, caps } = p.cell;
   const banned = max === 0;
   const limit = max > 0 && max < 99 ? max : undefined;
@@ -128,12 +128,12 @@ export function Tile(p: { family: "tower" | "hero" | "power"; cell: Cell; tabSto
       {cat && hasArt("container", cat) && <Spr family="container" k={cat} size={57} class="ttile-bg" label />}
       <Spr family={p.family} k={id} size={44} class={p.family === "power" ? "ttile-p pw" : "ttile-p"} label />
       {/* Towers: the blue circle top-left. Powers: the game's yellow count badge top-right. */}
-      {limit !== undefined && !p.plain && (
+      {limit !== undefined && (
         <span class={p.family === "power" ? "ttile-n pw" : "ttile-n"} aria-hidden="true">
           {limit}
         </span>
       )}
-      {cap && !p.plain && (
+      {cap && (
         <span class="ttile-cap" aria-hidden="true">
           {cap}
         </span>
@@ -180,12 +180,12 @@ function useRoving(count: number) {
   return { onKeyDown, tile: (i: number) => ({ tabStop: i === at, onFocusTile: () => setCur(i) }) };
 }
 
-export function Roster(p: { family: "tower" | "hero" | "power"; cells: Cell[]; label: string; small?: boolean; plain?: boolean }) {
+export function Roster(p: { family: "tower" | "hero" | "power"; cells: Cell[]; label: string; small?: boolean }) {
   const rv = useRoving(p.cells.length);
   return (
     <ul class={`roster ttiles${p.small ? " small" : ""}`} aria-label={p.label} onKeyDown={rv.onKeyDown}>
       {p.cells.map((c, i) => (
-        <Tile key={c.id} family={p.family} cell={c} plain={p.plain} {...rv.tile(i)} />
+        <Tile key={c.id} family={p.family} cell={c} {...rv.tile(i)} />
       ))}
     </ul>
   );
@@ -256,21 +256,16 @@ export function TowerRoster(p: { towers: TowerRestriction[]; label?: string }) {
   const banned = cells.length - allowed.length;
   const limit = allowed.some((c) => c.max > 0 && c.max < 99);
   const capped = allowed.filter((c) => capStr(c.caps!.c) !== FREE);
-  // Every allowed tower has the same limit and upgrade cap: say it once instead of a badge on each icon.
-  const sameMax = allowed.length > 1 && allowed.every((c) => c.max === allowed[0].max);
-  const sameCap = allowed.length > 1 && allowed.every((c) => capStr(c.caps!.c) === capStr(allowed[0].caps!.c));
-  const uniform = sameMax && sameCap && (limit || capped.length > 0);
-  const common = uniform ? [allowed[0].max < 99 ? `Max ${allowed[0].max} each` : "", capStr(allowed[0].caps!.c) !== FREE ? `upgrades up to ${capStr(allowed[0].caps!.c)}` : ""].filter(Boolean).join(" · ") : "";
   const sum = banned ? `${allowed.length} of ${cells.length} allowed` : "All allowed";
   return (
     <div class="rgroup">
       <p class="rhead">
         <span class="label">{p.label ?? "Towers"}</span>
         <span class="rhead-v quiet">
-          {banned === 0 && !limit && !capped.length ? "Every tower, no limits" : [sum, common].filter(Boolean).join(" · ")}{banned > 0 && " · greyed out = banned"}
+          {banned === 0 && !limit && !capped.length ? "Every tower, no limits" : sum}{banned > 0 && " · greyed out = banned"}
         </span>
       </p>
-      <Roster family="tower" cells={hide ? allowed : cells} label={p.label ?? "Towers"} plain={!!uniform} />
+      <Roster family="tower" cells={hide ? allowed : cells} label={p.label ?? "Towers"} />
     </div>
   );
 }
