@@ -6071,7 +6071,7 @@ a.bs-ev:hover {
   display: none;
 }
 @media (max-width: 860px) {
-  .tiles {
+  .tiles:not(.tools-tiles) {
     display: none;
   }
   .minis {
