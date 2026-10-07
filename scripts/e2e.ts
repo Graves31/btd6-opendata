@@ -290,7 +290,7 @@ async function main() {
     if (!(await boardOrEmpty(teams))) {
       // The featured CT hasn't started: use the latest one that has, from the CT list.
       await step("→ CT list", 'header nav a[href="/ct"]');
-      await step("CT list → latest started CT", "ul.events a:has(.st.live), ul.events a:has(.st.ended)");
+      await step("CT list → latest started CT", "ul.events a.st-live, ul.events a.st-ended");
       await boardOrEmpty(await step("CT → Teams tab", "nav.tabs a.tab[href*='tab=teams']"));
     }
     if (await has("table.board tbody tr a[href^='/team/']")) {
