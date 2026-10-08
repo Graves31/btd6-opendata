@@ -7269,3 +7269,42 @@ footer p {
   text-transform: none;
   color: var(--ink-3);
 }
+
+/* ── Paragon calculator: game icons on the fields and result rows; a 0–max slider under each number box. */
+.pg-lab,
+.pg-b-n2,
+.pg-res .stat dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pg-b-n2,
+.pg-res .stat dt {
+  gap: 6px;
+}
+.pg-t5 {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+}
+.pg-t5 b {
+  position: absolute;
+  color: #3d2800;
+  font: 800 14px/1 var(--f-display);
+}
+.pg-num {
+  display: grid;
+  gap: 4px;
+}
+.pg-num .pg-range {
+  width: 100%;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  accent-color: var(--accent);
+  cursor: pointer;
+}

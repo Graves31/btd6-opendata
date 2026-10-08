@@ -158,6 +158,7 @@ const PAGE_FAMILIES: Record<string, AnyFamily[]> = {
   notfound: ["bloon"],
   challenges: ["bloon"],
   rounds: ["bloon", "bloonVariant", "boss", "ui"],
+  paragon: ["paragon", "tower", "ui"],
 };
 /** Sheets only their own pages load (never warmed on idle elsewhere). */
 const PAGE_ONLY = new Set<AnyFamily>(["bloonVariant"]);

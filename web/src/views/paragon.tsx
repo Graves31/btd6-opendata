@@ -4,7 +4,7 @@
 // localStorage (optional: every access is wrapped).
 
 import type { ComponentChildren } from "preact";
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { ART } from "../art/index.ts";
 import { fmtInt, unitName } from "../format.ts";
 import { navigate } from "../nav.ts";
@@ -112,9 +112,34 @@ function describe(w: Way): { amt: string; noun: string; exact: string } {
 
 // ─────────────────────────────── number field
 
-function NumField(p: { id: string; label: string; hint: string; value: number; max: number; step: number; decimal?: boolean; onChange: (n: number) => void }) {
+/** A field's game icon (ui sheet); the tier-5 frame gets its "5". */
+function FieldIcon(p: { k: string; size?: number }) {
+  const s = <Spr family="ui" k={p.k} size={p.size ?? 28} label />;
+  return p.k === "Tier5" ? (
+    <span class="pg-t5">
+      {s}
+      <b aria-hidden="true">5</b>
+    </span>
+  ) : (
+    s
+  );
+}
+
+/** Slider grain: about 400 stops over the range, on a round 1/2/5 step (whole units at least). */
+function grain(max: number): number {
+  const raw = max / 400;
+  if (raw <= 1) return 1;
+  const e = 10 ** Math.floor(Math.log10(raw));
+  return raw <= 2 * e ? 2 * e : raw <= 5 * e ? 5 * e : 10 * e;
+}
+
+function NumField(p: { id: string; icon: string; label: string; hint: string; value: number; max: number; decimal?: boolean; onChange: (n: number) => void }) {
   const [draft, setDraft] = useState<string | null>(null);
   const [capped, setCapped] = useState(false);
+  // While dragging, the slider's value shows at once; the URL follows at most every 150 ms and on release
+  // (every change replaces the history entry, and browsers throttle rapid replaceState calls).
+  const [drag, setDrag] = useState<number | null>(null);
+  const sent = useRef(0);
   const clamp = (n: number) => Math.min(p.max, Math.max(0, Math.round(n)));
   const commit = (text: string) => {
     setDraft(null);
@@ -124,16 +149,24 @@ function NumField(p: { id: string; label: string; hint: string; value: number; m
     const v = clamp(n);
     if (v !== p.value) p.onChange(v);
   };
-  const bump = (dir: number) => {
+  const slide = (raw: number, done: boolean) => {
+    const g = grain(p.max);
+    const v = raw >= p.max ? p.max : clamp(Math.round(raw / g) * g);
     setDraft(null);
     setCapped(false);
-    const v = clamp(p.value + dir * p.step);
-    if (v !== p.value) p.onChange(v);
+    setDrag(done ? null : v);
+    const now = Date.now();
+    if (v !== p.value && (done || now - sent.current > 150)) {
+      sent.current = now;
+      p.onChange(v);
+    }
   };
+  const shown = drag ?? p.value;
   return (
     <div class="pg-field">
       <div class="pg-fl">
         <label for={p.id} class="pg-lab">
+          <FieldIcon k={p.icon} />
           {p.label}
         </label>
         <p class="pg-hint">
@@ -147,9 +180,6 @@ function NumField(p: { id: string; label: string; hint: string; value: number; m
         </p>
       </div>
       <div class="pg-num">
-        <button type="button" class="pg-step" aria-label={`Less ${p.label.toLowerCase()}`} disabled={p.value <= 0} onClick={() => bump(-1)}>
-          −
-        </button>
         <input
           id={p.id}
           type="text"
@@ -157,7 +187,7 @@ function NumField(p: { id: string; label: string; hint: string; value: number; m
           enterKeyHint="done"
           autocomplete="off"
           spellcheck={false}
-          value={draft ?? fmtInt(p.value)}
+          value={draft ?? fmtInt(shown)}
           onFocus={(e) => {
             const el = e.currentTarget;
             setTimeout(() => el.select(), 0);
@@ -166,15 +196,20 @@ function NumField(p: { id: string; label: string; hint: string; value: number; m
           onBlur={(e) => commit(e.currentTarget.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") e.currentTarget.blur();
-            else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-              e.preventDefault();
-              bump(e.key === "ArrowUp" ? 1 : -1);
-            }
           }}
         />
-        <button type="button" class="pg-step" aria-label={`More ${p.label.toLowerCase()}`} disabled={p.value >= p.max} onClick={() => bump(1)}>
-          +
-        </button>
+        <input
+          type="range"
+          class="pg-range"
+          min={0}
+          max={p.max}
+          step="any"
+          value={shown}
+          aria-label={`${p.label}, 0 to ${fmtInt(p.max)}`}
+          aria-valuetext={fmtInt(shown)}
+          onInput={(e) => slide(+e.currentTarget.value, false)}
+          onChange={(e) => slide(+e.currentTarget.value, true)}
+        />
       </div>
     </div>
   );
@@ -185,6 +220,9 @@ function NumField(p: { id: string; label: string; hint: string; value: number; m
 type Patch = Partial<Omit<ParagonRoute, "name" | "picked">>;
 type InKey = "cash" | "slider" | "pops" | "income" | "tiers" | "extraT5" | "totems";
 const IN_KEYS: InKey[] = ["cash", "slider", "pops", "income", "tiers", "extraT5", "totems"];
+/** Each input's game icon (ui sheet), and each power source's in the result. */
+const IN_ICON: Record<InKey, string> = { cash: "StartingCash", slider: "CashSpent", pops: "Pops", income: "Income", tiers: "LeastTiersRule", extraT5: "Tier5", totems: "ParagonTotem" };
+const BUCKET_ICON: Record<string, string> = { cash: "StartingCash", pops: "Pops", tiers: "LeastTiersRule", t5: "Tier5", totems: "ParagonTotem" };
 type Max = Record<InKey, number>;
 
 export function ParagonPage(props: { r: ParagonRoute }) {
@@ -431,8 +469,8 @@ const pct = (n: number, cost: number) => Math.round((n / cost) * 100);
 
 function InputsPanel(p: { s: ParagonRoute; res: ParagonResult; max: Max; go: (p: Patch) => void }) {
   const { s, res, max, go } = p;
-  const field = (k: InKey, id: string, label: string, hint: string, step: number, decimal = false) => (
-    <NumField id={id} label={label} hint={hint} value={s[k]} max={max[k]} step={step} decimal={decimal} onChange={(n) => go({ [k]: n })} />
+  const field = (k: InKey, id: string, label: string, hint: string, decimal = false) => (
+    <NumField id={id} icon={IN_ICON[k]} label={label} hint={hint} value={s[k]} max={max[k]} decimal={decimal} onChange={(n) => go({ [k]: n })} />
   );
   // One block per power source (bucket order), its power on the right.
   const block = (key: Bucket["key"], fields: ComponentChildren) => {
@@ -463,20 +501,20 @@ function InputsPanel(p: { s: ParagonRoute; res: ParagonResult; max: Max; go: (p:
       {block(
         "cash",
         <>
-          {field("cash", "pg-cash", "Sacrificed cash", "paid for same-type towers below tier 5", 10_000, true)}
-          {field("slider", "pg-slider", "Cash slider", `paid on top of the price · up to ${pct(max.slider, paragonCost(s.tower, s.diff, s.ver))}%`, 10_000, true)}
+          {field("cash", "pg-cash", "Sacrificed cash", "paid for same-type towers below tier 5", true)}
+          {field("slider", "pg-slider", "Cash slider", `paid on top of the price · up to ${pct(max.slider, paragonCost(s.tower, s.diff, s.ver))}%`, true)}
         </>,
       )}
       {block(
         "pops",
         <>
-          {field("pops", "pg-pops", "Pops", "damage counters of the absorbed towers", 1_000_000, true)}
-          {field("income", "pg-income", "Income", "income counters, e.g. merchantmen", 100_000, true)}
+          {field("pops", "pg-pops", "Pops", "damage counters of the absorbed towers", true)}
+          {field("income", "pg-income", "Income", "income counters, e.g. merchantmen", true)}
         </>,
       )}
-      {res.buckets.find((x) => x.key === "tiers")!.cap !== 0 && block("tiers", field("tiers", "pg-tiers", "Upgrade tiers", "towers below tier 5 · a 2-0-3 counts 5", 1))}
-      {block("t5", field("extraT5", "pg-t5", "Extra tier 5s", "beyond the three needed · co-op +3 per teammate", 1))}
-      {block("totems", field("totems", "pg-totems", "Power totems", "yours and teammates' · no cap", 1))}
+      {res.buckets.find((x) => x.key === "tiers")!.cap !== 0 && block("tiers", field("tiers", "pg-tiers", "Upgrade tiers", "towers below tier 5 · a 2-0-3 counts 5"))}
+      {block("t5", field("extraT5", "pg-t5", "Extra tier 5s", "beyond the three needed · co-op +3 per teammate"))}
+      {block("totems", field("totems", "pg-totems", "Power totems", "yours and teammates' · no cap"))}
     </section>
   );
 }
@@ -532,10 +570,10 @@ function ResultCard(p: { res: ParagonResult; ver: GameVer; boost: boolean; copie
         </button>
       </div>
       <dl class="pg-hero">
-        <Stat k="Degree" v={res.degree} accent note={p.boost ? `${res.base} from power + ${res.degree - res.base} Paragon Boost` : undefined} />
+        <Stat k={<><FieldIcon k="ParagonDegree" size={24} />Degree</>} v={res.degree} accent note={p.boost ? `${res.base} from power + ${res.degree - res.base} Paragon Boost` : undefined} />
       </dl>
       <dl class="pg-nums">
-        <Stat k="Power" v={fmtInt(res.power)} />
+        <Stat k={<><FieldIcon k="ParagonPower" size={24} />Power</>} v={fmtInt(res.power)} />
         <Stat k="Next degree" v={res.next ? `+${fmtInt(res.next.gap)}` : "Max"} note={res.next ? `degree ${res.next.degree} at ${fmtInt(res.next.power)}` : "degree 100 reached"} />
       </dl>
       {bp && at && (
@@ -554,7 +592,10 @@ function ResultCard(p: { res: ParagonResult; ver: GameVer; boost: boolean; copie
           return (
             <li key={b.key} class={b.full ? "pg-b full" : "pg-b"}>
               <div class="pg-b-h">
-                <span>{BUCKET_NAME[b.key]}</span>
+                <span class="pg-b-n2">
+                  <FieldIcon k={BUCKET_ICON[b.key]} size={24} />
+                  {BUCKET_NAME[b.key]}
+                </span>
                 <b>
                   {fmtInt(b.power)}
                   {b.cap !== null ? ` / ${fmtInt(b.cap)}` : ""}
