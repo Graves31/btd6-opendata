@@ -285,6 +285,14 @@ UI = {
     "Relic": "ref/DefaultRelicIcon",
     "MaxTowers": "Ui/MaxMonkeysIcon",
     "CustomRounds": "ChallengeRulesIcons/CustomRoundIcon",
+    # paragon calculator fields (StartingCash and LeastTiersRule above are reused there too)
+    "CashSpent": "Ui/CashSpentIcon",
+    "Pops": "Ui/PopIconLarge",
+    "Income": "ref/CashGoalIcon",
+    "Tier5": "Ui/UpgradeContainerTier5",  # the empty gold tier-5 frame; the page draws the "5" on it
+    "ParagonTotem": "UiBuffIcons/BuffIconParagonTotem",
+    "ParagonDegree": "Ui/ParagonPip",
+    "ParagonPower": "UiBuffIcons/BuffIconParagonOfPower",
     # game-mode icons from the mode-select screen, keyed "mode:<ChallengeDocument.mode>" ("Standard" is
     # per difficulty: mode:Easy / mode:Medium / mode:Hard). "Clicks" is NK's internal name for CHIMPS.
     "mode:Easy": "MainMenuUiAtlas/ModeSelectEasyBtn",
@@ -537,6 +545,14 @@ SEASON_BADGES = {
 
 # Official event-type icons (the round buttons on the main-menu Events panel). No official sprite exists for
 # dailyAdvanced / dailyCoop (the game reuses DailyChallengeBtn), so those keys are intentionally absent.
+# Tools hub tile art, one image each at 2x the 96 px tile (sharp on phones): web/src/art/tools/<key>.webp,
+# imported by views/tools.tsx (Vite hashes the URL).
+TOOL_ICONS = {
+    "rounds": "ref/GoalIconPopBloons",
+    "paragon": "Ui/ParagonPip",  # the paragon degree badge
+}
+TOOL_PX = 192
+
 EVENT_ICONS = {
     "boss": "ref/BossChallenge",
     "race": "ref/EventRaceBtn",
@@ -1214,7 +1230,8 @@ export type Family =
    *  AbilityCooldownDecrease the opposite. Extras: LeastCashRule, LeastTiersRule (framed rule versions),
    *  RemovableCostIncrease, RemovableCostDecrease, CeramicIncreaseHP, CeramicDecreaseHP, FastTrackDisabled,
    *  NoLivesLost, Race, Odyssey, ContestedTerritory, CtPoints, Relic (generic relic), MaxTowers, CustomRounds,
-   *  mode:<mode>. MonkeyMoney is the game's currency banknote ("BloonjaminsIcon"). */
+   *  mode:<mode>. Paragon calculator: CashSpent, Pops, Income, Tier5 (empty gold frame), ParagonTotem,
+   *  ParagonDegree (degree badge), ParagonPower. MonkeyMoney is the game's currency banknote ("BloonjaminsIcon"). */
   | "ui"
   /** API power ids: BananaFarmer, CamoTrap, CashDrop, … Thrive (see PowerId). */
   | "power"
@@ -1459,6 +1476,9 @@ def main() -> None:
     FAMILIES["paragon"] = (paragon_icons(), 96, {})
     fams = {f: build_family(src, f, t, c, a) for f, (t, c, a) in FAMILIES.items()}
     print(f"  sheets total {sum(i['bytes'] for i in fams.values()) / 1024:.1f} KB")
+    for key, spec in TOOL_ICONS.items():
+        write_if_changed(ART_DIR / "tools" / f"{key}.webp",
+                         webp_bytes(render_cell(src.get(spec), TOOL_PX, False), **WEBP_MAP))
     if args.skip_maps and (ART_DIR / "manifest.json").exists():
         old = json.loads((ART_DIR / "manifest.json").read_text("utf-8"))["maps"]
         maps = {n: {"source": m["source"], "px": m["px"], "bytes": m["bytes"],
