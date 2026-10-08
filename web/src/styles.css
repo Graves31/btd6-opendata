@@ -7103,3 +7103,13 @@ h1.title.ti .ev-icon {
   color: var(--ink-3);
   font-size: 13px;
 }
+
+/* ── Footer: one sentence group per line. */
+footer {
+  flex-direction: column;
+  gap: 4px;
+}
+footer p {
+  margin: 0;
+}
+
