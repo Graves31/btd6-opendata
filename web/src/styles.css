@@ -7113,3 +7113,82 @@ footer p {
   margin: 0;
 }
 
+/* ── Phones (owner mobile pass 2026-10-08): the home card breathes over the page wash, compact Normal/Elite
+   tiles, race/daily mini cards with their map and rounds, cut-off preview in even medal columns, softer
+   Normal/Elite tabs, the stacked score part named in the column head. */
+@media (max-width: 700px) {
+  /* Only the banner stays full-bleed; the body shows the page wash behind its cards. */
+  .feature {
+    background: transparent;
+    border: 0;
+  }
+  .feature-hero .bh-top {
+    background: var(--s1);
+    border-bottom: 1px solid var(--rule);
+  }
+  .feature-body {
+    padding: 20px var(--gut) 28px;
+  }
+  .feature-main {
+    gap: 20px;
+  }
+  .fd-tile {
+    gap: 6px;
+    padding: 10px 12px;
+    background: var(--s1);
+    border-width: 1px;
+  }
+  .fd-tile.on {
+    box-shadow: inset 0 0 0 1px var(--ink);
+  }
+  .fd-tile .kicker {
+    font-size: 11px;
+  }
+  .fd-sc {
+    gap: 6px;
+    font-size: 16px;
+  }
+  .fd-sc .spr {
+    --s: 24px;
+  }
+  .fd-n {
+    font-size: 12px;
+  }
+  .feature-body > .feature-top {
+    margin-top: 24px;
+    padding: 14px;
+    background: var(--s1);
+    border: 1px solid var(--rule);
+    border-radius: var(--r);
+  }
+  .minis {
+    gap: 10px;
+    margin-top: 24px;
+  }
+  .mini {
+    background: var(--s1);
+  }
+  .mini-map {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .mini-map .mf {
+    padding: 2px;
+  }
+  .mini-r {
+    white-space: nowrap;
+  }
+  .mini-map .map-art {
+    width: 44px !important;
+    height: 44px !important;
+  }
+  main > .vh + .feature + .tiles + section,
+  main > .vh + .feature ~ section {
+    margin-top: 32px;
+  }
+}
+

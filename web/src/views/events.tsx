@@ -470,6 +470,9 @@ function FeaturedBoss(props: { boss: Boss; children?: ComponentChildren }) {
         ) : (
           <div class="feature-top">
             <p class="quiet">Scores open {fmtWhen(b.start)}.</p>
+            <A href={to} class="more">
+              Event page <span aria-hidden="true">→</span>
+            </A>
           </div>
         )}
         {props.children}
@@ -690,26 +693,41 @@ export function DailyTile(props: { id: string; name: string; icon?: string; eyeb
 /** Compact tiles for phones: eyebrow, title, status. The same picks as the big tiles. */
 function MiniGrid(props: { p: ReturnType<typeof homePicks> }) {
   const { race, ct, ody, daily } = props.p;
+  // Race and daily: a small map and its rounds (CT and odyssey have no single map).
+  const raceMeta = race && body<ChallengeDocument>(raceMetaKey(race.id));
+  const dailyDoc = daily && body<ChallengeDocument>(challengeKey(daily.id));
   const mini = (
     to: string,
     eyebrow: string,
     icon: string,
     title: string,
     when?: { start: number; end: number },
+    map?: ChallengeDocument | false,
   ) => (
-    <A href={to} class="mini">
+    <A href={to} class={map === undefined ? "mini" : "mini has-map"}>
       <span class="eyebrow ti">
         <EvIcon k={icon} size={24} />
         {eyebrow}
       </span>
       <span class="mini-t">{title}</span>
+      {map !== undefined && (
+        <span class="mini-map">
+          <MapArt framed map={map ? map.map : undefined} url={map ? map.mapURL : undefined} size={48} alt="" />
+          {map && (
+            <span class="mini-r">
+              Rounds {fmtRounds(map.startRound, map.endRound)}
+            </span>
+          )}
+        </span>
+      )}
       {when && <EvStatus start={when.start} end={when.end} />}
     </A>
   );
   if (!race && !ct && !ody && !daily) return null;
   return (
     <div class="minis">
-      {race && mini(href.race(race.id), "Race", "race", race.name, race)}
+      {race &&
+        mini(href.race(race.id), "Race", "race", race.name, race, raceMeta ?? false)}
       {ct &&
         mini(
           href.ct(ct.id),
@@ -725,6 +743,8 @@ function MiniGrid(props: { p: ReturnType<typeof homePicks> }) {
           "Daily challenge",
           "daily",
           dailyTitle(daily.id) ?? daily.name.replace(/^(\w+ \d+): /, ""),
+          undefined,
+          dailyDoc ?? false,
         )}
     </div>
   );
@@ -761,7 +781,7 @@ function ComingUp(props: { events: NKEvent[] }) {
               <th>Event</th>
               <th>Starts</th>
               <th class="opt">Ends</th>
-              <th>Status</th>
+              <th class="m-hide">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -799,9 +819,15 @@ function ComingUp(props: { events: NKEvent[] }) {
                       <span class="sched-l">{label}</span>
                     )}
                   </td>
-                  <td class="nowrap">{fmtWhen(e.start)}</td>
+                  <td class="nowrap">
+                    {fmtWhen(e.start)}
+                    {/* phones: the status under the date instead of a column that scrolls sideways */}
+                    <span class="m-sub">
+                      <EvStatus start={e.start} end={e.end} />
+                    </span>
+                  </td>
                   <td class="nowrap opt">{fmtWhen(e.end)}</td>
-                  <td>
+                  <td class="m-hide">
                     <EvStatus start={e.start} end={e.end} />
                   </td>
                 </>
@@ -1242,10 +1268,14 @@ function BossHero(props: {
             <EvIcon k="boss" size={24} />
             Boss event
           </p>
-          {/* Plain text even on home: the banner beside it is the one link (one tab stop, not two). */}
+          {/* Home: the title opens the event too (on phones the banner doesn't read as a link). */}
           <H id={props.headingId} class="bh-title">
-            <span class="bh-name">{name}</span>
-            {no && <span class="bh-no"> #{no}</span>}
+            {link(
+              <>
+                <span class="bh-name">{name}</span>
+                {no && <span class="bh-no"> #{no}</span>}
+              </>,
+            )}
             {props.sub && <span class="bh-sub"> · {props.sub}</span>}
           </H>
           {b && (
