@@ -1,10 +1,13 @@
 // Tools hub (/tools): the site's calculators and visualizers, one card each (the Live page's tile look).
 
 import type { ComponentChildren } from "preact";
-import { Spr } from "../sprite.tsx";
+import paragonArt from "../art/tools/paragon.webp";
+import roundsArt from "../art/tools/rounds.webp";
 import { href } from "../routes.ts";
 import { A } from "../ui.tsx";
-import { paragonIcon } from "./paragon.tsx";
+
+/** Tile art: the game sprite at 2x (scripts/build_art.py TOOL_ICONS), so it stays sharp on phones. */
+const art = (src: string) => <img src={src} width={96} height={96} alt="" decoding="async" />;
 
 function ToolTile(p: { to: string; art: ComponentChildren; title: string; children: ComponentChildren }) {
   return (
@@ -32,10 +35,10 @@ export function ToolsHub() {
         </div>
       </header>
       <div class="tiles tools-tiles">
-        <ToolTile to={href.rounds({})} title="Round visualizer" art={<Spr family="bloon" k="moab" size={96} label />}>
+        <ToolTile to={href.rounds({})} title="Round visualizer" art={art(roundsArt)}>
           Every round of every round set, from the game's own data: the bloons, RBE and spawn timeline.
         </ToolTile>
-        <ToolTile to={href.paragon()} title="Paragon calculator" art={paragonIcon("DartMonkey", 96)}>
+        <ToolTile to={href.paragon()} title="Paragon calculator" art={art(paragonArt)}>
           What degree your sacrifices make, and the quickest way to reach the next boss breakpoint.
         </ToolTile>
       </div>
