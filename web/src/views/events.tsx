@@ -1469,12 +1469,12 @@ function CutoffStrip(props: {
         " Only rank medals are shown: Ninja Kiwi publishes no entry count for team boards, so % medals can't be placed."}
     </p>
   );
-  // Closed (phones): the top cut-offs that have a score, as text ("Top 10 2:55.1 · Top 50 3:02.4").
-  const glimpse: string[] = [];
+  // Closed (phones): the top three cut-offs that have a score, each under its medal, in even columns.
+  const glimpse: { c: Cutoff; sc: string }[] = [];
   for (const c of cuts) {
     const sc =
       !c.coveredBy && c.rank <= BOARD_CAP ? props.scoreAt(c.rank) : undefined;
-    if (sc && glimpse.length < 3) glimpse.push(`${c.label} ${sc}`);
+    if (sc && glimpse.length < 3) glimpse.push({ c, sc });
   }
   const list = (
     <ol class="co-list">
@@ -1555,7 +1555,22 @@ function CutoffStrip(props: {
           <span class="co-hide">Hide ▴</span>
         </span>
         {glimpse.length > 0 && (
-          <span class="co-peek">{glimpse.join(" · ")}</span>
+          <span class="co-peek">
+            {glimpse.map(({ c, sc }) => (
+              <span key={c.tier} class="co-pk">
+                <Spr
+                  family="eventMedal"
+                  k={medalArt(props.board, c.tier)}
+                  size={24}
+                  name={`${medalName(props.board, c.tier)} medal`}
+                />
+                <span class="co-pk-t">
+                  <span class="co-pk-l">{c.label}</span>
+                  <span class="co-pk-s">{sc}</span>
+                </span>
+              </span>
+            ))}
+          </span>
         )}
       </summary>
       {note}
@@ -1912,6 +1927,15 @@ export function BossPage(props: {
                         <PartHead
                           key={c.name}
                           name={c.name}
+                          sub={
+                            // phones: the stacked part's name under the column it rides in (Parts' host)
+                            c.name ===
+                            cols.find(
+                              (x) => x.name !== "Boss Tier" && x.name !== stack,
+                            )?.name
+                              ? stack
+                              : undefined
+                          }
                           class={
                             c.name === stack
                               ? "m-hide"

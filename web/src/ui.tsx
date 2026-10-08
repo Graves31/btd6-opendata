@@ -486,7 +486,7 @@ export const PART_ICON: Record<string, string> = {
 };
 
 /** Leaderboard column header: 20 px icon + text. Boss Tier is a narrow column. */
-export function PartHead(props: { name: string; class?: string; title?: string }) {
+export function PartHead(props: { name: string; class?: string; title?: string; sub?: string }) {
   const icon = PART_ICON[props.name];
   const tier = props.name === "Boss Tier";
   return (
@@ -495,6 +495,8 @@ export function PartHead(props: { name: string; class?: string; title?: string }
         {icon && <Spr family="ui" k={icon} size={20} label optional />}
         <span class="th-t">{partLabel(props.name)}</span>
       </span>
+      {/* phones: the name of the part stacked under this column's values (Parts `stack`) */}
+      {props.sub && <span class="m-sub th-sub">{partLabel(props.sub)}</span>}
     </th>
   );
 }
@@ -522,7 +524,7 @@ export function Parts(props: { parts: ScorePart[]; opt?: string[]; stack?: strin
             {tier ? p.score : p.name === SUBMITTED ? <Submitted offset={p.score} start={props.start} /> : fmtPart(p)}
             {under && i === host && (
               <span class="m-sub">
-                <span class="m-sub-l">{partLabel(under.name)} </span>
+                <span class="vh">{partLabel(under.name)} </span>
                 {fmtPart(under)}
               </span>
             )}
