@@ -167,7 +167,7 @@ async function route(deps: Deps, request: Request): Promise<Response> {
 
   if (path === "/api/stats") {
     if (request.method === "HEAD") return new Response(null, { headers: { "Cache-Control": "no-store" } });
-    return handleStats(deps.stats ?? { graphqlUrl: STATS_GRAPHQL_URL }, deps.fetch, deps.now());
+    return handleStats(deps.stats ?? { graphqlUrl: STATS_GRAPHQL_URL }, deps.fetch, deps.now(), url.searchParams.get("bots") === "0");
   }
 
   if (path === "/api/health") return health(deps);

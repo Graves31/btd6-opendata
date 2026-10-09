@@ -4,7 +4,8 @@
 //
 // Dataset: viewer.accounts(filter:{accountTag}).rumPageloadEventsAdaptiveGroups — `count` is page views,
 // `sum { visits }` is visits (sessions); dimensions date / requestPath / refererHost / countryName / deviceType;
-// filter datetime_geq / datetime_leq / requestHost_in; orderBy count_DESC.
+// filter datetime_geq / datetime_leq / requestHost_in / bot (1 = Cloudflare thinks it's a bot); orderBy count_DESC.
+// `?bots=0` leaves bot page views out.
 // (Cloudflare Web Analytics GraphQL; see https://developers.cloudflare.com/analytics/graphql-api/.)
 
 import { jsonResponse } from "./proxy.ts";
@@ -42,8 +43,8 @@ export interface Stats {
 
 const GROUP = "limit: 10, orderBy: [count_DESC]";
 /** Filters are inlined (built only from our own constants and numbers), so no input-type names are needed. */
-const filterOf = (hosts: string[], from: string, to: string) =>
-  `{ requestHost_in: ${JSON.stringify(hosts)}, datetime_geq: "${from}", datetime_leq: "${to}" }`;
+const filterOf = (hosts: string[], from: string, to: string, noBots: boolean) =>
+  `{ requestHost_in: ${JSON.stringify(hosts)}, datetime_geq: "${from}", datetime_leq: "${to}"${noBots ? ", bot: 0" : ""} }`;
 export function statsQuery(account: string, f7: string, f30: string): string {
   const g = (alias: string, args: string, f: string, dim?: string) =>
     `${alias}: rumPageloadEventsAdaptiveGroups(${args}, filter: ${f}) { count sum { visits }${dim ? ` dimensions { ${dim} }` : ""} }`;
@@ -98,22 +99,22 @@ export function shapeStats(res: GraphqlResponse, now: number): Stats {
   };
 }
 
-let memo: { at: number; json: string } | null = null;
-export const resetStatsMemo = () => {
-  memo = null;
-};
+/** Keyed by noBots: all page views, or only those Cloudflare doesn't flag as bots (`bot` = 0). */
+const memo = new Map<boolean, { at: number; json: string }>();
+export const resetStatsMemo = () => memo.clear();
 
 const HEADERS = { "X-Robots-Tag": "noindex, nofollow" };
 const fail = (status: number, error: string, extra: Record<string, unknown> = {}) =>
   jsonResponse(JSON.stringify({ success: false, error, ...extra }), status, "no-store", HEADERS);
 
-export async function handleStats(cfg: StatsConfig, fetchFn: typeof fetch, now: number): Promise<Response> {
+export async function handleStats(cfg: StatsConfig, fetchFn: typeof fetch, now: number, noBots = false): Promise<Response> {
   if (!cfg.token || !cfg.accountId) return fail(503, "not-configured");
   const cc = "public, max-age=900";
-  if (memo && now - memo.at < STATS_TTL_MS) return jsonResponse(memo.json, 200, cc, HEADERS);
+  const m = memo.get(noBots);
+  if (m && now - m.at < STATS_TTL_MS) return jsonResponse(m.json, 200, cc, HEADERS);
   const iso = (ms: number) => new Date(ms).toISOString();
   const day0 = Math.floor(now / DAY_MS) * DAY_MS; // UTC midnight: the daily buckets are whole days
-  const f = (days: number) => filterOf(STATS_HOSTS, iso(day0 - (days - 1) * DAY_MS), iso(now));
+  const f = (days: number) => filterOf(STATS_HOSTS, iso(day0 - (days - 1) * DAY_MS), iso(now), noBots);
   if (!/^[0-9a-f]{32}$/.test(cfg.accountId)) return fail(503, "not-configured");
   let res: Response;
   try {
@@ -136,7 +137,7 @@ export async function handleStats(cfg: StatsConfig, fetchFn: typeof fetch, now: 
     return fail(502, msg.split(cfg.token).join("***").slice(0, 300));
   }
   const json = JSON.stringify({ success: true, body: shapeStats(body, now) });
-  memo = { at: now, json };
+  memo.set(noBots, { at: now, json });
   return jsonResponse(json, 200, cc, HEADERS);
 }
 

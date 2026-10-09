@@ -1322,6 +1322,14 @@ describe("stats", () => {
     assert.equal(calls, 1);
     await handleStats(cfg, ok, NOW + 16 * MIN);
     assert.equal(calls, 2);
+
+    // Without bots: its own query (bot: 0 in every filter) and its own cache.
+    const seen: string[] = [];
+    const spy = (async (_u: string, init: RequestInit) => (seen.push(String(init.body)), new Response(JSON.stringify(fixture)))) as unknown as typeof fetch;
+    await handleStats(cfg, spy, NOW + 17 * MIN, true);
+    await handleStats(cfg, spy, NOW + 18 * MIN, true);
+    assert.equal(seen.length, 1);
+    assert.equal(seen[0].match(/bot: 0/g)?.length, 7);
     resetStatsMemo();
   });
 });

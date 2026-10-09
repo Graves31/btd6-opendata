@@ -32,9 +32,9 @@ function useNoindex() {
   }, []);
 }
 
-async function load(): Promise<State> {
+async function load(noBots: boolean): Promise<State> {
   try {
-    const r = await fetch("/api/stats");
+    const r = await fetch(noBots ? "/api/stats?bots=0" : "/api/stats");
     const j = (await r.json().catch(() => ({}))) as { error?: string; body?: Stats };
     if (r.status === 503 && j.error === "not-configured") return { kind: "off" };
     if (!r.ok || !j.body) return { kind: "error", msg: j.error ?? `HTTP ${r.status}` };
@@ -120,16 +120,48 @@ const Tile = (p: { label: string; value: number; sub: string }) => (
   </div>
 );
 
+const BOTS_KEY = "stats-no-bots";
+const readNoBots = () => {
+  try {
+    return localStorage.getItem(BOTS_KEY) === "1";
+  } catch {
+    return false;
+  }
+};
+
+/** All page views · without the ones Cloudflare flags as bots (crawlers, AI fetchers…); remembered in this browser. */
+function BotsToggle(p: { noBots: boolean; set: (v: boolean) => void }) {
+  return (
+    <span class="hideban" role="group" aria-label="Bots">
+      {([false, true] as const).map((v) => (
+        <button key={String(v)} type="button" class={p.noBots === v ? "on" : undefined} aria-pressed={p.noBots === v} onClick={() => p.set(v)}>
+          {v ? "Hide bots" : "All"}
+        </button>
+      ))}
+    </span>
+  );
+}
+
 export function StatsPage() {
   useNoindex();
-  const [st, setSt] = useState<State>({ kind: "loading" });
+  const [noBots, setNoBots] = useState(readNoBots);
+  // Both versions load together, so the toggle switches instantly.
+  const [both, setBoth] = useState<[State, State]>([{ kind: "loading" }, { kind: "loading" }]);
   useEffect(() => {
     let live = true;
-    void load().then((s) => live && setSt(s));
+    void load(false).then((s) => live && setBoth((b) => [s, b[1]]));
+    void load(true).then((s) => live && setBoth((b) => [b[0], s]));
     return () => {
       live = false;
     };
   }, []);
+  const pick = (v: boolean) => {
+    setNoBots(v);
+    try {
+      localStorage.setItem(BOTS_KEY, v ? "1" : "0");
+    } catch {}
+  };
+  const st = both[noBots ? 1 : 0];
 
   let content;
   if (st.kind === "loading")
@@ -188,6 +220,9 @@ export function StatsPage() {
     <>
       <header class="page-h">
         <h1>Site stats</h1>
+        <div class="hideban-row">
+          <BotsToggle noBots={noBots} set={pick} />
+        </div>
       </header>
       {content}
     </>
