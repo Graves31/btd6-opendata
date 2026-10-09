@@ -1086,7 +1086,12 @@ describe("link previews (og tags on page navigations)", () => {
 
     assert.match((await page(t, "/odyssey/muekowzs")).html, /<title>Not all Heroes wear capes · Odyssey/);
     assert.match((await page(t, `/ct/${CT_ID}`)).html, /<title>Contested Territory · /);
-    assert.match((await page(t, "/races/")).html, /<title>Races · /);
+    assert.match((await page(t, "/races/")).html, /<title>BTD6 Race Leaderboards · /);
+    assert.match((await page(t, "/challenges")).html, /<title>Daily challenges · /);
+    assert.match((await page(t, "/challenges/constructor")).html, /<title>BTD6 Open Data<\/title>/);
+    const lych = (await page(t, "/bosses/lych")).html;
+    assert.match(lych, /<title>Lych · Boss stats · /);
+    assert.match(lych, /<div id="app"><div class="pre"><h1>Lych · Boss stats · BTD6 Open Data<\/h1><p>Lych boss stats/);
     assert.equal(t.origin.calls.length, calls);
   });
 

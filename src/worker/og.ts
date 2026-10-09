@@ -90,17 +90,26 @@ const page = (title: string, description: string, image: string | null = null, w
 });
 
 const LISTS: Record<string, [string, string]> = {
-  bosses: ["Boss events", "Every Bloons TD 6 boss event: leaderboards, rules and top scores, with full history."],
-  races: ["Races", "Every Bloons TD 6 race: leaderboards and rules, with full history."],
-  ct: ["Contested Territory", "Every Bloons TD 6 Contested Territory event: player and team leaderboards and tiles."],
+  bosses: ["BTD6 Boss Event Leaderboards", "Every Bloons TD 6 boss event: leaderboards, rules and top scores, with full history."],
+  races: ["BTD6 Race Leaderboards", "Every Bloons TD 6 race: leaderboards and rules, with full history."],
+  ct: ["BTD6 Contested Territory Leaderboards", "Every Bloons TD 6 Contested Territory event: player and team leaderboards and tiles."],
   odyssey: ["Odysseys", "Every Bloons TD 6 odyssey: islands, rules and rewards."],
   events: ["Events", "Bloons TD 6 events: bosses, races, Contested Territory and odysseys."],
 };
 
-const TOOLS: [string, string] = ["Round visualizer · Tools", "Bloons TD 6 round sets from the game's own data: the bloons, RBE and spawn timeline of every round."];
+const TOOLS: [string, string] = ["BTD6 Round Visualizer (RBE & bloons per round)", "Bloons TD 6 round sets from the game's own data: the bloons, RBE and spawn timeline of every round."];
 
 const TOOLS_HUB: [string, string] = ["Tools", "Bloons TD 6 tools built on the game's own data: the round visualizer and the paragon degree calculator."];
-const PARAGON: [string, string] = ["Paragon degree calculator · Tools", "Bloons TD 6 paragon degree calculator: how much sacrificed cash, pops, towers and totems a degree takes, and the quickest way to the next boss breakpoint."];
+const PARAGON: [string, string] = ["BTD6 Paragon Degree Calculator", "Bloons TD 6 paragon degree calculator: how much sacrificed cash, pops, towers and totems a degree takes, and the quickest way to the next boss breakpoint."];
+
+const CHALLENGE_LISTS: Record<string, [string, string]> = {
+  daily: ["Daily challenges", "Every Bloons TD 6 daily challenge: rules, map and modifiers."],
+  newest: ["Newest challenges", "The newest Bloons TD 6 player-made challenges: rules, map and modifiers."],
+  trending: ["Trending challenges", "Trending Bloons TD 6 player-made challenges: rules, map and modifiers."],
+};
+
+/** Boss stats pages (/bosses/<type>), as in web/public/sitemap.xml. */
+const BOSS_TYPES = new Set(["bloonarius", "lych", "vortex", "dreadbloon", "phayze", "blastapopoulos", "diamondback"]);
 
 /** Route-specific tags from cached data only; null/GENERIC when nothing usable is cached. */
 export async function describe(deps: Deps, pathname: string): Promise<PageMeta> {
@@ -111,12 +120,16 @@ export async function describe(deps: Deps, pathname: string): Promise<PageMeta> 
     return GENERIC;
   }
   const [a, b, c, d] = seg;
-  if (!a) return GENERIC;
+  if (!a) return { ...GENERIC, title: `${SITE_NAME} · Live boss, race & CT leaderboards` };
   if (seg.length === 1 && LISTS[a]) return page(...LISTS[a]);
   // Tools (/tools, /tools/rounds, /tools/paragon): static pages, no lookup.
   if (a === "tools" && b === "rounds" && !c) return page(...TOOLS);
   if (a === "tools" && b === "paragon" && !c) return page(...PARAGON);
   if (a === "tools" && !b) return page(...TOOLS_HUB); // old /tools?set=… links are the visualizer, but the hub text is true of both
+  if (a === "challenges" && !c && (!b || Object.hasOwn(CHALLENGE_LISTS, b))) return page(...CHALLENGE_LISTS[b ?? "daily"]);
+  if (a === "bosses" && b && BOSS_TYPES.has(b) && !c) {
+    return page(`${cap(b)} · Boss stats`, `${cap(b)} boss stats in Bloons TD 6: health, skulls and spawns per tier, Normal and Elite.`);
+  }
   if (!b) return GENERIC;
 
   if ((a === "boss" || a === "race" || a === "ct" || a === "odyssey") && EVENT_ID.test(b)) {
@@ -230,7 +243,7 @@ function dateRange(start: number, end: number): string {
 const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
-/** Set <title> and the description, drop any existing og:/twitter: tags, add ours before </head>. */
+/** Set <title> and the description, drop any existing og:/twitter: tags, add ours before </head>, and the page's text into #app. */
 export function injectMeta(html: string, m: PageMeta, url: URL): string {
   const image = m.image ?? (SITE_IMAGE ? new URL(SITE_IMAGE, url).href : null);
   const prop = (p: string, v: string) => `<meta property="${p}" content="${esc(v)}" />`;
@@ -257,5 +270,20 @@ export function injectMeta(html: string, m: PageMeta, url: URL): string {
     ? out.replace(/<meta\s+name="description"[^>]*>/i, () => desc)
     : out.replace(/<\/head>/i, () => `${desc}</head>`);
   const canonical = `<link rel="canonical" href="${esc(SITE + url.pathname + url.search)}" />`;
-  return out.replace(/<\/head>/i, () => `${[canonical, ...tags].join("\n    ")}\n  </head>`);
+  out = out.replace(/<\/head>/i, () => `${[canonical, ...tags].join("\n    ")}\n  </head>`);
+  // Readable text for crawlers that don't run scripts; the app clears it before its first render.
+  const links = SECTIONS.map(([h, l]) => `<a href="${h}">${l}</a>`).join(" · ");
+  const text = `<div class="pre"><h1>${esc(m.title)}</h1><p>${esc(m.description)}</p><nav>${links}</nav></div>`;
+  return out.replace(/<div id="app"><\/div>/i, () => `<div id="app">${text}</div>`);
 }
+
+const SECTIONS = [
+  ["/", "Live events"],
+  ["/bosses", "Boss events"],
+  ["/races", "Races"],
+  ["/ct", "Contested Territory"],
+  ["/odyssey", "Odysseys"],
+  ["/challenges", "Challenges"],
+  ["/tools/rounds", "Round visualizer"],
+  ["/tools/paragon", "Paragon calculator"],
+];

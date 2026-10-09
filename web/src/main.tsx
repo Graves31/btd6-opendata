@@ -126,6 +126,21 @@ export function title(r: Route): string {
   }
 }
 
+/** Browser-tab / search-result headline: the main pages use the words people search for (same as og.ts);
+ *  the back link keeps title()'s short names. */
+function tabTitle(r: Route): string {
+  if (r.name === "home") return "BTD6 Open Data · Live boss, race & CT leaderboards";
+  const s =
+    r.name === "events" && r.kind !== "odyssey"
+        ? `BTD6 ${{ boss: "Boss Event", race: "Race", ct: "Contested Territory" }[r.kind]} Leaderboards`
+        : r.name === "paragon"
+          ? "BTD6 Paragon Degree Calculator"
+          : r.name === "rounds"
+            ? `${roundsTitle(r)} · BTD6 Round Visualizer`
+            : undefined;
+  return s ? `${s} · BTD6 Open Data` : title(r);
+}
+
 /** How a page is named in the back link: its title, plus the team size / page it was on. */
 function backLabel(r: Route): string {
   let s = title(r).replace(/ · BTD6 Open Data$/, "");
@@ -227,7 +242,7 @@ function App() {
   }, [r]);
   // Every render: the title gets the real name (player, boss…) as soon as that data lands.
   useLayoutEffect(() => {
-    const t = title(r);
+    const t = tabTitle(r);
     if (document.title !== t) document.title = t;
   });
   // The headline boss is known once /api/now lands (after the first paint on a cold start).
@@ -275,7 +290,9 @@ await Promise.race([store.hydrate(), new Promise((r) => setTimeout(r, 120))]);
 void refreshNow(true);
 void store.want(needs(initialRoute));
 warmFor(initialRoute.name); // this page's sprite sheets first; sprites show text chips until decoded
-render(<App />, document.getElementById("app")!);
+const root = document.getElementById("app")!;
+root.replaceChildren(); // the Worker's text for crawlers (og.ts injectMeta)
+render(<App />, root);
 warmAllOnIdle();
 
 setInterval(() => document.visibilityState === "visible" && void store.loadNow(), 5 * 60_000);

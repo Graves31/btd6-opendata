@@ -22,7 +22,7 @@
     "run_worker_first": [
       "/api/*",
       "/",
-      "/bosses", "/races", "/ct", "/odyssey", "/events",
+      "/bosses", "/bosses/*", "/races", "/ct", "/odyssey", "/events",
       "/boss/*", "/race/*", "/ct/*", "/odyssey/*", "/player/*", "/team/*", "/challenge/*", "/challenges", "/challenges/*",
       "/tools", "/tools/*"
     ]
