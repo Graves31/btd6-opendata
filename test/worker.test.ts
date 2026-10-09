@@ -107,7 +107,13 @@ describe("proxy", () => {
 describe("hot bundle (per-minute cron)", () => {
   it("builds the hot set and only re-asks NK once its CDN copy has expired", async () => {
     const t = makeEnv();
+    // Archived rows NK no longer lists: an upcoming one (pulled before it began) goes, a past one stays.
+    const row = t.db.raw.prepare("INSERT INTO events (kind, id, start_at, end_at, data) VALUES ('boss', ?, ?, ?, '{}')");
+    row.run("Ghost1_pulled", CAPTURED_AT + DAY, CAPTURED_AT + 2 * DAY);
+    row.run("Old1_archived", CAPTURED_AT - 400 * DAY, CAPTURED_AT - 395 * DAY);
     const r1 = await refreshHot(t.deps);
+    const ids = (t.db.raw.prepare("SELECT id FROM events WHERE kind = 'boss'").all() as { id: string }[]).map((r) => r.id);
+    assert.ok(!ids.includes("Ghost1_pulled") && ids.includes("Old1_archived"), "pulled upcoming event dropped, history kept");
     assert.equal(r1.published, true);
     assert.equal(r1.failed.length, 0);
     assert.ok(r1.fetched <= 45, `stays under the 50-subrequest cap (fetched ${r1.fetched})`);
@@ -129,8 +135,10 @@ describe("hot bundle (per-minute cron)", () => {
     // (only the profile warmer's few fetches, which are counted separately).
     const calls = hotCalls(t);
     t.clock.now += MIN;
+    row.run("Ghost2_pulled", CAPTURED_AT + DAY, CAPTURED_AT + 2 * DAY); // left over from before: no list change needed
     const r2 = await refreshHot(t.deps);
     assert.equal(r2.fetched, 0);
+    assert.equal(t.db.raw.prepare("SELECT COUNT(*) AS n FROM events WHERE id = 'Ghost2_pulled'").get()!.n, 0, "dropped on a quiet run");
     assert.equal(r2.skipped, r1.fetched);
     assert.equal(hotCalls(t), calls);
 

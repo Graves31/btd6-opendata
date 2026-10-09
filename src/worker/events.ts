@@ -90,6 +90,16 @@ export function upsertEventStmts(db: D1Like, kind: EventKind, items: ListItem[])
 }
 
 /**
+ * Upcoming events NK no longer lists were pulled (or re-created under a new id) before they began: drop them,
+ * or the archive keeps a ghost with no rules. `ids` = NK's current list, which always holds every upcoming event.
+ */
+export function dropPulledStmt(db: D1Like, kind: EventKind, ids: string[], now: number) {
+  return db
+    .prepare("DELETE FROM events WHERE kind = ? AND start_at > ? AND id NOT IN (SELECT value FROM json_each(?))")
+    .bind(kind, now, JSON.stringify(ids));
+}
+
+/**
  * Archived event list for a kind, newest first — history beyond NK's ~2–3 month window — as a JSON array
  * text of the list items plus `archived`. `data` is our own JSON.stringify of an object, so the flag is
  * spliced in as text instead of parsing and re-serialising every row.

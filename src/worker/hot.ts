@@ -18,7 +18,7 @@
 
 import { LEADERBOARD_FREEZE_GRACE_MS, matchRoute, ORIGIN_MAX_AGE_MS, type CacheClass, type EventKind } from "../nk/routes.ts";
 import type { Deps } from "./deps.ts";
-import { eventKeys, LIST_PATH, upsertEventStmts, type ListItem } from "./events.ts";
+import { dropPulledStmt, eventKeys, LIST_PATH, upsertEventStmts, type ListItem } from "./events.ts";
 import { buildHotText, HOT_KEY, mem, setHotMemo, type HotMeta, type HotMetaEntry } from "./store.ts";
 import { originCooldownS } from "./limit.ts";
 import { detectNew, flushOutbox, markUnsent, noteStmts, outboxMayHaveUnsent, resetNotifyState, watchedKinds, type Note } from "./notify.ts";
@@ -281,6 +281,8 @@ export async function refreshHot(deps: Deps): Promise<HotResult> {
       if (watched.has(kind)) fresh[kind] = items.filter((x) => before.get(x.id) === undefined);
     }
     const t = next[LIST_PATH[kind]]?.d?.t ?? [];
+    // Every run, not only when the list changed: a missed change can't leave a ghost behind (one cheap query).
+    if (t.length) stmts.push(dropPulledStmt(deps.db, kind, t.map(([id]) => id), now));
     const f = pickFeatured(t.map(([id, start, end]) => ({ id, start, end })), now);
     result.featured[kind] = f?.id ?? null;
     if (!f) continue;
