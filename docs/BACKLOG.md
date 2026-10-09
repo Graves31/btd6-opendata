@@ -37,6 +37,18 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
 
 ## Ideas (not approved)
 
+- **Feature gaps vs other BTD6 sites** (2026-10-09, competitor research: btd6portal.com, BTD6 API Explorer). Each needs
+  its own go:
+  1. **Personal stats with an OAK**: hidden stats (race attempts, CT tiles, continues), insta-monkey collection,
+     achievements. Browser → NK only (`/btd6/save/{oak}`, `/btd6/users/{oak}`); the OAK never touches our Worker.
+  2. **Challenge / map code lookup**: type a code → rules, map, creator, plays/wins (`/btd6/challenges/challenge/{id}`,
+     `/btd6/maps/map/{id}`); reuses the rules panel.
+  3. **Boss HP calculator** by boss, tier, Elite and player count, from game data (bosses.json), never from memory.
+  4. **Hero XP and tower cost calculators** across difficulties, from game data (like the paragon calculator).
+  5. **Browse player-made challenges and maps** (newest / trending; `/btd6/maps/filter/{filter}`).
+- **"Don't count this browser" switch on /stats** (2026-10-09; owner: not yet). Flag in localStorage; index.html
+  loads the Cloudflare beacon only when it's off. Per browser, from then on (past visits stay; Web Analytics has no IPs).
+
 - **Cheaper home page** (2026-10-07). A visit (home → boss board → races → a race) costs ~12 Worker requests, 7 of
   them on the home page (/api/now, a batch, 4 separate /api/history calls), so the free 100k/day ≈ 7–8k visits.
   Folding the history calls and /api/now into the one batch would make the home page ~2 requests.
