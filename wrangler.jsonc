@@ -11,20 +11,18 @@
   ],
 
   // Static assets (built by Vite into dist/): served directly by Cloudflare (free, unlimited, no Worker
-  // invocation) except /api/* and the page URLs below, which run the Worker first so the SPA shell carries
-  // link-preview tags (src/worker/og.ts; cached data only, never an NK request). Only these HTML navigations
-  // count as Worker requests: /assets/*, /art/*, sw.js, fonts and images never do. dist/_headers marks
-  // hashed bundles immutable. Keep the page list in sync with web/src/routes.ts.
+  // invocation) except /api/* and page URLs, which run the Worker first so the SPA shell carries link-preview
+  // tags (src/worker/og.ts; cached data only, never an NK request) and unknown paths get a real 404. Only
+  // HTML navigations count as Worker requests: the static files excluded below never do. dist/_headers marks
+  // hashed bundles immutable. Keep the exclusions in sync with the top level of dist/ (web/public + assets).
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
     "run_worker_first": [
-      "/api/*",
-      "/",
-      "/bosses", "/bosses/*", "/races", "/ct", "/odyssey", "/events",
-      "/boss/*", "/race/*", "/ct/*", "/odyssey/*", "/player/*", "/team/*", "/challenge/*", "/challenges", "/challenges/*",
-      "/tools", "/tools/*"
+      "/*",
+      "!/assets/*", "!/art/*", "!/sw.js", "!/favicon.ico", "!/favicon.svg", "!/apple-touch-icon.png", "!/og.jpg",
+      "!/robots.txt", "!/sitemap.xml", "!/index.html"
     ]
   },
 

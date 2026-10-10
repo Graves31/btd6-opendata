@@ -1166,8 +1166,32 @@ describe("link previews (og tags on page navigations)", () => {
     }
     assert.deepEqual(a.seen, []);
     const { r, html } = await page(t, "/races?x=1", a);
-    assert.match(html, /<link rel="canonical" href="https:\/\/btd6data\.com\/races\?x=1" \/>/);
+    assert.match(html, /<link rel="canonical" href="https:\/\/btd6data\.com\/races" \/>/);
     assert.equal(r.headers.get("Content-Security-Policy"), "frame-ancestors 'none'");
+  });
+
+  it("search engines: one canonical address per page, real 404s for unknown paths", async () => {
+    const t = makeEnv();
+    const canonical = (html: string) => /<link rel="canonical" href="([^"]*)"/.exec(html)?.[1];
+    for (const [path, want] of [
+      ["/", "https://btd6data.com/"],
+      ["/bosses/", "https://btd6data.com/bosses"],
+      ["/bosses/phayze?d=elite&t=3", "https://btd6data.com/bosses/phayze"],
+      ["/tools/rounds?set=default&r=60", "https://btd6data.com/tools/rounds"],
+      ["/tools?set=default", "https://btd6data.com/tools/rounds"],
+      ["/tools", "https://btd6data.com/tools"],
+    ]) {
+      const { r, html } = await page(t, path);
+      assert.equal(r.status, 200, path);
+      assert.equal(canonical(html), want, path);
+    }
+    for (const path of ["/nope", "/nope/x/y", "/bosses/zzz", "/boss/x", "/challenges/constructor", "/player/%E0%A4%A"]) {
+      assert.equal((await page(t, path)).r.status, 404, path);
+    }
+    const stats = await page(t, "/stats");
+    assert.equal(stats.r.status, 200);
+    assert.match(stats.html, /<title>Site stats · BTD6 Open Data<\/title>/);
+    assert.match((await page(t, "/ct")).html, /<title>BTD6 Contested Territory \(CT\) Leaderboards · /);
   });
 });
 

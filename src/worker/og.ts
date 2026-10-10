@@ -10,6 +10,7 @@
 //  - Wall time: lookups are capped at LOOKUP_TIMEOUT_MS; slower → generic tags, the page is never held up.
 // Static files (/assets/*, /art/*, sw.js, fonts, images) never reach the Worker.
 
+import { parse } from "../../web/src/routes.ts";
 import type { Deps } from "./deps.ts";
 import { hotPayload, mem, peekHot } from "./store.ts";
 
@@ -77,7 +78,24 @@ export async function handlePage(deps: Deps, assets: AssetsLike, request: Reques
   headers.set("Content-Type", "text/html; charset=utf-8");
   headers.set("Cache-Control", "no-cache");
   for (const [k, v] of Object.entries(SECURITY_HEADERS)) headers.set(k, v);
-  return new Response(request.method === "HEAD" ? null : html, { status: 200, headers });
+  // Paths the app has no page for are real 404s (the app still shows its not-found page), not "soft 404s".
+  return new Response(request.method === "HEAD" ? null : html, { status: routeName(url) === "notfound" ? 404 : 200, headers });
+}
+
+/** The app's own route table (web/src/routes.ts); a malformed %-escape is a page that doesn't exist. */
+function routeName(url: URL): string {
+  try {
+    return parse(url).name;
+  } catch {
+    return "notfound";
+  }
+}
+
+/** One address per page for search engines: no query string (tool settings, board pages, tiers) and no
+ *  trailing slash. Old shared /tools?set=… links are the round visualizer. */
+export function canonicalPath(url: URL): string {
+  const path = url.pathname.replace(/\/+$/, "") || "/";
+  return path === "/tools" && routeName(url) === "rounds" ? "/tools/rounds" : path;
 }
 
 const GENERIC: PageMeta = { title: SITE_NAME, description: GENERIC_DESCRIPTION, image: null };
@@ -92,7 +110,7 @@ const page = (title: string, description: string, image: string | null = null, w
 const LISTS: Record<string, [string, string]> = {
   bosses: ["BTD6 Boss Event Leaderboards", "Every Bloons TD 6 boss event: leaderboards, rules and top scores, with full history."],
   races: ["BTD6 Race Leaderboards", "Every Bloons TD 6 race: leaderboards and rules, with full history."],
-  ct: ["BTD6 Contested Territory Leaderboards", "Every Bloons TD 6 Contested Territory event: player and team leaderboards and tiles."],
+  ct: ["BTD6 Contested Territory (CT) Leaderboards", "Every Bloons TD 6 Contested Territory (CT) event: player and team leaderboards and tiles."],
   odyssey: ["Odysseys", "Every Bloons TD 6 odyssey: islands, rules and rewards."],
   events: ["Events", "Bloons TD 6 events: bosses, races, Contested Territory and odysseys."],
 };
@@ -127,7 +145,8 @@ export async function describe(deps: Deps, pathname: string): Promise<PageMeta> 
   if (a === "tools" && b === "rounds" && !c) return page(...TOOLS);
   if (a === "tools" && b === "paragon" && !c) return page(...PARAGON);
   if (a === "tools" && b === "farming" && !c) return page(...FARMING);
-  if (a === "tools" && !b) return page(...TOOLS_HUB); // old /tools?set=… links are the visualizer, but the hub text is true of both
+  if (a === "tools" && !b) return page(...TOOLS_HUB);
+  if (a === "stats" && !b) return page("Site stats", "How many people use BTD6 Open Data: visits, page views and the most-opened pages."); // old /tools?set=… links are the visualizer, but the hub text is true of both
   if (a === "challenges" && !c && (!b || Object.hasOwn(CHALLENGE_LISTS, b))) return page(...CHALLENGE_LISTS[b ?? "daily"]);
   if (a === "bosses" && b && BOSS_TYPES.has(b) && !c) {
     return page(`${cap(b)} · Boss stats`, `${cap(b)} boss stats in Bloons TD 6: health, skulls and spawns per tier, Normal and Elite.`);
@@ -271,7 +290,7 @@ export function injectMeta(html: string, m: PageMeta, url: URL): string {
   out = /<meta\s+name="description"[^>]*>/i.test(out)
     ? out.replace(/<meta\s+name="description"[^>]*>/i, () => desc)
     : out.replace(/<\/head>/i, () => `${desc}</head>`);
-  const canonical = `<link rel="canonical" href="${esc(SITE + url.pathname + url.search)}" />`;
+  const canonical = `<link rel="canonical" href="${esc(SITE + canonicalPath(url))}" />`;
   out = out.replace(/<\/head>/i, () => `${[canonical, ...tags].join("\n    ")}\n  </head>`);
   // Readable text for crawlers that don't run scripts; the app clears it before its first render.
   const links = SECTIONS.map(([h, l]) => `<a href="${h}">${l}</a>`).join(" · ");

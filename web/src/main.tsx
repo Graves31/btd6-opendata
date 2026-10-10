@@ -137,7 +137,7 @@ function tabTitle(r: Route): string {
   if (r.name === "home") return "BTD6 Open Data · Live boss, race & CT leaderboards";
   const s =
     r.name === "events" && r.kind !== "odyssey"
-        ? `BTD6 ${{ boss: "Boss Event", race: "Race", ct: "Contested Territory" }[r.kind]} Leaderboards`
+        ? `BTD6 ${{ boss: "Boss Event", race: "Race", ct: "Contested Territory (CT)" }[r.kind]} Leaderboards`
         : r.name === "paragon"
           ? "BTD6 Paragon Degree Calculator"
           : r.name === "rounds"
