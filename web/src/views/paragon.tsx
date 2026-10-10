@@ -136,10 +136,15 @@ function grain(max: number): number {
 function NumField(p: { id: string; icon: string; label: string; hint: string; value: number; max: number; decimal?: boolean; onChange: (n: number) => void }) {
   const [draft, setDraft] = useState<string | null>(null);
   const [capped, setCapped] = useState(false);
-  // While dragging, the slider's value shows at once; the URL follows at most every 150 ms and on release
-  // (every change replaces the history entry, and browsers throttle rapid replaceState calls).
+  // While dragging, the slider's value shows at once; the URL follows 150 ms after the first move with the latest
+  // value (every change replaces the history entry, and Safari caps replaceState calls). No "change" event: Chrome
+  // skips it on release when the value was re-set during the drag, which left the last move unsent.
   const [drag, setDrag] = useState<number | null>(null);
-  const sent = useRef(0);
+  const latest = useRef(0);
+  const timer = useRef<ReturnType<typeof setTimeout>>();
+  const live = useRef(p);
+  live.current = p;
+  useEffect(() => () => clearTimeout(timer.current), []);
   const clamp = (n: number) => Math.min(p.max, Math.max(0, Math.round(n)));
   const commit = (text: string) => {
     setDraft(null);
@@ -149,19 +154,22 @@ function NumField(p: { id: string; icon: string; label: string; hint: string; va
     const v = clamp(n);
     if (v !== p.value) p.onChange(v);
   };
-  const slide = (raw: number, done: boolean) => {
+  const flush = () => {
+    timer.current = undefined;
+    setDrag(null);
+    if (latest.current !== live.current.value) live.current.onChange(latest.current);
+  };
+  const slide = (raw: number) => {
     const g = grain(p.max);
-    const v = raw >= p.max ? p.max : clamp(Math.round(raw / g) * g);
+    latest.current = raw >= p.max ? p.max : clamp(Math.round(raw / g) * g);
     setDraft(null);
     setCapped(false);
-    setDrag(done ? null : v);
-    const now = Date.now();
-    if (v !== p.value && (done || now - sent.current > 150)) {
-      sent.current = now;
-      p.onChange(v);
-    }
+    setDrag(latest.current);
+    timer.current ??= setTimeout(flush, 150);
   };
-  const shown = drag ?? p.value;
+  // Typing moves the slider too (applied to the result on Enter or leaving the field).
+  const typed = draft === null ? null : parseNum(draft);
+  const shown = drag ?? (typed === null ? p.value : clamp(typed));
   return (
     <div class="pg-field">
       <div class="pg-fl">
@@ -207,8 +215,7 @@ function NumField(p: { id: string; icon: string; label: string; hint: string; va
           value={shown}
           aria-label={`${p.label}, 0 to ${fmtInt(p.max)}`}
           aria-valuetext={fmtInt(shown)}
-          onInput={(e) => slide(+e.currentTarget.value, false)}
-          onChange={(e) => slide(+e.currentTarget.value, true)}
+          onInput={(e) => slide(+e.currentTarget.value)}
         />
       </div>
     </div>

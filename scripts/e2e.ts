@@ -348,6 +348,17 @@ async function main() {
     await page.keyboard.press("Enter");
     await page.waitForFunction(() => location.search.includes("to=3"), { timeout: 3000 }).catch(() => problems.push(`paragon: totems input didn't update the URL (${location.search})`));
     if ((await page.evaluate(() => history.length)) !== hist) problems.push("paragon: an input change added a history entry");
+    // A fast drag right then all the way left must end at 0 (the release used to drop the last move).
+    const bar = await page.$eval("#pg-cash ~ .pg-range", (el) => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y + r.height / 2, w: r.width }; });
+    await page.mouse.move(bar.x + 2, bar.y);
+    await page.mouse.down();
+    await page.mouse.move(bar.x + bar.w - 2, bar.y, { steps: 4 });
+    await new Promise((r) => setTimeout(r, 200));
+    await page.mouse.move(bar.x - 20, bar.y, { steps: 2 });
+    await page.mouse.up();
+    await new Promise((r) => setTimeout(r, 400));
+    const slid = await page.evaluate(() => [new URLSearchParams(location.search).get("c"), (document.getElementById("pg-cash") as HTMLInputElement).value]);
+    if (slid[0] !== null || slid[1] !== "0") problems.push(`paragon: slider dragged to the left ended at c=${slid[0]}, field ${slid[1]}`);
     if ((await page.evaluate(() => document.querySelector(".pg-res .stat-v")?.textContent ?? "")) === "1") problems.push("paragon: degree didn't move after 3 totems");
     await page.click(".pg-tile[data-k='BombShooter']");
     await page.waitForFunction(() => location.search.includes("p=bomb"), { timeout: 3000 }).catch(() => problems.push("paragon: picking a tower didn't update the URL"));
