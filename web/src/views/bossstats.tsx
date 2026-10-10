@@ -17,6 +17,9 @@ import {
   bossMods,
   commonStretch,
   effects,
+  killParts,
+  killText,
+  killTime,
   modHealth,
   modSpeed,
   modsChanged,
@@ -33,6 +36,7 @@ import {
   speedVal,
   spawnName,
   tierRatio,
+  warpShare,
   type BossAction,
   type BossInfo,
   type BossStatsData,
@@ -569,6 +573,11 @@ function StatsBody(props: {
   const hasImm = !!tier.immunity;
   const ratio = tierRatio(boss.elite[4].health, boss.normal[4].health);
   const active = passiveLines(tier);
+  const [skip, setSkip] = useState(false);
+  const kill = killTime(tier, skip);
+  const warp = warpShare(tier);
+  const backInv = tier.passives?.find((p) => p.kind === "diamondback")
+    ?.skullInvulnerableTime as number | undefined;
   const spawns = (boss.spawns ?? [])
     .map((s) => ({
       s,
@@ -727,6 +736,85 @@ function StatsBody(props: {
               units.
             </p>
           </section>
+          {kill && (
+            <section class="bs-plate bs-kill" aria-labelledby="bs-kt-h">
+              <h2 class="kicker-h" id="bs-kt-h">
+                Minimum kill time
+              </h2>
+              <label class="bs-check">
+                <input
+                  type="checkbox"
+                  checked={skip}
+                  onChange={() => setSkip(!skip)}
+                />
+                Skip 1 skull with the Ice paragon
+                <span class="quiet">
+                  Herald of Everfrost's Eclipse of Fimbulwinter
+                </span>
+              </label>
+              <ol class="bs-tiers">
+                {TIERS.map((n) => {
+                  const full = killTime(tiers[n - 1]);
+                  const k = killTime(tiers[n - 1], skip);
+                  if (!k || !full) return null;
+                  const saved = +(full.total - k.total).toFixed(3);
+                  return (
+                    <li key={n}>
+                      <button
+                        type="button"
+                        class={`bs-tier bs-kt${n === r.t ? " on" : ""}`}
+                        aria-pressed={n === r.t}
+                        onClick={() => go({ t: n })}
+                      >
+                        <span class="bs-tl">T{n}</span>
+                        <span class="bs-hp num">{killText(k)}</span>
+                        <span class="bs-sp num">
+                          {skip && (saved > 0 ? `−${saved} s` : "no change")}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ol>
+              <p class="bs-note">
+                <strong>T{r.t}:</strong> {killParts(kill).join(" + ")} ={" "}
+                <strong class="num">{killText(kill)}</strong>
+              </p>
+              <ul class="bs-note quiet bs-kt-why">
+                <li>
+                  Instant damage between phases, so only what damage can't
+                  shorten is left: the entrance, the invulnerable time at each
+                  skull and the defeat animation (all from the game data).
+                </li>
+                {tier.shield && (
+                  <li>
+                    The {shieldLabel(tier.shield)} breaks instantly and adds no
+                    time.
+                  </li>
+                )}
+                {tier.passives?.some((p) => p.kind === "ethereal") && (
+                  <li>
+                    Ethereal at each skull until its Lych souls are popped; with
+                    instant damage they pop as they appear.
+                  </li>
+                )}
+                {kill.warps > 0 && (
+                  <li>
+                    Also invulnerable while it warps
+                    {warp !== undefined && ` ${mult(warp)} of the path forward`}
+                    : that depends on the map's path length, so it isn't in the
+                    seconds.
+                  </li>
+                )}
+                <li>
+                  Ice paragon: its ability cancels the effects of one skull per
+                  tier (Bloons Wiki).
+                  {backInv !== undefined &&
+                    ` Assumed here to include the ${backInv} s invulnerability; the wiki doesn't say.`}
+                </li>
+              </ul>
+            </section>
+          )}
           {active.length > 0 && (
             <section class="bs-plate bs-active" aria-labelledby="bs-ac-h">
               <h2 class="kicker-h" id="bs-ac-h">
@@ -980,7 +1068,7 @@ function StatsBody(props: {
         </ul>
         <p class="bs-foot quiet">
           From the game files, version {data.v}. Not in the game data: leak
-          damage, invulnerability lengths, the round each tier appears. Stun
+          damage, the round each tier appears. Stun
           times are the game's values in seconds (unit confirmed from play).
           Skull effects are the game's internal action names in plain words;
           only counts, intervals and amounts the data states are shown. Times in

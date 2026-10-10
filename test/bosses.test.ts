@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { BAR_EXTRA, bossMods, passiveLines, speedReference, speedVal, shieldHp, shieldLabel, effect, effects, modHealth, modSpeed, mult, NO_BOSS_MODS, sameEffects, skullRows, speedShare, spawnName, tierRatio, type BossStatsData } from "../web/src/bosses.ts";
+import { BAR_EXTRA, bossMods, killParts, killText, killTime, warpShare, passiveLines, speedReference, speedVal, shieldHp, shieldLabel, effect, effects, modHealth, modSpeed, mult, NO_BOSS_MODS, sameEffects, skullRows, speedShare, spawnName, tierRatio, type BossStatsData } from "../web/src/bosses.ts";
 import { BOSS_TYPES, href, needs, parse, setBossStatsUrl } from "../web/src/routes.ts";
 
 const at = (p: string) => parse(new URL(p, "https://x.invalid"));
@@ -276,5 +276,30 @@ describe("boss spawns", () => {
   it("Lych tombstone health is each tier's override, not the model's placeholder", () => {
     const t = data.bosses.lych.spawns!.find((s) => s.key === "Tombstone")!;
     assert.deepEqual(t.normal.map((x) => x.health), [1120, 4200, 17600, 42000, 168000]);
+  });
+});
+
+describe("minimum kill time", () => {
+  const b = data.bosses;
+  const t = (k: keyof typeof b, d: "normal" | "elite", n: number, skip = false) => killTime(b[k][d][n - 1], skip)!;
+  it("entrance + invulnerable time at each skull + defeat animation, from the game data", () => {
+    assert.equal(t("vortex", "normal", 1).total, 3 + 3 * 0.5 + 3);
+    assert.equal(t("blastapopoulos", "normal", 5).total, 3 + 4 * 2 + 8);
+    assert.equal(t("diamondback", "normal", 1).total, 7 + 5 * 3 + 5);
+    assert.equal(t("bloonarius", "elite", 2).total, 6); // no invulnerability at its skulls
+    assert.deepEqual(killParts(t("vortex", "normal", 1)), ["Entrance 3 s", "3 skulls × 0.5 s invulnerable", "Defeat animation 3 s"]);
+  });
+  it("Phayze's warps are counted, not timed (their length depends on the map)", () => {
+    const k = t("phayze", "normal", 1);
+    assert.equal(k.warps, 3);
+    assert.equal(killText(k), "12 s + 3 warps");
+    assert.equal(warpShare(b.phayze.normal[0]), 0.08);
+  });
+  it("the Ice paragon skip drops one skull, and changes nothing where skulls cost no time", () => {
+    assert.equal(t("vortex", "normal", 1, true).total, 7);
+    assert.equal(killText(t("phayze", "normal", 1, true)), "10 s + 2 warps");
+    assert.equal(t("lych", "elite", 3, true).total, t("lych", "elite", 3).total);
+    for (const k of Object.keys(b) as (keyof typeof b)[])
+      for (const d of ["normal", "elite"] as const) for (let n = 1; n <= 5; n++) assert.ok(t(k, d, n), `${k} ${d} ${n}`);
   });
 });

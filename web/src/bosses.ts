@@ -372,3 +372,75 @@ export const SPAWN_NAME: Record<string, string> = {
   DiamondbackDiamondBloon: "Diamond bloon",
 };
 export const spawnName = (s: Pick<BossSpawn, "key" | "name">) => s.name ?? SPAWN_NAME[s.key] ?? words(s.key);
+
+/**
+ * Minimum kill time of one tier, with instant damage between the phases: only what damage can't shorten is left.
+ * All from the game data: the entrance and death animations (SpawnDeathAnimModel), and at each skull the time from
+ * "invulnerable on" to "invulnerable off" along the skull's wait chain (Vortex 0.5 s, Blastapopoulos 2 s, Phayze 2 s
+ * then its warp) or Diamondback's skullInvulnerableTime. Shields and Lych's ethereal phase cost no time here: instant
+ * damage breaks a shield and pops every Lych soul as it appears. Phayze's warp covers a share of the map's path, so
+ * its length isn't in the boss data: `warps` counts them instead of adding seconds.
+ */
+export interface KillTime {
+  spawn: number;
+  death: number;
+  /** invulnerable seconds at each skull, in skull order */
+  skulls: number[];
+  /** Phayze: warps not in the seconds (one per skull) */
+  warps: number;
+  total: number;
+}
+export function killTime(tier: Pick<BossTier, "skulls" | "passives" | "actions">, skipOne = false): KillTime | null {
+  const anim = tier.passives?.find((p) => p.kind === "anim");
+  if (!anim || !isNum(anim.spawn) || !isNum(anim.death)) return null;
+  const actions = tier.actions ?? {};
+  const back = tier.passives?.find((p) => p.kind === "diamondback")?.skullInvulnerableTime;
+  // seconds from the skull to "invulnerable off" along the wait chain; dash = a DashForwards on the way
+  const off = (ids: readonly string[], t: number, dash: boolean, seen: Set<string>): { t: number; dash: boolean } | null => {
+    for (const id of ids) {
+      if (seen.has(id)) continue;
+      seen.add(id);
+      for (const m of actions[id] ?? []) {
+        if (m.model === "SetInvulnerable" && m.set === false) return { t, dash };
+        const then = Array.isArray(m.then) ? (m.then as string[]) : [];
+        const r =
+          m.model === "WaitForSeconds" && isNum(m.delayTime) ? off(then, t + m.delayTime, dash, seen)
+          : m.model === "DashForwards" ? off(then, t, true, seen)
+          : null;
+        if (r) return r;
+      }
+    }
+    return null;
+  };
+  const per = tier.skulls.map((s) => {
+    const on = s.do.some((id) => (actions[id] ?? []).some((m) => m.model === "SetInvulnerable" && m.set === true));
+    const r = on ? off(s.do, 0, false, new Set()) : null;
+    return r ?? { t: isNum(back) ? back : 0, dash: false };
+  });
+  // Herald of Everfrost's Eclipse of Fimbulwinter cancels one skull per tier: drop the longest
+  if (skipOne && per.length) {
+    const i = per.reduce((b, x, k) => (x.t + +x.dash > per[b].t + +per[b].dash ? k : b), 0);
+    per.splice(i, 1);
+  }
+  const skulls = per.map((x) => x.t);
+  const total = anim.spawn + skulls.reduce((a, b) => a + b, 0) + anim.death;
+  return { spawn: anim.spawn, death: anim.death, skulls, warps: per.filter((x) => x.dash).length, total: +total.toFixed(3) };
+}
+/** "16 s", "12 s + 3 warps" */
+export const killText = (k: KillTime) => `${sec(k.total)}${k.warps ? ` + ${k.warps} warp${k.warps > 1 ? "s" : ""}` : ""}`;
+/** The sum behind one tier's time: ["Entrance 3 s", "4 skulls × 2 s invulnerable", "Defeat animation 5 s"]. */
+export function killParts(k: KillTime): string[] {
+  const n = k.skulls.length;
+  const same = k.skulls.every((x) => x === k.skulls[0]);
+  const skulls =
+    n === 0 ? "no skulls left"
+    : k.skulls.every((x) => x === 0) ? `${n} skull${n > 1 ? "s" : ""}, no invulnerable time`
+    : same ? `${n} skull${n > 1 ? "s" : ""} × ${sec(k.skulls[0])} invulnerable`
+    : `skulls ${k.skulls.map(sec).join(" + ")} invulnerable`;
+  return [`Entrance ${sec(k.spawn)}`, skulls, `Defeat animation ${sec(k.death)}`];
+}
+/** Phayze: the share of the path one warp covers (DashForwards.dashDistance), or undefined. */
+export function warpShare(tier: Pick<BossTier, "actions">): number | undefined {
+  const d = Object.values(tier.actions ?? {}).flat().find((m) => m.model === "DashForwards")?.dashDistance;
+  return isNum(d) ? d : undefined;
+}
