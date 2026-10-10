@@ -9,6 +9,8 @@
   --bg: #0c111d;
   --s1: #141b2a;
   --s2: #1c2537;
+  --sub: #0c111c; /* subcard inside a panel (paragon inputs, target) */
+  --numbox: #05080f; /* number box */
   --map-mat: #070a12;
   --ink: #ffffff;
   --ink-2: #c4cbd8;
@@ -70,6 +72,8 @@
     --bg: #eef1f6;
     --s1: #ffffff;
     --s2: #e4e8ef;
+    --sub: #f3f5f9; /* subcard inside a panel (paragon inputs, target) */
+    --numbox: #ffffff; /* number box */
     --map-mat: #c9d0dc;
     --ink: #0a0a0b;
     --ink-2: #3d3d44;
@@ -101,6 +105,8 @@
   --bg: #eef1f6;
   --s1: #ffffff;
   --s2: #e4e8ef;
+  --sub: #f3f5f9; /* subcard inside a panel (paragon inputs, target) */
+  --numbox: #ffffff; /* number box */
   --map-mat: #c9d0dc;
   --ink: #0a0a0b;
   --ink-2: #3d3d44;
@@ -6657,41 +6663,90 @@ h1.title.ti .ev-icon {
   gap: 12px;
 }
 
-/* columns: inputs left, sticky result right */
-.pg-cols {
+/* settings | target over inputs | sticky result; one column on phones (settings, target, inputs, result) */
+.pg-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0;
-  margin-top: 24px;
+  gap: 16px;
+  margin-top: 8px;
 }
-.pg-cols > * {
+.pg-grid > *,
+.pg-grid > .pg-panel {
   min-width: 0;
+  margin-top: 0; /* tops line up in both rows (beats .pg-panel + .pg-panel) */
 }
 .pg-side {
   scroll-margin-top: 56px;
-  margin-top: 16px;
 }
 @media (min-width: 1024px) {
-  .pg-cols {
+  .pg-grid {
     grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-    gap: 32px;
-    align-items: start;
+    gap: 20px 32px;
+  }
+  .pg-in,
+  .pg-side {
+    align-self: start;
   }
   .pg-side {
     position: sticky;
     top: 72px;
-    margin-top: 0;
   }
 }
-
-/* target (inside the result card) */
-.pg-tg {
-  margin: 16px 0;
-  padding: 14px 0 16px;
-  border-block: 1px solid var(--rule);
+.pg-set .pg-opts {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
 }
+
+/* target card: quiet (the degree is the page's one big yellow number) */
 .pg-tg .pg-ph {
   margin-bottom: 10px;
+}
+.pg-tg .pg-tstep .pg-step {
+  width: 36px;
+  height: 40px;
+  font-size: 22px;
+}
+.pg-tg .pg-tin {
+  width: 64px;
+  height: 40px;
+  background: var(--numbox);
+  border-width: 1px;
+  font-size: 30px;
+}
+.pg-tg .pg-k {
+  margin-bottom: 4px;
+}
+.pg-tg .pg-ans-t {
+  font-size: 24px;
+}
+.pg-tg .pg-ans-t b {
+  display: inline;
+  color: var(--ink);
+  font-size: 32px;
+}
+.pg-tg .pg-ans-t span {
+  margin-left: 6px;
+  color: var(--ink-2);
+  font: 700 15px/1.2 var(--f-body);
+  text-transform: none;
+}
+.pg-tg .pg-ans-s {
+  margin-top: 4px;
+  font-size: 13px;
+}
+.pg-tg .pg-other {
+  margin-top: 8px;
+}
+.pg-tg .pg-other > summary {
+  font-size: 16px;
+}
+@media (min-width: 600px) {
+  .pg-tg .pg-target {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 24px;
+  }
 }
 .pg-target {
   display: grid;
@@ -6796,14 +6851,18 @@ h1.title.ti .ev-icon {
 /* inputs: one block per power source, its power on the right (top-right corner on phones) */
 .pg-bk {
   position: relative;
+  padding: 2px 14px;
+  background: var(--sub);
+  border: 1px solid var(--rule-2);
+  border-radius: 4px;
 }
 .pg-bk + .pg-bk {
-  border-top: 1px solid var(--rule-2);
+  margin-top: 10px;
 }
 .pg-bk-pw {
   position: absolute;
-  top: 10px;
-  right: 0;
+  top: 12px;
+  right: 14px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -6813,7 +6872,7 @@ h1.title.ti .ev-icon {
 }
 .pg-bk-pw b {
   color: var(--ink);
-  font: 800 22px/1 var(--f-display);
+  font: 800 20px/1 var(--f-display);
   font-variant-numeric: tabular-nums;
 }
 .pg-bk-pw span {
@@ -6827,11 +6886,7 @@ h1.title.ti .ev-icon {
   color: var(--ink-3);
 }
 .pg-bk.full .pg-bk-pw b {
-  padding: 5px 8px 4px;
-  background: var(--accent);
-  color: var(--on-accent);
-  border-radius: var(--r);
-  font-size: 18px;
+  color: var(--accent-ink);
 }
 .pg-bk .pg-field:first-child .pg-fl {
   padding-right: 96px;
@@ -6846,10 +6901,11 @@ h1.title.ti .ev-icon {
 .pg-lab {
   display: block;
   color: var(--ink);
-  font: 700 14px/1.3 var(--f-body);
+  font: 700 15px/1.3 var(--f-body);
 }
 .pg-fl .pg-hint {
   margin-top: 2px;
+  color: var(--ink-2);
 }
 .pg-num {
   display: flex;
@@ -6859,9 +6915,9 @@ h1.title.ti .ev-icon {
 .pg-num input {
   flex: 1;
   min-width: 0;
-  height: 44px;
+  height: 40px;
   padding: 0 10px;
-  background: var(--s2);
+  background: var(--numbox);
   color: var(--ink);
   border: 1px solid var(--rule-2);
   border-radius: var(--r);
@@ -6886,8 +6942,6 @@ h1.title.ti .ev-icon {
     align-self: stretch;
     justify-content: center;
     margin: 10px 0;
-    padding-left: 12px;
-    border-left: 2px solid var(--rule-2);
   }
   .pg-bk .pg-field:first-child .pg-fl {
     padding-right: 0;
@@ -7294,8 +7348,46 @@ footer p {
   background: none;
   border: 0;
   box-shadow: none;
-  accent-color: var(--accent);
+  -webkit-appearance: none;
+  appearance: none;
   cursor: pointer;
+}
+.pg-range::-webkit-slider-runnable-track {
+  height: 4px;
+  background: var(--rule-2);
+  border-radius: 2px;
+}
+.pg-range::-moz-range-track {
+  height: 4px;
+  background: var(--rule-2);
+  border-radius: 2px;
+}
+.pg-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  background: var(--ink);
+  border: 3px solid var(--sub);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--ink-3);
+}
+.pg-range::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  background: var(--ink);
+  border: 3px solid var(--sub);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--ink-3);
+}
+.pg-range:focus-visible {
+  outline: none;
+}
+.pg-range:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px var(--focus);
+}
+.pg-range:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 3px var(--focus);
 }
 
 /* Tools → Farming resources: banana spawn chart (track = the round's window; axis lines up with the tracks) */

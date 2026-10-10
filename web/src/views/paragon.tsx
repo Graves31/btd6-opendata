@@ -272,12 +272,13 @@ export function ParagonPage(props: { r: ParagonRoute }) {
 
       <Picker s={s} go={go} />
 
-      <div class="pg-cols">
-        <div class="pg-main">
-          <InputsPanel s={s} res={res} max={max} go={go} />
-        </div>
+      {/* Settings | target over inputs | result (one column on phones, in that order). */}
+      <div class="pg-grid">
+        <Settings s={s} go={go} />
+        <TargetPanel s={s} input={input} res={res} target={target} go={go} />
+        <InputsPanel s={s} res={res} max={max} go={go} />
         <aside class="pg-side" id="pg-result" aria-label="Result">
-          <ResultCard res={res} ver={s.ver} boost={s.boost} copied={copied} copy={copy} target={<TargetPanel s={s} input={input} res={res} target={target} go={go} />} />
+          <ResultCard res={res} ver={s.ver} boost={s.boost} copied={copied} copy={copy} />
         </aside>
       </div>
 
@@ -331,6 +332,18 @@ function Picker(props: { s: ParagonRoute; go: (p: Patch) => void }) {
           · ${fmtInt(paragonCost(s.tower, s.diff, s.ver))} on {DIFF_NAME[s.diff]}
         </span>
       </p>
+    </section>
+  );
+}
+
+/** Difficulty, game version, Paragon Boost, no totems. */
+function Settings(props: { s: ParagonRoute; go: (p: Patch) => void }) {
+  const { s, go } = props;
+  return (
+    <section class="pg-panel pg-set" aria-label="Settings">
+      <div class="pg-ph">
+        <p class="eyebrow">Settings</p>
+      </div>
       <div class="pg-opts">
         <div class="rv-chips" role="group" aria-label="Difficulty">
           {PG_DIFFS.map((d) => (
@@ -425,7 +438,7 @@ function TargetPanel(p: { s: ParagonRoute; input: ParagonInput; res: ParagonResu
     );
   }
   return (
-    <div class="pg-tg" role="group" aria-label="Target degree">
+    <section class="pg-panel pg-tg" aria-label="Target degree">
       <div class="pg-ph">
         <p class="eyebrow">Target degree</p>
         {explicit ? (
@@ -448,7 +461,7 @@ function TargetPanel(p: { s: ParagonRoute; input: ParagonInput; res: ParagonResu
         </div>
         <div class="pg-ans">{answer}</div>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -547,8 +560,7 @@ export function TargetInput(p: { value: number; onChange: (n: number) => void; l
 
 // ─────────────────────────────── result
 
-/** The result, with the target degree under the degree numbers (the card stays on screen on wide screens). */
-function ResultCard(p: { res: ParagonResult; ver: GameVer; boost: boolean; copied: boolean; copy: () => void; target: ComponentChildren }) {
+function ResultCard(p: { res: ParagonResult; ver: GameVer; boost: boolean; copied: boolean; copy: () => void }) {
   const { res } = p;
   const bp = res.breakpoint;
   const at = bp ? scaling(bp.degree, p.ver) : undefined;
@@ -567,7 +579,6 @@ function ResultCard(p: { res: ParagonResult; ver: GameVer; boost: boolean; copie
         <Stat k={<><FieldIcon k="ParagonPower" size={24} />Power</>} v={fmtInt(res.power)} />
         <Stat k="Next degree" v={res.next ? `+${fmtInt(res.next.gap)}` : "Max"} note={res.next ? `degree ${res.next.degree} at ${fmtInt(res.next.power)}` : "degree 100 reached"} />
       </dl>
-      {p.target}
       {bp && at && (
         <p class="pg-bp">
           <span class="rv-chip on pg-chip">
