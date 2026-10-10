@@ -6640,9 +6640,6 @@ h1.title.ti .ev-icon {
 .pg-panel + .pg-panel {
   margin-top: 16px;
 }
-.pg-target-p {
-  border-top-color: var(--accent);
-}
 .pg-ph {
   display: flex;
   flex-wrap: wrap;
@@ -6685,24 +6682,17 @@ h1.title.ti .ev-icon {
     top: 72px;
     margin-top: 0;
   }
-  /* The target answer changes height with every input; below the inputs it never moves what you type in. */
-  .pg-main {
-    display: flex;
-    flex-direction: column;
-  }
-  .pg-main .pg-target-p {
-    order: 1;
-    margin-top: 16px;
-  }
-  .pg-main .pg-in {
-    margin-top: 0;
-  }
-  .pg-ans {
-    min-height: 200px;
-  }
 }
 
-/* target */
+/* target (inside the result card) */
+.pg-tg {
+  margin: 16px 0;
+  padding: 14px 0 16px;
+  border-block: 1px solid var(--rule);
+}
+.pg-tg .pg-ph {
+  margin-bottom: 10px;
+}
 .pg-target {
   display: grid;
   gap: 16px;

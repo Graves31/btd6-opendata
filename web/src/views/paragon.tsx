@@ -274,11 +274,10 @@ export function ParagonPage(props: { r: ParagonRoute }) {
 
       <div class="pg-cols">
         <div class="pg-main">
-          <TargetPanel s={s} input={input} res={res} target={target} go={go} />
           <InputsPanel s={s} res={res} max={max} go={go} />
         </div>
         <aside class="pg-side" id="pg-result" aria-label="Result">
-          <ResultCard res={res} ver={s.ver} boost={s.boost} copied={copied} copy={copy} />
+          <ResultCard res={res} ver={s.ver} boost={s.boost} copied={copied} copy={copy} target={<TargetPanel s={s} input={input} res={res} target={target} go={go} />} />
         </aside>
       </div>
 
@@ -432,7 +431,7 @@ function TargetPanel(p: { s: ParagonRoute; input: ParagonInput; res: ParagonResu
     );
   }
   return (
-    <section class="pg-panel pg-target-p" aria-label="Target degree">
+    <div class="pg-tg" role="group" aria-label="Target degree">
       <div class="pg-ph">
         <p class="eyebrow">Target degree</p>
         {explicit ? (
@@ -455,7 +454,7 @@ function TargetPanel(p: { s: ParagonRoute; input: ParagonInput; res: ParagonResu
         </div>
         <div class="pg-ans">{answer}</div>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -554,7 +553,8 @@ function TargetInput(p: { value: number; onChange: (n: number) => void }) {
 
 // ─────────────────────────────── result
 
-function ResultCard(p: { res: ParagonResult; ver: GameVer; boost: boolean; copied: boolean; copy: () => void }) {
+/** The result, with the target degree under the degree numbers (the card stays on screen on wide screens). */
+function ResultCard(p: { res: ParagonResult; ver: GameVer; boost: boolean; copied: boolean; copy: () => void; target: ComponentChildren }) {
   const { res } = p;
   const bp = res.breakpoint;
   const at = bp ? scaling(bp.degree, p.ver) : undefined;
@@ -573,6 +573,7 @@ function ResultCard(p: { res: ParagonResult; ver: GameVer; boost: boolean; copie
         <Stat k={<><FieldIcon k="ParagonPower" size={24} />Power</>} v={fmtInt(res.power)} />
         <Stat k="Next degree" v={res.next ? `+${fmtInt(res.next.gap)}` : "Max"} note={res.next ? `degree ${res.next.degree} at ${fmtInt(res.next.power)}` : "degree 100 reached"} />
       </dl>
+      {p.target}
       {bp && at && (
         <p class="pg-bp">
           <span class="rv-chip on pg-chip">
