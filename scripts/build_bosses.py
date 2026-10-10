@@ -825,6 +825,8 @@ _SPEC = {
     "GenerateShieldActionModel": (1, [("id", "s"), ("amount", "f"), ("tags", "s")]),
     "ApplyTowerSetImmunityModel": (1, [("id", "s"), ("immunities", "p")]),
     "DamageReductionModel": (0, [("amount", "f")]),
+    "SpawnDeathAnimModel": (0, [("spawnAnimTrigLabel", "s"), ("spawnAnimLength", "f"), ("deathAnimTrigLabel", "s"),
+                                ("deathAnimLength", "f")]),
     "SpawnBloonsUntilArmourBreaksActionModel": (1, [("performActionOnSpawn", "b"), ("bloonType", "s"),
                                                     ("timeBetweenSpawns", "f"), ("inheritImmunityFromParent", "b"),
                                                     ("initialSpawnPackSize", "i")]),
@@ -853,7 +855,7 @@ _SPEC = {
 # animation, damage-state sprites, cash/popup/pop effects, the Bad-immunity marker); anything else in a boss tier's
 # reference list that is neither here nor in _SPEC fails the run, so a new behaviour cannot slip by unnoticed.
 _IGNORED_MODELS = {"DistributeCashModel", "ShowDamageTextModel", "PopEffectModel", "CreateSoundOnDamageBloonModel",
-                   "BadImmunityModel", "CreateSoundOnSpawnBloonModel", "SpawnDeathAnimModel", "AnimDamageStateModel",
+                   "BadImmunityModel", "CreateSoundOnSpawnBloonModel", "AnimDamageStateModel",
                    "CreateSoundOnBreakArmourModel", "CreateSoundOnDamageArmourModel", "BloonSpawnEffectModel",
                    "BloonDeathEffectModel"}
 # action models that only play sounds / effects / animations are left out of the output (a PlayAnim that pauses the
@@ -1126,6 +1128,8 @@ def tier_behaviour(mods: list) -> tuple:
                              "powerLevels": r["powerLevels"]})
         elif name == "DiamondbackBehaviorModel":
             passives.append({"kind": "diamondback", **{k: r[k] for k in _DIAMONDBACK_KEEP}})
+        elif name == "SpawnDeathAnimModel":
+            passives.append({"kind": "anim", "spawn": r["spawnAnimLength"], "death": r["deathAnimLength"]})
         elif name == "DamageReductionModel":
             passives.append({"kind": "damageReduction", "amount": r["amount"]})
         elif name == "WorthReductionModel":
