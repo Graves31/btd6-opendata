@@ -515,8 +515,8 @@ function InputsPanel(p: { s: ParagonRoute; res: ParagonResult; max: Max; go: (p:
   );
 }
 
-/** The target degree, typed directly (2–100); arrows step it, Enter or leaving the field applies it. */
-function TargetInput(p: { value: number; onChange: (n: number) => void }) {
+/** A small whole number typed directly (the target degree; the farming tool's round); arrows step it, Enter or leaving the field applies it. The caller clamps. */
+export function TargetInput(p: { value: number; onChange: (n: number) => void; label?: string }) {
   const [draft, setDraft] = useState<string | null>(null);
   const commit = (text: string) => {
     setDraft(null);
@@ -531,7 +531,7 @@ function TargetInput(p: { value: number; onChange: (n: number) => void }) {
       enterKeyHint="done"
       autocomplete="off"
       maxLength={3}
-      aria-label="Target degree"
+      aria-label={p.label ?? "Target degree"}
       value={draft ?? String(p.value)}
       onFocus={(e) => {
         const el = e.currentTarget;

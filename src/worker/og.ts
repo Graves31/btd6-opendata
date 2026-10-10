@@ -99,7 +99,8 @@ const LISTS: Record<string, [string, string]> = {
 
 const TOOLS: [string, string] = ["BTD6 Round Visualizer (RBE & bloons per round)", "Bloons TD 6 round sets from the game's own data: the bloons, RBE and spawn timeline of every round."];
 
-const TOOLS_HUB: [string, string] = ["Tools", "Bloons TD 6 tools built on the game's own data: the round visualizer and the paragon degree calculator."];
+const TOOLS_HUB: [string, string] = ["Tools", "Bloons TD 6 tools built on the game's own data: the round visualizer, the paragon degree calculator and farming resources."];
+const FARMING: [string, string] = ["BTD6 Farming Resources", "Bloons TD 6 farming resources: when a 0-0-0, 1-0-0 and 2-0-0 Banana Farm drops its bananas during a round."];
 const PARAGON: [string, string] = ["BTD6 Paragon Degree Calculator", "Bloons TD 6 paragon degree calculator: how much sacrificed cash, pops, towers and totems a degree takes, and the quickest way to the next boss breakpoint."];
 
 const CHALLENGE_LISTS: Record<string, [string, string]> = {
@@ -125,6 +126,7 @@ export async function describe(deps: Deps, pathname: string): Promise<PageMeta> 
   // Tools (/tools, /tools/rounds, /tools/paragon): static pages, no lookup.
   if (a === "tools" && b === "rounds" && !c) return page(...TOOLS);
   if (a === "tools" && b === "paragon" && !c) return page(...PARAGON);
+  if (a === "tools" && b === "farming" && !c) return page(...FARMING);
   if (a === "tools" && !b) return page(...TOOLS_HUB); // old /tools?set=… links are the visualizer, but the hub text is true of both
   if (a === "challenges" && !c && (!b || Object.hasOwn(CHALLENGE_LISTS, b))) return page(...CHALLENGE_LISTS[b ?? "daily"]);
   if (a === "bosses" && b && BOSS_TYPES.has(b) && !c) {

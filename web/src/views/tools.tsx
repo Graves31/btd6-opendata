@@ -1,6 +1,7 @@
 // Tools hub (/tools): the site's calculators and visualizers, one card each (the Live page's tile look).
 
 import type { ComponentChildren } from "preact";
+import farmingArt from "../art/tools/farming.webp";
 import paragonArt from "../art/tools/paragon.webp";
 import roundsArt from "../art/tools/rounds.webp";
 import { href } from "../routes.ts";
@@ -40,6 +41,9 @@ export function ToolsHub() {
         </ToolTile>
         <ToolTile to={href.paragon()} title="Paragon calculator" art={art(paragonArt)}>
           What degree your sacrifices make, and the quickest way to reach the next boss breakpoint.
+        </ToolTile>
+        <ToolTile to={href.farming()} title="Farming resources" art={art(farmingArt)}>
+          Banana farm reference charts: when a 0-0-0, 1-0-0 and 2-0-0 farm drops its bananas during a round.
         </ToolTile>
       </div>
     </div>

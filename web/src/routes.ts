@@ -25,6 +25,7 @@ export type Route =
   | RoundsRoute
   | { name: "tools" }
   | ParagonRoute
+  | { name: "farming"; r?: number }
   | { name: "stats" }
   | { name: "notfound" };
 
@@ -245,6 +246,8 @@ export function needs(r: Route): string[] {
     case "rounds":
       return roundKeys(r);
     case "tools":
+    case "farming":
+      return roundKeys(parseRounds(new URLSearchParams())); // the default round set (round lengths)
     case "paragon":
       return []; // static pages: no NK data
     case "stats":
@@ -301,6 +304,10 @@ export function parse(url: URL): Route {
   if (a === "tools" && !b) return ROUNDS_PARAMS.some((k) => q.has(k)) ? parseRounds(q) : { name: "tools" }; // old shared /tools?… links
   if (a === "tools" && b === "rounds" && !c) return parseRounds(q);
   if (a === "tools" && b === "paragon" && !c) return parseParagon(q);
+  if (a === "tools" && b === "farming" && !c) {
+    const r = Number(q.get("r"));
+    return { name: "farming", r: Number.isInteger(r) && r >= 1 && r <= 1000 ? r : undefined };
+  }
   if (a === "challenges" && !c && (!b || ["daily", "newest", "trending"].includes(b))) {
     const filter = (b ?? "daily") as ChallengeFilter;
     return { name: "challenges", filter, p: filter === "daily" ? 1 : int(q.get("p"), 1, 1, 50) };
@@ -440,6 +447,8 @@ export const href = {
     return `/tools/rounds${qs(o).replace(/%2C/g, ",")}`;
   },
   tools: () => "/tools",
+  /** Farming resources; `r` = the round whose length the banana chart is drawn in. */
+  farming: (r?: number) => `/tools/farming${qs({ r })}`,
   /** The paragon calculator; only non-default values are written (`pin`: tower and difficulty always, so a link keeps them). */
   paragon: (s: Partial<Omit<ParagonRoute, "name" | "picked">> = {}, pin = false) =>
     `/tools/paragon${qs({

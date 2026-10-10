@@ -303,7 +303,7 @@ async function main() {
     await home();
 
     await step("Now → Tools", 'header nav a[href="/tools"]', "tools");
-    if ((await page.evaluate(() => document.querySelectorAll(".tools-tiles a.tile").length)) !== 2) problems.push("tools hub: want 2 tool cards");
+    if ((await page.evaluate(() => document.querySelectorAll(".tools-tiles a.tile").length)) !== 3) problems.push("tools hub: want 3 tool cards");
     await step("Tools → Round visualizer", ".tools-tiles a.tile[href^='/tools/rounds']", "rounds-tool");
     if (!(await has("ol.rv-list li.rv-row"))) problems.push("tools: no round rows");
     // One scroll context: nothing on the page may be an inner vertical scroller, and the wheel over the list
@@ -336,6 +336,16 @@ async function main() {
     if (!(Number(m1) > Number(m0))) problems.push(`next match: r ${m0} → ${m1}`);
     await step("Focused → List", "button.rv-tolist");
     if ((await here()).includes("view=round")) problems.push("‹ List: still on the round view");
+
+    // Tools → Farming resources: the banana spawn chart (4 + 6 + 8 bananas).
+    await step("→ Tools hub", 'header nav a[href="/tools"]');
+    await step("Tools → Farming resources", ".tools-tiles a.tile[href='/tools/farming']", "farming");
+    if ((await page.evaluate(() => document.querySelectorAll(".fm-b img").length)) !== 18) problems.push("farming: want 18 bananas on the spawn chart");
+    // Picking a round puts its seconds on the chart (the default round set is prefetched with the page).
+    await page.click(".fm-any");
+    await page.waitForFunction(() => location.search.includes("r=1") && document.querySelectorAll(".fm-b i").length === 18, { timeout: 3000 }).catch(() => problems.push("farming: round 1 didn't put seconds on the chart"));
+    pages["farming-round"] = await here();
+    await shoot(page, "desktop-farming-round");
 
     // Tools → Paragon calculator: the URL is the state; changing an input rewrites it in place (no new history entry).
     await step("→ Tools hub", 'header nav a[href="/tools"]');

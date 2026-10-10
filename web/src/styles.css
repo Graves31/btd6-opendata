@@ -7297,3 +7297,191 @@ footer p {
   accent-color: var(--accent);
   cursor: pointer;
 }
+
+/* Tools → Farming resources: banana spawn chart (track = the round's window; axis lines up with the tracks) */
+.fm-panel {
+  --fm-who: 0px;
+  --fm-cash: 0px;
+  --fm-gap: 0px;
+  margin-top: 16px;
+  border-top-color: var(--accent);
+}
+.fm-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.fm-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "who cash" "track track";
+  align-items: center;
+  gap: 4px 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.fm-who {
+  grid-area: who;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fm-who img {
+  flex: none;
+}
+.fm-path {
+  display: block;
+  font: 800 26px/1 var(--f-display);
+  color: var(--ink);
+}
+.fm-n {
+  color: var(--ink-3);
+  font-size: 13px;
+}
+.fm-cash {
+  grid-area: cash;
+  font: 800 30px/1 var(--f-display);
+  color: var(--accent-ink);
+  text-align: right;
+}
+.fm-track {
+  grid-area: track;
+  position: relative;
+  height: 44px;
+}
+.fm-track::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 1px solid var(--rule-2);
+}
+.fm-b {
+  position: absolute;
+  top: 50%;
+  display: block;
+  transform: translate(-50%, -50%);
+}
+.fm-b img {
+  display: block;
+  width: 30px;
+  height: 30px;
+}
+.fm-b i {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--ink-2);
+  font: 600 11px/1.2 var(--f-body);
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.fm-timed .fm-track {
+  height: 60px;
+}
+.fm-timed .fm-track::before,
+.fm-timed .fm-b {
+  top: 38%;
+}
+.fm-round {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule);
+}
+.fm-round .pg-hint {
+  margin: 0;
+  font-size: 13px;
+}
+.fm-round .pg-link {
+  padding: 0;
+  text-decoration: underline;
+}
+.fm-any {
+  width: auto;
+  padding: 0 12px;
+  font-size: 30px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.fm-axis {
+  position: relative;
+  height: 56px;
+  margin: 14px calc(var(--fm-cash) + var(--fm-gap)) 0 calc(var(--fm-who) + var(--fm-gap));
+  border-top: 2px solid var(--ink-3);
+  color: var(--ink-2);
+  font: 600 12px/1 var(--f-body);
+}
+.fm-tick {
+  position: absolute;
+  top: 0;
+  padding-top: 12px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.fm-tick::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -7px;
+  height: 12px;
+  border-left: 2px solid var(--ink-3);
+}
+.fm-tick i {
+  display: block;
+  margin-top: 4px;
+  color: var(--ink);
+  font: 800 16px/1 var(--f-display);
+  font-style: normal;
+  text-align: inherit;
+}
+.fm-tick:nth-child(2) {
+  text-align: center;
+}
+.fm-tick:last-child {
+  text-align: right;
+}
+.fm-tick:first-child {
+  transform: none;
+}
+.fm-tick:first-child::before {
+  left: -1px;
+}
+.fm-tick:last-child {
+  transform: translateX(-100%);
+}
+.fm-tick:last-child::before {
+  left: auto;
+  right: -1px;
+}
+.fm-note {
+  margin: 4px 0 0;
+}
+@media (min-width: 640px) {
+  .fm-panel {
+    --fm-who: 150px;
+    --fm-cash: 72px;
+    --fm-gap: 20px;
+  }
+  .fm-row {
+    grid-template-columns: var(--fm-who) minmax(0, 1fr) var(--fm-cash);
+    grid-template-areas: "who track cash";
+    gap: 0 var(--fm-gap);
+    padding: 14px 0;
+  }
+  .fm-track {
+    height: 56px;
+  }
+  .fm-b img {
+    width: 40px;
+    height: 40px;
+  }
+  .fm-timed .fm-track {
+    height: 76px;
+  }
+}

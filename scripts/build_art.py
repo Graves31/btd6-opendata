@@ -550,6 +550,12 @@ SEASON_BADGES = {
 TOOL_ICONS = {
     "rounds": "ref/GoalIconPopBloons",
     "paragon": "Ui/ParagonPip",  # the paragon degree badge
+    "farming": "ref/BananaCentralUpgradeIcon",
+    # farming resources page art (banana spawn chart)
+    "banana": "ref/Banana",
+    "farm000": "ref/000-BananaFarm",
+    "farm100": "ref/100-BananaFarm",
+    "farm200": "ref/200-BananaFarm",
 }
 TOOL_PX = 192
 
