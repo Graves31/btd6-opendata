@@ -313,7 +313,7 @@ describe("tools hub and paragon calculator routes", () => {
     assert.equal(d.diff, "medium");
     assert.equal(d.cash + d.pops + d.totems, 0);
     const r = parse(U("/tools/paragon?p=dart&d=i&co=1&c=85000000&to=3&tg=60&adv=1&x=abc&po=-5&t=99999999")) as ParagonRoute;
-    assert.deepEqual([r.tower, r.diff, r.coop, r.cash, r.totems, r.target, r.adv, r.picked], ["DartMonkey", "impoppable", true, 85_000_000, 3, 60, true, true]);
+    assert.deepEqual([r.tower, r.diff, r.cash, r.totems, r.target, r.adv, r.picked], ["DartMonkey", "impoppable", 85_000_000, 3, 60, true, true]);
     assert.equal(r.extraT5, 0);
     assert.equal(r.pops, 0);
     assert.equal(r.tiers, PG_MAX.tiers);

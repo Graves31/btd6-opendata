@@ -233,7 +233,7 @@ export function ParagonPage(props: { r: ParagonRoute }) {
   for (const k of IN_KEYS) s[k] = Math.min(max[k], s[k]);
 
   const go = (patch: Patch) => navigate(href.paragon({ ...s, ...patch }, true), { replace: true, keepScroll: true });
-  const input: ParagonInput = { tower: s.tower, diff: s.diff, ver: s.ver, coop: s.coop, cash: s.cash, slider: s.slider, pops: s.pops, income: s.income, tiers: s.tiers, extraT5: s.extraT5, totems: s.totems, boost: s.boost };
+  const input: ParagonInput = { tower: s.tower, diff: s.diff, ver: s.ver, cash: s.cash, slider: s.slider, pops: s.pops, income: s.income, tiers: s.tiers, extraT5: s.extraT5, totems: s.totems, boost: s.boost };
   const res = evaluate(input);
   const defTarget = res.breakpoint?.degree ?? res.next?.degree ?? 100;
   const target = s.target ?? defTarget;
@@ -288,7 +288,7 @@ export function ParagonPage(props: { r: ParagonRoute }) {
   );
 }
 
-// ─────────────────────────────── picker, difficulty, co-op, boost
+// ─────────────────────────────── picker, difficulty, boost
 
 const VERS: [GameVer, string][] = [
   ["57", "v57"],
@@ -348,12 +348,6 @@ function Picker(props: { s: ParagonRoute; go: (p: Patch) => void }) {
             ))}
           </div>
           <span class="pg-hint">{verHint(s.ver)}</span>
-        </div>
-        <div class="pg-tog">
-          <button type="button" class={`rv-chip${s.coop ? " on" : ""}`} aria-pressed={s.coop} onClick={() => go({ coop: !s.coop })}>
-            Co-op
-          </button>
-          <span class="pg-hint">{s.coop ? "Teammates' towers and totems are absorbed too" : "Solo: an extra tier 5 only with Master Double Cross (Apex) or Silas (Herald)"}</span>
         </div>
         <div class="pg-tog">
           <button type="button" class={`rv-chip${s.boost ? " on" : ""}`} aria-pressed={s.boost} onClick={() => go({ boost: !s.boost })}>

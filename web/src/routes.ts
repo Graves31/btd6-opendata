@@ -107,16 +107,15 @@ export interface RoundsRoute {
 
 /**
  * Tools → Paragon degree calculator (/tools/paragon). The URL is the whole state (short keys, defaults left out):
- * p tower slug, d e/m/h/i, co=1, c cash, s slider, po pops, in income, t tiers, x extra tier 5s, to totems,
+ * p tower slug, d e/m/h/i, c cash, s slider, po pops, in income, t tiers, x extra tier 5s, to totems,
  * gv=56 the old (v56.3) calculation (default v57, not written), tg target degree, b=1 Paragon Boost, nt=1 never suggest totems (no Geraldo). Invalid values are ignored, too-large ones clamped (the page clamps further).
- * adv=1 (the old Advanced fold) is still parsed for old links but never written.
+ * adv=1 (the old Advanced fold) is still parsed for old links but never written; co=1 (the old co-op toggle) is ignored.
  */
 export interface ParagonRoute {
   name: "paragon";
   tower: ParagonTower;
   diff: Difficulty;
   ver: GameVer;
-  coop: boolean;
   cash: number;
   slider: number;
   pops: number;
@@ -356,7 +355,6 @@ function parseParagon(q: URLSearchParams): ParagonRoute {
     tower: tower ?? PG_DEFAULT.tower,
     diff: diff ?? PG_DEFAULT.diff,
     ver,
-    coop: q.get("co") === "1",
     cash: clampInt(q.get("c"), PG_MAX.cash),
     slider: clampInt(q.get("s"), PG_MAX.slider),
     pops: clampInt(q.get("po"), PG_MAX.pops),
@@ -455,7 +453,6 @@ export const href = {
       p: pin || (s.tower && s.tower !== PG_DEFAULT.tower) ? PARAGON_SLUG[s.tower ?? PG_DEFAULT.tower] : undefined,
       d: pin || (s.diff && s.diff !== PG_DEFAULT.diff) ? DIFF_KEY[s.diff ?? PG_DEFAULT.diff] : undefined,
       gv: s.ver === "56" ? 56 : undefined,
-      co: s.coop ? 1 : undefined,
       c: s.cash || undefined,
       s: s.slider || undefined,
       po: s.pops || undefined,

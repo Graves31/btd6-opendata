@@ -52,8 +52,6 @@ export interface ParagonInput {
   tower: ParagonTower;
   diff: Difficulty;
   ver: GameVer;
-  /** Co-op: accepted but no effect yet (pending verification). */
-  coop: boolean;
   /** Cash spent on sacrificed non-tier-5 towers. */
   cash: number;
   /** Cash put in through the paragon's contribution slider. */

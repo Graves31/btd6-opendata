@@ -10,7 +10,7 @@ const json = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)
 const D = json.degreeData;
 const reqs: number[] = D.powerDegreeRequirements;
 const tower = paragonTowers("57")[0];
-const zero: ParagonInput = { tower, diff: "medium", ver: "57", coop: false, cash: 0, slider: 0, pops: 0, income: 0, tiers: 0, extraT5: 0, totems: 0, boost: false };
+const zero: ParagonInput = { tower, diff: "medium", ver: "57", cash: 0, slider: 0, pops: 0, income: 0, tiers: 0, extraT5: 0, totems: 0, boost: false };
 const bucket = (r: ReturnType<typeof evaluate>, k: string) => r.buckets.find((b) => b.key === k)!;
 // Totems giving at least this much power (totem power is not in the data, so derive from REF).
 const totemsFor = (p: number) => Math.ceil(p / REF.totemPower);
