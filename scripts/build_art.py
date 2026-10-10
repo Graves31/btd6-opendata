@@ -288,8 +288,8 @@ UI = {
     # paragon calculator fields (StartingCash and LeastTiersRule above are reused there too)
     "CashSpent": "Ui/CashSpentIcon",
     "Pops": "Ui/PopIconLarge",
-    "Income": "ref/CashGoalIcon",
-    "Tier5": "Ui/UpgradeContainerTier5",  # the empty gold tier-5 frame; the page draws the "5" on it
+    "Income": "Ui/CoinGainIcon",
+    "Tier5": "Ui/InstaRandomTier5",  # the wildcard tier 5 insta monkey
     "ParagonTotem": "UiBuffIcons/BuffIconParagonTotem",
     "ParagonDegree": "Ui/ParagonPip",
     "ParagonPower": "UiBuffIcons/BuffIconParagonOfPower",

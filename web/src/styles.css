@@ -7292,17 +7292,6 @@ footer p {
 .pg-res .stat dt {
   gap: 6px;
 }
-.pg-t5 {
-  position: relative;
-  display: inline-grid;
-  place-items: center;
-  flex: none;
-}
-.pg-t5 b {
-  position: absolute;
-  color: #3d2800;
-  font: 800 14px/1 var(--f-display);
-}
 .pg-num {
   display: grid;
   gap: 4px;

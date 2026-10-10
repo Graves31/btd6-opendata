@@ -112,18 +112,8 @@ function describe(w: Way): { amt: string; noun: string; exact: string } {
 
 // ─────────────────────────────── number field
 
-/** A field's game icon (ui sheet); the tier-5 frame gets its "5". */
-function FieldIcon(p: { k: string; size?: number }) {
-  const s = <Spr family="ui" k={p.k} size={p.size ?? 28} label />;
-  return p.k === "Tier5" ? (
-    <span class="pg-t5">
-      {s}
-      <b aria-hidden="true">5</b>
-    </span>
-  ) : (
-    s
-  );
-}
+/** A field's game icon (ui sheet). */
+const FieldIcon = (p: { k: string; size?: number }) => <Spr family="ui" k={p.k} size={p.size ?? 28} label />;
 
 /** Slider grain: about 400 stops over the range, on a round 1/2/5 step (whole units at least). */
 function grain(max: number): number {

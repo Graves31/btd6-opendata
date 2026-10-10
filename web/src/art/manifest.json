@@ -196,7 +196,7 @@
    "cell": 48,
    "cols": 9,
    "rows": 9,
-   "bytes": 75682,
+   "bytes": 75794,
    "keys": [
     "AbilityCooldownDecrease",
     "AbilityCooldownIncrease",
@@ -614,7 +614,7 @@
    "missingOptional": []
   }
  },
- "totalSheetBytes": 795236,
+ "totalSheetBytes": 795348,
  "bossBar": {
   "parts": {
    "armour:diamondback:edge": {
