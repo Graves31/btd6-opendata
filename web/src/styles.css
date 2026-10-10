@@ -3396,6 +3396,13 @@ button.fd-tile:hover {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* One-line intro under a tool title (wraps, unlike .rv-sum) */
+.rv-intro {
+  margin-top: 6px;
+  max-width: 60ch;
+  color: var(--ink-2);
+  font-size: 13px;
+}
 .rv-edit,
 .rv-focus,
 .rv-tolist {

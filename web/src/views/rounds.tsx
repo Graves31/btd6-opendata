@@ -487,6 +487,7 @@ function SetBar(p: {
         <div class="rv-bar-t">
           <p class="eyebrow">Round visualizer</p>
           <h1 class="rv-h1">{rangeTitle(info, p.from, p.to)}</h1>
+          {!summary && !p.setup && <p class="rv-intro">The bloons, RBE and spawn timing of every round, from the game's own data.</p>}
           {summary && !p.setup && (
             <p class="rv-sum">
               <span class="vh">From the event: </span>

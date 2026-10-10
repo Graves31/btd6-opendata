@@ -260,6 +260,7 @@ export function ParagonPage(props: { r: ParagonRoute }) {
         <div class="rv-bar-t">
           <p class="eyebrow">Tools</p>
           <h1 class="rv-h1">Paragon degree calculator</h1>
+          <p class="rv-intro">How much sacrificed cash, pops, towers and totems each paragon degree takes, from the game's own data.</p>
         </div>
       </header>
 
