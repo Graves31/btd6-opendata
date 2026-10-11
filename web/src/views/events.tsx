@@ -1352,7 +1352,7 @@ function BossDiffTabs(props: {
           href: href.boss(props.id, x, props.n),
           label: (
             <>
-              {t && <Spr family="ui" k={t} size={32} label optional />}
+              {t && <Spr family="ui" k={t} size={46} label optional />}
               <span class="bt-t">
                 <span class="bt-d">
                   {x === "standard" ? "Normal" : "Elite"}
@@ -1863,8 +1863,8 @@ export function BossPage(props: {
           }
         />
       </BossHero>
+      <BossDiffTabs id={id} boss={ev} d={d} n={n} />
       <div class="bh-panel">
-        <BossDiffTabs id={id} boss={ev} d={d} n={n} />
         <div class="split">
           <section class="board-sec" aria-labelledby="lb-h">
             <h2 class="vh" id="lb-h">

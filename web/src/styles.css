@@ -4618,48 +4618,119 @@ button.fd-tile:hover {
   margin-right: 8px;
   color: var(--ink-3);
 }
-/* Everything below follows Normal / Elite, so it sits in one panel and the two tabs are its top edge (folder
-   tabs: the selected one opens into the panel, the other stays outside it). */
+/* Everything below follows Normal / Elite, so it sits in one panel under the switch: two joined tiles, the
+   scoring as the headline (the two can differ), a frame and a notch that slide to the chosen one. */
 .bh-panel {
-  --panel: color-mix(in srgb, var(--s1) 55%, var(--bg));
-  background: var(--panel);
+  background: color-mix(in srgb, var(--s1) 55%, var(--bg));
   border: 1px solid var(--rule-2);
-  border-top: 0;
 }
 .bh-panel > .split {
   margin-top: 0;
   padding: 20px 20px 4px;
 }
 .bh-tabs {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  margin: 0 -1px;
-  border: 0;
-  border-radius: 0;
+  margin-bottom: 16px;
+  background: var(--s1);
+  border-radius: 4px;
+}
+.bh-tabs::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: -1px auto -1px -1px;
+  width: calc(50% + 2px);
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  pointer-events: none;
+  transition: left 0.28s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+.bh-tabs::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: calc(25% - 9px);
+  border: solid transparent;
+  border-width: 10px 9px 0;
+  border-top-color: var(--ink);
+  transition: left 0.28s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+.bh-tabs:has(.tab:last-child.on)::before {
+  left: calc(50% - 1px);
+}
+.bh-tabs:has(.tab:last-child.on)::after {
+  left: calc(75% - 9px);
 }
 .bh-tabs .tab {
+  position: relative;
   align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  color: var(--ink-3);
-  background: var(--bg);
-  border: 1px solid var(--rule-2);
+  gap: 14px;
+  padding: 14px 52px 14px 16px;
+  color: var(--ink-2);
+  transition:
+    background-color 0.2s,
+    color 0.2s;
 }
-.bh-tabs .tab + .tab {
-  border-left: 0;
-}
-.bh-tabs .tab:hover {
+.bh-tabs .tab:not(.on):hover {
   color: var(--ink);
-  background: var(--shade);
+  background: var(--hover);
 }
 .bh-tabs .tab.on {
   color: var(--ink);
-  background: var(--panel);
-  border-bottom-color: transparent;
-  box-shadow: inset 0 3px var(--ink);
+  background: var(--s2);
+}
+/* the radio dot */
+.bh-tabs .tab::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 18px;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--rule-2);
+  transition: box-shadow 0.2s;
+}
+.bh-tabs .tab.on::after {
+  background: var(--bg);
+  box-shadow: inset 0 0 0 6px var(--ink);
 }
 .bh-tabs .tab:not(.on) .spr {
-  opacity: 0.6;
+  opacity: 0.7;
+}
+.bh-tabs .bt-t {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.bh-tabs .bt-d {
+  font: 700 11px/1 var(--f-body);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.bh-tabs .tab.on .bt-d {
+  color: var(--ink-2);
+}
+.bh-tabs .tab.on .bt-s {
+  color: var(--ink);
+}
+.bh-tabs .bt-s {
+  font: 800 30px/0.9 var(--f-display);
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: inherit;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bh-tabs::before,
+  .bh-tabs::after,
+  .bh-tabs .tab,
+  .bh-tabs .tab::after {
+    transition: none;
+  }
 }
 .bt-t {
   display: flex;
@@ -4715,11 +4786,23 @@ button.fd-tile:hover {
     margin-bottom: 16px;
   }
   .bh-tabs .tab {
-    gap: 10px;
-    padding: 10px 14px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 12px;
+  }
+  .bh-tabs .tab::after {
+    top: 12px;
+    right: 12px;
+    width: 18px;
+    height: 18px;
+    margin-top: 0;
   }
   .bh-tabs .spr {
-    --s: 28px;
+    --s: 34px;
+  }
+  .bh-tabs .tab .bt-s {
+    font-size: 23px;
   }
   /* phones: difficulty over its scoring */
   .bt-t {
@@ -4773,15 +4856,6 @@ button.fd-tile:hover {
   .bh-panel {
     margin: 0 calc(-1 * var(--gut));
     border-left: 0;
-    border-right: 0;
-  }
-  .bh-tabs {
-    margin: 0;
-  }
-  .bh-tabs .tab:first-child {
-    border-left: 0;
-  }
-  .bh-tabs .tab:last-child {
     border-right: 0;
   }
   .bh-panel > .split {
@@ -7313,42 +7387,6 @@ footer p {
     font-size: 13px;
     font-weight: 700;
     color: var(--ink);
-  }
-
-  /* Normal / Elite: rounded tabs with a gap, the chosen one opens into the panel below. */
-  .bh-tabs {
-    gap: 6px;
-    padding: 8px 8px 0;
-    background: transparent;
-  }
-  .bh-tabs .tab,
-  .bh-tabs .tab + .tab {
-    border: 1px solid var(--rule-2);
-    border-bottom: 0;
-    border-radius: 10px 10px 0 0;
-    transition:
-      background-color 0.15s,
-      color 0.15s,
-      box-shadow 0.15s;
-  }
-  .bh-tabs .tab:not(.on) {
-    margin-top: 4px;
-    box-shadow: inset 0 -1px var(--rule-2);
-  }
-  .bh-tabs .tab.on {
-    box-shadow: inset 0 3px var(--ink);
-  }
-}
-@media (max-width: 700px) {
-  .bh-tabs .tab:first-child,
-  .bh-tabs .tab:last-child {
-    border-left: 1px solid var(--rule-2);
-    border-right: 1px solid var(--rule-2);
-  }
-}
-@media (max-width: 700px) and (prefers-reduced-motion: reduce) {
-  .bh-tabs .tab {
-    transition: none;
   }
 }
 
