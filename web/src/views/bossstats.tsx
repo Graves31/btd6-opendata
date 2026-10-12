@@ -57,14 +57,9 @@ import {
 } from "../routes.ts";
 import { hasArt, Spr } from "../sprite.tsx";
 import { A, body, Img, peek, Skeleton, StatusBadge, Tabs } from "../ui.tsx";
-import { allEvents, bossLabel, eventHref } from "./events.tsx";
+import { allEvents, bossLabel, eventHref, OLD_NOTE } from "./events.tsx";
 
 const PAST_SHOWN = 8;
-const OLD_NOTE = {
-  restarted: "Restarted",
-  "taken down": "Taken down",
-  special: "1-day special",
-} as const;
 
 type PastRow = { live: Boss } | { old: OldBoss } | { gap: string };
 /** Past events of one boss: the archive's (newest first, links), then a line for numbers on no record, then the wiki's. */

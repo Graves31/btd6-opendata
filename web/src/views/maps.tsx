@@ -2,6 +2,7 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { BOSS_HISTORY_SOURCE } from "../data/bossHistory.ts";
+import { RACE_HISTORY_SOURCE } from "../data/raceHistory.ts";
 import { MAP_LIST } from "../data/names.ts";
 import { bossName, bossTitle, fmtDate, mapName, oldDates } from "../format.ts";
 import { DIFF_ICON, DIFF_LABEL, mapCounts, mapEvents, mapMetaKeys, type MapEvent } from "../maps.ts";
@@ -146,7 +147,7 @@ export function MapsPage(props: { r: MapsRoute }) {
 
 function EventRow(p: { e: MapEvent }) {
   const e = p.e;
-  const wiki = e.kind === "boss" && !e.id;
+  const wiki = !e.id;
   const inner = (
     <>
       {e.kind === "boss" ? <Spr family="boss" k={e.type} size={40} label optional /> : <EvIcon k="race" size={40} />}
@@ -159,7 +160,7 @@ function EventRow(p: { e: MapEvent }) {
   );
   return (
     <li class={wiki ? "old" : undefined}>
-      {wiki ? <div class="bs-ev">{inner}</div> : <A href={e.kind === "boss" ? href.boss(e.id!) : href.race(e.id)} class="bs-ev">{inner}</A>}
+      {wiki ? <div class="bs-ev">{inner}</div> : <A href={e.kind === "boss" ? href.boss(e.id!) : href.race(e.id!)} class="bs-ev">{inner}</A>}
     </li>
   );
 }
@@ -200,7 +201,7 @@ export function MapPage(props: { id: string }) {
       <h2 class="kicker-h">
         {title} <span class="bs-count num">{rows.length}</span>
       </h2>
-      {rows.length ? <ul class="bs-past">{rows.map((e) => <EventRow key={e.kind === "boss" ? `${e.type}${e.n}${e.start}` : e.id} e={e} />)}</ul> : loading ? <Skeleton rows={2} what={title} /> : <p class="quiet">{none}</p>}
+      {rows.length ? <ul class="bs-past">{rows.map((e) => <EventRow key={e.id ?? `${e.start}${"type" in e ? e.type : ""}`} e={e} />)}</ul> : loading ? <Skeleton rows={2} what={title} /> : <p class="quiet">{none}</p>}
       {extra}
     </section>
   );
@@ -245,7 +246,20 @@ export function MapPage(props: { id: string }) {
           </p>
         ),
       )}
-      {section("Races", races, "No races on record for this map.")}
+      {section(
+        "Races",
+        races,
+        "No races on record for this map.",
+        races.some((e) => !e.id) && (
+          <p class="bs-src quiet">
+            Older races: from the{" "}
+            <a href={RACE_HISTORY_SOURCE} target="_blank" rel="noopener noreferrer">
+              Bloons Wiki
+            </a>
+            , no longer on Ninja Kiwi's servers. It lists only part of the races before 2022.
+          </p>
+        ),
+      )}
     </>
   );
 }

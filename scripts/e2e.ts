@@ -432,8 +432,30 @@ async function main() {
     pages["bossstats-dread"] = "/bosses/dreadbloon";
     await shoot(page, "desktop-bossstats-dread");
 
+    // Boss and race lists: the "Full history" fold (closed by default) opens onto wiki + archive rows with map links.
+    const history = async (label: "desktop" | "mobile") => {
+      for (const [kind, path] of [["boss", "/bosses"], ["race", "/races"]] as const) {
+        await load(path);
+        await page.waitForSelector("details.hist");
+        await api.quiet();
+        if (await has("details.hist[open]")) problems.push(`${kind} history: open by default`);
+        // A DOM click: on phones the list is still laying out its rows, so a coordinate click can land elsewhere.
+        await page.$eval("details.hist > summary", (el) => (el as HTMLElement).click());
+        if (!(await has("details.hist[open]"))) problems.push(`${label} ${kind} history: the summary doesn't open it`);
+        await page.waitForSelector("details.hist .bs-past li.old", { timeout: 5_000 }).catch(() => {});
+        await api.quiet();
+        if (!(await has("details.hist .hist-map[href^='/maps/']"))) problems.push(`${label} ${kind} history: no rows with a map link`);
+        const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+        if (overflow > 0) problems.push(`${label} ${kind} history: page scrolls sideways by ${overflow}px`);
+        await settleImages(page);
+        await (await page.$("details.hist"))!.screenshot({ path: join(SHOTS, `${label}-${kind}-history.png`) });
+      }
+    };
+    await history("desktop");
+
     // Mobile: the same pages, loaded directly (data comes from memory / IndexedDB like a returning visitor).
     await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+    await history("mobile");
     for (const [name, path] of Object.entries(pages)) {
       await load(path);
       await page.waitForSelector("main > *");

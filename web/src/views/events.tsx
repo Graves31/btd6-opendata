@@ -1,4 +1,4 @@
-import type { ComponentChildren } from "preact";
+import { Fragment, type ComponentChildren } from "preact";
 import {
   useEffect,
   useLayoutEffect,
@@ -42,12 +42,15 @@ import {
   fmtWhen,
   human,
   mapName,
+  oldDates,
   partLabel,
   scoringShort,
   status,
 } from "../format.ts";
 import { ordinal, rankBossRows, SUBMITTED } from "../boards.ts";
+import { BOSS_HISTORY_SOURCE } from "../data/bossHistory.ts";
 import { RELIC_INFO } from "../data/names.ts";
+import { RACE_HISTORY_SOURCE } from "../data/raceHistory.ts";
 import { Freshness } from "../fresh.tsx";
 import {
   BOARD_CAP,
@@ -59,6 +62,7 @@ import {
   type Board,
   type Cutoff,
 } from "../medals.ts";
+import { eventGap, eventHistory, mapMetaKeys, type HistEvent } from "../maps.ts";
 import { backTo, store } from "../nav.ts";
 import { ctLeader, homePicks } from "../picks.ts";
 import {
@@ -116,6 +120,7 @@ import {
   Section,
   Skeleton,
   Stat,
+  StatusBadge,
   Submitted,
   Tabs,
   useFullRender,
@@ -920,7 +925,98 @@ export function EventList(props: { kind: EventKind }) {
         </ul>
       )}
       {!peek(historyKey(kind)) && <p class="quiet">Loading older events…</p>}
+      {(kind === "boss" || kind === "race") && <FullHistory kind={kind} />}
     </>
+  );
+}
+
+const monthYear = new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric", timeZone: "UTC" });
+
+/** Why a wiki boss week has no number (bossHistory.ts notes). */
+export const OLD_NOTE = { restarted: "Restarted", "taken down": "Taken down", special: "1-day special" } as const;
+
+/** One history row: archive rows link to their event page; wiki rows (no id) are plain. The map is its own link. */
+function HistoryRow(props: { e: HistEvent }) {
+  const e = props.e;
+  const title = e.kind === "boss" ? (e.n ? bossTitle(e.type, e.n) : bossName(e.type)) : e.name;
+  const link = e.id ? (e.kind === "boss" ? href.boss(e.id) : href.race(e.id)) : "";
+  return (
+    <li class={e.id ? undefined : "old"}>
+      <div class="bs-ev hist-ev">
+        {e.kind === "boss" ? <Spr family="boss" k={e.type} size={32} label optional /> : <EvIcon k="race" size={32} />}
+        <span class="bs-ev-m">
+          <strong>{link ? <A href={link}>{title}</A> : title}</strong>
+          <span class="quiet">{e.id ? `${fmtDate(e.start)} – ${fmtDate(e.end)}` : oldDates(e.start, e.end)}</span>
+          {e.kind === "boss" && e.note && <span class="bs-note-t">{OLD_NOTE[e.note]}</span>}
+        </span>
+        {e.id && <StatusBadge start={e.start} end={e.end} />}
+        {e.map && (
+          <A href={href.map(e.map)} class="hist-map">
+            <MapArt framed map={e.map} size={40} />
+            <span>{mapName(e.map)}</span>
+          </A>
+        )}
+      </div>
+    </li>
+  );
+}
+
+/** Every boss event / race since the wiki's records begin, closed by default and built only once opened (the list stays light). */
+function FullHistory(props: { kind: "boss" | "race" }) {
+  const { kind } = props;
+  const [open, setOpen] = useState(false);
+  const rows = eventHistory(kind, body);
+  const keys = open ? mapMetaKeys(body) : [];
+  useEffect(() => void store.want(keys), [keys.join()]);
+  const gap = open ? eventGap(kind, body) : null;
+  const src = kind === "boss" ? BOSS_HISTORY_SOURCE : RACE_HISTORY_SOURCE;
+  const year = (e: HistEvent) => (e.id ? new Date(e.start).getFullYear() : new Date(e.start).getUTCFullYear());
+  let y = 0;
+  return (
+    <details class="hist" onToggle={(ev) => setOpen((ev.currentTarget as HTMLDetailsElement).open)}>
+      <summary class="kicker-h">
+        Full history
+        {rows.length > 0 && (
+          <span class="bs-count num">
+            {rows.length} {kind === "boss" ? "boss events" : "races"} since {monthYear.format(rows[rows.length - 1].start)}
+          </span>
+        )}
+      </summary>
+      {open && (
+        <>
+          <ul class="bs-past">
+            {rows.map((e, i) => {
+              const head = year(e) !== y && (y = year(e));
+              // The gap sits where the archive ends and the wiki's rows begin.
+              const gapHere = gap && !e.id && (i === 0 || !!rows[i - 1].id);
+              return (
+                <Fragment key={e.id ?? `${e.start}${e.kind === "boss" ? e.type : ""}`}>
+                  {gapHere && (
+                    <li key="gap" class="bs-gap">
+                      {monthYear.format(gap.from)} – {monthYear.format(gap.to)} · not on record
+                      {kind === "race" && ", no public list of these races"}
+                    </li>
+                  )}
+                  {head && (
+                    <li key={`y${y}`} class="hist-y">
+                      {y}
+                    </li>
+                  )}
+                  <HistoryRow e={e} />
+                </Fragment>
+              );
+            })}
+          </ul>
+          <p class="bs-src quiet">
+            Older events:{" "}
+            <a href={src} target="_blank" rel="noopener noreferrer">
+              Bloons Wiki
+            </a>{" "}
+            (CC BY-SA).{kind === "race" && " The wiki lists only part of the races before 2022."}
+          </p>
+        </>
+      )}
+    </details>
   );
 }
 
