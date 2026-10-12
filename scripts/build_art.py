@@ -298,6 +298,13 @@ UI = {
     "mode:Easy": "MainMenuUiAtlas/ModeSelectEasyBtn",
     "mode:Medium": "MainMenuUiAtlas/ModeSelectMediumBtn",
     "mode:Hard": "MainMenuUiAtlas/ModeSelectHardBtn",
+    # maps explorer: the map-select difficulty tabs, the "requires water" badge and the search glass
+    "MapBeginner": "MainMenuUiAtlas/MapBeginnerBtn",
+    "MapIntermediate": "MainMenuUiAtlas/MapIntermediateBtn",
+    "MapAdvanced": "MainMenuUiAtlas/MapAdvancedBtn",
+    "MapExpert": "MainMenuUiAtlas/MapExpertBtn",
+    "Water": "Ui/RequiresWaterIcon",
+    "Search": "Ui/SearchIcon",
     "mode:PrimaryOnly": "MainMenuUiAtlas/PrimaryBtn",
     "mode:MilitaryOnly": "MainMenuUiAtlas/MilitaryBtn",
     "mode:MagicOnly": "MainMenuUiAtlas/MagicBtn",
@@ -1237,7 +1244,9 @@ export type Family =
    *  RemovableCostIncrease, RemovableCostDecrease, CeramicIncreaseHP, CeramicDecreaseHP, FastTrackDisabled,
    *  NoLivesLost, Race, Odyssey, ContestedTerritory, CtPoints, Relic (generic relic), MaxTowers, CustomRounds,
    *  mode:<mode>. Paragon calculator: CashSpent, Pops, Income, Tier5 (empty gold frame), ParagonTotem,
-   *  ParagonDegree (degree badge), ParagonPower. MonkeyMoney is the game's currency banknote ("BloonjaminsIcon"). */
+   *  ParagonDegree (degree badge), ParagonPower. MonkeyMoney is the game's currency banknote ("BloonjaminsIcon").
+   *  Maps explorer: MapBeginner, MapIntermediate, MapAdvanced, MapExpert (map-select difficulty tabs), Water
+   *  (RequiresWaterIcon), Search. */
   | "ui"
   /** API power ids: BananaFarmer, CamoTrap, CashDrop, … Thrive (see PowerId). */
   | "power"

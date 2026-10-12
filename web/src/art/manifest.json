@@ -194,9 +194,9 @@
   },
   "ui": {
    "cell": 48,
-   "cols": 9,
+   "cols": 10,
    "rows": 9,
-   "bytes": 75794,
+   "bytes": 82014,
    "keys": [
     "AbilityCooldownDecrease",
     "AbilityCooldownIncrease",
@@ -229,6 +229,10 @@
     "LeastCashRule",
     "LeastTiers",
     "LeastTiersRule",
+    "MapAdvanced",
+    "MapBeginner",
+    "MapExpert",
+    "MapIntermediate",
     "MaxTowers",
     "MoabBoost",
     "MoabDecreaseHP",
@@ -252,6 +256,7 @@
     "Relic",
     "RemovableCostDecrease",
     "RemovableCostIncrease",
+    "Search",
     "SellingDisabled",
     "SlowerBloons",
     "SlowerBoss",
@@ -261,6 +266,7 @@
     "StartingLives",
     "Tier5",
     "Trophy",
+    "Water",
     "mode:AlternateBloonsRounds",
     "mode:Apopalypse",
     "mode:Clicks",
@@ -614,7 +620,7 @@
    "missingOptional": []
   }
  },
- "totalSheetBytes": 795348,
+ "totalSheetBytes": 801568,
  "bossBar": {
   "parts": {
    "armour:diamondback:edge": {

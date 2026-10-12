@@ -148,13 +148,14 @@ def load_english() -> list[tuple[str, str, str]]:
     sys.exit("English localization TextAsset not found")
 
 
-def load_map_ids() -> list[str]:
+def load_map_details() -> list[dict]:
+    """MapDetails entries in the game's map-select order, debug maps left out."""
     import UnityPy
 
     env = UnityPy.load(str(_bundle("game_data_assets_all")))
     for obj in env.objects:
         if obj.type.name == "MonoBehaviour" and obj.peek_name() == "MapDetails":
-            return [m["id"] for m in obj.read_typetree()["Maps"]["items"] if not m.get("isDebug")]
+            return [m for m in obj.read_typetree()["Maps"]["items"] if not m.get("isDebug")]
     sys.exit("MapDetails not found in game_data bundle")
 
 
@@ -262,12 +263,22 @@ def _obj(d: dict, fmt) -> str:
     return "{\n" + "".join(f"  {_lit(k)}: {fmt(v)},\n" for k, v in sorted(d.items())) + "}"
 
 
-def render(maps: dict, abilities: dict, relics: dict) -> str:
+def map_list(details: list[dict], maps: dict) -> list:
+    # isBrowserOnly = maps outside the Steam game (Blons, Protect the Yacht, the editor's base map): left out.
+    # difficulty 0-3 = Beginner..Expert (checked: Monkey Meadow 0, Logs 0, Infernal 3, #ouch 3).
+    return [(m["id"], m["difficulty"], bool(m["hasWater"])) for m in details
+            if not m.get("isBrowserOnly") and m["id"] in maps]
+
+
+def render(maps: dict, abilities: dict, relics: dict, mlist: list) -> str:
     rel = lambda v: "{ name: %s, description: %s }" % (_lit(v["name"]), _lit(v["description"]))  # noqa: E731
+    rows = "".join(f"  [{_lit(i)}, {d}, {'true' if w else 'false'}],\n" for i, d, w in mlist)
     return (
         HEAD
         + '\n/** Built-in map id (ChallengeDocument.map, e.g. "AdorasTemple") → in-game name ("Adora\'s Temple"). */\n'
         + f"export const MAP_NAMES: Record<string, string> = {_obj(maps, _lit)};\n"
+        + "\n/** Maps of the Steam game in map-select order: [map id, difficulty 0 Beginner..3 Expert, has water]. */\n"
+        + f"export const MAP_LIST: readonly (readonly [id: string, difficulty: 0 | 1 | 2 | 3, water: boolean])[] = [\n{rows}];\n"
         + '\n/** Ability key as in UserProfile.stats.abilitiesActivatedByName (e.g. "TakeAim2") → in-game name. */\n'
         + f"export const ABILITY_NAMES: Record<string, string> = {_obj(abilities, _lit)};\n"
         + '\n/** CT relic id as after "Relic - " in CT tiles (e.g. "ManaBulwark") → in-game name + effect description. */\n'
@@ -283,17 +294,19 @@ def main(relic_ids: list[str] | None = None) -> None:
         if i in text and text[i] != t:  # never happened so far; keep the first (document order) but say so
             print(f"  names      note: id {i!r} has two texts; using the first ({sec} has another)")
         text.setdefault(i, t)
-    maps, no_map = build_maps(text, load_map_ids())
+    details = load_map_details()
+    maps, no_map = build_maps(text, [m["id"] for m in details])
+    mlist = map_list(details, maps)
     relics = build_relics(text, relic_ids)
     abilities, no_ability = build_abilities(text)
     for k, v in WIKI_ABILITY_NAMES.items():  # keys the game text doesn't name (checked on Blooncyclopedia)
         if k not in abilities:
             abilities[k] = v
             no_ability = [x for x in no_ability if x != k]
-    data = render(maps, abilities, relics).encode("utf-8")
+    data = render(maps, abilities, relics, mlist).encode("utf-8")
     if not OUT.exists() or OUT.read_bytes() != data:
         OUT.write_bytes(data)
-    print(f"  names      {len(maps)} maps, {len(abilities)}/{len(ABILITY_KEYS)} abilities, {len(relics)} relics"
+    print(f"  names      {len(maps)} maps ({len(mlist)} listed), {len(abilities)}/{len(ABILITY_KEYS)} abilities, {len(relics)} relics"
           f" -> {OUT.relative_to(ROOT)} ({len(data) / 1024:.1f} KB)")
     if no_map:
         print(f"             maps without a name: {', '.join(no_map)}")
