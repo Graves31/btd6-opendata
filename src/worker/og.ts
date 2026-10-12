@@ -10,7 +10,7 @@
 //  - Wall time: lookups are capped at LOOKUP_TIMEOUT_MS; slower → generic tags, the page is never held up.
 // Static files (/assets/*, /art/*, sw.js, fonts, images) never reach the Worker.
 
-import { MAP_NAMES } from "../../web/src/data/names.ts";
+import { MAP_LIST, MAP_NAMES } from "../../web/src/data/names.ts";
 import { parse } from "../../web/src/routes.ts";
 import type { Deps } from "./deps.ts";
 import { hotPayload, mem, peekHot } from "./store.ts";
@@ -149,7 +149,11 @@ export async function describe(deps: Deps, pathname: string): Promise<PageMeta> 
   if (a === "tools" && !b) return page(...TOOLS_HUB);
   if (a === "stats" && !b) return page("Site stats", "How many people use BTD6 Open Data: visits, page views and the most-opened pages."); // old /tools?set=… links are the visualizer, but the hub text is true of both
   if (a === "maps" && !b) return page("BTD6 Maps", "Every map in Bloons TD 6, with the boss events and races played on it.");
-  if (a === "maps" && b && !c && Object.hasOwn(MAP_NAMES, b)) return page(MAP_NAMES[b], "Bloons TD 6 map: difficulty, boss events and races.");
+  const m = a === "maps" && b && !c ? MAP_LIST.find((x) => x[0] === b) : undefined;
+  if (m) {
+    const diff = ["Beginner", "Intermediate", "Advanced", "Expert"][m[1]];
+    return page(`${MAP_NAMES[b]} · BTD6 Map`, `${MAP_NAMES[b]}, ${/^[AEIOU]/.test(diff) ? "an" : "a"} ${diff} map in Bloons TD 6${m[2] ? " with water" : ""}: every boss event and race played on it.`);
+  }
   if (a === "challenges" && !c && (!b || Object.hasOwn(CHALLENGE_LISTS, b))) return page(...CHALLENGE_LISTS[b ?? "daily"]);
   if (a === "bosses" && b && BOSS_TYPES.has(b) && !c) {
     return page(`${cap(b)} · Boss stats`, `${cap(b)} boss stats in Bloons TD 6: health, skulls and spawns per tier, Normal and Elite.`);
@@ -308,6 +312,7 @@ const SECTIONS = [
   ["/ct", "Contested Territory"],
   ["/odyssey", "Odysseys"],
   ["/challenges", "Challenges"],
+  ["/maps", "Maps"],
   ["/tools/rounds", "Round visualizer"],
   ["/tools/paragon", "Paragon calculator"],
 ];

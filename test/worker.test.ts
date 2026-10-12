@@ -9,6 +9,7 @@ import { buildHotText, HOT_KEY, hotBody, mem, resetHotMemo, viewOf, type HotBund
 import { MAX_BATCH } from "../src/worker/proxy.ts";
 import { handleStats, resetStatsMemo, shapeStats } from "../src/worker/stats.ts";
 import { CAPTURED_AT, DAY, HOUR, MIN, get, makeEnv } from "./harness.ts";
+import { MAP_LIST } from "../web/src/data/names.ts";
 
 /** Origin requests for hot-set keys (excludes the profile warmer's /users and /guild fetches). */
 const hotCalls = (t: { origin: { calls: string[] } }) => t.origin.calls.filter((c) => !/^\/btd6\/(users|guild)\//.test(c)).length;
@@ -1074,6 +1075,19 @@ describe("link previews (og tags on page navigations)", () => {
     return { r, html: method === "HEAD" ? "" : await r.text() };
   };
   const meta = (html: string, p: string) => new RegExp(`<meta (?:property|name)="${p}" content="([^"]*)"`).exec(html)?.[1];
+
+  it("map pages: own title and description, in the sitemap; ids outside the game's map list are real 404s", async () => {
+    const t = makeEnv();
+    const { r, html } = await page(t, "/maps/%23ouch");
+    assert.equal(r.status, 200);
+    assert.match(html, /<title>#Ouch · BTD6 Map · BTD6 Open Data<\/title>/);
+    assert.match(meta(html, "description")!, /^#Ouch, an Expert map in Bloons TD 6/);
+    assert.match(html, /<link rel="canonical" href="https:\/\/btd6data\.com\/maps\/%23ouch" \/>/);
+    for (const bad of ["/maps/Blons", "/maps/NotAMap"]) assert.equal((await page(t, bad)).r.status, 404, bad);
+    const sitemap = readFileSync(new URL("../web/public/sitemap.xml", import.meta.url), "utf8");
+    const listed = [...sitemap.matchAll(/btd6data\.com\/maps\/([^<]+)</g)].map((x) => decodeURIComponent(x[1]));
+    assert.deepEqual(listed, MAP_LIST.map((m) => m[0]), "web/public/sitemap.xml lists every map page, in game order");
+  });
 
   it("event pages use cached event data (boss portrait from NK), never the origin", async () => {
     const t = makeEnv();

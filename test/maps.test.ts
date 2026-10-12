@@ -4,7 +4,8 @@ import { describe, it } from "node:test";
 import { readFileSync } from "node:fs";
 import { BOSS_HISTORY } from "../web/src/data/bossHistory.ts";
 import { MAP_LIST, MAP_NAMES } from "../web/src/data/names.ts";
-import { mapCounts, mapEvents } from "../web/src/maps.ts";
+import { RACE_HISTORY } from "../web/src/data/raceHistory.ts";
+import { eventGap, eventHistory, mapCounts, mapEvents } from "../web/src/maps.ts";
 import { bossMetaKey, historyKey, href, LIST_KEY, needs, parse, raceMetaKey, type MapsRoute } from "../web/src/routes.ts";
 
 const at = (p: string) => parse(new URL(p, "https://x.invalid")) as MapsRoute;
@@ -28,7 +29,7 @@ describe("maps routes", () => {
     assert.deepEqual(parse(new URL("/maps/InTheLoop", "https://x.invalid")), { name: "map", id: "InTheLoop" });
     assert.equal(href.map("#ouch"), "/maps/%23ouch");
     assert.deepEqual(parse(new URL(href.map("#ouch"), "https://x.invalid")), { name: "map", id: "#ouch" });
-    assert.deepEqual(parse(new URL("/maps/Nope", "https://x.invalid")), { name: "map", id: "Nope" });
+    for (const p of ["/maps/Nope", "/maps/Blons"]) assert.deepEqual(parse(new URL(p, "https://x.invalid")), { name: "notfound" }, p); // not in the game's map list
   });
   it("needs the lists", () => {
     for (const p of ["/maps", "/maps/InTheLoop"]) assert.deepEqual(needs(at(p)), [LIST_KEY.boss, historyKey("boss"), LIST_KEY.race, historyKey("race")]);
@@ -63,6 +64,35 @@ describe("map events", () => {
     const e2 = mapEvents(wikiMap, <T>(k: string) => covered[k] as T | undefined);
     assert.ok(e2.some((x) => x.kind === "boss" && x.id === "b0"));
     assert.ok(!e2.some((x) => x.kind === "boss" && !x.id && x.type === type && x.n === n));
+  });
+});
+
+describe("wiki races and history", () => {
+  const [, name, wikiMap, a, b] = RACE_HISTORY[0];
+  const nothing = <T>(k: string) => (k === LIST_KEY.race ? ([] as T) : undefined);
+  it("wiki races land on their map, without an id", () => {
+    const e = mapEvents(wikiMap, nothing);
+    assert.ok(e.some((x) => x.kind === "race" && !x.id && x.name === name && x.start === Date.parse(a) && x.end === Date.parse(b)));
+    assert.ok((mapCounts(nothing).race.get(wikiMap) ?? 0) >= 1);
+  });
+  it("archive races suppress wiki rows from the same dates", () => {
+    const start = Date.parse(a);
+    const data: Record<string, unknown> = { [historyKey("race")]: [{ id: "r0", name: "Archived", start, end: start + 1e6 }], [raceMetaKey("r0")]: { map: "InTheLoop" } };
+    const got = eventHistory("race", <T>(k: string) => data[k] as T | undefined);
+    assert.ok(got.some((x) => x.id === "r0" && x.map === "InTheLoop"));
+    assert.ok(!got.some((x) => !x.id && x.kind === "race" && x.name === name));
+  });
+  it("eventHistory is newest first, unknown maps kept, and the gap spans wiki to archive", () => {
+    const start = Date.parse("2030-01-01");
+    const data: Record<string, unknown> = { [historyKey("race")]: [{ id: "r9", name: "New", start, end: start + 1e6 }] };
+    const get = <T>(k: string) => data[k] as T | undefined;
+    const h = eventHistory("race", get);
+    assert.ok(h.every((x, i) => !i || h[i - 1].start >= x.start));
+    assert.equal(h[0].id, "r9");
+    assert.equal(h[0].map, undefined);
+    const last = RACE_HISTORY[RACE_HISTORY.length - 1];
+    assert.deepEqual(eventGap("race", get), { from: Date.parse(last[4]), to: start });
+    assert.equal(eventGap("race", nothing), null); // no archive: nothing to span
   });
 });
 

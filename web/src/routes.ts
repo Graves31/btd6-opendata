@@ -1,7 +1,10 @@
 // URL ⇄ Route, and the data keys each route needs. `needs()` is what makes generic prefetching possible:
 // any link can compute exactly which keys its target page will read, before the user clicks it.
 
+import { MAP_LIST } from "./data/names.ts";
 import { paragonTowers, type Difficulty, type GameVer, type ParagonTower } from "./paragon.ts";
+
+const MAP_IDS = new Set(MAP_LIST.map((m) => m[0]));
 
 export type EventKind = "boss" | "race" | "ct" | "odyssey";
 export type BossDiff = "standard" | "elite";
@@ -328,7 +331,7 @@ export function parse(url: URL): Route {
   if (a === "maps" && !b) {
     return { name: "maps", q: normMapQ(q.get("q") ?? ""), d: normMapDiff(list(q.get("d")).map(Number)), water: q.get("water") === "1", sort: oneOf(q.get("sort"), MAP_SORTS, "game") };
   }
-  if (a === "maps" && b && !c && b.length <= 64) return { name: "map", id: b };
+  if (a === "maps" && b && !c && MAP_IDS.has(b)) return { name: "map", id: b }; // other ids: a real 404 (og.ts)
   if (a === "tools" && !b) return ROUNDS_PARAMS.some((k) => q.has(k)) ? parseRounds(q) : { name: "tools" }; // old shared /tools?… links
   if (a === "tools" && b === "rounds" && !c) return parseRounds(q);
   if (a === "tools" && b === "paragon" && !c) return parseParagon(q);
