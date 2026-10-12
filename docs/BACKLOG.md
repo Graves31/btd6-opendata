@@ -5,6 +5,11 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
 
 ## Later (agreed)
 
+- **Maps explorer follow-ups** (2026-10-12, owner: later if needed). (1) `/api/maps`: one cached D1 read of the
+  archived boss/race/odyssey metadata maps, so map pages list every archived event (today: the wiki's bosses plus
+  the events in the lists, ~11 bosses and ~11 races; odysseys not shown yet). (2) Product/UI/end-user review of
+  /maps and the map page. Maps sits in the top nav; move it under Tools if the nav gets crowded.
+
 - **Paragon calculator: re-check v57 formulas in game code** (2026-10-07). v57 changed only three caps in the data
   (cash 60k→80k, pops 90k→125k, upgrade tiers 10k→0) and ParagonTower kept the same methods, so the v56.3 formulas,
   totem power (2,000) and cost rules are kept for v57 (toggle on /tools/paragon, `gv=56` = old). Confirm with an
