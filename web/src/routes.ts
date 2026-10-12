@@ -27,7 +27,23 @@ export type Route =
   | ParagonRoute
   | { name: "farming"; r?: number }
   | { name: "stats" }
+  | MapsRoute
+  | { name: "map"; id: string }
   | { name: "notfound" };
+
+export type MapSort = "game" | "az" | "bosses";
+/** Maps explorer (/maps): name search, difficulty (0..3) and water filters, sort. Defaults are left out of the URL. */
+export interface MapsRoute {
+  name: "maps";
+  q: string;
+  /** difficulty filter, canonical (sorted, unique, 0..3); empty = all */
+  d: number[];
+  water: boolean;
+  sort: MapSort;
+}
+const MAP_SORTS = ["game", "az", "bosses"] as const;
+const normMapQ = (v: string) => v.trim().slice(0, 40).trim();
+const normMapDiff = (v: readonly number[]): number[] => [...new Set(v.filter((n) => Number.isInteger(n) && n >= 0 && n <= 3))].sort();
 
 /** Boss types with a stats page (/bosses/<type>), in display order (the same list as rules.tsx). */
 export const BOSS_TYPES = ["bloonarius", "lych", "vortex", "dreadbloon", "phayze", "blastapopoulos", "diamondback"] as const;
@@ -214,6 +230,12 @@ export function setBossStatsUrl(u: string): void {
   bossStatsUrl = u;
 }
 
+/** Maps pages read every boss / race event's map from its metadata; registered by nav.ts like the home extras. */
+let mapExtras: () => string[] = () => [];
+export function setMapExtras(fn: () => string[]): void {
+  mapExtras = fn;
+}
+
 /** The data a route renders. Links prefetch exactly this. */
 export function needs(r: Route): string[] {
   switch (r.name) {
@@ -247,6 +269,9 @@ export function needs(r: Route): string[] {
     case "tools":
     case "farming":
       return roundKeys(parseRounds(new URLSearchParams())); // the default round set (round lengths)
+    case "maps":
+    case "map":
+      return [...new Set([LIST_KEY.boss, historyKey("boss"), LIST_KEY.race, historyKey("race"), ...mapExtras()])];
     case "paragon":
       return []; // static pages: no NK data
     case "stats":
@@ -300,6 +325,10 @@ export function parse(url: URL): Route {
   if (a === "team" && b) return { name: "team", id: b };
   if (a === "challenge" && b) return { name: "challenge", id: b };
   if (a === "stats" && !b) return { name: "stats" };
+  if (a === "maps" && !b) {
+    return { name: "maps", q: normMapQ(q.get("q") ?? ""), d: normMapDiff(list(q.get("d")).map(Number)), water: q.get("water") === "1", sort: oneOf(q.get("sort"), MAP_SORTS, "game") };
+  }
+  if (a === "maps" && b && !c && b.length <= 64) return { name: "map", id: b };
   if (a === "tools" && !b) return ROUNDS_PARAMS.some((k) => q.has(k)) ? parseRounds(q) : { name: "tools" }; // old shared /tools?… links
   if (a === "tools" && b === "rounds" && !c) return parseRounds(q);
   if (a === "tools" && b === "paragon" && !c) return parseParagon(q);
@@ -444,6 +473,12 @@ export const href = {
     o.src = p.src;
     return `/tools/rounds${qs(o).replace(/%2C/g, ",")}`;
   },
+  /** The maps explorer; only non-default values are written. */
+  maps: (p: Partial<Omit<MapsRoute, "name">> = {}) => {
+    const d = normMapDiff(p.d ?? []);
+    return `/maps${qs({ q: normMapQ(p.q ?? "") || undefined, d: d.length ? d.join(",") : undefined, water: p.water ? 1 : undefined, sort: p.sort && p.sort !== "game" ? p.sort : undefined }).replace(/%2C/g, ",")}`;
+  },
+  map: (id: string) => `/maps/${encodeURIComponent(id)}`,
   tools: () => "/tools",
   /** Farming resources; `r` = the round whose length the banana chart is drawn in. */
   farming: (r?: number) => `/tools/farming${qs({ r })}`,

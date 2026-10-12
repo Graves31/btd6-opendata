@@ -280,6 +280,11 @@ async function main() {
     }
     await home();
 
+    await step("Now → Maps", 'header nav a[href="/maps"]', "maps");
+    await step("Maps → a map", ".map-tile", "map");
+    if (await has(".map-ev a[href^='/boss/']")) await step("Map → boss event", ".map-ev a[href^='/boss/']", "boss");
+    await home();
+
     const race = await step("Now → race", ".tile[href^='/race/']");
     await boardOrEmpty(race);
     await home();

@@ -1,7 +1,7 @@
 import { render } from "preact";
 import { useEffect, useLayoutEffect, useReducer, useRef, useState } from "preact/hooks";
 import type { ChallengeDocument, CT as CTEvent, Guild, Odyssey, Race, UserProfile } from "../../src/nk/types.ts";
-import { bossName, bossTitle, dailyTitle, fmtDay } from "./format.ts";
+import { bossName, bossTitle, dailyTitle, fmtDay, mapName } from "./format.ts";
 import { backTo, onRoute, refreshNow, route as initialRoute, routeCommitted, setBackLabeler, store } from "./nav.ts";
 import { challengeKey, guildKey, historyKey, href, LIST_KEY, needs, userKey, type EventKind, type Route } from "./routes.ts";
 import "./fonts.css";
@@ -10,6 +10,7 @@ import "./styles.css";
 import { warmAllOnIdle, warmFor } from "./sprite.tsx";
 import { A, body } from "./ui.tsx";
 import { BossPage, bossTitleFor, bossTypeFor, CTGroupPage, CTPage, EventList, Home, OdysseyPage, RacePage } from "./views/events.tsx";
+import { MapPage, MapsPage } from "./views/maps.tsx";
 import { ChallengesPage } from "./views/challenges.tsx";
 import { NotFound } from "./views/errors.tsx";
 import { BossStatsPage } from "./views/bossstats.tsx";
@@ -57,6 +58,10 @@ function Page(props: { r: Route }) {
       return <FarmingPage r={r.r} />;
     case "stats":
       return <StatsPage />;
+    case "maps":
+      return <MapsPage r={r} />;
+    case "map":
+      return <MapPage id={r.id} />;
     case "challenges":
       return <ChallengesPage filter={r.filter} p={r.p} />;
     case "notfound":
@@ -118,6 +123,10 @@ export function title(r: Route): string {
       return t(dailyTitle(r.id) ?? peekBody<ChallengeDocument>(challengeKey(r.id))?.name ?? "Challenge");
     case "rounds":
       return t(`${roundsTitle(r)} · Round visualizer`);
+    case "maps":
+      return t("Maps");
+    case "map":
+      return t(mapName(r.id));
     case "tools":
       return t("Tools");
     case "paragon":
@@ -157,7 +166,7 @@ function backLabel(r: Route): string {
 setBackLabeler(backLabel);
 
 /** Pages you drill into from a list or board get "‹ <where you came from>" (in-site clicks only, not shared links). */
-const BACK_ON = new Set<string>(["player", "team", "challenge", "ctgroup"]);
+const BACK_ON = new Set<string>(["player", "team", "challenge", "ctgroup", "map"]);
 function BackLink(props: { r: Route }) {
   const b = BACK_ON.has(props.r.name) ? backTo() : undefined;
   if (!b) return null;
@@ -184,6 +193,7 @@ const NAV: [string, string, string][] = [
   [href.events("ct"), "CT", "ct"],
   [href.events("odyssey"), "Odysseys", "odyssey"],
   ["/challenges", "Challenges", "challenges"],
+  [href.maps(), "Maps", "maps"],
   ["/tools", "Tools", "tools"],
 ];
 function section(r: Route): string {
@@ -191,6 +201,7 @@ function section(r: Route): string {
   if (r.name === "events") return r.kind;
   if (r.name === "ctgroup") return "ct";
   if (r.name === "challenge") return "challenges";
+  if (r.name === "map") return "maps";
   if (r.name === "rounds" || r.name === "paragon" || r.name === "farming") return "tools";
   if (r.name === "bossstats") return "boss";
   return n;

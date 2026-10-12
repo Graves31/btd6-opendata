@@ -11,7 +11,7 @@ import {
   type BossBarPart,
 } from "../art/index.ts";
 import type { Boss, ChallengeDocument } from "../../../src/nk/types.ts";
-import { bossNum, fmtDate, fmtInt, mapName, scoringShort } from "../format.ts";
+import { bossNum, fmtDate, fmtInt, mapName, oldDates, scoringShort } from "../format.ts";
 import {
   BAR_EXTRA,
   bossMods,
@@ -65,18 +65,6 @@ const OLD_NOTE = {
   "taken down": "Taken down",
   special: "1-day special",
 } as const;
-const dayFmt = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "short",
-  timeZone: "UTC",
-});
-/** Wiki calendar days ("2021-07-26") → "26 Jul – 29 Jul 2021" (the year once, or on both ends across New Year). */
-function oldDates(a: string, b: string): string {
-  const [x, y] = [new Date(a), new Date(b)];
-  const ya = x.getUTCFullYear();
-  const yb = y.getUTCFullYear();
-  return `${dayFmt.format(x)}${ya !== yb ? ` ${ya}` : ""} – ${dayFmt.format(y)} ${yb}`;
-}
 
 type PastRow = { live: Boss } | { old: OldBoss } | { gap: string };
 /** Past events of one boss: the archive's (newest first, links), then a line for numbers on no record, then the wiki's. */
