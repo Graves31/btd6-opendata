@@ -83,8 +83,12 @@ export function formatSuggestion(s: Input, host: string): Message {
       fields,
     }],
     allowed_mentions: { parse: [] },
+    // Each suggestion is its own forum post: "Bug: first words of the text…".
+    thread_name: clip(`${s.kind ? KINDS[s.kind] : "Suggestion"}: ${s.text.replace(/\s+/g, " ")}`, 100),
   };
 }
+
+const clip = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
 
 export async function handleSuggest(deps: Deps, request: Request): Promise<Response> {
   const url = new URL(request.url);
@@ -137,7 +141,7 @@ export async function handleSuggest(deps: Deps, request: Request): Promise<Respo
     const channel = discordChannel(deps.fetch, hook);
     const msgs = [formatSuggestion(s, url.host)];
     if (count + 1 === DAILY_CAP) {
-      msgs.push({ embeds: [{ description: `Daily suggestion cap (${DAILY_CAP}) reached; new suggestions are refused until 00:00 UTC.`, color: 0xe67e22 }], allowed_mentions: { parse: [] } });
+      msgs.push({ embeds: [{ description: `Daily suggestion cap (${DAILY_CAP}) reached; new suggestions are refused until 00:00 UTC.`, color: 0xe67e22 }], allowed_mentions: { parse: [] }, thread_name: "Daily suggestion cap reached" });
     }
     deps.waitUntil(
       (async () => {

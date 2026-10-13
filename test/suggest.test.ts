@@ -52,6 +52,7 @@ describe("suggestions box", () => {
     assert.equal(s.posts[0].url, HOOK);
     const e = s.posts[0].body.embeds[0];
     assert.equal(e.title, "Suggestion: Wrong data");
+    assert.equal(s.posts[0].body.thread_name, `Wrong data: ${TEXT}`);
     assert.deepEqual(s.posts[0].body.allowed_mentions, { parse: [] });
     assert.deepEqual(e.fields.map((f: any) => f.name), ["Page", "Discord name", "Screen width", "Version"]);
     assert.equal(e.fields[0].value, "`Boss`\n`https://site.test/boss/x`");

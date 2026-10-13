@@ -24,6 +24,8 @@ const MAX_AGE_MS = 24 * 60 * 60_000;
 export interface Message {
   embeds: Record<string, unknown>[];
   allowed_mentions: { parse: string[] };
+  /** Forum-channel webhooks: the message opens a new post with this title (max 100 chars). */
+  thread_name?: string;
 }
 export type SendResult = { ok: true } | { retryAfter: number } | { error: string };
 export interface Channel {
