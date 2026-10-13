@@ -8352,6 +8352,7 @@ footer p {
   border-color: var(--focus);
 }
 .sug-field input,
+.sug-field select,
 .sug-field textarea {
   flex: 1;
   min-width: 0;
@@ -8362,6 +8363,15 @@ footer p {
   background: none;
   border: 0;
   outline: 0;
+}
+/* The open list takes the page colours (Windows draws it white otherwise). */
+.sug-field select {
+  cursor: pointer;
+}
+.sug-field option,
+.sug-field optgroup {
+  color: var(--ink);
+  background: var(--s1);
 }
 .sug-field textarea {
   min-height: 140px;

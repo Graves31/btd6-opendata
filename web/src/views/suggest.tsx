@@ -11,6 +11,22 @@ const KINDS: [string, string][] = [
   ["idea", "Idea"],
 ];
 const MAX = 1000;
+/** "Which page" choices: [label, group]; the label is what reaches Discord. */
+const PAGES: [string, string][] = [
+  ["Live", "Pages"],
+  ["Bosses", "Pages"],
+  ["Races", "Pages"],
+  ["CT", "Pages"],
+  ["Odysseys", "Pages"],
+  ["Challenges", "Pages"],
+  ["Maps", "Pages"],
+  ["Players and teams", "Pages"],
+  ["Round visualizer", "Tools"],
+  ["Paragon calculator", "Tools"],
+  ["Farming resources", "Tools"],
+  ["The whole site", "Other"],
+];
+const OTHER = "Other (specify above)";
 
 /** Page-level robots meta, removed again on leaving (same approach as /stats). */
 function useNoindex() {
@@ -30,7 +46,7 @@ export function SuggestPage() {
   const from = backTo();
   const [text, setText] = useState("");
   const [kind, setKind] = useState("");
-  const [page, setPage] = useState(from?.label ?? "");
+  const [page, setPage] = useState(OTHER);
   const [discord, setDiscord] = useState("");
   const [hp, setHp] = useState("");
   const [busy, setBusy] = useState(false);
@@ -53,8 +69,8 @@ export function SuggestPage() {
         body: JSON.stringify({
           text: text.trim(),
           kind: kind || undefined,
-          page: page.trim() || undefined,
-          pageUrl: page.trim() && from ? from.href : undefined,
+          page,
+          pageUrl: from?.href,
           discord: discord.trim() || undefined,
           width: window.innerWidth,
           version: __APP_VERSION__,
@@ -79,7 +95,7 @@ export function SuggestPage() {
     <div class="sug">
       <header class="page-h">
         <h1>Suggest</h1>
-        <p class="lede">Found a bug, a wrong number, or have an idea? Tell me.</p>
+        <p class="lede">Found a bug, a wrong number, or have an idea? Tell me!</p>
       </header>
       {st.kind === "sent" ? (
         <div class="empty">
@@ -94,6 +110,7 @@ export function SuggestPage() {
                 e.preventDefault();
                 setText("");
                 setKind("");
+                setPage(OTHER);
                 setDiscord("");
                 setSt({ kind: "idle" });
                 t0.current = Date.now();
@@ -127,9 +144,20 @@ export function SuggestPage() {
               </div>
             </div>
             <div class="sug-row">
-              <label for="sug-page">Which page is this about? (optional)</label>
+              <label for="sug-page">Which page is this about?</label>
               <div class="sug-field">
-                <input id="sug-page" type="text" maxLength={80} value={page} onInput={(e) => setPage(e.currentTarget.value)} />
+                <select id="sug-page" value={page} onChange={(e) => setPage(e.currentTarget.value)}>
+                  <option value={OTHER}>{OTHER}</option>
+                  {["Pages", "Tools", "Other"].map((g) => (
+                    <optgroup key={g} label={g}>
+                      {PAGES.filter(([, pg]) => pg === g).map(([l]) => (
+                        <option key={l} value={l}>
+                          {l}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
               </div>
             </div>
             <div class="sug-row">
@@ -149,7 +177,7 @@ export function SuggestPage() {
           <p class={`sug-status${st.kind === "error" ? " err" : ""}`} role="status" aria-live="polite" tabIndex={-1} ref={msg}>
             {st.kind === "error" || st.kind === "limit" ? st.msg : ""}
           </p>
-          <p class="sug-priv">Only the site owner reads this. Kept: your message, the page, your Discord name if given, your screen width and the site version.</p>
+          <p class="sug-priv">Only the site owner reads this.</p>
         </form>
       )}
     </div>
