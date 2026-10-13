@@ -453,8 +453,49 @@ async function main() {
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
         if (overflow > 0) problems.push(`${label} ${kind} history: page scrolls sideways by ${overflow}px`);
         await settleImages(page);
-        await (await page.$("details.hist"))!.screenshot({ path: join(SHOTS, `${label}-${kind}-history.png`) });
+        // Viewport shots (the list is thousands of px tall, and rows off screen are not painted): mid-list and the very bottom, both themes.
+        for (const theme of ["dark", "light"]) {
+          await page.evaluate((t) => (document.documentElement.dataset.theme = t), theme);
+          await page.evaluate(() => {
+            const r = document.querySelector("details.hist")!.getBoundingClientRect();
+            scrollTo(0, scrollY + r.top + 700);
+          });
+          await new Promise((r) => setTimeout(r, 300));
+          await page.screenshot({ path: join(SHOTS, `${label}-${kind}-history-${theme}-mid.png`) });
+          await page.evaluate(() => scrollTo(0, document.body.scrollHeight));
+          await new Promise((r) => setTimeout(r, 300));
+          await page.screenshot({ path: join(SHOTS, `${label}-${kind}-history-${theme}-end.png`) });
+        }
+        await page.evaluate(() => delete document.documentElement.dataset.theme);
       }
+      // No memory: open + a boss picked, then Races via the nav and Back: both folds arrive closed; "Back to top" collapses.
+      await load("/bosses");
+      await page.waitForSelector("details.hist");
+      await page.$eval("details.hist > summary", (el) => (el as HTMLElement).click());
+      await page.waitForSelector("details.hist .hist-chips button:nth-child(2)");
+      await page.$eval("details.hist .hist-chips button:nth-child(2)", (el) => (el as HTMLElement).click());
+      await page.evaluate(() => {
+        const a = [...document.querySelectorAll<HTMLElement>("a[href='/races']")].find((x) => x.offsetParent !== null);
+        a?.click();
+      });
+      await page.waitForFunction(() => location.pathname === "/races", { timeout: 5_000 }).catch(() => {});
+      await page.waitForSelector("details.hist");
+      if (await has("details.hist[open]")) problems.push(`${label} history: /races fold open after leaving /bosses`);
+      await page.goBack();
+      await page.waitForFunction(() => location.pathname === "/bosses", { timeout: 5_000 }).catch(() => {});
+      await page.waitForSelector("details.hist");
+      if (await has("details.hist[open]")) problems.push(`${label} history: /bosses fold open after Back`);
+      await page.$eval("details.hist > summary", (el) => (el as HTMLElement).click());
+      await page.waitForSelector("details.hist .hist-top");
+      await page.evaluate(() => scrollTo(0, document.body.scrollHeight));
+      await page.$eval("details.hist .hist-top", (el) => (el as HTMLElement).click());
+      if (await has("details.hist[open]")) problems.push(`${label} history: "Back to top of history" leaves the fold open`);
+      await page
+        .waitForFunction(() => {
+          const r = document.querySelector("details.hist > summary")!.getBoundingClientRect();
+          return r.top >= 0 && r.bottom <= innerHeight;
+        }, { timeout: 5_000 })
+        .catch(() => problems.push(`${label} history: the summary is not in view after "Back to top of history"`));
     };
     await history("desktop");
 

@@ -5991,20 +5991,34 @@ a.bs-ev:hover {
   margin-top: 10px;
   font-size: 12px;
 }
-/* "Full history" on /bosses and /races: a closed <details> whose summary is a full-width bar; rows form a compact ledger grouped by sticky year headers. */
+/* "Full history" on /bosses and /races: a closed <details> whose summary is a bar (sticky while open); rows form a compact ledger grouped by sticky year headers. The whole fold is capped at 760px and left-aligned like the section above. */
 .hist {
+  --hist-top: var(--hdr); /* what sits above the sticky summary: the sticky site header (phones: nothing) */
+  --hist-sum: 48px; /* the open summary's height; year headers stick right below it */
   margin-top: 28px;
+  max-width: 760px;
 }
 .hist summary {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 4px 12px;
-  padding: 12px 14px;
+  min-height: var(--hist-sum);
+  padding: 8px 14px;
   background: var(--s1);
   border: 1px solid var(--rule-2);
   cursor: pointer;
   list-style: none;
+  /* scrollIntoView lands the closed bar just under the header (html's desktop scroll-padding already adds 48px) */
+  scroll-margin-top: -48px;
+}
+.hist[open] > summary {
+  position: sticky;
+  top: var(--hist-top);
+  z-index: calc(var(--z-sticky) + 1);
+  flex-wrap: nowrap;
+  height: var(--hist-sum);
+  padding-block: 0;
 }
 .hist summary:hover {
   background: var(--s2);
@@ -6019,28 +6033,79 @@ a.bs-ev:hover {
   border: solid var(--ink-2);
   border-width: 0 2px 2px 0;
   transform: rotate(-45deg);
-  transition: transform 0.15s;
 }
 .hist[open] summary::before {
-  transform: rotate(45deg);
+  display: none;
 }
 .hist-sum {
   font: 700 18px/1.2 var(--f-display);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
+.hist-collapse {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  font: 700 13px/1 var(--f-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.hist-collapse::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border: solid var(--ink-2);
+  border-width: 0 2px 2px 0;
+  transform: translateY(2px) rotate(-135deg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hist summary::before,
+  .hist-collapse::after {
+    transition: transform 0.15s;
+  }
+}
+.hist-legend,
+.hist-showing {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-3);
+}
+.hist-showing b {
+  color: var(--ink);
+}
 .hist-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
   margin-top: 12px;
+}
+.hist-jump {
+  display: flex;
+  align-items: center;
+  gap: 4px 10px;
+  margin-top: 12px;
+}
+.hist-jump .hist-chips {
+  flex: 1;
+  min-width: 0;
+  margin-top: 0;
+}
+.hist-lbl {
+  flex: none;
+  font: 700 11px/1 var(--f-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
 }
 .hist-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
-  min-height: 32px;
+  padding: 0 14px;
+  min-height: 44px;
   font: 600 13px/1 var(--f-body);
   color: var(--ink);
   background: var(--s1);
@@ -6062,10 +6127,12 @@ a.bs-ev:hover {
 }
 .hist-g {
   margin-top: 18px;
+  /* a year jump lands the header just below the sticky summary (html's desktop scroll-padding covers header + 48px) */
+  scroll-margin-top: 4px;
 }
 .hist-y {
   position: sticky;
-  top: var(--hdr);
+  top: calc(var(--hist-top) + var(--hist-sum));
   z-index: var(--z-sticky);
   display: flex;
   align-items: baseline;
@@ -6088,17 +6155,19 @@ a.bs-ev:hover {
 }
 .hist-r {
   border-bottom: 1px solid var(--rule);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 53px; /* the real desktop row: 40px map + padding + rule */
 }
 .hist-row {
   display: grid;
-  grid-template-columns: 120px 32px minmax(0, 1.3fr) 40px minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: 120px 32px minmax(180px, 280px) 40px minmax(0, 1fr);
   align-items: center;
   gap: 12px;
   padding: 6px;
   font-size: 14px;
 }
 .hist-row.k-race {
-  grid-template-columns: 120px minmax(0, 1.3fr) 40px minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: 120px minmax(180px, 280px) 40px minmax(0, 1fr);
 }
 .hist-d {
   font-size: 13px;
@@ -6115,7 +6184,6 @@ a.bs-ev:hover {
   color: var(--accent-ink);
   font-weight: 700;
 }
-.hist-wiki,
 .hist-live {
   margin-left: 6px;
   padding: 1px 5px;
@@ -6123,12 +6191,6 @@ a.bs-ev:hover {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   vertical-align: 1px;
-}
-.hist-wiki {
-  color: var(--ink-3);
-  border: 1px solid var(--rule-2);
-}
-.hist-live {
   color: var(--on-accent);
   background: var(--live-fill);
 }
@@ -6148,7 +6210,10 @@ a.hist-map:hover {
   border: 1px dashed var(--rule-2);
 }
 .hist-s {
-  display: contents;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
 }
 .hist-mn {
   min-width: 0;
@@ -6176,21 +6241,60 @@ a.hist-map:hover {
   font-size: 13px;
   color: var(--ink-3);
 }
+.hist-top {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 16px;
+  padding: 0 14px;
+  font: 700 13px/1 var(--f-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--s1);
+  border: 1px solid var(--rule-2);
+  cursor: pointer;
+}
+.hist-top:hover {
+  background: var(--s2);
+}
 @media (max-width: 700px) {
+  .hist {
+    --hist-top: 0px; /* the phone header scrolls away */
+  }
+  .hist summary {
+    scroll-margin-top: 0;
+  }
+  .hist-g {
+    scroll-margin-top: calc(var(--hist-sum) + 4px);
+  }
+  .hist-jump {
+    flex-direction: column;
+    align-items: stretch;
+  }
   .hist-chips {
     flex-wrap: nowrap;
     overflow-x: auto;
-    padding-bottom: 4px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  }
+  .hist-chips::-webkit-scrollbar {
+    display: none;
   }
   .hist-chip {
     flex: none;
+    scroll-snap-align: start;
   }
   .hist-chip-n {
     display: none;
   }
   .hist-y {
-    top: 0;
     font-size: 24px;
+  }
+  .hist-r {
+    contain-intrinsic-size: auto 51px;
   }
   .hist-row {
     grid-template-columns: 56px 32px minmax(0, 1fr) 40px;

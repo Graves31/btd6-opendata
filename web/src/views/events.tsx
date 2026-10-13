@@ -62,7 +62,7 @@ import {
   type Cutoff,
 } from "../medals.ts";
 import { eventGap, eventHistory, mapMetaKeys, type HistEvent } from "../maps.ts";
-import { backTo, store } from "../nav.ts";
+import { backTo, onRoute, store } from "../nav.ts";
 import { ctLeader, homePicks } from "../picks.ts";
 import {
   bossBoardKey,
@@ -923,11 +923,12 @@ export function EventList(props: { kind: EventKind }) {
         </ul>
       )}
       {!peek(historyKey(kind)) && <p class="quiet">Loading older events…</p>}
-      {(kind === "boss" || kind === "race") && <FullHistory kind={kind} />}
+      {(kind === "boss" || kind === "race") && <FullHistory key={kind} kind={kind} />}
     </>
   );
 }
 
+const scrollBehavior = (): ScrollBehavior => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
 const monthYear = new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric", timeZone: "UTC" });
 
 /** Why a wiki boss week has no number (bossHistory.ts notes). */
@@ -973,7 +974,7 @@ function HistoryRow(props: { e: HistEvent }) {
             </>
           ) : (
             <>
-              {title} <span class="hist-wiki">wiki</span>
+              {title}
             </>
           )}
           {e.start <= now && now < e.end && <span class="hist-live">Live</span>}
@@ -1001,6 +1002,19 @@ function FullHistory(props: { kind: "boss" | "race" }) {
   const { kind } = props;
   const [open, setOpen] = useState(false);
   const [pick, setPick] = useState("");
+  const ref = useRef<HTMLDetailsElement>(null);
+  const wasOpen = useRef(false);
+  // Always closed, no filter on arrival (also when Preact keeps this instance across a route change).
+  useEffect(
+    () =>
+      onRoute(() => {
+        wasOpen.current = false;
+        setOpen(false);
+        setPick("");
+        if (ref.current) ref.current.open = false;
+      }),
+    [],
+  );
   const rows = eventHistory(kind, body);
   const keys = open ? mapMetaKeys(body) : [];
   useEffect(() => void store.want(keys), [keys.join()]);
@@ -1009,18 +1023,51 @@ function FullHistory(props: { kind: "boss" | "race" }) {
   const types = kind === "boss" ? BOSS_TYPES.filter((t) => rows.some((e) => e.kind === "boss" && e.type === t)) : [];
   const shown = pick ? rows.filter((e) => e.kind === "boss" && e.type === pick) : rows;
   // Rows are newest first, so the years come out newest first too.
+  // The gap sits where the archive ends and the wiki's rows begin: between two year blocks when it starts one.
+  const gapRow = gap ? shown.find((e, i) => !e.id && (i === 0 || !!shown[i - 1].id)) : undefined;
+  const gapBand = gap && (
+    <div class="hist-gap">
+      <b>
+        {monthYear.format(gap.from)} – {monthYear.format(gap.to)} · not on record
+      </b>
+      <span>No public list covers these weeks yet.</span>
+    </div>
+  );
   const groups: { y: number; rows: HistEvent[] }[] = [];
   for (const e of shown) {
     const y = histYear(e);
     (groups[groups.length - 1]?.y === y ? groups[groups.length - 1] : groups[groups.push({ y, rows: [] }) - 1]).rows.push(e);
   }
   const jump = (y: number) =>
-    document.getElementById(`hist-${kind}-${y}`)?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    document.getElementById(`hist-${kind}-${y}`)?.scrollIntoView({ behavior: scrollBehavior() });
+  // Bring the (closed) summary back under the header and focus it.
+  const toSummary = () => {
+    const s = ref.current?.querySelector("summary") as HTMLElement | null;
+    s?.scrollIntoView({ block: "start", behavior: scrollBehavior() });
+    s?.focus({ preventScroll: true });
+  };
+  const collapse = () => {
+    wasOpen.current = false;
+    setOpen(false);
+    if (ref.current) ref.current.open = false;
+    toSummary();
+  };
   return (
-    <details class="hist" onToggle={(ev) => setOpen((ev.currentTarget as HTMLDetailsElement).open)}>
+    <details
+      class="hist"
+      ref={ref}
+      onToggle={(ev) => {
+        const o = (ev.currentTarget as HTMLDetailsElement).open;
+        // Closed by the sticky summary itself (collapse() already scrolled): same scroll + focus.
+        if (!o && wasOpen.current) toSummary();
+        wasOpen.current = o;
+        setOpen(o);
+      }}
+    >
       <summary>
         <span class="hist-sum">Full history</span>
-        {rows.length > 0 && (
+        {open && <span class="hist-collapse">Collapse</span>}
+        {!open && rows.length > 0 && (
           <span class="bs-count num">
             {rows.length} {kind === "boss" ? "boss events" : "races"} since {monthYear.format(rows[rows.length - 1].start)}
           </span>
@@ -1028,6 +1075,12 @@ function FullHistory(props: { kind: "boss" | "race" }) {
       </summary>
       {open && (
         <>
+          <p class="hist-legend">
+            <span class="hist-go" aria-hidden="true">
+              ›
+            </span>{" "}
+            opens the event's leaderboard. Older events come from the Bloons wikis; no leaderboards exist for them.
+          </p>
           {types.length > 0 && (
             <div class="hist-chips" role="group" aria-label="Filter by boss">
               <button type="button" class="hist-chip" aria-pressed={!pick} onClick={() => setPick("")}>
@@ -1049,41 +1102,42 @@ function FullHistory(props: { kind: "boss" | "race" }) {
               ))}
             </div>
           )}
+          {pick && (
+            <p class="hist-showing">
+              Showing: <b>{bossName(pick)}</b> · {shown.length} {shown.length === 1 ? "event" : "events"}
+            </p>
+          )}
           {groups.length > 1 && (
-            <div class="hist-chips hist-years" role="group" aria-label="Jump to year">
-              {groups.map((g) => (
-                <button type="button" key={g.y} class="hist-chip" onClick={() => jump(g.y)}>
-                  {g.y}
-                </button>
-              ))}
+            <div class="hist-jump">
+              <span class="hist-lbl">Jump to</span>
+              <div class="hist-chips hist-years" role="group" aria-label="Jump to year">
+                {groups.map((g) => (
+                  <button type="button" key={g.y} class="hist-chip" onClick={() => jump(g.y)}>
+                    {g.y}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
           {groups.map((g) => (
-            <section key={g.y} id={`hist-${kind}-${g.y}`} class="hist-g">
+            <Fragment key={g.y}>
+            {gapRow === g.rows[0] && gapBand}
+            <section id={`hist-${kind}-${g.y}`} class="hist-g">
               <h3 class="hist-y">
                 {g.y} <small class="num">{g.rows.length} {g.rows.length === 1 ? "event" : "events"}</small>
               </h3>
               <ul class="hist-l">
                 {g.rows.map((e) => {
-                  // The gap sits where the archive ends and the wiki's rows begin.
-                  const at = shown.indexOf(e);
-                  const gapHere = gap && !e.id && (at === 0 || !!shown[at - 1].id);
                   return (
                     <Fragment key={e.id ?? `${e.start}${e.kind === "boss" ? e.type : ""}`}>
-                      {gapHere && (
-                        <li class="hist-gap">
-                          <b>
-                            {monthYear.format(gap.from)} – {monthYear.format(gap.to)} · not on record
-                          </b>
-                          <span>No public list covers these weeks yet.</span>
-                        </li>
-                      )}
+                      {e === gapRow && e !== g.rows[0] && <li>{gapBand}</li>}
                       <HistoryRow e={e} />
                     </Fragment>
                   );
                 })}
               </ul>
             </section>
+            </Fragment>
           ))}
           <p class="bs-src quiet">
             Older events:{" "}
@@ -1099,6 +1153,9 @@ function FullHistory(props: { kind: "boss" | "race" }) {
             )}{" "}
             (CC BY-SA)
           </p>
+          <button type="button" class="hist-top" onClick={collapse}>
+            Back to top of history
+          </button>
         </>
       )}
     </details>
