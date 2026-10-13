@@ -64,6 +64,9 @@ Commits: Conventional Commits. One logical change per commit. Enforced by `.gith
 - scopes: `worker` `nk` `web` `events` `boss` `race` `ct` `odyssey` `challenges` `people` `rounds` `tools`
   `stats` `art` `data` `e2e` `deps` `docs`; omit the scope when a change spans many areas.
 - Breaking cache/D1/route changes: `!` after the scope and a `BREAKING CHANGE:` line in the body.
+- Site version (`package.json`, shown in the footer) goes up in every commit (hook-enforced):
+  `npm version <level> --no-git-tag-version`. major = a major feature (the owner calls it), minor = a decent
+  feature (`feat` that adds something visible), patch = everything else.
 
 ## Product rules (from the owner)
 

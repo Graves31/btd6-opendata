@@ -22,6 +22,9 @@ import { ToolsHub } from "./views/tools.tsx";
 import { StatsPage } from "./views/stats.tsx";
 import { ThemeToggle } from "./theme.tsx";
 
+/** Site version from package.json (vite.config.ts `define`). */
+declare const __APP_VERSION__: string;
+
 
 function Page(props: { r: Route }) {
   const r = props.r;
@@ -365,6 +368,7 @@ function App() {
         <p>Unofficial fan site, not affiliated with Ninja Kiwi.</p>
         <p>Data and images from the Ninja Kiwi Open Data API. Game art © Ninja Kiwi.</p>
         <p>Times are in your time zone.</p>
+        <p>v{__APP_VERSION__}</p>
       </footer>
     </>
   );

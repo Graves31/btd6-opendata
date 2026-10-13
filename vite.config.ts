@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
+import pkg from "./package.json" with { type: "json" };
 import { fileURLToPath } from "node:url";
 import preact from "@preact/preset-vite";
 import { defineConfig, type Plugin } from "vite";
@@ -44,6 +45,8 @@ function stampServiceWorker(): Plugin {
 
 export default defineConfig({
   root: "web",
+  // Site version (package.json, bumped on every commit: CLAUDE.md "Git"), shown in the footer.
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [preact(), preloadFonts(), stampServiceWorker()],
   build: { outDir: OUT_DIR, emptyOutDir: true, target: "es2022", assetsInlineLimit: 0 },
   // `npm run dev:web` proxies the API to a local `wrangler dev` on :8787.
