@@ -561,6 +561,39 @@ strong {
   color: var(--accent);
   border-color: var(--accent);
 }
+/* Suggest is the labelled, outlined button with a yellow icon; the theme toggle is a plain icon beside it. */
+.sug-btn svg {
+  color: var(--accent);
+}
+.theme-btn:not(:hover) {
+  border-color: transparent;
+}
+.sug-t,
+.top-sep {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .sug-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: auto;
+    padding: 0 14px 0 12px;
+    font: 600 14px/1 var(--f-body);
+    text-decoration: none;
+  }
+  .sug-t {
+    display: inline;
+  }
+  .top-sep {
+    display: block;
+    align-self: center;
+    width: 1px;
+    height: 22px;
+    margin: 0 4px;
+    background: rgb(255 255 255 / 0.16);
+  }
+}
 /* A compact step so brand + 7 tabs + theme button fit from 701 px (the phone header starts at 700). */
 @media (min-width: 701px) and (max-width: 900px) {
   .top {

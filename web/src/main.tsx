@@ -323,9 +323,12 @@ function App() {
         <div class="top-tools">
           <A href="/suggest" class={r.name === "suggest" ? "sug-btn on" : "sug-btn"} current={r.name === "suggest"} label="Suggest an improvement" title="Suggest">
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 12a8 8 0 0 1-11.6 7.1L3 20.5l1.5-4.6A8 8 0 1 1 21 12Z" />
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              <path d="M12 7v6M9 10h6" />
             </svg>
+            <span class="sug-t">Suggest</span>
           </A>
+          <span class="top-sep" aria-hidden="true" />
           <ThemeToggle />
         </div>
         <nav aria-label="Sections">
