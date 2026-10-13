@@ -1523,6 +1523,66 @@ describe("notifications (new boss / race → Discord)", () => {
     assert.ok(rows()[0].sent_at);
   });
 
+  describe("IndexNow channel", () => {
+    const KEY = "abc123key";
+    /** Setup with IndexNow on (no Discord unless asked) and a spy on its POSTs. */
+    async function withIndexNow(discord = false) {
+      const s = await setup({ hook: discord });
+      s.t.deps.notify = { ...s.t.deps.notify, indexNowKey: KEY };
+      const pings = { posts: [] as { init: RequestInit; body: any }[], status: 202, retryAfter: "" };
+      const inner = s.t.deps.fetch;
+      s.t.deps.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+        if (!String(input).startsWith("https://api.indexnow.org/")) return inner(input, init);
+        pings.posts.push({ init: init!, body: JSON.parse(String(init?.body)) });
+        return new Response(null, { status: pings.status, headers: pings.retryAfter ? { "retry-after": pings.retryAfter } : {} });
+      }) as typeof fetch;
+      return { ...s, pings };
+    }
+
+    it("new race and new ct → POST with host, key, keyLocation and the event page; 202 is sent", async () => {
+      const { t, pings, list, rows } = await withIndexNow();
+      await list();
+      const ctFx = fixture("btd6__ct.json");
+      const ct = { id: "CtNew_mzzzzzzz", name: "Ct New", start: t.clock.now + DAY, end: t.clock.now + 4 * DAY };
+      t.origin.override.set("/btd6/ct", JSON.stringify({ ...ctFx, body: [ct, ...ctFx.body] }));
+      t.clock.now += 5 * MIN;
+      await refreshHot(t.deps);
+      await t.settle();
+      assert.deepEqual(rows().map((r) => r.key).sort(), [`index-ct:ct:${ct.id}`, `index-race:race:${NEW_RACE}`]);
+      assert.ok(rows().every((r) => r.sent_at));
+      assert.equal(pings.posts.length, 2);
+      const urls = pings.posts.map((p) => p.body.urlList[0]).sort();
+      assert.deepEqual(urls, [`https://btd6data.com/ct/${ct.id}`, `https://btd6data.com/race/${NEW_RACE}`]);
+      const p = pings.posts[0];
+      assert.equal(p.init.method, "POST");
+      assert.equal((p.init.headers as Record<string, string>)["content-type"], "application/json; charset=utf-8");
+      assert.equal(p.body.host, "btd6data.com");
+      assert.equal(p.body.key, KEY);
+      assert.equal(p.body.keyLocation, `https://btd6data.com/${KEY}.txt`);
+    });
+
+    it("no NK request and no Discord post for an IndexNow row", async () => {
+      const { t, pings, discord, list } = await withIndexNow();
+      const before = t.origin.calls.length;
+      await list();
+      assert.equal(pings.posts.length, 1);
+      assert.equal(discord.posts.length, 0);
+      assert.ok(!t.origin.calls.slice(before).some((c) => c.includes(`${NEW_RACE}/metadata`)), "eventDoc not called");
+    });
+
+    it("an IndexNow 429 does not hold a queued Discord row", async () => {
+      const { pings, discord, list, rows } = await withIndexNow(true);
+      pings.status = 429;
+      pings.retryAfter = "300";
+      await list();
+      const byKey = Object.fromEntries(rows().map((r) => [r.key, r]));
+      assert.equal(discord.posts.length, 1);
+      assert.ok(byKey[`new-race:race:${NEW_RACE}`].sent_at);
+      assert.equal(byKey[`index-race:race:${NEW_RACE}`].sent_at, null);
+      assert.ok(byKey[`index-race:race:${NEW_RACE}`].last_error?.includes("rate limited"));
+    });
+  });
+
   it("D1 read failure during detection → no notification, refresh still works", async () => {
     const { t, discord, run, rows } = await setup();
     const item = { id: NEW_RACE, name: "Brand New", start: t.clock.now + DAY, end: t.clock.now + 4 * DAY };

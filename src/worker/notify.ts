@@ -31,7 +31,33 @@ export type SendResult = { ok: true } | { retryAfter: number } | { error: string
 export interface Channel {
   send(message: Message): Promise<SendResult>;
 }
-export type ChannelName = "discord";
+export type ChannelName = "discord" | "indexnow";
+/** What flushOutbox calls: a channel turns the stored payload into whatever it sends. */
+type Deliver = (deps: Deps, payload: NewEventPayload) => Promise<SendResult>;
+
+/** IndexNow ping for the event's page. No formatting, no NK request. */
+function indexNowDeliver(key: string): Deliver {
+  return async (deps, p) => {
+    try {
+      const res = await deps.fetch("https://api.indexnow.org/indexnow", {
+        method: "POST",
+        headers: { "content-type": "application/json; charset=utf-8" },
+        body: JSON.stringify({
+          host: new URL(SITE).host, key, keyLocation: `${SITE}/${key}.txt`,
+          urlList: [`${SITE}/${p.kind}/${encodeURIComponent(p.id)}`],
+        }),
+      });
+      if (res.status === 200 || res.status === 202) return { ok: true };
+      if (res.status === 429) {
+        const s = Number(res.headers.get("retry-after") ?? 60);
+        return { retryAfter: Math.max(1, Number.isFinite(s) ? s : 60) * 1000 };
+      }
+      return { error: `HTTP ${res.status}` };
+    } catch (err) {
+      return { error: String(err) };
+    }
+  };
+}
 
 /** Posts to the webhook; the URL (a secret) never appears in a result or log. */
 export function discordChannel(fetchFn: typeof fetch, url: string): Channel {
@@ -53,8 +79,14 @@ export function discordChannel(fetchFn: typeof fetch, url: string): Channel {
   };
 }
 
-const CHANNELS: Record<ChannelName, (deps: Deps) => Channel | null> = {
-  discord: (deps) => (deps.notify?.discordWebhookUrl ? discordChannel(deps.fetch, deps.notify.discordWebhookUrl) : null),
+const CHANNELS: Record<ChannelName, (deps: Deps) => Deliver | null> = {
+  discord: (deps) => {
+    const url = deps.notify?.discordWebhookUrl;
+    if (!url) return null;
+    const channel = discordChannel(deps.fetch, url);
+    return async (d, p) => channel.send(await FORMATTERS["new-event"](d, p));
+  },
+  indexnow: (deps) => (deps.notify?.indexNowKey ? indexNowDeliver(deps.notify.indexNowKey) : null),
 };
 
 // ─────────────────────────────── rules & formatters
@@ -71,6 +103,10 @@ export interface Rule {
 export const RULES: Rule[] = [
   { id: "new-boss", trigger: "new-event", kinds: ["boss"], channel: "discord" },
   { id: "new-race", trigger: "new-event", kinds: ["race"], channel: "discord" },
+  { id: "index-boss", trigger: "new-event", kinds: ["boss"], channel: "indexnow" },
+  { id: "index-race", trigger: "new-event", kinds: ["race"], channel: "indexnow" },
+  { id: "index-odyssey", trigger: "new-event", kinds: ["odyssey"], channel: "indexnow" },
+  { id: "index-ct", trigger: "new-event", kinds: ["ct"], channel: "indexnow" },
 ];
 
 /** What is stored in an outbox row for the new-event trigger: only the list fields the message uses. */
@@ -234,12 +270,12 @@ export function noteStmts(db: D1Like, notes: Note[], now: number) {
 
 /** Unsent rows may exist: true at isolate start (one look), after queuing, and while retries remain. */
 let mayHaveUnsent = true;
-/** Discord asked us to wait (429): nothing is sent before this time. */
-let holdUntil = 0;
+/** A channel asked us to wait (429): it gets nothing before this time. */
+let holdUntil: Partial<Record<ChannelName, number>> = {};
 
 export function resetNotifyState(): void {
   mayHaveUnsent = true;
-  holdUntil = 0;
+  holdUntil = {};
 }
 export const markUnsent = () => {
   mayHaveUnsent = true;
@@ -250,7 +286,6 @@ export const outboxMayHaveUnsent = (deps: Deps) => mayHaveUnsent && RULES.some((
 export async function flushOutbox(deps: Deps): Promise<void> {
   try {
     const now = deps.now();
-    if (now < holdUntil) return;
     const { results } = await deps.db
       .prepare("SELECT key, rule, payload, attempts FROM notifications WHERE sent_at IS NULL AND attempts < ? AND created_at > ? ORDER BY created_at LIMIT 10")
       .bind(MAX_ATTEMPTS, now - MAX_AGE_MS)
@@ -260,6 +295,10 @@ export async function flushOutbox(deps: Deps): Promise<void> {
       const rule = RULES.find((r) => r.id === row.rule);
       const channel = rule && CHANNELS[rule.channel](deps);
       if (!rule || !channel) continue; // unconfigured now: stays queued until it expires
+      if (now < (holdUntil[rule.channel] ?? 0)) {
+        mayHaveUnsent = true;
+        continue;
+      }
       // Claim the attempt first, so two isolates never send the same row.
       const claim = (await deps.db
         .prepare("UPDATE notifications SET attempts = attempts + 1 WHERE key = ? AND sent_at IS NULL AND attempts = ?")
@@ -268,7 +307,7 @@ export async function flushOutbox(deps: Deps): Promise<void> {
       if (claim?.meta?.changes === 0) continue;
       let result: SendResult;
       try {
-        result = await channel.send(await FORMATTERS[rule.trigger](deps, JSON.parse(row.payload) as NewEventPayload));
+        result = await channel(deps, JSON.parse(row.payload) as NewEventPayload);
       } catch (err) {
         result = { error: String(err) };
       }
@@ -281,8 +320,7 @@ export async function flushOutbox(deps: Deps): Promise<void> {
       console.warn("notify: delivery failed", row.key, error);
       if (row.attempts + 1 < MAX_ATTEMPTS) mayHaveUnsent = true;
       if ("retryAfter" in result) {
-        holdUntil = deps.now() + result.retryAfter;
-        return;
+        holdUntil[rule.channel] = deps.now() + result.retryAfter;
       }
     }
     if (results.length === 10) mayHaveUnsent = true;

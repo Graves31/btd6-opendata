@@ -42,6 +42,8 @@ export interface Env {
   CF_ACCOUNT_ID?: string;
   /** Worker secret: Discord webhook for new boss/race notifications (notify.ts); unset → no notifications. */
   DISCORD_WEBHOOK_URL?: string;
+  /** Plain var (the key is public, served at /<key>.txt): IndexNow pings for new events; unset → none. */
+  INDEXNOW_KEY?: string;
   /** Worker secret: private Discord webhook for the suggestions box (suggest.ts); unset → stored only. */
   SUGGEST_WEBHOOK_URL?: string;
   /** Optional override of the Cloudflare GraphQL endpoint (offline e2e fixture). */
@@ -68,7 +70,7 @@ export function makeDeps(env: Env, ctx: Ctx): Deps {
     nkBase: env.NK_BASE || NK_BASE,
     limits: { perRequest: MAX_ORIGIN_PER_REQUEST, buckets: clientBuckets, global: isolateBucket, binding: env.ORIGIN_LIMITER },
     stats: { token: env.CF_ANALYTICS_TOKEN, accountId: env.CF_ACCOUNT_ID, graphqlUrl: env.STATS_GRAPHQL_URL || STATS_GRAPHQL_URL },
-    notify: { discordWebhookUrl: env.DISCORD_WEBHOOK_URL },
+    notify: { discordWebhookUrl: env.DISCORD_WEBHOOK_URL, indexNowKey: env.INDEXNOW_KEY },
     suggest: { webhookUrl: env.SUGGEST_WEBHOOK_URL },
   };
 }

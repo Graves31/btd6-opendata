@@ -50,7 +50,7 @@
   // Suggestions box: a private FORUM channel's Discord webhook URL as a secret, one post per suggestion
   // (unset → stored in D1 only):
   //   npx wrangler secret put SUGGEST_WEBHOOK_URL
-  "vars": { "CF_ACCOUNT_ID": "923b0e4244cbc8a739105c5db9c05ae5" },
+  "vars": { "CF_ACCOUNT_ID": "923b0e4244cbc8a739105c5db9c05ae5", "INDEXNOW_KEY": "aeadb7fa21375c89e077a0d3cff163fa" },
 
   // Per-client cap on Ninja Kiwi fetches, shared by the isolates of one Cloudflare location (src/worker/limit.ts).
   // Same rate as the in-isolate bucket (CLIENT_ORIGIN_PER_MIN). namespace_id: any number unique in the account.
