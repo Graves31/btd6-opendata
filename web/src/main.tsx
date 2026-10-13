@@ -8,7 +8,7 @@ import "./fonts.css";
 import { homePicks } from "./picks.ts";
 import "./styles.css";
 import { warmAllOnIdle, warmFor } from "./sprite.tsx";
-import { A, body } from "./ui.tsx";
+import { A, body, EvIcon } from "./ui.tsx";
 import { BossPage, bossTitleFor, bossTypeFor, CTGroupPage, CTPage, EventList, Home, OdysseyPage, RacePage } from "./views/events.tsx";
 import { MapPage, MapsPage } from "./views/maps.tsx";
 import { ChallengesPage } from "./views/challenges.tsx";
@@ -196,6 +196,34 @@ const NAV: [string, string, string][] = [
   [href.maps(), "Maps", "maps"],
   ["/tools", "Tools", "tools"],
 ];
+/** Phone bottom bar: four tabs + "More" (the rest, in the sheet). [href, label, section, eventIcon key]. */
+const BAR = [NAV[0], NAV[1], NAV[2], NAV[3]];
+const SHEET = [NAV[4], NAV[5], NAV[6], NAV[7]];
+const ICON: Record<string, string> = { boss: "boss", race: "race", ct: "ct", odyssey: "odyssey", challenges: "daily" };
+const svg = { width: 24, height: 24, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": true } as const;
+const LiveIcon = () => (
+  <svg {...svg}>
+    <circle cx="12" cy="12" r="2" />
+    <path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2" />
+  </svg>
+);
+const MoreIcon = () => (
+  <svg {...svg}>
+    <path d="M4 7h16M4 12h16M4 17h16" />
+  </svg>
+);
+const MapIcon = () => (
+  <svg {...svg}>
+    <path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2zM9 4v14M15 6v14" />
+  </svg>
+);
+const ToolsIcon = () => (
+  <svg {...svg}>
+    <path d="M14.7 6.3a4 4 0 0 0 5 5L21 17l-4 4-5.7-1.3a4 4 0 0 0-5-5L3 8.5l4-4z" />
+  </svg>
+);
+const sectionIcon = (sec: string) =>
+  sec === "home" ? <LiveIcon /> : sec === "maps" ? <MapIcon /> : sec === "tools" ? <ToolsIcon /> : <EvIcon k={ICON[sec]} size={24} />;
 function section(r: Route): string {
   const n = r.name;
   if (r.name === "events") return r.kind;
@@ -241,6 +269,10 @@ function App() {
   const [r, setR] = useState<Route>(initialRoute);
   const live = useRef<HTMLParagraphElement>(null); // polite live region: the new page's name after an in-site navigation
   const first = useRef(true);
+  const [more, setMore] = useState(false); // phones: the "More" sheet
+  const at = useRef(location.pathname);
+  const sheet = useRef<HTMLDivElement>(null);
+  const moreBtn = useRef<HTMLButtonElement>(null);
   useEffect(() => store.subscribe(() => bump(0)), []);
   useEffect(() => onRoute(setR), []);
   useLayoutEffect(() => {
@@ -248,14 +280,20 @@ function App() {
     routeCommitted();
     if (first.current) first.current = false;
     else if (live.current) live.current.textContent = backLabel(r); // no re-render for a status line
-    // Narrow phones (< 380 px): the tab row scrolls sideways; keep the current tab in view.
-    const nav = document.querySelector<HTMLElement>(".top nav");
-    const on = nav?.querySelector<HTMLElement>("a.on");
-    if (nav && on && nav.scrollWidth > nav.clientWidth) {
-      const l = on.offsetLeft - nav.offsetLeft;
-      if (l < nav.scrollLeft || l + on.offsetWidth > nav.scrollLeft + nav.clientWidth) nav.scrollLeft = l - (nav.clientWidth - on.offsetWidth) / 2;
-    }
+    if (at.current !== location.pathname) setMore(false); // the sheet closes when the page changes
+    at.current = location.pathname;
   }, [r]);
+  useEffect(() => {
+    if (!more) return;
+    sheet.current?.querySelector("a")?.focus();
+    const esc = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setMore(false);
+      moreBtn.current?.focus();
+    };
+    addEventListener("keydown", esc);
+    return () => removeEventListener("keydown", esc);
+  }, [more]);
   // Every render: the title gets the real name (player, boss…) as soon as that data lands.
   useLayoutEffect(() => {
     const t = tabTitle(r);
@@ -287,6 +325,37 @@ function App() {
           })}
         </nav>
       </header>
+      <nav class="bar" aria-label="Sections">
+        {BAR.map(([h, label, sec]) => {
+          const on = section(r) === sec;
+          return (
+            <A key={h} href={h} class={on ? "on" : undefined} current={on && location.pathname === h}>
+              {sectionIcon(sec)}
+              {label}
+            </A>
+          );
+        })}
+        <button
+          type="button"
+          ref={moreBtn}
+          class={more || SHEET.some((n) => n[2] === section(r)) ? "on" : undefined}
+          aria-expanded={more}
+          aria-controls="more-sheet"
+          onClick={() => setMore(!more)}
+        >
+          <MoreIcon />
+          More
+        </button>
+      </nav>
+      <div class="scrim" hidden={!more} onClick={() => (setMore(false), moreBtn.current?.focus())} />
+      <div class="sheet" id="more-sheet" ref={sheet} data-open={more ? "" : undefined}>
+        {SHEET.map(([h, label, sec]) => (
+          <A key={h} href={h} class={section(r) === sec ? "on" : undefined} current={section(r) === sec && location.pathname === h}>
+            {sectionIcon(sec)}
+            {label}
+          </A>
+        ))}
+      </div>
       <p class="vh" role="status" aria-live="polite" ref={live} />
       <main id="main" tabIndex={-1}>
         <BackLink r={r} />

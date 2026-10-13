@@ -447,6 +447,88 @@ strong {
 }
 /* Light / dark toggle, far right (phones: top-right corner, beside the logo). It comes before the nav in the DOM
    (phone tab order = visual order), so on desktop `order` puts it after it. */
+/* Phone bottom bar + "More" sheet (shown at <= 700 px, see the phone media block). */
+:root {
+  --bar-h: 56px;
+}
+.bar,
+.scrim,
+.sheet {
+  display: none;
+}
+.bar {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: calc(var(--z-header) + 1);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  height: calc(var(--bar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--hdr-bg);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  backdrop-filter: blur(10px) saturate(1.3);
+  border-top: 1px solid var(--hdr-line);
+}
+.bar > a,
+.bar > button,
+.sheet a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--hdr-ink-2);
+  font: 600 11px/1 var(--f-body);
+  background: none;
+  border: 0;
+  border-top: 3px solid transparent;
+  padding: 0;
+  cursor: pointer;
+}
+.bar > .on,
+.sheet a.on {
+  color: var(--hdr-ink);
+}
+.bar > .on {
+  border-top-color: var(--accent);
+}
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-header);
+  background: rgb(0 0 0 / 0.55);
+}
+.sheet {
+  position: fixed;
+  left: var(--gut);
+  right: var(--gut);
+  bottom: calc(var(--bar-h) + env(safe-area-inset-bottom) + 8px);
+  z-index: calc(var(--z-header) + 1);
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 8px;
+  background: var(--hdr-bg);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  backdrop-filter: blur(10px) saturate(1.3);
+  border: 1px solid var(--hdr-line);
+  border-radius: var(--r);
+  visibility: hidden; /* stays mounted (geometry in view) so its links are prefetched before it opens */
+}
+.sheet[data-open] {
+  visibility: visible;
+}
+.sheet a {
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 10px;
+  min-height: 56px;
+  padding: 0 14px;
+  font-size: 15px;
+  border: 1px solid var(--hdr-line);
+  border-radius: var(--r);
+}
+.sheet a.on {
+  border-color: var(--accent);
+}
 .theme-btn {
   order: 2;
   align-self: center;
@@ -1681,8 +1763,7 @@ button.fd-tile:hover {
   :root {
     --gut: 16px;
   }
-  /* The header scrolls away on phones. Seven section tabs share one row; below 380 px only the tab row scrolls
-     (main.tsx keeps the current tab in view). */
+  /* The header scrolls away on phones: brand + theme button only; the sections live in the bottom bar (.bar). */
   .top {
     position: relative;
     height: auto;
@@ -1694,14 +1775,19 @@ button.fd-tile:hover {
     padding: 12px var(--gut) 10px;
   }
   .top nav {
-    justify-content: space-between;
-    gap: 0;
-    padding: 0 6px;
-    border-top: 1px solid var(--hdr-line);
+    display: none;
   }
-  .top nav a {
-    padding: 12px 4px 9px;
-    font-size: 14px;
+  .bar {
+    display: grid;
+  }
+  .scrim:not([hidden]) {
+    display: block;
+  }
+  .sheet {
+    display: grid;
+  }
+  body {
+    padding-bottom: calc(var(--bar-h) + env(safe-area-inset-bottom));
   }
   .theme-btn {
     position: absolute;
@@ -1874,24 +1960,6 @@ button.fd-tile:hover {
     padding: 9px 12px 8px;
   }
 }
-@media (max-width: 379px) {
-  .top nav {
-    justify-content: flex-start;
-    overflow-x: auto;
-    scrollbar-width: none;
-    /* fade the right edge: more tabs are a swipe away */
-    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
-    mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
-  }
-  .top nav::-webkit-scrollbar {
-    display: none;
-  }
-  .top nav a {
-    flex: none;
-    padding: 12px 6px 9px;
-  }
-}
-
 @media (max-width: 420px) {
   .ev-title-block .title.xl {
     font-size: 40px;
@@ -3309,14 +3377,8 @@ button.fd-tile:hover {
   display: flex;
   width: fit-content;
   align-items: center;
-  gap: 12px;
-  padding: 6px;
-  font-size: 14px;
-}
-.hist-row.k-race {
-  grid-template-columns: 120px minmax(0, 1.3fr) 40px minmax(0, 1fr) minmax(0, 1fr);
-}
-.hist-d {
+  gap: 8px;
+  max-width: 100%;
   margin: -12px 0 14px;
   padding: 6px 12px 5px 10px;
   font: 800 15px/1.1 var(--f-display);
@@ -5937,9 +5999,15 @@ a.bs-ev:hover {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px 12px;
+  padding: 12px 14px;
+  background: var(--s1);
+  border: 1px solid var(--rule-2);
   cursor: pointer;
   list-style: none;
+}
+.hist summary:hover {
+  background: var(--s2);
 }
 .hist summary::-webkit-details-marker {
   display: none;
@@ -5964,6 +6032,8 @@ a.bs-ev:hover {
 .hist-chips {
   display: flex;
   flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
 }
 .hist-chip {
   display: inline-flex;
@@ -5998,13 +6068,42 @@ a.bs-ev:hover {
   top: var(--hdr);
   z-index: var(--z-sticky);
   display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 6px 6px 4px;
+  font: 800 28px/1.1 var(--f-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--bg);
+  border-bottom: 2px solid var(--accent);
+}
+.hist-y small {
+  font: 600 13px/1 var(--f-body);
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--ink-3);
+}
+.hist-l {
+  list-style: none;
+}
+.hist-r {
+  border-bottom: 1px solid var(--rule);
+}
+.hist-row {
+  display: grid;
+  grid-template-columns: 120px 32px minmax(0, 1.3fr) 40px minmax(0, 1fr) minmax(0, 1fr);
   align-items: center;
-  gap: 4px 12px;
-  padding: 12px 14px;
-  background: var(--s1);
-  border: 1px solid var(--rule-2);
-  max-width: 100%;
+  gap: 12px;
+  padding: 6px;
+  font-size: 14px;
+}
+.hist-row.k-race {
+  grid-template-columns: 120px minmax(0, 1.3fr) 40px minmax(0, 1fr) minmax(0, 1fr);
+}
+.hist-d {
   font-size: 13px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
 }
 .hist-t {
   font-weight: 700;
@@ -6078,6 +6177,41 @@ a.hist-map:hover {
   color: var(--ink-3);
 }
 @media (max-width: 700px) {
+  .hist-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .hist-chip {
+    flex: none;
+  }
+  .hist-chip-n {
+    display: none;
+  }
+  .hist-y {
+    top: 0;
+    font-size: 24px;
+  }
+  .hist-row {
+    grid-template-columns: 56px 32px minmax(0, 1fr) 40px;
+    grid-template-areas: "d i t m" "d i s m";
+    gap: 0 10px;
+    min-height: 50px;
+  }
+  .hist-row.k-race {
+    grid-template-columns: 56px minmax(0, 1fr) 40px;
+    grid-template-areas: "d t m" "d s m";
+  }
+  .hist-d {
+    grid-area: d;
+    line-height: 1.25;
+  }
+  .hist-i {
+    grid-area: i;
+  }
+  .hist-t {
+    grid-area: t;
+  }
   .hist-map {
     grid-area: m;
   }
@@ -6119,9 +6253,6 @@ a.hist-map:hover {
   cursor: pointer;
 }
 .bs-more:hover {
-.hist summary:hover {
-  background: var(--s2);
-}
   background: var(--s2);
 }
 .bs-words {
@@ -6145,44 +6276,16 @@ a.hist-map:hover {
   .bs-grid > .bs-stack {
     display: contents;
   }
-  gap: 6px;
-  margin-top: 12px;
   .bs-skulls-plate {
     order: -1;
   }
 }
 @media (max-width: 700px) {
   .bs-hero .bh-top {
-  align-items: baseline;
-  gap: 12px;
-  padding: 6px 6px 4px;
-  font: 800 28px/1.1 var(--f-display);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  background: var(--bg);
-  border-bottom: 2px solid var(--accent);
-}
-.hist-y small {
-  font: 600 13px/1 var(--f-body);
-  letter-spacing: 0.04em;
-  text-transform: none;
-  color: var(--ink-3);
-}
-.hist-l {
-  list-style: none;
-}
-.hist-r {
-  border-bottom: 1px solid var(--rule);
-}
-.hist-row {
-  display: grid;
-  grid-template-columns: 120px 32px minmax(0, 1.3fr) 40px minmax(0, 1fr) minmax(0, 1fr);
     grid-template-columns: minmax(0, 1fr);
   }
   .bs-hero .bh-side {
     border-left: 0;
-  color: var(--ink-2);
-  font-variant-numeric: tabular-nums;
     border-top: 1px solid var(--rule);
   }
   .bs-controls {
@@ -6194,41 +6297,6 @@ a.hist-map:hover {
     width: 100%;
   }
   .bs-tabs .tab {
-  .hist-chips {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-bottom: 4px;
-  }
-  .hist-chip {
-    flex: none;
-  }
-  .hist-chip-n {
-    display: none;
-  }
-  .hist-y {
-    top: 0;
-    font-size: 24px;
-  }
-  .hist-row {
-    grid-template-columns: 56px 32px minmax(0, 1fr) 40px;
-    grid-template-areas: "d i t m" "d i s m";
-    gap: 0 10px;
-    min-height: 50px;
-  }
-  .hist-row.k-race {
-    grid-template-columns: 56px minmax(0, 1fr) 40px;
-    grid-template-areas: "d t m" "d s m";
-  }
-  .hist-d {
-    grid-area: d;
-    line-height: 1.25;
-  }
-  .hist-i {
-    grid-area: i;
-  }
-  .hist-t {
-    grid-area: t;
-  }
     padding: 8px 12px;
   }
   .bs-tabs .bt-d {

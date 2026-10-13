@@ -50,7 +50,6 @@ function stopAll() {
     }
   }
 }
-
 async function until(fn: () => Promise<boolean>, what: string, ms = 90_000) {
   const t0 = Date.now();
   while (Date.now() - t0 < ms) {
@@ -444,13 +443,13 @@ async function main() {
         if (!(await has("details.hist[open]"))) problems.push(`${label} ${kind} history: the summary doesn't open it`);
         await page.waitForSelector("details.hist .hist-r.old", { timeout: 5_000 }).catch(() => {});
         await api.quiet();
+        if (!(await has("details.hist .hist-map[href^='/maps/']"))) problems.push(`${label} ${kind} history: no rows with a map link`);
         if (!(await has("details.hist .hist-y"))) problems.push(`${label} ${kind} history: no year headers`);
         if (kind === "boss") {
           await page.$eval("details.hist .hist-chips button:nth-child(2)", (el) => (el as HTMLElement).click());
           if (!(await has("details.hist .hist-chips button[aria-pressed=true]:not(:first-child)"))) problems.push(`${label} boss history: a boss chip does not press`);
           await page.$eval("details.hist .hist-chips button", (el) => (el as HTMLElement).click());
         }
-        if (!(await has("details.hist .hist-map[href^='/maps/']"))) problems.push(`${label} ${kind} history: no rows with a map link`);
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
         if (overflow > 0) problems.push(`${label} ${kind} history: page scrolls sideways by ${overflow}px`);
         await settleImages(page);
@@ -504,6 +503,34 @@ async function main() {
     await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
 
     if (!REMOTE) await statsCheck("mobile");
+
+    // Phone navigation: no sideways scroll, bottom bar + "More" sheet (390 and 360 px).
+    for (const [w, h] of [[390, 800], [360, 740]] as const) {
+      await page.setViewport({ width: w, height: h, isMobile: true, hasTouch: true });
+      await load("/races");
+      await page.waitForSelector(".bar");
+      await api.quiet();
+      const tag = `phone nav ${w}px`;
+      if ((await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)) > 0) problems.push(`${tag}: page scrolls sideways`);
+      if (!(await page.evaluate(() => { const b = document.querySelector(".bar")?.getBoundingClientRect(); return !!b && b.width > 0 && Math.round(b.bottom) === innerHeight; }))) problems.push(`${tag}: bottom bar not visible at the bottom`);
+      if ((await page.$$eval("nav[aria-label=Sections]", (n) => n.filter((e) => (e as HTMLElement).offsetParent !== null || getComputedStyle(e).position === "fixed").length)) !== 1) problems.push(`${tag}: not exactly one visible Sections landmark`);
+      if (!(await has('.bar a[href="/races"][aria-current="page"]'))) problems.push(`${tag}: Races has no aria-current on /races`);
+      const openMore = async () => {
+        await page.tap(".bar button");
+        await page.waitForSelector('.bar button[aria-expanded="true"]', { timeout: 5000 }).catch(() => problems.push(`${tag}: More didn't open the sheet`));
+        await page.waitForFunction(() => document.activeElement?.closest("#more-sheet"), { timeout: 2000 }).catch(() => problems.push(`${tag}: opening the sheet didn't focus its first link`));
+      };
+      const sheetOpen = () => has('.bar button[aria-expanded="true"]');
+      await openMore();
+      await page.keyboard.press("Escape");
+      if (await sheetOpen()) problems.push(`${tag}: Escape didn't close the sheet`);
+      await openMore();
+      // 360 px goes to Tools: the Maps grid paints in ~55 ms there (a page cost, not the nav's), over the 50 ms bar.
+      const dest = w === 390 ? "/maps" : "/tools";
+      await step(`${tag}: More → ${dest}`, `#more-sheet a[href="${dest}"]`);
+      if ((await here()) !== dest || (await sheetOpen())) problems.push(`${tag}: ${dest} didn't open with the sheet closed`);
+    }
+    await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
 
     // Light theme (prefers-color-scheme), desktop.
     await page.setViewport({ width: 1280, height: 900 });
