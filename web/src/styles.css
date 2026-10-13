@@ -3309,8 +3309,14 @@ button.fd-tile:hover {
   display: flex;
   width: fit-content;
   align-items: center;
-  gap: 8px;
-  max-width: 100%;
+  gap: 12px;
+  padding: 6px;
+  font-size: 14px;
+}
+.hist-row.k-race {
+  grid-template-columns: 120px minmax(0, 1.3fr) 40px minmax(0, 1fr) minmax(0, 1fr);
+}
+.hist-d {
   margin: -12px 0 14px;
   padding: 6px 12px 5px 10px;
   font: 800 15px/1.1 var(--f-display);
@@ -5923,7 +5929,7 @@ a.bs-ev:hover {
   margin-top: 10px;
   font-size: 12px;
 }
-/* "Full history" on /bosses and /races: a closed <details> headed like a section, rows reuse .bs-past. */
+/* "Full history" on /bosses and /races: a closed <details> whose summary is a full-width bar; rows form a compact ledger grouped by sticky year headers. */
 .hist {
   margin-top: 28px;
 }
@@ -5940,9 +5946,9 @@ a.bs-ev:hover {
 }
 .hist summary::before {
   content: "";
-  width: 7px;
-  height: 7px;
-  border: solid var(--ink-3);
+  width: 8px;
+  height: 8px;
+  border: solid var(--ink-2);
   border-width: 0 2px 2px 0;
   transform: rotate(-45deg);
   transition: transform 0.15s;
@@ -5950,38 +5956,148 @@ a.bs-ev:hover {
 .hist[open] summary::before {
   transform: rotate(45deg);
 }
-.hist-y {
-  padding: 10px 6px 2px;
-  font: 700 12px/1.3 var(--f-body);
-  letter-spacing: 0.12em;
-  color: var(--ink-3);
+.hist-sum {
+  font: 700 18px/1.2 var(--f-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
-.hist-ev {
+.hist-chips {
+  display: flex;
   flex-wrap: wrap;
 }
-.hist-ev .bs-ev-m {
-  flex: 1 1 12em;
+.hist-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  min-height: 32px;
+  font: 600 13px/1 var(--f-body);
+  color: var(--ink);
+  background: var(--s1);
+  border: 1px solid var(--rule-2);
+  cursor: pointer;
 }
-.hist-map {
+.hist-chip:hover {
+  background: var(--s2);
+}
+.hist-chip[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.hist-years .hist-chip {
+  font-family: var(--f-display);
+  font-size: 16px;
+  letter-spacing: 0.04em;
+}
+.hist-g {
+  margin-top: 18px;
+}
+.hist-y {
+  position: sticky;
+  top: var(--hdr);
+  z-index: var(--z-sticky);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px 12px;
+  padding: 12px 14px;
+  background: var(--s1);
+  border: 1px solid var(--rule-2);
   max-width: 100%;
   font-size: 13px;
 }
-.hist-map:hover {
+.hist-t {
+  font-weight: 700;
+}
+.hist-t a:hover {
   text-decoration: underline;
 }
-/* Desktop: the maps form one column at the right; phones: always a line of its own under the title. */
-@media (min-width: 701px) {
-  .hist-map {
-    flex: 0 0 13em;
-  }
+.hist-go {
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+.hist-wiki,
+.hist-live {
+  margin-left: 6px;
+  padding: 1px 5px;
+  font: 700 10px/1.3 var(--f-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: 1px;
+}
+.hist-wiki {
+  color: var(--ink-3);
+  border: 1px solid var(--rule-2);
+}
+.hist-live {
+  color: var(--on-accent);
+  background: var(--live-fill);
+}
+.hist-map {
+  display: block;
+  width: 40px;
+  height: 40px;
+}
+a.hist-map:hover {
+  opacity: 0.85;
+}
+.hist-nomap {
+  display: grid;
+  place-items: center;
+  font: 700 16px/1 var(--f-body);
+  color: var(--ink-3);
+  border: 1px dashed var(--rule-2);
+}
+.hist-s {
+  display: contents;
+}
+.hist-mn {
+  min-width: 0;
+  color: var(--ink-2);
+}
+.hist-x {
+  min-width: 0;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+.hist-gap {
+  display: grid;
+  gap: 2px;
+  margin: 10px 0;
+  padding: 12px 14px;
+  border: 2px dashed var(--rule-2);
+  background: repeating-linear-gradient(135deg, transparent 0 8px, var(--shade) 8px 16px);
+}
+.hist-gap b {
+  font: 700 20px/1.2 var(--f-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.hist-gap span {
+  font-size: 13px;
+  color: var(--ink-3);
 }
 @media (max-width: 700px) {
   .hist-map {
-    flex-basis: 100%;
-    padding-left: 44px; /* under the title: 32px icon + 12px row gap */
+    grid-area: m;
+  }
+  .hist-s {
+    grid-area: s;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .hist-mn,
+  .hist-x {
+    display: inline;
+    font-size: 12px;
+  }
+  .hist-x::before {
+    content: " · ";
+  }
+  .hist-e {
+    display: block;
   }
 }
 .bs-ev-m {
@@ -6003,6 +6119,9 @@ a.bs-ev:hover {
   cursor: pointer;
 }
 .bs-more:hover {
+.hist summary:hover {
+  background: var(--s2);
+}
   background: var(--s2);
 }
 .bs-words {
@@ -6026,16 +6145,44 @@ a.bs-ev:hover {
   .bs-grid > .bs-stack {
     display: contents;
   }
+  gap: 6px;
+  margin-top: 12px;
   .bs-skulls-plate {
     order: -1;
   }
 }
 @media (max-width: 700px) {
   .bs-hero .bh-top {
+  align-items: baseline;
+  gap: 12px;
+  padding: 6px 6px 4px;
+  font: 800 28px/1.1 var(--f-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--bg);
+  border-bottom: 2px solid var(--accent);
+}
+.hist-y small {
+  font: 600 13px/1 var(--f-body);
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--ink-3);
+}
+.hist-l {
+  list-style: none;
+}
+.hist-r {
+  border-bottom: 1px solid var(--rule);
+}
+.hist-row {
+  display: grid;
+  grid-template-columns: 120px 32px minmax(0, 1.3fr) 40px minmax(0, 1fr) minmax(0, 1fr);
     grid-template-columns: minmax(0, 1fr);
   }
   .bs-hero .bh-side {
     border-left: 0;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
     border-top: 1px solid var(--rule);
   }
   .bs-controls {
@@ -6047,6 +6194,41 @@ a.bs-ev:hover {
     width: 100%;
   }
   .bs-tabs .tab {
+  .hist-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .hist-chip {
+    flex: none;
+  }
+  .hist-chip-n {
+    display: none;
+  }
+  .hist-y {
+    top: 0;
+    font-size: 24px;
+  }
+  .hist-row {
+    grid-template-columns: 56px 32px minmax(0, 1fr) 40px;
+    grid-template-areas: "d i t m" "d i s m";
+    gap: 0 10px;
+    min-height: 50px;
+  }
+  .hist-row.k-race {
+    grid-template-columns: 56px minmax(0, 1fr) 40px;
+    grid-template-areas: "d t m" "d s m";
+  }
+  .hist-d {
+    grid-area: d;
+    line-height: 1.25;
+  }
+  .hist-i {
+    grid-area: i;
+  }
+  .hist-t {
+    grid-area: t;
+  }
     padding: 8px 12px;
   }
   .bs-tabs .bt-d {

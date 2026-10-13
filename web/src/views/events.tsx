@@ -42,13 +42,12 @@ import {
   fmtWhen,
   human,
   mapName,
-  oldDates,
   partLabel,
   scoringShort,
   status,
 } from "../format.ts";
 import { ordinal, rankBossRows, SUBMITTED } from "../boards.ts";
-import { BOSS_HISTORY_SOURCE } from "../data/bossHistory.ts";
+import { BOSS_HISTORY_FANDOM, BOSS_HISTORY_SOURCE } from "../data/bossHistory.ts";
 import { RELIC_INFO } from "../data/names.ts";
 import { RACE_HISTORY_SOURCE } from "../data/raceHistory.ts";
 import { Freshness } from "../fresh.tsx";
@@ -120,7 +119,6 @@ import {
   Section,
   Skeleton,
   Stat,
-  StatusBadge,
   Submitted,
   Tabs,
   useFullRender,
@@ -935,27 +933,64 @@ const monthYear = new Intl.DateTimeFormat("en-GB", { month: "short", year: "nume
 /** Why a wiki boss week has no number (bossHistory.ts notes). */
 export const OLD_NOTE = { restarted: "Restarted", "taken down": "Taken down", special: "1-day special" } as const;
 
+const dayMon = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" });
+const dayMonUtc = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+/** Short "10 Oct" of a history row's start and end (the year sits in the header); calendar-day rows read in UTC. */
+function histDates(e: HistEvent): [string, string] {
+  const f = e.day ? dayMonUtc : dayMon;
+  return [f.format(e.start), f.format(e.end)];
+}
+const histYear = (e: HistEvent) => (e.day ? new Date(e.start).getUTCFullYear() : new Date(e.start).getFullYear());
+
 /** One history row: archive rows link to their event page; wiki rows (no id) are plain. The map is its own link. */
 function HistoryRow(props: { e: HistEvent }) {
   const e = props.e;
   const title = e.kind === "boss" ? (e.n ? bossTitle(e.type, e.n) : bossName(e.type)) : e.name;
   const link = e.id ? (e.kind === "boss" ? href.boss(e.id) : href.race(e.id)) : "";
+  const [a, b] = histDates(e);
+  const now = Date.now();
+  const extra =
+    e.kind === "boss"
+      ? e.note
+        ? OLD_NOTE[e.note]
+        : ""
+      : [e.difficulty, e.mode].filter(Boolean).join(" · ");
   return (
-    <li class={e.id ? undefined : "old"}>
-      <div class="bs-ev hist-ev">
-        {e.kind === "boss" ? <Spr family="boss" k={e.type} size={32} label optional /> : <EvIcon k="race" size={32} />}
-        <span class="bs-ev-m">
-          <strong>{link ? <A href={link}>{title}</A> : title}</strong>
-          <span class="quiet">{e.id ? `${fmtDate(e.start)} – ${fmtDate(e.end)}` : oldDates(e.start, e.end)}</span>
-          {e.kind === "boss" && e.note && <span class="bs-note-t">{OLD_NOTE[e.note]}</span>}
+    <li class={`hist-r${e.id ? "" : " old"}`}>
+      <div class={`hist-row k-${e.kind}`}>
+        <span class="hist-d num">
+          {a}
+          {b !== a && <span class="hist-e"> – {b}</span>}
         </span>
-        {e.id && <StatusBadge start={e.start} end={e.end} />}
-        {e.map && (
-          <A href={href.map(e.map)} class="hist-map">
+        {e.kind === "boss" && <Spr family="boss" k={e.type} size={32} label optional class="hist-i" />}
+        <span class="hist-t">
+          {link ? (
+            <>
+              <A href={link}>{title}</A>
+              <span class="hist-go" aria-hidden="true">
+                {" "}›
+              </span>
+            </>
+          ) : (
+            <>
+              {title} <span class="hist-wiki">wiki</span>
+            </>
+          )}
+          {e.start <= now && now < e.end && <span class="hist-live">Live</span>}
+        </span>
+        {e.map ? (
+          <A href={href.map(e.map)} class="hist-map" title={mapName(e.map)}>
             <MapArt framed map={e.map} size={40} />
-            <span>{mapName(e.map)}</span>
           </A>
+        ) : (
+          <span class="hist-map hist-nomap" role="img" aria-label="Map not recorded" title="Map not recorded">
+            ?
+          </span>
         )}
+        <span class="hist-s">
+          <span class="hist-mn">{e.map ? mapName(e.map) : "Map not recorded"}</span>
+          {extra && <span class="hist-x">{extra}</span>}
+        </span>
       </div>
     </li>
   );
@@ -965,17 +1000,26 @@ function HistoryRow(props: { e: HistEvent }) {
 function FullHistory(props: { kind: "boss" | "race" }) {
   const { kind } = props;
   const [open, setOpen] = useState(false);
+  const [pick, setPick] = useState("");
   const rows = eventHistory(kind, body);
   const keys = open ? mapMetaKeys(body) : [];
   useEffect(() => void store.want(keys), [keys.join()]);
-  const gap = open ? eventGap(kind, body) : null;
+  const gap = open && !pick ? eventGap(kind, body) : null;
   const src = kind === "boss" ? BOSS_HISTORY_SOURCE : RACE_HISTORY_SOURCE;
-  const year = (e: HistEvent) => (e.id ? new Date(e.start).getFullYear() : new Date(e.start).getUTCFullYear());
-  let y = 0;
+  const types = kind === "boss" ? BOSS_TYPES.filter((t) => rows.some((e) => e.kind === "boss" && e.type === t)) : [];
+  const shown = pick ? rows.filter((e) => e.kind === "boss" && e.type === pick) : rows;
+  // Rows are newest first, so the years come out newest first too.
+  const groups: { y: number; rows: HistEvent[] }[] = [];
+  for (const e of shown) {
+    const y = histYear(e);
+    (groups[groups.length - 1]?.y === y ? groups[groups.length - 1] : groups[groups.push({ y, rows: [] }) - 1]).rows.push(e);
+  }
+  const jump = (y: number) =>
+    document.getElementById(`hist-${kind}-${y}`)?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   return (
     <details class="hist" onToggle={(ev) => setOpen((ev.currentTarget as HTMLDetailsElement).open)}>
-      <summary class="kicker-h">
-        Full history
+      <summary>
+        <span class="hist-sum">Full history</span>
         {rows.length > 0 && (
           <span class="bs-count num">
             {rows.length} {kind === "boss" ? "boss events" : "races"} since {monthYear.format(rows[rows.length - 1].start)}
@@ -984,35 +1028,76 @@ function FullHistory(props: { kind: "boss" | "race" }) {
       </summary>
       {open && (
         <>
-          <ul class="bs-past">
-            {rows.map((e, i) => {
-              const head = year(e) !== y && (y = year(e));
-              // The gap sits where the archive ends and the wiki's rows begin.
-              const gapHere = gap && !e.id && (i === 0 || !!rows[i - 1].id);
-              return (
-                <Fragment key={e.id ?? `${e.start}${e.kind === "boss" ? e.type : ""}`}>
-                  {gapHere && (
-                    <li key="gap" class="bs-gap">
-                      {monthYear.format(gap.from)} – {monthYear.format(gap.to)} · not on record
-                      {kind === "race" && ", no public list of these races"}
-                    </li>
-                  )}
-                  {head && (
-                    <li key={`y${y}`} class="hist-y">
-                      {y}
-                    </li>
-                  )}
-                  <HistoryRow e={e} />
-                </Fragment>
-              );
-            })}
-          </ul>
+          {types.length > 0 && (
+            <div class="hist-chips" role="group" aria-label="Filter by boss">
+              <button type="button" class="hist-chip" aria-pressed={!pick} onClick={() => setPick("")}>
+                All
+              </button>
+              {types.map((t) => (
+                <button
+                  type="button"
+                  key={t}
+                  class="hist-chip"
+                  aria-pressed={pick === t}
+                  aria-label={bossName(t)}
+                  title={bossName(t)}
+                  onClick={() => setPick(pick === t ? "" : t)}
+                >
+                  <Spr family="boss" k={t} size={24} optional />
+                  <span class="hist-chip-n">{bossName(t)}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {groups.length > 1 && (
+            <div class="hist-chips hist-years" role="group" aria-label="Jump to year">
+              {groups.map((g) => (
+                <button type="button" key={g.y} class="hist-chip" onClick={() => jump(g.y)}>
+                  {g.y}
+                </button>
+              ))}
+            </div>
+          )}
+          {groups.map((g) => (
+            <section key={g.y} id={`hist-${kind}-${g.y}`} class="hist-g">
+              <h3 class="hist-y">
+                {g.y} <small class="num">{g.rows.length} {g.rows.length === 1 ? "event" : "events"}</small>
+              </h3>
+              <ul class="hist-l">
+                {g.rows.map((e) => {
+                  // The gap sits where the archive ends and the wiki's rows begin.
+                  const at = shown.indexOf(e);
+                  const gapHere = gap && !e.id && (at === 0 || !!shown[at - 1].id);
+                  return (
+                    <Fragment key={e.id ?? `${e.start}${e.kind === "boss" ? e.type : ""}`}>
+                      {gapHere && (
+                        <li class="hist-gap">
+                          <b>
+                            {monthYear.format(gap.from)} – {monthYear.format(gap.to)} · not on record
+                          </b>
+                          <span>No public list covers these weeks yet.</span>
+                        </li>
+                      )}
+                      <HistoryRow e={e} />
+                    </Fragment>
+                  );
+                })}
+              </ul>
+            </section>
+          ))}
           <p class="bs-src quiet">
             Older events:{" "}
             <a href={src} target="_blank" rel="noopener noreferrer">
-              Bloons Wiki
-            </a>{" "}
-            (CC BY-SA).{kind === "race" && " The wiki lists only part of the races before 2022."}
+              Bloonswiki
+            </a>{kind === "boss" && (
+              <>
+                {" and the "}
+                <a href={BOSS_HISTORY_FANDOM} target="_blank" rel="noopener noreferrer">
+                  Fandom wiki
+                </a>
+              </>
+            )}{" "}
+            (CC BY-SA)
           </p>
         </>
       )}

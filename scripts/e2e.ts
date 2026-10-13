@@ -442,8 +442,14 @@ async function main() {
         // A DOM click: on phones the list is still laying out its rows, so a coordinate click can land elsewhere.
         await page.$eval("details.hist > summary", (el) => (el as HTMLElement).click());
         if (!(await has("details.hist[open]"))) problems.push(`${label} ${kind} history: the summary doesn't open it`);
-        await page.waitForSelector("details.hist .bs-past li.old", { timeout: 5_000 }).catch(() => {});
+        await page.waitForSelector("details.hist .hist-r.old", { timeout: 5_000 }).catch(() => {});
         await api.quiet();
+        if (!(await has("details.hist .hist-y"))) problems.push(`${label} ${kind} history: no year headers`);
+        if (kind === "boss") {
+          await page.$eval("details.hist .hist-chips button:nth-child(2)", (el) => (el as HTMLElement).click());
+          if (!(await has("details.hist .hist-chips button[aria-pressed=true]:not(:first-child)"))) problems.push(`${label} boss history: a boss chip does not press`);
+          await page.$eval("details.hist .hist-chips button", (el) => (el as HTMLElement).click());
+        }
         if (!(await has("details.hist .hist-map[href^='/maps/']"))) problems.push(`${label} ${kind} history: no rows with a map link`);
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
         if (overflow > 0) problems.push(`${label} ${kind} history: page scrolls sideways by ${overflow}px`);
