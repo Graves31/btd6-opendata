@@ -45,6 +45,7 @@ import {
 } from "../bosses.ts";
 import {
   BOSS_HISTORY,
+  BOSS_HISTORY_FANDOM,
   BOSS_HISTORY_SOURCE,
   type OldBoss,
 } from "../data/bossHistory.ts";
@@ -978,8 +979,8 @@ function StatsBody(props: {
                     <div class="bs-ev">
                       <span class="plate">{n ? `#${n}` : "–"}</span>
                       <span class="bs-ev-m">
-                        <strong>{mapName(map)}</strong>
-                        <span class="quiet">{oldDates(a, b)}</span>
+                        <strong>{map ? mapName(map) : "Map not recorded"}</strong>
+                        <span class="quiet">{a.includes("T") ? `${fmtDate(Date.parse(a))} – ${fmtDate(Date.parse(b))}` : oldDates(a, b)}</span>
                       </span>
                       {note && <span class="bs-note-t">{OLD_NOTE[note]}</span>}
                     </div>
@@ -1033,7 +1034,15 @@ function StatsBody(props: {
               >
                 Bloons Wiki
               </a>{" "}
-              (dates in New Zealand time), no longer on Ninja Kiwi's servers.
+              (and the{" "}
+              <a
+                href={BOSS_HISTORY_FANDOM}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                old one
+              </a>
+              ), no longer on Ninja Kiwi's servers.
             </p>
           )}
           {!peek(historyKey("boss")) && (

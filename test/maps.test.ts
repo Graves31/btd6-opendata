@@ -68,7 +68,7 @@ describe("map events", () => {
 });
 
 describe("wiki races and history", () => {
-  const [, name, wikiMap, a, b] = RACE_HISTORY[0];
+  const [name, wikiMap, a, b] = RACE_HISTORY[0];
   const nothing = <T>(k: string) => (k === LIST_KEY.race ? ([] as T) : undefined);
   it("wiki races land on their map, without an id", () => {
     const e = mapEvents(wikiMap, nothing);
@@ -91,7 +91,7 @@ describe("wiki races and history", () => {
     assert.equal(h[0].id, "r9");
     assert.equal(h[0].map, undefined);
     const last = RACE_HISTORY[RACE_HISTORY.length - 1];
-    assert.deepEqual(eventGap("race", get), { from: Date.parse(last[4]), to: start });
+    assert.deepEqual(eventGap("race", get), { from: Date.parse(last[3]), to: start });
     assert.equal(eventGap("race", nothing), null); // no archive: nothing to span
   });
 });

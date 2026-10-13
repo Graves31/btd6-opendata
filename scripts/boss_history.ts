@@ -1,7 +1,9 @@
 // Boss events from before the site's archive (and before NK's API window), for the boss stats "Past events" list.
-// Source: the Bloons Wiki "List of Boss Events" pages (bloons.fandom.com, CC BY-SA), one page per game version.
+// Base: the old Bloons Wiki "List of Boss Events" pages (bloons.fandom.com, CC BY-SA), one per game version: numbering,
+// notes, calendar days. Correction layer: bloonswiki.com's "Event history:Boss Bloon Event/<year>" pages (CC BY-SA) give
+// exact start/end instants (and fix a few wrong Fandom dates). Rows only Fandom has keep its calendar days.
 // Run by hand after a few new versions: `node scripts/boss_history.ts` → web/src/data/bossHistory.ts.
-// Fetches ~30 wiki pages, one per second. The numbering is checked against real NK event ids (ANCHORS).
+// Fetches ~35 wiki pages, one per second. The numbering is checked against real NK event ids (ANCHORS).
 
 import { writeFileSync } from "node:fs";
 import { MAP_NAMES } from "../web/src/data/names.ts";
@@ -10,6 +12,7 @@ const API = "https://bloons.fandom.com/api.php";
 const LIST = "Boss_Bloon_Event_(BTD6)/List_of_Boss_Events";
 const UA =
   "btd6-opendata-site/1.0 (unofficial fan site; occasional one-off fetch)";
+const BW = "https://www.bloonswiki.com/api.php";
 const OUT = new URL("../web/src/data/bossHistory.ts", import.meta.url);
 
 // NK event ids seen in the Wayback Machine (data.ninjakiwi.com/btd6/bosses/<id>): name number + id time (base36 ms).
@@ -70,8 +73,8 @@ const UNNUMBERED: Record<string, string> = {
 };
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-async function wikitext(page: string): Promise<string | undefined> {
-  const u = `${API}?action=parse&page=${encodeURIComponent(page)}&prop=wikitext&format=json&formatversion=2`;
+async function wikitext(page: string, api = API): Promise<string | undefined> {
+  const u = `${api}?action=parse&page=${encodeURIComponent(page)}&prop=wikitext&format=json&formatversion=2`;
   const j = (await (
     await fetch(u, { headers: { "user-agent": UA } })
   ).json()) as { parse?: { wikitext: string } };
@@ -240,16 +243,128 @@ for (const id of ANCHORS) {
 if (bad.length)
   throw new Error(`numbering disagrees with NK ids:\n${bad.join("\n")}`);
 
-const rows = evs.map(
-  (e) =>
-    `  [${[e.type, e.n, e.map, iso(e.start), iso(e.end), ...(e.n ? [] : [UNNUMBERED[e.week]])].map((x) => JSON.stringify(x)).join(", ")}],`,
+// ---- bloonswiki correction layer ----
+const ALIAS: Record<string, string> = { monkeymeadow: "Tutorial", towncenter: "TownCentre", alpine: "AlpineRun" };
+for (const id of Object.keys(MAP_NAMES)) MAP_IDS.set(key(id), id);
+function bwMap(name: string): string {
+  const id = MAP_IDS.get(key(name)) ?? ALIAS[key(name)];
+  if (!id) throw new Error(`bloonswiki: unknown map "${name}"`);
+  return id;
+}
+/** Top-level `{{name | k = v | …}}` templates → parameters (first occurrence wins; split on | at depth 0). */
+function bwTemplates(t: string, name: string): Record<string, string>[] {
+  const out: Record<string, string>[] = [];
+  for (let i = t.indexOf(`{{${name}`); i >= 0; i = t.indexOf(`{{${name}`, i)) {
+    let depth = 0;
+    let j = i;
+    for (; j < t.length; j++) {
+      if (t.startsWith("{{", j)) (depth++, j++);
+      else if (t.startsWith("}}", j) && (j++, --depth === 0)) break;
+    }
+    const body = t.slice(i + 2, j - 1);
+    i = j;
+    const p: Record<string, string> = {};
+    let cur = "";
+    let d = 0;
+    const put = (x: string) => {
+      const e = x.indexOf("=");
+      const k = x.slice(0, e).trim();
+      if (e > 0 && !(k in p)) p[k] = x.slice(e + 1).trim();
+    };
+    for (let k = 0; k < body.length; k++) {
+      const two = body.slice(k, k + 2);
+      if (two === "{{" || two === "[[") (d++, (cur += two), k++);
+      else if (two === "}}" || two === "]]") (d--, (cur += two), k++);
+      else if (body[k] === "|" && d === 0) (put(cur), (cur = ""));
+      else cur += body[k];
+    }
+    put(cur);
+    out.push(p);
+  }
+  return out;
+}
+const instant = (ms: number) => new Date(ms).toISOString().replace(".000Z", "Z");
+type Bw = { type: string; n: number; map: string; start: number; end: number; name: string };
+const titles = (
+  (await (
+    await fetch(`${BW}?action=query&list=allpages&apnamespace=3150&aplimit=500&format=json&formatversion=2`, {
+      headers: { "user-agent": UA },
+    })
+  ).json()) as { query: { allpages: { title: string }[] } }
+).query.allpages
+  .map((p) => p.title)
+  .filter((t) => /^Event history:Boss Bloon Event\/\d{4}$/.test(t));
+await wait(1000);
+const bw: Bw[] = [];
+for (const title of titles) {
+  const t = await wikitext(title, BW);
+  if (!t) throw new Error(`bloonswiki page ${title} missing`);
+  for (const p of bwTemplates(t, "BTD6 boss event rules")) {
+    const m = /^([A-Za-z]+?)_?(\d*)(?:[A-Z][A-Za-z]*)?$/.exec((p.name ?? "").replace(/^Bloonsarius/, "Bloonarius"));
+    const type = m?.[1].toLowerCase();
+    if (!m || !TYPES.includes(type!)) {
+      console.log(`bloonswiki: skipping ${p.name} (no boss type in the name)`);
+      continue;
+    }
+    const map = /\|map=([^|}]*)/.exec(p["normal rules"] ?? "")?.[1];
+    if (!map || !p.start || !p.end) throw new Error(`bloonswiki ${p.name}: no map/start/end`);
+    bw.push({ type: type!, n: +m[2] || 1, map: bwMap(map), start: +p.start * 1000, end: +p.end * 1000, name: p.name });
+  }
+}
+console.log(`bloonswiki: ${bw.length} boss events from ${titles.length} pages`);
+
+const used = new Set<Bw>();
+const fix = new Map<Ev, Bw>();
+for (const e of [...evs.filter((x) => x.n), ...evs.filter((x) => !x.n)]) { // numbered first: a restart row must not steal its event
+  // Numbered: same type and number (re-runs share a number: the closest start wins). Unnumbered: same type, start within a day.
+  const cand = bw
+    .filter((b) => b.type === e.type && (e.n ? b.n === e.n : Math.abs(b.start - e.start) < 1.5 * 864e5) && !used.has(b))
+    .sort((a, b) => Math.abs(a.start - e.start) - Math.abs(b.start - e.start));
+  if (cand[0]) (fix.set(e, cand[0]), used.add(cand[0]));
+}
+for (const [e, b] of fix) {
+  if (Math.abs(b.start - e.start) > 1.5 * 864e5) console.log(`date: ${e.type} #${e.n || e.week} fandom ${iso(e.start)} → bloonswiki ${instant(b.start)}`);
+  if (e.map !== b.map) console.log(`map: ${e.type} #${e.n || e.week} fandom ${e.map} → bloonswiki ${b.map}`);
+}
+console.log(
+  `bloonswiki events with no Fandom row (left out): ${bw.filter((b) => !used.has(b)).map((b) => `${b.name} ${iso(b.start)}`).join(", ") || "none"}`,
+);
+
+type Row = { type: string; n: number; map: string; start: string; end: string; note?: string };
+const data: Row[] = evs.map((e) => {
+  const b = fix.get(e);
+  return {
+    type: e.type,
+    n: e.n,
+    map: b?.map ?? e.map,
+    start: b ? instant(b.start) : iso(e.start),
+    end: b ? instant(b.end) : iso(e.end),
+    ...(e.n ? {} : { note: UNNUMBERED[e.week] }),
+  };
+});
+// Events neither wiki lists, from NK's own boss list (data.ninjakiwi.com/btd6/bosses) as the Wayback Machine captured it
+// on 2026-04-10. The map is unknown there (only the event's metadata has it).
+const EXTRA = [{ id: "Phayze28_mniqi8ra", type: "phayze", n: 28, start: 1775268000000, end: 1775516400000 }];
+for (const x of EXTRA)
+  if (!data.some((r) => r.type === x.type && r.n === x.n))
+    data.push({ type: x.type, n: x.n, map: "", start: instant(x.start), end: instant(x.end) });
+data.sort((a, b) => Date.parse(a.start) - Date.parse(b.start));
+for (const [type, n, start] of [["vortex", 7, "2022-07-09"], ["phayze", 10, "2024-03-23"], ["blastapopoulos", 6, "2025-01-04"]] as const) {
+  const r = data.find((x) => x.type === type && x.n === n);
+  if (!r?.start.startsWith(start)) throw new Error(`${type} #${n} should start ${start}, got ${r?.start}`);
+}
+
+const rows = data.map(
+  (r) => `  [${[r.type, r.n, r.map, r.start, r.end, ...(r.note ? [r.note] : [])].map((x) => JSON.stringify(x)).join(", ")}],`,
 );
 writeFileSync(
   OUT,
-  `// Generated by scripts/boss_history.ts from the Bloons Wiki (bloons.fandom.com, CC BY-SA). Do not edit by hand.
-// Boss events before the site's archive: [boss type, NK number, NK map id, start, end, why unnumbered (number 0 only)].
-// Dates are the wiki's (New Zealand) calendar days. Numbering checked against ${ANCHORS.length} real NK event ids.
-export const BOSS_HISTORY_SOURCE = "https://bloons.fandom.com/wiki/Boss_Bloon_Event_(BTD6)/List_of_Boss_Events";
+  `// Generated by scripts/boss_history.ts from bloonswiki.com and the old Bloons Wiki (bloons.fandom.com), both CC BY-SA. Do not edit by hand.
+// Boss events before the site's archive: [boss type, NK number, NK map id ("" = unknown), start, end, why unnumbered (number 0 only)].
+// start/end: a full UTC instant (bloonswiki), or where only Fandom has the event its (New Zealand) calendar day "YYYY-MM-DD".
+// Numbering checked against ${ANCHORS.length} real NK event ids.
+export const BOSS_HISTORY_SOURCE = "https://www.bloonswiki.com/Event_history:Boss_Bloon_Event";
+export const BOSS_HISTORY_FANDOM = "https://bloons.fandom.com/wiki/Boss_Bloon_Event_(BTD6)/List_of_Boss_Events";
 export type OldBoss = readonly [type: string, n: number, map: string, start: string, end: string, note?: "restarted" | "taken down" | "special"];
 export const BOSS_HISTORY: readonly OldBoss[] = [
 ${rows.join("\n")}
@@ -257,7 +372,7 @@ ${rows.join("\n")}
 `,
 );
 console.log(
-  `${evs.length} events, ${evs.filter((e) => !e.n).length} unnumbered; last ${iso(evs.at(-1)!.start)}. Numbers match ${ANCHORS.length} NK ids.`,
+  `${data.length} events (${fix.size} with exact times), ${data.filter((e) => !e.n).length} unnumbered; last ${data.at(-1)!.start}. Numbers match ${ANCHORS.length} NK ids.`,
 );
 console.log(
   Object.entries(count)

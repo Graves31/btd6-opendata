@@ -12,9 +12,10 @@ type Get = <T>(key: string) => T | undefined;
 export const DIFF_LABEL = ["Beginner", "Intermediate", "Advanced", "Expert"] as const;
 export const DIFF_ICON = ["MapBeginner", "MapIntermediate", "MapAdvanced", "MapExpert"] as const;
 
+/** `day`: the source gives calendar days only (show them in UTC); otherwise start/end are exact instants. */
 export type MapEvent =
-  | { kind: "boss"; id?: string; type: string; n: number; note?: OldBoss[5]; start: number; end: number }
-  | { kind: "race"; id?: string; name: string; start: number; end: number };
+  | { kind: "boss"; id?: string; type: string; n: number; note?: OldBoss[5]; start: number; end: number; day?: true }
+  | { kind: "race"; id?: string; name: string; start: number; end: number; day?: true; mode?: string; difficulty?: string };
 /** A MapEvent, its map unknown while the archive row's metadata is still loading. Wiki rows have no id. */
 export type HistEvent = MapEvent & { map?: string };
 
@@ -45,7 +46,7 @@ function all(get: Get): HistEvent[] {
   }
   for (const [type, n, map, a, b, note] of BOSS_HISTORY) {
     if (n ? n >= (oldest.get(type) ?? Infinity) : Date.parse(a) >= (first.get(type) ?? Infinity) - 864e5) continue;
-    out.push({ kind: "boss", type, n, note, start: Date.parse(a), end: Date.parse(b), map });
+    out.push({ kind: "boss", type, n, note, start: Date.parse(a), end: Date.parse(b), map: map || undefined, ...(a.includes("T") ? {} : { day: true as const }) });
   }
   const races = events<Race>(get, "race");
   let firstRace = Infinity;
@@ -53,10 +54,10 @@ function all(get: Get): HistEvent[] {
     firstRace = Math.min(firstRace, e.start);
     out.push({ kind: "race", id: e.id, name: e.name, start: e.start, end: e.end, map: get<ChallengeDocument>(raceMetaKey(e.id))?.map });
   }
-  // Wiki races carry unreliable numbers: only name and dates are kept. The archive wins from its oldest race on.
-  for (const [, name, map, a, b] of RACE_HISTORY) {
+  // The archive wins from its oldest race on.
+  for (const [name, map, a, b, mode, difficulty] of RACE_HISTORY) {
     if (Date.parse(a) >= firstRace - 864e5) continue;
-    out.push({ kind: "race", name, start: Date.parse(a), end: Date.parse(b), map });
+    out.push({ kind: "race", name, start: Date.parse(a), end: Date.parse(b), map, mode: mode || undefined, difficulty });
   }
   return out;
 }

@@ -33,9 +33,8 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
   shortcuts, filters shown in the tab title, "Up next" = next matches when a filter is on, Edit-panel state in
   the URL, link previews for /tools pages with the set name, heaviest-rounds labels.
 
-- **Boss history gap** (2026-10-04). Boss stats "Past events" lists the wiki's events up to week 246 (1 Apr 2026);
-  Apr–Jul 2026 (incl. Diamondback #1–#6) show as "not on record yet". Rerun `node scripts/boss_history.ts` once the
-  Bloons Wiki has its "Version 54.0" list page (the script picks new version pages up by itself).
+- **History holes**: races 1 Jan – 30 Jul 2026 and boss events 7 Apr – 31 Jul 2026 (incl. Diamondback #1–6) are on no public list;
+  rerun `node scripts/boss_history.ts` and `node scripts/race_history.ts` once bloonswiki has its 2026 pages (both pick new years up by themselves).
 
 - **Drop the old workers.dev host from /stats** (after 2026-11-07, when its 30 days have rolled off; `STATS_HOSTS`
   in src/worker/stats.ts).

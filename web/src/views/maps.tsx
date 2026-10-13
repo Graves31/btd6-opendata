@@ -153,7 +153,7 @@ function EventRow(p: { e: MapEvent }) {
       {e.kind === "boss" ? <Spr family="boss" k={e.type} size={40} label optional /> : <EvIcon k="race" size={40} />}
       <span class="bs-ev-m">
         <strong>{e.kind === "boss" ? (e.n ? bossTitle(e.type, e.n) : bossName(e.type)) : e.name}</strong>
-        <span class="quiet">{wiki ? oldDates(e.start, e.end) : `${fmtDate(e.start)} – ${fmtDate(e.end)}`}</span>
+        <span class="quiet">{wiki && e.day ? oldDates(e.start, e.end) : `${fmtDate(e.start)} – ${fmtDate(e.end)}`}</span>
       </span>
       {!wiki && <StatusBadge start={e.start} end={e.end} />}
     </>
