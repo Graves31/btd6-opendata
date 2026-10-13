@@ -47,6 +47,8 @@
   //   npx wrangler secret put CF_ANALYTICS_TOKEN   (API token with Account Analytics:Read)
   // New boss/race notifications: a Discord webhook URL as a secret (unset → none are sent):
   //   npx wrangler secret put DISCORD_WEBHOOK_URL
+  // Suggestions box: a (private channel) Discord webhook URL as a secret (unset → stored in D1 only):
+  //   npx wrangler secret put SUGGEST_WEBHOOK_URL
   "vars": { "CF_ACCOUNT_ID": "923b0e4244cbc8a739105c5db9c05ae5" },
 
   // Per-client cap on Ninja Kiwi fetches, shared by the isolates of one Cloudflare location (src/worker/limit.ts).

@@ -36,6 +36,8 @@ export interface Deps {
   stats?: StatsConfig;
   /** Notification channels (notify.ts); a channel without its secret is skipped. */
   notify?: { discordWebhookUrl?: string };
+  /** Suggestions box (suggest.ts): its own private channel; unset → rows are stored, nothing is posted. */
+  suggest?: { webhookUrl?: string };
 }
 
 export const NK_BASE = "https://data.ninjakiwi.com";

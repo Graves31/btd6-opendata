@@ -30,6 +30,7 @@ export type Route =
   | ParagonRoute
   | { name: "farming"; r?: number }
   | { name: "stats" }
+  | { name: "suggest" }
   | MapsRoute
   | { name: "map"; id: string }
   | { name: "notfound" };
@@ -278,6 +279,7 @@ export function needs(r: Route): string[] {
     case "paragon":
       return []; // static pages: no NK data
     case "stats":
+    case "suggest":
     case "notfound":
       return []; // /stats fetches its own data (hidden page, reached only by URL)
   }
@@ -328,6 +330,7 @@ export function parse(url: URL): Route {
   if (a === "team" && b) return { name: "team", id: b };
   if (a === "challenge" && b) return { name: "challenge", id: b };
   if (a === "stats" && !b) return { name: "stats" };
+  if (a === "suggest" && !b) return { name: "suggest" };
   if (a === "maps" && !b) {
     return { name: "maps", q: normMapQ(q.get("q") ?? ""), d: normMapDiff(list(q.get("d")).map(Number)), water: q.get("water") === "1", sort: oneOf(q.get("sort"), MAP_SORTS, "game") };
   }

@@ -8,6 +8,7 @@
 //   GET /api/history/:kind[?before=ms&limit=n]  every race|boss|ct|odyssey ever seen, newest first
 //   GET /api/history/team/:guildId     a team's CT results (rank, score, group) from archived data only
 //   GET /api/health                    cache status
+//   POST /api/suggest                  suggestions box: stored in D1 + posted to a private Discord channel (suggest.ts)
 //   GET /boss/:id, /player/:id, …      the SPA shell with link-preview tags (og.ts)
 //
 // Every response carries X-Content-Type-Options: nosniff. HEAD is answered like GET without a body (and a
@@ -24,6 +25,7 @@ import { handleBatch, handleNk, jsonResponse, parseBatchKeys } from "./proxy.ts"
 import { handlePage, SITE, type AssetsLike } from "./og.ts";
 import { handleStats, STATS_GRAPHQL_URL } from "./stats.ts";
 import { getHot, getHotText } from "./store.ts";
+import { handleSuggest } from "./suggest.ts";
 import { GUILD_ID, teamHistory } from "./teams.ts";
 
 export interface Env {
@@ -40,6 +42,8 @@ export interface Env {
   CF_ACCOUNT_ID?: string;
   /** Worker secret: Discord webhook for new boss/race notifications (notify.ts); unset → no notifications. */
   DISCORD_WEBHOOK_URL?: string;
+  /** Worker secret: private Discord webhook for the suggestions box (suggest.ts); unset → stored only. */
+  SUGGEST_WEBHOOK_URL?: string;
   /** Optional override of the Cloudflare GraphQL endpoint (offline e2e fixture). */
   STATS_GRAPHQL_URL?: string;
 }
@@ -65,6 +69,7 @@ export function makeDeps(env: Env, ctx: Ctx): Deps {
     limits: { perRequest: MAX_ORIGIN_PER_REQUEST, buckets: clientBuckets, global: isolateBucket, binding: env.ORIGIN_LIMITER },
     stats: { token: env.CF_ANALYTICS_TOKEN, accountId: env.CF_ACCOUNT_ID, graphqlUrl: env.STATS_GRAPHQL_URL || STATS_GRAPHQL_URL },
     notify: { discordWebhookUrl: env.DISCORD_WEBHOOK_URL },
+    suggest: { webhookUrl: env.SUGGEST_WEBHOOK_URL },
   };
 }
 
@@ -106,6 +111,10 @@ const error = (status: number, code: ErrorCode, cacheControl = "no-store", extra
   jsonResponse(errorBody(code, message), status, cacheControl, extra);
 
 async function route(deps: Deps, request: Request): Promise<Response> {
+  if (new URL(request.url).pathname === "/api/suggest") {
+    if (request.method !== "POST") return error(405, "method_not_allowed", "no-store", { Allow: "POST" });
+    return handleSuggest(deps, request);
+  }
   if (request.method !== "GET" && request.method !== "HEAD") {
     return error(405, "method_not_allowed", "no-store", { Allow: "GET, HEAD" });
   }

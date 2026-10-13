@@ -381,6 +381,10 @@ async function main() {
     pages["paragon-set"] = "/tools/paragon?p=dart&d=h&c=85000000&to=2&x=1&adv=1&b=1&po=4500000";
     await home();
 
+    await step("Now → Suggest", "header a.sug-btn", "suggest");
+    if (!(await has("form.sug-form textarea")) || !(await has("button.sug-send"))) problems.push("suggest: form didn't render");
+    await home();
+
     await step("Now → Challenges", 'header nav a[href="/challenges"]', "challenges");
     await step("Challenges → a daily", "main a[href^='/challenge/']");
     await home();
@@ -570,6 +574,8 @@ async function main() {
       const dest = w === 390 ? "/maps" : "/tools";
       await step(`${tag}: More → ${dest}`, `#more-sheet a[href="${dest}"]`);
       if ((await here()) !== dest || (await sheetOpen())) problems.push(`${tag}: ${dest} didn't open with the sheet closed`);
+      await step(`${tag}: header → Suggest`, "header a.sug-btn");
+      if (!(await has("form.sug-form textarea"))) problems.push(`${tag}: suggest form didn't render`);
     }
     await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
 

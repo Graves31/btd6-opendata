@@ -20,6 +20,7 @@ import { RoundsPage, roundsTitle, roundsBoss } from "./views/rounds.tsx";
 import { FarmingPage } from "./views/farming.tsx";
 import { ToolsHub } from "./views/tools.tsx";
 import { StatsPage } from "./views/stats.tsx";
+import { SuggestPage } from "./views/suggest.tsx";
 import { ThemeToggle } from "./theme.tsx";
 
 /** Site version from package.json (vite.config.ts `define`). */
@@ -61,6 +62,8 @@ function Page(props: { r: Route }) {
       return <FarmingPage r={r.r} />;
     case "stats":
       return <StatsPage />;
+    case "suggest":
+      return <SuggestPage />;
     case "maps":
       return <MapsPage r={r} />;
     case "map":
@@ -138,6 +141,8 @@ export function title(r: Route): string {
       return t("Farming resources");
     case "stats":
       return t("Site stats");
+    case "suggest":
+      return t("Suggest");
     default:
       return t("Page not found");
   }
@@ -315,7 +320,14 @@ function App() {
           <span class="brand-mark">BTD6</span>
           <span class="brand-t">Open Data</span>
         </A>
-        <ThemeToggle />
+        <div class="top-tools">
+          <A href="/suggest" class={r.name === "suggest" ? "sug-btn on" : "sug-btn"} current={r.name === "suggest"} label="Suggest an improvement" title="Suggest">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a8 8 0 0 1-11.6 7.1L3 20.5l1.5-4.6A8 8 0 1 1 21 12Z" />
+            </svg>
+          </A>
+          <ThemeToggle />
+        </div>
         <nav aria-label="Sections">
           {NAV.map(([h, label, sec]) => {
             const on = section(r) === sec;
@@ -368,6 +380,9 @@ function App() {
         <p>Unofficial fan site, not affiliated with Ninja Kiwi.</p>
         <p>Data and images from the Ninja Kiwi Open Data API. Game art © Ninja Kiwi.</p>
         <p>Times are in your time zone.</p>
+        <p>
+          <A href="/suggest">Suggest an improvement</A>
+        </p>
         <p>v{__APP_VERSION__}</p>
       </footer>
     </>
