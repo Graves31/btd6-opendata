@@ -1,0 +1,7 @@
+#!/bin/sh
+# Release tags (CLAUDE.md "Git"): a commit that changes the site version in package.json is tagged vX.Y.Z.
+ver() { git show "$1" 2>/dev/null | sed -n 's/^  "version": "\([^"]*\)".*/\1/p'; }
+new=$(ver HEAD:package.json)
+[ -n "$new" ] && [ "$new" != "$(ver HEAD~1:package.json)" ] || exit 0
+git tag -a "v$new" -m "v$new" 2>/dev/null && echo "tagged v$new"
+exit 0

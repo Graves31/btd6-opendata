@@ -20,10 +20,4 @@ printf '%s\n' "$body" | grep -Eq '^[[:space:]]*([-*]|[0-9]+\.)[[:space:]]' && fa
 printf '%s\n' "$body" | awk 'length > 100 { exit 1 }' || fail "body lines wrap at 100"
 n=$(printf '%s\n' "$body" | grep -v '^BREAKING CHANGE:' | grep -c '[^[:space:]]')
 [ "$n" -le 3 ] || fail "body is $n lines (max 3): say why and what changes on the site, no more"
-
-# Every commit bumps the site version (package.json; CLAUDE.md "Git" says which number).
-ver() { git show "$1" 2>/dev/null | sed -n 's/^  "version": "\([^"]*\)".*/\1/p'; }
-old=$(ver HEAD:package.json)
-[ -z "$old" ] || [ "$old" != "$(ver :package.json)" ] ||
-  fail "bump the site version $old: npm version patch|minor|major --no-git-tag-version, then stage it"
 exit 0
