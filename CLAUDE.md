@@ -2,7 +2,7 @@
 
 Unofficial, non-commercial fan site over Ninja Kiwi's BTD6 Open Data API (BTD6 endpoints only), on the
 Cloudflare Workers **free** plan. Live: https://btd6data.com (old workers.dev address redirects; `npx wrangler
-whoami` shows the account; `npx wrangler login` if the token expired). README.md explains the
+whoami` shows the account; `npx wrangler login` if the token expired). docs/architecture.md explains the
 architecture; this file is how to work on it.
 
 ## Where things are
@@ -100,11 +100,11 @@ Commits: Conventional Commits. One logical change per commit. Enforced by `.gith
   too unless the work needs Opus. Pass `model` only to override.
 - Don't delegate what's cheaper inline: a few-line edit in a file already in context, or a single grep.
 - Read narrowly: Grep first, then Read with offset/limit. Never read the big docs (round-visualizer-*,
-  visual-plan, README) whole — grep the section. Don't re-read files after editing.
+  visual-plan, architecture) whole — grep the section. Don't re-read files after editing.
 - Long command output goes to a scratchpad log (`cmd > log 2>&1; echo exit=$?`), then grep it.
 - Screenshots: look only at the pages the change touched (desktop + mobile), not the whole set.
 - Replies short and plain; findings as a numbered list; don't recap what a diff already shows.
-- Keep this file and BACKLOG.md terse: delete items when done, no history logs (README covers the design).
+- Keep this file and BACKLOG.md terse: delete items when done, no history logs (docs/architecture.md covers the design).
 
 ## Windows / tooling gotchas
 

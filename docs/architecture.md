@@ -2,7 +2,7 @@
 
 An unofficial Bloons TD 6 events / leaderboards / profiles browser over the Ninja Kiwi Open Data API.
 Page changes render from memory in a few milliseconds, and it's hosted on Cloudflare's free plan.
-The upstream API contract is in [`docs/api/`](docs/api/README.md).
+The upstream API contract is in [`docs/api/`](api/README.md).
 
 ## How "instant" works
 
