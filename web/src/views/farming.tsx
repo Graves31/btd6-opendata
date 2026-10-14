@@ -106,7 +106,7 @@ function SpawnChart(p: { r?: number }) {
           Round end{len !== undefined && <i>{secs(len)}</i>}
         </span>
       </div>
-      <p class="pg-hint fm-note">Bananas drop at even gaps: the first half a gap after the round starts, the last half a gap before it ends. Round length = the time the round's bloons spawn over (default rounds).</p>
+      <p class="pg-hint fm-note">Bananas drop at even gaps: the first half a gap after the round starts, the last half a gap before it ends.</p>
     </section>
   );
 }

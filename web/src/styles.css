@@ -7993,16 +7993,29 @@ footer p {
   top: 50%;
   border-top: 1px solid var(--rule-2);
 }
+/* light dotted guides every 10% of the round, to compare drop times across rows */
+.fm-track::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, var(--rule-2) 1px, transparent 1px) 0 0 / 10% 100%;
+  border-right: 1px solid var(--rule-2);
+  mask: repeating-linear-gradient(to bottom, #000 0 2px, transparent 2px 6px);
+  opacity: 0.7;
+  pointer-events: none;
+}
 .fm-b {
   position: absolute;
+  z-index: 1;
   top: 50%;
   display: block;
+  width: max-content;
   transform: translate(-50%, -50%);
 }
 .fm-b img {
   display: block;
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
 }
 .fm-b i {
   position: absolute;
