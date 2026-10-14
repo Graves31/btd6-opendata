@@ -3680,7 +3680,7 @@ button.fd-tile:hover {
   letter-spacing: 0.05em;
   cursor: pointer;
 }
-.rv-chip:hover:not(:disabled) {
+.rv-chip:hover:not(:disabled, .on) {
   color: var(--ink);
   background: var(--shade);
 }
