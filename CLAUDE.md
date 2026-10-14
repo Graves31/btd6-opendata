@@ -76,6 +76,9 @@ Commits: Conventional Commits. One logical change per commit. Enforced by `.gith
   Never burst-fetch NK; prefer fixtures.
 - Stay inside free budgets: 100k Worker requests/day, 10 ms CPU, KV 1k writes/day, D1 100k row writes/day.
 - Modern, high-contrast UI, not "AI slop"; official NK game art everywhere recognisable (owner approved).
+- Tool page template (every tool, new ones too): `<ToolBack />` then `<ToolHero>` (ui.tsx): the tool's tile art
+  (build_art.py TOOL_ICONS), big title, one-line sub, and a strip of game icons (links when they lead somewhere).
+  Pages should have identity like the boss pages, not a grey info page.
   Mobile (390 px) must never scroll sideways.
 - Boss/race rule blocks show every default row; odyssey islands only non-default rows. Event lists show
   difficulty/mode only when not Medium/Standard. "Hide banned" is one toggle per rules block, off by default.
