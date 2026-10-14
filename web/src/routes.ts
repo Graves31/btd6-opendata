@@ -36,7 +36,7 @@ export type Route =
   | { name: "map"; id: string }
   | { name: "notfound" };
 
-export type MapSort = "game" | "az" | "bosses";
+export type MapSort = "game" | "az" | "bosses" | "races";
 /** Maps explorer (/maps): name search, difficulty (0..3) and water filters, sort. Defaults are left out of the URL. */
 export interface MapsRoute {
   name: "maps";
@@ -46,7 +46,7 @@ export interface MapsRoute {
   water: boolean;
   sort: MapSort;
 }
-const MAP_SORTS = ["game", "az", "bosses"] as const;
+const MAP_SORTS = ["game", "az", "bosses", "races"] as const;
 const normMapQ = (v: string) => v.trim().slice(0, 40).trim();
 const normMapDiff = (v: readonly number[]): number[] => [...new Set(v.filter((n) => Number.isInteger(n) && n >= 0 && n <= 3))].sort();
 

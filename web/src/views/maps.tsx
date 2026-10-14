@@ -16,6 +16,7 @@ const SORTS: [MapSort, string][] = [
   ["game", "Game order"],
   ["az", "A–Z"],
   ["bosses", "Most boss events"],
+  ["races", "Most races"],
 ];
 const plain = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
@@ -66,7 +67,10 @@ export function MapsPage(props: { r: MapsRoute }) {
   const needle = plain(r.q);
   const list = MAP_LIST.filter(([id, d, water]) => (!r.d.length || r.d.includes(d)) && (!r.water || water) && plain(mapName(id)).includes(needle));
   if (r.sort === "az") list.sort((a, b) => mapName(a[0]).localeCompare(mapName(b[0])));
-  if (r.sort === "bosses") list.sort((a, b) => (counts.boss.get(b[0]) ?? 0) - (counts.boss.get(a[0]) ?? 0)); // stable: ties keep game order
+  if (r.sort === "bosses" || r.sort === "races") {
+    const c = r.sort === "bosses" ? counts.boss : counts.race;
+    list.sort((a, b) => (c.get(b[0]) ?? 0) - (c.get(a[0]) ?? 0)); // stable: ties keep game order
+  }
   const tile = ([id, d, water]: (typeof MAP_LIST)[number]) => (
     <Tile key={id} id={id} d={d} water={water} boss={counts.boss.get(id) ?? 0} race={counts.race.get(id) ?? 0} />
   );
