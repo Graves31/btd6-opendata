@@ -8754,6 +8754,17 @@ a.th-ic:focus-visible {
     font-size: 28px;
   }
 }
+/* phones (2 columns): attack speed gets its own row, so boss and elite boss damage sit side by side */
+@media (max-width: 899px) {
+  .ps-sum > div:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+}
+/* compare: the change from the picked degree, under each value */
+.ps-sum small.ps-delta {
+  color: var(--accent-ink);
+  font-weight: 700;
+}
 .ps-links {
   display: flex;
   flex-wrap: wrap;

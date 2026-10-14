@@ -23,11 +23,7 @@ const clampD = (n: number) => Math.min(100, Math.max(1, n));
 const compact = (n: number) => (n >= 1000 ? `${+(n / 1000).toFixed(1)}k` : `${+n.toFixed(1)}`);
 /** "+12.5%" / "0%" (never "−0%") */
 const pct = (n: number) => (one(n) === 0 ? "0%" : `+${one(n)}%`);
-/** signed delta: "+3", "−3", "0" */
-const sgn = (n: number, unit = "") => {
-  const r = one(n);
-  return r === 0 ? `0${unit}` : `${r > 0 ? "+" : "−"}${fmtInt(Math.abs(r))}${unit}`;
-};
+/** signed delta: "+3.5%", "−3", "0" */
 const sgnF = (n: number, unit = "") => {
   const r = one(n);
   return r === 0 ? `0${unit}` : `${r > 0 ? "+" : "−"}${Math.abs(r)}${unit}`;
@@ -206,8 +202,25 @@ const ICON = {
   flat: () => <Ic f="ui" k="Tier5" />,
   cooldown: () => <Ic f="ui" k="AbilityCooldownDecrease" />,
   boss: () => <Ic f="boss" k="Bloonarius" />,
+  elite: () => <Ic f="boss" k="elite:bloonarius" />,
   power: () => <Ic f="ui" k="ParagonPower" />,
 };
+
+type Stats = ReturnType<typeof sc>;
+const flat = (n: number) => (one(n) === 0 ? "0" : `+${one(n)}`);
+/** signed change to 2 decimals, for multipliers: "+0.25", "−1" */
+const sgn2 = (n: number) => {
+  const r = +n.toFixed(2);
+  return r === 0 ? "0" : `${r > 0 ? "+" : "−"}${Math.abs(r)}`;
+};
+/** The summary fields: the picked degree, and the compared degree in the same places. */
+const FIELDS: { k: string; icon: () => ComponentChildren; v: (s: Stats) => string; sub?: (s: Stats) => string; dv: (a: Stats, b: Stats) => string }[] = [
+  { k: "Damage", icon: ICON.damage, v: (s) => pct(s.damagePct), sub: (s) => `${flat(s.damageFlat)} flat`, dv: (a, b) => `${sgnF(b.damagePct - a.damagePct, "%")}, ${sgnF(b.damageFlat - a.damageFlat)} flat` },
+  { k: "Pierce", icon: ICON.pierce, v: (s) => pct(s.piercePct), sub: (s) => `${flat(s.pierceFlat)} flat`, dv: (a, b) => `${sgnF(b.piercePct - a.piercePct, "%")}, ${sgnF(b.pierceFlat - a.pierceFlat)} flat` },
+  { k: "Attack speed", icon: ICON.cooldown, v: (s) => spdTxt(s.speedPct), sub: (s) => `cooldowns ${cutTxt(s.speedPct)}`, dv: (a, b) => sgnF(b.speedPct - a.speedPct, " points") },
+  { k: "Boss damage", icon: ICON.boss, v: (s) => times(s.bossNormal), dv: (a, b) => sgn2(b.bossNormal - a.bossNormal) },
+  { k: "Elite damage", icon: ICON.elite, v: (s) => times(s.bossElite), dv: (a, b) => sgn2(b.bossElite - a.bossElite) },
+];
 
 export function ParagonScalingPage(p: { d?: number; to?: number }) {
   // The degree lives here while it changes and reaches the URL once the slider rests: a route change per slider step
@@ -258,15 +271,28 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
   const rows = DEG.filter(
     (n) => n === 1 || n === 100 || n === d || n === p.to || sc(n).bossNormal !== sc(n - 1).bossNormal || sc(n).damageFlat !== sc(n - 1).damageFlat,
   );
-  const next = d < 100 ? pw(d + 1) - pw(d) : undefined;
-  const sum: [string, ComponentChildren, string, string?][] = [
-    ["Total power needed", ICON.power(), fmtInt(pw(d)), d > 1 ? `of which ${fmtInt(pw(d) - pw(d - 1))} for this one degree` : undefined],
-    ["Next degree", <Ic f="ui" k="ParagonDegree" />, next === undefined ? "Max degree" : `+${fmtInt(next)} power`, next === undefined ? undefined : `to reach degree ${d + 1}`],
-    ["Damage", ICON.damage(), pct(x.damagePct), `${x.damageFlat === 0 ? "0" : `+${x.damageFlat}`} flat`],
-    ["Pierce", ICON.pierce(), pct(x.piercePct), `${x.pierceFlat === 0 ? "0" : `+${one(x.pierceFlat)}`} flat`],
-    ["Attack speed", ICON.cooldown(), spdTxt(x.speedPct), `cooldowns ${cutTxt(x.speedPct)} (attacks and abilities)`],
-    ["Boss damage", ICON.boss(), times(x.bossNormal), `elite bosses ${times(x.bossElite)}`],
-  ];
+  // one degree's stats, or (with `base`) another degree's in the same places plus the change from `base`
+  const fields = (s: Stats, base?: Stats) => (
+    <dl class="ps-sum">
+      {FIELDS.map((f) => (
+        <div key={f.k}>
+          <dt>
+            {f.icon()}
+            {f.k}
+          </dt>
+          <dd>
+            {f.v(s)}
+            {f.sub && <small>{f.sub(s)}</small>}
+            {base && (
+              <small class="ps-delta">
+                {f.dv(base, s)} vs {d}
+              </small>
+            )}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
   const thR = (t: string) => <th scope="col">{t}</th>;
 
   return (
@@ -309,20 +335,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
             {copied ? "Link copied" : "Copy link"}
           </button>
         </div>
-        <dl class="ps-sum">
-          {sum.map(([k, icon, v, sub]) => (
-            <div key={k}>
-              <dt>
-                {icon}
-                {k}
-              </dt>
-              <dd>
-                {v}
-                {sub && <small>{sub}</small>}
-              </dd>
-            </div>
-          ))}
-        </dl>
+        {fields(x)}
         <p class="ps-links">
           <A href={href.paragon(d >= 2 ? { target: d } : {})} class="pg-link">
             Open in calculator ›
@@ -351,23 +364,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
               </button>
             </div>
             {cmp !== undefined && y ? (
-              <dl class="ps-sum">
-                {(
-                  [
-                    [`Power, degree ${d} to ${cmp}`, sgn(pw(cmp) - pw(d))],
-                    ["Damage", `${sgnF(y.damagePct - x.damagePct, "%")} and ${sgn(y.damageFlat - x.damageFlat)} flat`],
-                    ["Pierce", `${sgnF(y.piercePct - x.piercePct, "%")} and ${sgnF(y.pierceFlat - x.pierceFlat)} flat`],
-                    ["Attack speed", `${sgnF(y.speedPct - x.speedPct, " points")}`],
-                    ["Boss damage", `${times(x.bossNormal)} → ${times(y.bossNormal)}`],
-                    ["Elite boss", `${times(x.bossElite)} → ${times(y.bossElite)}`],
-                  ] as [string, string][]
-                ).map(([k, v]) => (
-                  <div key={k}>
-                    <dt>{k}</dt>
-                    <dd>{v}</dd>
-                  </div>
-                ))}
-              </dl>
+              fields(y, x)
             ) : (
               <p class="pg-hint">Pick a different degree to see what changes.</p>
             )}
