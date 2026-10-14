@@ -8001,9 +8001,26 @@ footer p {
   border-top-color: var(--accent);
 }
 .fm-rows {
+  position: relative;
+  isolation: isolate; /* the guides below sit behind the rows' text and bananas */
   list-style: none;
   margin: 0;
   padding: 0;
+}
+/* light dotted guides every 10% of the round, one grid over every row down to the axis: one chart to compare drop times */
+.fm-rows::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: -14px;
+  left: calc(var(--fm-who) + var(--fm-gap));
+  right: calc(var(--fm-cash) + var(--fm-gap));
+  background: linear-gradient(to right, var(--rule-2) 1px, transparent 1px) 0 0 / 10% 100%;
+  border-right: 1px solid var(--rule-2);
+  mask: repeating-linear-gradient(to bottom, #000 0 2px, transparent 2px 6px);
+  opacity: 0.7;
+  pointer-events: none;
 }
 .fm-row {
   display: grid;
@@ -8050,17 +8067,6 @@ footer p {
   right: 0;
   top: 50%;
   border-top: 1px solid var(--rule-2);
-}
-/* light dotted guides every 10% of the round, to compare drop times across rows */
-.fm-track::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to right, var(--rule-2) 1px, transparent 1px) 0 0 / 10% 100%;
-  border-right: 1px solid var(--rule-2);
-  mask: repeating-linear-gradient(to bottom, #000 0 2px, transparent 2px 6px);
-  opacity: 0.7;
-  pointer-events: none;
 }
 .fm-b {
   position: absolute;
