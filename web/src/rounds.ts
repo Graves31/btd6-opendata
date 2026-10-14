@@ -52,9 +52,19 @@ export function bounds(info: Pick<RoundSetInfo, "first" | "last">, r: Pick<Round
 /** "Vortex rounds", "Alternate Bloons Rounds", "Default". */
 export const setLabel = (s: Pick<RoundSetInfo, "name" | "boss">) => (s.boss ? `${s.name} rounds` : s.name);
 
+/** Hero-trial set id part -> key in the `hero` sprite family. */
+const QUEST_HERO: Record<string, string> = {
+  adora: "Adora", brickell: "AdmiralBrickell", churchill: "CaptainChurchill", corvus: "Corvus", etienne: "Etienne",
+  ezili: "Ezili", geraldo: "Geraldo", gwendolin: "Gwendolin", obyn: "ObynGreenfoot", pat: "PatFusty", psi: "Psi",
+  quincy: "Quincy", rosalia: "Rosalia", sauda: "Sauda", silas: "Silas", striker: "StrikerJones",
+};
+
 /** Set icon [family, key], as in the rules panel: boss portrait, the ABR mode icon, else the custom-rounds icon. */
-export function setIcon(s: Pick<RoundSetInfo, "boss" | "modes">): [string, string] {
+export function setIcon(s: Pick<RoundSetInfo, "id" | "boss" | "modes">): [string, string] {
   if (s.boss) return ["boss", s.boss];
+  const q = /^quest-([a-z]+)-trial$/.exec(s.id);
+  if (q && QUEST_HERO[q[1]!]) return ["hero", QUEST_HERO[q[1]!]!];
+  if (s.id.startsWith("quest-mermonkey-")) return ["tower", "Mermonkey"];
   if (s.modes.includes("AlternateBloonsRounds")) return ["ui", "mode:AlternateBloonsRounds"];
   return ["ui", "CustomRounds"];
 }

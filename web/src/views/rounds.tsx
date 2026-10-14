@@ -554,9 +554,60 @@ function Sheet(p: { onClose: () => void; children: ComponentChildren }) {
   );
 }
 
+function SetPicker(p: { info?: RoundSetInfo; go: Go }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: Event) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const esc = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.stopPropagation(); // don't also close the sheet dialog
+      e.preventDefault();
+      setOpen(false);
+    };
+    document.addEventListener("pointerdown", away);
+    document.addEventListener("keydown", esc, true);
+    return () => {
+      document.removeEventListener("pointerdown", away);
+      document.removeEventListener("keydown", esc, true);
+    };
+  }, [open]);
+  const [fam, icon] = p.info ? setIcon(p.info) : ["ui", "CustomRounds"];
+  return (
+    <div class="rv-set-f" ref={ref}>
+      <button type="button" class={`rv-set-b${open ? " open" : ""}`} aria-expanded={open} aria-controls="rv-setmenu" aria-label="Round set" onClick={() => setOpen(!open)}>
+        <Spr family={fam} k={icon} size={32} label optional />
+        <span class="rv-set-n">{p.info ? setLabel(p.info) : "Choose a round set"}</span>
+        <span aria-hidden="true">{open ? "▴" : "▾"}</span>
+      </button>
+      {open && (
+        <div id="rv-setmenu" class="rv-setmenu" role="group" aria-label="Round sets">
+          {GROUPS.map(([g, label]) => (
+            <div key={g} class="rv-setgrp">
+              <span class="label">{label}</span>
+              {ROUND_SETS.filter((s) => s.group === g).map((s) => {
+                const [f, k] = setIcon(s);
+                const on = s.id === p.info?.id;
+                return (
+                  <button key={s.id} type="button" class={`rv-fchip${on ? " on" : ""}`} aria-pressed={on} onClick={() => { setOpen(false); p.go({ set: s.id }); }}>
+                    <Spr family={f} k={k} size={24} label optional />
+                    {setLabel(s)}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function EditForm(p: { r: RoundsRoute; info?: RoundSetInfo; go: Go; onDone?: () => void; sheet?: boolean }) {
   const { r, info, go } = p;
-  const [fam, icon] = info ? setIcon(info) : ["ui", "CustomRounds"];
   const chips = modChips(r, info);
   return (
     <section id="rv-edit" class={`rv-form${p.sheet ? " sheet" : ""}`} aria-labelledby="rv-edit-h">
@@ -570,28 +621,7 @@ function EditForm(p: { r: RoundsRoute; info?: RoundSetInfo; go: Go; onDone?: () 
           </button>
         )}
       </div>
-      <label class="rv-set-f">
-        <Spr family={fam} k={icon} size={32} label />
-        <span class="vh">Round set</span>
-        <select
-          value={info?.id ?? ""}
-          onChange={(e) => {
-            const set = (e.currentTarget as HTMLSelectElement).value;
-            if (set) go({ set });
-          }}
-        >
-          {!info && <option value="">Choose a round set</option>}
-          {GROUPS.map(([g, label]) => (
-            <optgroup key={g} label={label}>
-              {ROUND_SETS.filter((s) => s.group === g).map((s) => (
-                <option key={s.id} value={s.id}>
-                  {setLabel(s)}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
-      </label>
+      <SetPicker info={info} go={go} />
       {info && <RangeControls r={r} info={info} go={go} />}
       {chips.length > 0 && (
         <div class="rv-mods">
