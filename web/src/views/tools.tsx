@@ -44,7 +44,7 @@ export function ToolsHub() {
           What degree your sacrifices make, and the quickest way to reach the next boss breakpoint.
         </ToolTile>
         <ToolTile to={href.paragonScaling()} title="Paragon scaling" art={art(paragonScalingArt)}>
-          What each paragon degree from 1 to 100 adds: power needed, damage, pierce, cooldown and boss damage, charted.
+          What each paragon degree from 1 to 100 adds: power needed, damage, pierce, attack speed and boss damage, charted.
         </ToolTile>
         <ToolTile to={href.farming()} title="Farming resources" art={art(farmingArt)}>
           Banana farm reference charts: when a 0-0-0, 1-0-0 and 2-0-0 farm drops its bananas during a round.

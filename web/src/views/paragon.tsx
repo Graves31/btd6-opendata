@@ -640,7 +640,7 @@ function ScalingFold(p: { degree: number; ver: GameVer }) {
             {H("Degree", "Deg")}
             {H("Damage", "Dmg")}
             {H("Pierce", "Prc")}
-            {H("Cooldown", "CD")}
+            {H("Attack speed", "Speed")}
             {H("Boss N", "Boss N")}
             {H("Boss E", "Boss E")}
           </tr>
@@ -657,7 +657,7 @@ function ScalingFold(p: { degree: number; ver: GameVer }) {
                 <td>
                   +{one(x.piercePct)}%<br />+{one(x.pierceFlat)}
                 </td>
-                <td>−{one(x.cooldownPct)}%</td>
+                <td>+{one(x.speedPct)}%</td>
                 <td>{times(x.bossNormal)}</td>
                 <td>{times(x.bossElite)}</td>
               </tr>

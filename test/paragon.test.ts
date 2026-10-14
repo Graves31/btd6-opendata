@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { evaluate, inputMax, paragonCost, paragonTowers, powerForDegree, REF, scaling, waysTo, type GameVer, type ParagonInput } from "../web/src/paragon.ts";
+import { cooldownCut, evaluate, inputMax, paragonCost, paragonTowers, powerForDegree, REF, scaling, waysTo, type GameVer, type ParagonInput } from "../web/src/paragon.ts";
 
 const json = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../web/src/data/paragons.json"), "utf8"));
 const D = json.degreeData;
@@ -67,6 +67,16 @@ describe("paragon maths", () => {
     const s = scaling(21, "57");
     assert.equal(s.damagePct, D.damagePercentPerDegree * 20);
     assert.equal(s.bossNormal, 1 + D.bonusBossDamagePercent);
+  });
+  it("scaling matches the game code (wiki table values)", () => {
+    const at = (d: number) => scaling(d, "57");
+    assert.deepEqual([at(10).damageFlat, at(11).damageFlat, at(99).damageFlat, at(100).damageFlat], [0, 1, 9, 10]);
+    assert.deepEqual([at(99).damagePct, at(100).damagePct, at(100).piercePct], [98, 100, 100]);
+    assert.equal(+at(100).pierceFlat.toFixed(6), 10);
+    // cooldown multipliers from the wiki's degree table: 82.5083% at degree 10, 58.6854% at degree 100
+    assert.equal(+(100 + cooldownCut(at(10).speedPct)).toFixed(4), 82.5083);
+    assert.equal(+(100 + cooldownCut(at(100).speedPct)).toFixed(4), 58.6854);
+    assert.deepEqual([at(19).bossNormal, at(20).bossNormal, at(100).bossNormal, at(100).bossElite], [1, 1.25, 2.25, 4.5]);
   });
   it("waysTo skips full buckets and each way reaches the target", () => {
     const i: ParagonInput = { ...zero, pops: D.maxPowerFromPops * D.popsOverX * 2, cash: 1000 };

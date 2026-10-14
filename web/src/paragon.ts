@@ -154,21 +154,29 @@ function bossFor(degree: number, ver: GameVer): { normal: number; elite: number 
   return { normal, elite: 2 * normal };
 }
 
-/** Per-degree stat scaling. */
-export function scaling(degree: number, ver: GameVer): { damagePct: number; damageFlat: number; piercePct: number; pierceFlat: number; cooldownPct: number; bossNormal: number; bossElite: number } {
+/**
+ * Per-degree stat scaling, as ParagonTower.GetDegreeMutator + PowerDegreeMutator.MutateTower do it (v57.0 code):
+ * damage = base × (1 + damagePct/100) + damageFlat; pierce = base + trunc(base × piercePct/100) + pierceFlat;
+ * every attack and ability cooldown ÷ (1 + speedPct/100), speedPct = sqrt(X × (degree−1)) rounded to 0.1.
+ * At the max degree the game adds one more degree's worth of the damage and pierce values (so +100% and +10).
+ */
+export function scaling(degree: number, ver: GameVer): { damagePct: number; damageFlat: number; piercePct: number; pierceFlat: number; speedPct: number; bossNormal: number; bossElite: number } {
   const D = DATA[ver].degreeData;
   const n = degree - 1;
+  const top = degree >= D.degreeCount ? 1 : 0;
   const boss = bossFor(degree, ver);
   return {
-    damagePct: D.damagePercentPerDegree * n,
-    damageFlat: D.damageIncreasePerDegree * Math.floor(n / D.damageIncreaseForDegrees),
-    piercePct: D.piercePercentPerDegree * n,
-    pierceFlat: D.pierceIncreasePerDegree * n,
-    cooldownPct: Math.round(Math.sqrt(D.attackCooldownReductionX * n) * 10) / 10,
+    damagePct: D.damagePercentPerDegree * (n + top),
+    damageFlat: Math.trunc((n / D.damageIncreaseForDegrees) * D.damageIncreasePerDegree + top * D.damageIncreasePerDegree),
+    piercePct: D.piercePercentPerDegree * (n + top),
+    pierceFlat: D.pierceIncreasePerDegree * (n + top),
+    speedPct: Math.round(Math.sqrt(D.attackCooldownReductionX * n) * 10) / 10,
     bossNormal: boss.normal,
     bossElite: boss.elite,
   };
 }
+/** Cooldown change in % for an attack speed bonus (−29.8 for +42.4). */
+export const cooldownCut = (speedPct: number) => (1 / (1 + speedPct / 100) - 1) * 100;
 // ---- end formula block ----
 
 /** Power, degree, per-source breakdown, next degree and boss breakpoint for an input. */

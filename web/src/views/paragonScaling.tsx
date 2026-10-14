@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import heroArt from "../art/tools/paragonScaling.webp";
 import { fmtInt } from "../format.ts";
 import { navigate } from "../nav.ts";
-import { degreeData, gameVersion, paragonName, paragonTowers, powerForDegree, scaling } from "../paragon.ts";
+import { cooldownCut, degreeData, gameVersion, paragonName, paragonTowers, powerForDegree, scaling } from "../paragon.ts";
 import { href } from "../routes.ts";
 import { Spr } from "../sprite.tsx";
 import { A } from "../ui.tsx";
@@ -32,8 +32,9 @@ const sgnF = (n: number, unit = "") => {
   const r = one(n);
   return r === 0 ? `0${unit}` : `${r > 0 ? "+" : "−"}${Math.abs(r)}${unit}`;
 };
-const rate = (c: number) => +(1 / (1 - c / 100)).toFixed(1);
-const cdTxt = (c: number) => (c === 0 ? "0%" : `−${one(c)}% (≈ ×${rate(c)} attack rate)`);
+/** "+42.4%" attack speed; cooldowns are divided by 1 + that */
+const spdTxt = (c: number) => (c === 0 ? "0%" : `+${one(c)}%`);
+const cutTxt = (c: number) => `${one(cooldownCut(c)) === 0 ? "0" : `−${one(-cooldownCut(c))}`}%`;
 /** "*bold* text" → bold spans */
 const rich = (s: string) => s.split("*").map((t, i) => (i % 2 ? <b key={i}>{t}</b> : t));
 
@@ -245,7 +246,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
   };
 
   const c = { d, to: p.to, setD };
-  const cd = (n: number) => sc(n).cooldownPct;
+  const cd = (n: number) => sc(n).speedPct;
   const x = sc(d);
   const cmp = p.to !== undefined && p.to !== d ? p.to : undefined;
   const y = cmp === undefined ? undefined : sc(cmp);
@@ -263,7 +264,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
     ["Next degree", <Ic f="ui" k="ParagonDegree" />, next === undefined ? "Max degree" : `+${fmtInt(next)} power`, next === undefined ? undefined : `to reach degree ${d + 1}`],
     ["Damage", ICON.damage(), pct(x.damagePct), `${x.damageFlat === 0 ? "0" : `+${x.damageFlat}`} flat`],
     ["Pierce", ICON.pierce(), pct(x.piercePct), `${x.pierceFlat === 0 ? "0" : `+${one(x.pierceFlat)}`} flat`],
-    ["Attack cooldown", ICON.cooldown(), cdTxt(x.cooldownPct)],
+    ["Attack speed", ICON.cooldown(), spdTxt(x.speedPct), `cooldowns ${cutTxt(x.speedPct)} (attacks and abilities)`],
     ["Boss damage", ICON.boss(), times(x.bossNormal), `elite bosses ${times(x.bossElite)}`],
   ];
   const thR = (t: string) => <th scope="col">{t}</th>;
@@ -364,7 +365,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
                     [`Power, degree ${d} to ${cmp}`, sgn(pw(cmp) - pw(d))],
                     ["Damage", `${sgnF(y.damagePct - x.damagePct, "%")} and ${sgn(y.damageFlat - x.damageFlat)} flat`],
                     ["Pierce", `${sgnF(y.piercePct - x.piercePct, "%")} and ${sgnF(y.pierceFlat - x.pierceFlat)} flat`],
-                    ["Cooldown", `${sgnF(-(y.cooldownPct - x.cooldownPct), " points")}`],
+                    ["Attack speed", `${sgnF(y.speedPct - x.speedPct, " points")}`],
                     ["Boss damage", `${times(x.bossNormal)} → ${times(y.bossNormal)}`],
                     ["Elite boss", `${times(x.bossElite)} → ${times(y.bossElite)}`],
                   ] as [string, string][]
@@ -388,8 +389,8 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
           icon={ICON.damage()}
           take={
             same
-              ? `At degree 100 damage and pierce are both *${pct(sc(100).damagePct)}*, a steady +${one(sc(2).damagePct)}% per degree.`
-              : `At degree 100 damage is *${pct(sc(100).damagePct)}* and pierce *${pct(sc(100).piercePct)}*, a steady +${one(sc(2).damagePct)}% and +${one(sc(2).piercePct)}% per degree.`
+              ? `At degree 100 damage and pierce are both *${pct(sc(100).damagePct)}*: +${one(sc(2).damagePct)}% per degree, and degree 100 adds one extra step. The pierce % is rounded down to whole pierce, so real pierce climbs in whole steps (base pierce 10: +1 every 10 degrees).`
+              : `At degree 100 damage is *${pct(sc(100).damagePct)}* and pierce *${pct(sc(100).piercePct)}*, +${one(sc(2).damagePct)}% and +${one(sc(2).piercePct)}% per degree, and degree 100 adds one extra step.`
           }
           series={same ? [{ label: "Damage & pierce", v: (n) => sc(n).damagePct, main: true }] : [{ label: "Damage", v: (n) => sc(n).damagePct, main: true }, { label: "Pierce", v: (n) => sc(n).piercePct }]}
           yFmt={(n) => `${+n.toFixed(0)}%`}
@@ -399,7 +400,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
           {...c}
           title="Flat bonuses"
           icon={ICON.flat()}
-          take={`Flat damage grows +${D.damageIncreasePerDegree} every ${D.damageIncreaseForDegrees} degrees (*+${sc(100).damageFlat}* at 100); flat pierce +${one(sc(2).pierceFlat)} every degree (*+${one(sc(100).pierceFlat)}* at 100).`}
+          take={`Flat damage grows +${D.damageIncreasePerDegree} every ${D.damageIncreaseForDegrees} degrees, at 11, 21 … 91, and once more at 100 (*+${sc(100).damageFlat}*); flat pierce +${one(sc(2).pierceFlat)} every degree (*+${one(sc(100).pierceFlat)}* at 100).`}
           series={[
             { label: "Flat damage", v: (n) => sc(n).damageFlat, step: true, main: true },
             { label: "Flat pierce", v: (n) => sc(n).pierceFlat },
@@ -408,10 +409,10 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
         />
         <Chart
           {...c}
-          title="Cooldown"
+          title="Attack speed"
           icon={ICON.cooldown()}
-          take={`Attack cooldown is *−${one(cd(100))}% (≈ ×${rate(cd(100))} attack rate)* at degree 100, but it levels off: degrees 1 to 21 give −${one(cd(21))}%, degrees 80 to 100 only ${one(cd(100) - cd(80))} points more.`}
-          series={[{ label: "Cooldown", v: cd, main: true }]}
+          take={`Attacks and abilities are *+${one(cd(100))}% faster* at degree 100 (cooldowns ${cutTxt(cd(100))}), but it levels off: degrees 1 to 21 give +${one(cd(21))}%, degrees 80 to 100 only ${one(cd(100) - cd(80))} points more.`}
+          series={[{ label: "Attack speed", v: cd, main: true }]}
           yFmt={(n) => `${+n.toFixed(0)}%`}
           vFmt={(n) => `${one(n)}%`}
         />
@@ -454,7 +455,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
                 {!same && thR("Pierce")}
                 {thR("Flat dmg")}
                 {thR("Flat pierce")}
-                {thR("Cooldown")}
+                {thR("Attack speed")}
                 {thR("Boss")}
                 {thR("Elite boss")}
               </tr>
@@ -471,7 +472,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
                     {!same && <td>{pct(s.piercePct)}</td>}
                     <td>{s.damageFlat === 0 ? "0" : `+${s.damageFlat}`}</td>
                     <td>{s.pierceFlat === 0 ? "0" : `+${one(s.pierceFlat)}`}</td>
-                    <td>{s.cooldownPct === 0 ? "0%" : `−${one(s.cooldownPct)}%`}</td>
+                    <td>{spdTxt(s.speedPct)}</td>
                     <td>{times(s.bossNormal)}</td>
                     <td>{times(s.bossElite)}</td>
                   </tr>
