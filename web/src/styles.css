@@ -8533,3 +8533,82 @@ footer a {
     justify-self: stretch;
   }
 }
+
+/* Tools → Paragon scaling */
+.ps-intro {
+  margin: 0 0 12px;
+}
+.ps-panel {
+  margin-bottom: 14px;
+}
+@media (min-width: 900px) {
+  .ps-charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 14px;
+  }
+  .ps-charts > .pg-panel {
+    margin-top: 0;
+  }
+}
+.ps-take {
+  margin: 0 0 8px;
+  color: var(--ink-2);
+  font-size: 14px;
+}
+.ps-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: pan-y;
+  cursor: crosshair;
+}
+.ps-grid {
+  stroke: var(--rule);
+  stroke-width: 1;
+}
+.ps-t {
+  fill: var(--ink-3);
+  font-size: 11px;
+}
+.ps-line {
+  fill: none;
+  stroke: var(--ink-2);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.ps-line.ps-main {
+  stroke: var(--accent);
+}
+.ps-dot {
+  fill: var(--ink-2);
+}
+.ps-dot.ps-main {
+  fill: var(--accent);
+}
+.ps-lbl {
+  fill: var(--ink-2);
+  font-size: 12px;
+}
+.ps-lbl.ps-main {
+  fill: var(--accent-ink);
+  font-weight: 600;
+}
+.ps-mark,
+.ps-cross {
+  stroke: var(--ink-3);
+  stroke-width: 1;
+}
+.ps-mark {
+  stroke-dasharray: 3 3;
+}
+.ps-cross {
+  stroke: var(--ink-2);
+}
+.ps-read {
+  margin: 6px 0 0;
+  min-height: 1.4em;
+}
+.ps-panel .pg-table td {
+  white-space: nowrap;
+}

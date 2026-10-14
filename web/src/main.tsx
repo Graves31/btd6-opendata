@@ -17,6 +17,7 @@ import { BossStatsPage } from "./views/bossstats.tsx";
 import { ChallengePage, PlayerPage, TeamPage } from "./views/people.tsx";
 import { ParagonPage } from "./views/paragon.tsx";
 import { RoundsPage, roundsTitle, roundsBoss } from "./views/rounds.tsx";
+import { ParagonScalingPage } from "./views/paragonScaling.tsx";
 import { FarmingPage } from "./views/farming.tsx";
 import { ToolsHub } from "./views/tools.tsx";
 import { StatsPage } from "./views/stats.tsx";
@@ -60,6 +61,8 @@ function Page(props: { r: Route }) {
       return <ParagonPage r={r} />;
     case "farming":
       return <FarmingPage r={r.r} />;
+    case "pgscaling":
+      return <ParagonScalingPage d={r.d} />;
     case "stats":
       return <StatsPage />;
     case "suggest":
@@ -139,6 +142,8 @@ export function title(r: Route): string {
       return t("Paragon degree calculator");
     case "farming":
       return t("Farming resources");
+    case "pgscaling":
+      return t("Paragon scaling");
     case "stats":
       return t("Site stats");
     case "suggest":
@@ -238,7 +243,7 @@ function section(r: Route): string {
   if (r.name === "ctgroup") return "ct";
   if (r.name === "challenge") return "challenges";
   if (r.name === "map") return "maps";
-  if (r.name === "rounds" || r.name === "paragon" || r.name === "farming") return "tools";
+  if (r.name === "rounds" || r.name === "paragon" || r.name === "farming" || r.name === "pgscaling") return "tools";
   if (r.name === "bossstats") return "boss";
   return n;
 }

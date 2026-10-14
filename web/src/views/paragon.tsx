@@ -663,6 +663,9 @@ function ScalingFold(p: { degree: number; ver: GameVer }) {
         </tbody>
       </table>
       <p class="pg-hint">Your degree is highlighted. Boss N / E: bonus damage to normal / elite bosses.</p>
+      <A href={href.paragonScaling(p.degree)} class="pg-link">
+        Full scaling analysis ›
+      </A>
     </details>
   );
 }

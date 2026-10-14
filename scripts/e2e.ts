@@ -307,7 +307,7 @@ async function main() {
     await home();
 
     await step("Now → Tools", 'header nav a[href="/tools"]', "tools");
-    if ((await page.evaluate(() => document.querySelectorAll(".tools-tiles a.tile").length)) !== 3) problems.push("tools hub: want 3 tool cards");
+    if ((await page.evaluate(() => document.querySelectorAll(".tools-tiles a.tile").length)) !== 4) problems.push("tools hub: want 4 tool cards");
     await step("Tools → Round visualizer", ".tools-tiles a.tile[href^='/tools/rounds']", "rounds-tool");
     if (!(await has("ol.rv-list li.rv-row"))) problems.push("tools: no round rows");
     // One scroll context: nothing on the page may be an inner vertical scroller, and the wheel over the list
