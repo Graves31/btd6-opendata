@@ -8,7 +8,7 @@ import { navigate } from "../nav.ts";
 import { degreeData, gameVersion, powerForDegree, scaling } from "../paragon.ts";
 import { href } from "../routes.ts";
 import { A } from "../ui.tsx";
-import { parseNum, TargetInput } from "./paragon.tsx";
+import { TargetInput } from "./paragon.tsx";
 
 const VER = "57" as const;
 const DEG = Array.from({ length: 100 }, (_, i) => i + 1);
@@ -63,7 +63,6 @@ function Chart(p: {
   d: number;
   to?: number;
   setD: (d: number) => void;
-  wide?: boolean;
 }) {
   const [hov, setHov] = useState<number | undefined>();
   const H = p.series.length > 1 ? 230 : 200;
@@ -94,7 +93,7 @@ function Chart(p: {
   const vline = (cls: string, dg: number) => <line class={cls} x1={x(dg)} x2={x(dg)} y1={MT} y2={H - MB} />;
   const plain = p.take.replace(/\*/g, "");
   return (
-    <section class={`pg-panel ps-panel${p.wide ? " ps-wide" : ""}`}>
+    <section class={`pg-panel ps-panel`}>
       <div class="pg-ph">
         <h2 class="eyebrow">{p.title}</h2>
       </div>
@@ -162,13 +161,10 @@ function Chart(p: {
   );
 }
 
-const CHIPS = [20, 40, 60, 80, 100];
-
 export function ParagonScalingPage(p: { d?: number; to?: number }) {
   const d = p.d ?? 1;
   const D = degreeData(VER);
   const [copied, setCopied] = useState(false);
-  const [power, setPower] = useState("");
   useEffect(() => {
     if (!copied) return;
     const t = setTimeout(() => setCopied(false), 1800);
@@ -200,9 +196,6 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
   const same = DEG.every((n) => sc(n).damagePct === sc(n).piercePct);
   const step = pw(3) - pw(2);
   const bossStep = sc(D.bonusBossDamagePerDegrees).bossNormal - 1;
-
-  const typed = parseNum(power.trim());
-  const myDeg = typed === null ? undefined : DEG.filter((n) => pw(n) <= typed).pop();
 
   const rows = DEG.filter(
     (n) => n === 1 || n === 100 || n === d || n === p.to || sc(n).bossNormal !== sc(n - 1).bossNormal || sc(n).damageFlat !== sc(n - 1).damageFlat,
@@ -252,13 +245,6 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
           <button type="button" class="pg-copy" onClick={copy}>
             {copied ? "Link copied" : "Copy link"}
           </button>
-        </div>
-        <div class="rv-chips ps-chips">
-          {CHIPS.map((n) => (
-            <button key={n} type="button" class={`rv-chip${n === d ? " on" : ""}`} aria-pressed={n === d} onClick={() => setD(n)}>
-              {n}
-            </button>
-          ))}
         </div>
         <dl class="ps-sum">
           {sum.map(([k, v, sub]) => (
@@ -322,57 +308,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
           </div>
         )}
       </section>
-      <section class="pg-panel ps-panel" aria-labelledby="ps-who">
-        <div class="pg-ph">
-          <h2 class="eyebrow" id="ps-who">
-            What degree am I?
-          </h2>
-        </div>
-        <label for="ps-pow" class="pg-lab">
-          Your power
-        </label>
-        <div class="pg-num">
-          <input
-            id="ps-pow"
-            type="text"
-            inputMode="decimal"
-            enterKeyHint="done"
-            autocomplete="off"
-            spellcheck={false}
-            placeholder="85k or 1.2m"
-            value={power}
-            onInput={(e) => setPower(e.currentTarget.value)}
-          />
-        </div>
-        <p class="pg-hint ps-who">
-          {power.trim() === "" ? (
-            "Type the power your paragon has, like 85k or 1.2m."
-          ) : typed === null ? (
-            "Not a number. Try 85k or 1.2m."
-          ) : myDeg === undefined ? (
-            <>Not enough for degree 1 ({fmtInt(pw(1))} power).</>
-          ) : (
-            <>
-              <strong>= degree {myDeg}</strong>
-              {myDeg < 100 ? `, ${fmtInt(pw(myDeg + 1) - typed)} more power to degree ${myDeg + 1}` : ", the max degree"}.{" "}
-              {myDeg !== d && (
-                <button type="button" class="pg-link" onClick={() => setD(myDeg)}>
-                  Use degree {myDeg}
-                </button>
-              )}
-            </>
-          )}
-        </p>
-      </section>
       <div class="ps-charts">
-        <Chart
-          {...c}
-          wide
-          title="Power needed"
-          take={`Degree 100 needs *${fmtInt(pw(100))} total power*. The power for one degree keeps growing too: *${fmtInt(step)}* for degree 3, *${fmtInt(pw(100) - pw(99))}* for degree 100.`}
-          series={[{ label: "Total power", v: pw, main: true }]}
-          yFmt={compact}
-        />
         <Chart
           {...c}
           title="Damage & pierce bonus"
@@ -413,6 +349,16 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
           yFmt={times}
         />
       </div>
+      <details class="pg-fold pg-fold-big ps-fold">
+        <summary>Power needed per degree</summary>
+        <Chart
+          {...c}
+          title="Power needed"
+          take={`Degree 100 needs *${fmtInt(pw(100))} total power*. The power for one degree keeps growing too: *${fmtInt(step)}* for degree 3, *${fmtInt(pw(100) - pw(99))}* for degree 100.`}
+          series={[{ label: "Total power", v: pw, main: true }]}
+          yFmt={compact}
+        />
+      </details>
       <section class="pg-panel ps-panel">
         <div class="pg-ph">
           <h2 class="eyebrow">Breakpoints</h2>
