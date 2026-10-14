@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import type { ScorePart } from "../../src/nk/types.ts";
 import { fmtClock, fmtDate, fmtPart, fmtSpan, fmtWhen, partLabel, status, tzLabel } from "./format.ts";
 import { bracketLabel, medalArt, medalName, medalTier, type Board } from "./medals.ts";
-import { intent, navigate, store, watchLink } from "./nav.ts";
+import { backTo, intent, navigate, store, watchLink } from "./nav.ts";
 import { hasArt, Spr } from "./sprite.tsx";
 import type { ClientEntry } from "./store.ts";
 import { ErrorPanel, whatOfKey } from "./views/errors.tsx";
@@ -589,3 +589,45 @@ export function Section(props: { title: ComponentChildren; aside?: ComponentChil
   );
 }
 
+
+/**
+ * A tool page's title card (the template for every tool, see CLAUDE.md): its art, a big title, one line on what it
+ * does, and an optional strip of game icons or buttons (right of the title on desktop, under it on phones).
+ */
+export function ToolHero(p: { art: ComponentChildren; eyebrow?: string; title: ComponentChildren; sub?: ComponentChildren; children?: ComponentChildren }) {
+  return (
+    <header class="th">
+      <span class="th-art">{p.art}</span>
+      <div class="th-t">
+        <p class="eyebrow">{p.eyebrow ?? "Tools"}</p>
+        <h1 class="th-h1">{p.title}</h1>
+        {p.sub && <p class="th-sub">{p.sub}</p>}
+      </div>
+      {p.children && <div class="th-x">{p.children}</div>}
+    </header>
+  );
+}
+
+/** A tool's back link: "‹ <page>" when a click inside the site opened it (the browser's back, scroll included), else "‹ Tools". */
+export function ToolBack() {
+  const b = backTo();
+  if (!b || b.href === "/tools")
+    return (
+      <A href="/tools" class="backlink rv-back">
+        <span aria-hidden="true">‹</span> Tools
+      </A>
+    );
+  return (
+    <a
+      class="backlink rv-back"
+      href={b.href}
+      onClick={(e) => {
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        history.back();
+      }}
+    >
+      <span aria-hidden="true">‹</span> {b.label}
+    </a>
+  );
+}

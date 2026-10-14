@@ -8575,69 +8575,105 @@ footer a {
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
-/* header: the tool's art, a big title and every paragon (each opens the calculator at the picked degree) */
-.ps-hero {
+/* ─────────────────────────────── tool title card (ui.tsx ToolHero): the template for every tool page */
+.th {
+  --th-tint: var(--accent-ink);
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 12px 16px;
   margin-bottom: 12px;
   padding: 14px 16px;
-  background: linear-gradient(120deg, color-mix(in srgb, var(--ps-main) 22%, var(--s1)), var(--s1) 70%);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--th-tint) 22%, var(--s1)), var(--s1) 70%);
   border: 1px solid var(--rule-2);
   border-radius: var(--r);
 }
-.ps-hero-art {
+.th-art {
+  display: block;
   width: 72px;
   height: 72px;
   filter: drop-shadow(0 3px 6px rgb(0 0 0 / 0.35));
 }
-.ps-h1 {
+.th-art > img,
+.th-art > .spr {
+  --s: 72px;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.th-t {
+  min-width: 0;
+}
+.th-h1 {
   font: 800 clamp(30px, 6vw, 48px)/0.95 var(--f-display);
   text-transform: uppercase;
   letter-spacing: 0.01em;
+  overflow-wrap: break-word;
+  text-wrap: balance;
 }
-.ps-sub {
+.th-sub {
   margin-top: 6px;
   color: var(--ink);
   font-weight: 600;
 }
-.ps-pgs {
+/* the strip: game icons (a row of .th-ic, links or plain) and/or buttons */
+.th-x {
   grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(7, auto);
-  justify-content: space-between;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 4px;
 }
-.ps-pg {
+.th-ic {
   display: block;
   padding: 2px;
   border-radius: 8px;
   transition: transform 0.12s;
 }
-.ps-pg .spr {
+.th-ic .spr {
   --s: 38px;
 }
-.ps-pg:hover,
-.ps-pg:focus-visible {
+.th-x .rv-edit {
+  margin-left: auto;
+}
+/* phones: only the first few icons of a long strip (.th-more) */
+@media (max-width: 700px) {
+  .th-more {
+    display: none;
+  }
+}
+a.th-ic:hover,
+a.th-ic:focus-visible {
   background: var(--s2);
   transform: translateY(-2px);
 }
 @media (min-width: 701px) {
-  .ps-hero {
+  .th {
     grid-template-columns: auto minmax(0, 1fr) auto;
     padding: 18px 22px;
   }
-  .ps-hero-art {
+  .th-art {
     width: 96px;
     height: 96px;
   }
-  .ps-pgs {
-    grid-column: auto;
+  .th-art > .spr {
+    --s: 96px;
   }
-  .ps-pg .spr {
+  .th-x {
+    grid-column: auto;
+    justify-content: flex-end;
+    max-width: 380px;
+  }
+  .th-ic .spr {
     --s: 44px;
   }
+}
+/* paragon scaling: the 14 paragons in two rows of 7 */
+.ps-pgs {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(7, auto);
+  justify-content: space-between;
 }
 .ps-h {
   display: flex;

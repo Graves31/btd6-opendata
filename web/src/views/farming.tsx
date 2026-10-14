@@ -5,6 +5,7 @@
 
 import { useEffect } from "preact/hooks";
 import bananaArt from "../art/tools/banana.webp";
+import heroArt from "../art/tools/farming.webp";
 import farm000 from "../art/tools/farm000.webp";
 import farm100 from "../art/tools/farm100.webp";
 import farm200 from "../art/tools/farm200.webp";
@@ -12,7 +13,7 @@ import { ROUND_SET_BY_ID, type RoundSetData } from "../data/rounds/index.ts";
 import { navigate, store } from "../nav.ts";
 import { spawnEnd } from "../rounds.ts";
 import { href } from "../routes.ts";
-import { A } from "../ui.tsx";
+import { ToolBack, ToolHero } from "../ui.tsx";
 import { TargetInput } from "./paragon.tsx";
 
 const FARMS = [
@@ -114,15 +115,14 @@ function SpawnChart(p: { r?: number }) {
 export function FarmingPage(p: { r?: number }) {
   return (
     <div class="pg">
-      <A href={href.tools()} class="backlink rv-back">
-        <span aria-hidden="true">‹</span> Tools
-      </A>
-      <header class="rv-bar">
-        <div class="rv-bar-t">
-          <p class="eyebrow">Tools</p>
-          <h1 class="rv-h1">Farming resources</h1>
-        </div>
-      </header>
+      <ToolBack />
+      <ToolHero art={<img src={heroArt} width={96} height={96} alt="" />} title="Farming resources" sub="When Banana Farms drop their bananas during a round, and what they're worth.">
+        {FARMS.map((f) => (
+          <span key={f.path} class="th-ic">
+            <img src={f.art} width={44} height={44} alt={`Banana Farm ${f.path}`} decoding="async" />
+          </span>
+        ))}
+      </ToolHero>
       <SpawnChart r={p.r} />
     </div>
   );

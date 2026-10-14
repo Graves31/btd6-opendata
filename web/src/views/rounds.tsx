@@ -10,6 +10,7 @@
 // set file already in the store, so every switch is instant.
 
 import type { ComponentChildren } from "preact";
+import heroArt from "../art/tools/rounds.webp";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
 import { BLOON_TYPES, GAME_VERSION, ROUND_SETS, type Round, type RoundSetData, type RoundSetInfo } from "../data/rounds/index.ts";
 import { fmtInt } from "../format.ts";
@@ -40,7 +41,7 @@ import {
 } from "../rounds.ts";
 import { gameDefaults } from "../rules.tsx";
 import { hasArt, MODE_NAME, Spr } from "../sprite.tsx";
-import { A, useFullRender } from "../ui.tsx";
+import { A, ToolHero, useFullRender } from "../ui.tsx";
 
 // ─────────────────────────────── titles
 
@@ -217,9 +218,9 @@ export function RoundsPage(props: { r: RoundsRoute }) {
         <Visualizer r={r} info={info!} data={data} go={go} />
       ) : (
         <>
-          <header class="rv-bar">
-            <h1 class="rv-h1">Round visualizer</h1>
-          </header>
+          <ToolHero art={<img src={heroArt} width={96} height={96} alt="" />} title="Round visualizer" sub="The bloons, RBE and spawn timing of every round, from the game's own data.">
+            <BloonStrip />
+          </ToolHero>
           <EditForm r={r} go={go} />
           <div class="empty rv-empty">
             {pick.kind === "unknown" ? (
@@ -456,6 +457,19 @@ function Visualizer(p: { r: RoundsRoute; info: RoundSetInfo; data?: RoundSetData
 
 // ─────────────────────────────── set bar + Edit
 
+/** The title card's game icons: a few bloons, small to big. */
+const STRIP_BLOONS = ["red", "rainbow", "ceramic", "moab", "bfb", "zomg", "bad"];
+const STRIP_PHONE = new Set(["red", "ceramic", "moab", "bad"]);
+const BloonStrip = () => (
+  <>
+    {STRIP_BLOONS.map((k) => (
+      <span key={k} class={STRIP_PHONE.has(k) ? "th-ic" : "th-ic th-more"}>
+        <Spr family="bloon" k={k} size={44} />
+      </span>
+    ))}
+  </>
+);
+
 function SetBar(p: {
   r: RoundsRoute;
   info: RoundSetInfo;
@@ -482,19 +496,22 @@ function SetBar(p: {
   };
   return (
     <>
-      <header class="rv-bar">
-        <Spr family={fam} k={icon} size={40} label />
-        <div class="rv-bar-t">
-          <p class="eyebrow">Round visualizer</p>
-          <h1 class="rv-h1">{rangeTitle(info, p.from, p.to)}</h1>
-          {!summary && !p.setup && <p class="rv-intro">The bloons, RBE and spawn timing of every round, from the game's own data.</p>}
-          {summary && !p.setup && (
-            <p class="rv-sum">
+      <ToolHero
+        art={<Spr family={fam} k={icon} size={72} label />}
+        eyebrow="Round visualizer"
+        title={rangeTitle(info, p.from, p.to)}
+        sub={
+          p.setup ? undefined : summary ? (
+            <>
               <span class="vh">From the event: </span>
               {summary}
-            </p>
-          )}
-        </div>
+            </>
+          ) : (
+            "The bloons, RBE and spawn timing of every round, from the game's own data."
+          )
+        }
+      >
+        <BloonStrip />
         {!p.setup && (
           <button
             ref={editBtn}
@@ -507,7 +524,7 @@ function SetBar(p: {
             Edit
           </button>
         )}
-      </header>
+      </ToolHero>
       {p.setup ? (
         <EditForm r={r} info={info} go={p.go} />
       ) : p.editOpen && p.desktop ? (

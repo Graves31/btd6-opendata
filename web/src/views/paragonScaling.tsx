@@ -10,7 +10,7 @@ import { navigate } from "../nav.ts";
 import { cooldownCut, degreeData, gameVersion, paragonName, paragonTowers, powerForDegree, scaling } from "../paragon.ts";
 import { href } from "../routes.ts";
 import { Spr } from "../sprite.tsx";
-import { A } from "../ui.tsx";
+import { A, ToolBack, ToolHero } from "../ui.tsx";
 import { paragonIcon, TargetInput } from "./paragon.tsx";
 
 const VER = "57" as const;
@@ -271,25 +271,17 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
 
   return (
     <div class="pg ps">
-      <A href={href.tools()} class="backlink rv-back">
-        <span aria-hidden="true">‹</span> Tools
-      </A>
-      <header class="ps-hero">
-        <img class="ps-hero-art" src={heroArt} width={96} height={96} alt="" />
-        <div class="ps-hero-t">
-          <p class="eyebrow">Tools</p>
-          <h1 class="ps-h1">Paragon scaling</h1>
-          <p class="ps-sub">What every degree adds to a paragon, from degree 1 to 100.</p>
-        </div>
+      <ToolBack />
+      <ToolHero art={<img src={heroArt} width={96} height={96} alt="" />} title="Paragon scaling" sub="What every degree adds to a paragon, from degree 1 to 100.">
         <nav class="ps-pgs" aria-label={`Open a paragon in the calculator at degree ${d}`}>
           {paragonTowers(VER).map((t) => (
-            <A key={t} href={href.paragon({ tower: t, target: d >= 2 ? d : undefined }, true)} class="ps-pg" title={`${paragonName(t, VER)}, degree ${d}`}>
+            <A key={t} href={href.paragon({ tower: t, target: d >= 2 ? d : undefined }, true)} class="th-ic" title={`${paragonName(t, VER)}, degree ${d}`}>
               {paragonIcon(t, 44)}
               <span class="vh">{paragonName(t, VER)}</span>
             </A>
           ))}
         </nav>
-      </header>
+      </ToolHero>
       <section class="ps-ctl" aria-label="Degree">
         <span class="ps-ctl-l">
           <Ic f="ui" k="ParagonDegree" size={28} />

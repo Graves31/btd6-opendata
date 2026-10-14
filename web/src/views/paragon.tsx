@@ -6,13 +6,14 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { ART } from "../art/index.ts";
+import heroArt from "../art/tools/paragon.webp";
 import { fmtInt, unitName } from "../format.ts";
 import { navigate } from "../nav.ts";
 import { degreeData, evaluate, gameVersion, inputMax, paragonCost, paragonName, paragonTowers, powerForDegree, REF, scaling, waysTo, type Bucket, type Difficulty, type GameVer, type ParagonInput, type ParagonResult, type ParagonTower, type Way } from "../paragon.ts";
 import { href, PG_DIFFS, type ParagonRoute } from "../routes.ts";
 import { TOWER_GROUPS } from "../rules.tsx";
 import { Spr } from "../sprite.tsx";
-import { A, Stat } from "../ui.tsx";
+import { A, Stat, ToolBack, ToolHero } from "../ui.tsx";
 
 const DIFF_NAME: Record<Difficulty, string> = { easy: "Easy", medium: "Medium", hard: "Hard", impoppable: "Impoppable" };
 const BUCKET_NAME: Record<string, string> = {
@@ -253,16 +254,18 @@ export function ParagonPage(props: { r: ParagonRoute }) {
 
   return (
     <div class="pg">
-      <A href={href.tools()} class="backlink rv-back">
-        <span aria-hidden="true">‹</span> Tools
-      </A>
-      <header class="rv-bar">
-        <div class="rv-bar-t">
-          <p class="eyebrow">Tools</p>
-          <h1 class="rv-h1">Paragon degree calculator</h1>
-          <p class="rv-intro">How much sacrificed cash, pops, towers and totems each paragon degree takes, from the game's own data.</p>
-        </div>
-      </header>
+      <ToolBack />
+      <ToolHero
+        art={<img src={heroArt} width={96} height={96} alt="" />}
+        title="Paragon degree calculator"
+        sub="How much sacrificed cash, pops, towers and totems each paragon degree takes, from the game's own data."
+      >
+        {Object.entries(BUCKET_ICON).map(([b, k]) => (
+          <span key={b} class="th-ic">
+            <Spr family="ui" k={k} size={44} name={BUCKET_NAME[b]} />
+          </span>
+        ))}
+      </ToolHero>
 
       <button type="button" class="pg-mbar" onClick={toResult} aria-label="Show the full result">
         <span>Degree</span>
