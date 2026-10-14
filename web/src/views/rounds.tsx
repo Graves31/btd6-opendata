@@ -1020,25 +1020,31 @@ function Strip(p: {
     else if (k !== p.sel) p.onSelect(k);
   };
   const what = p.hasRbe ? "RBE" : "Bloons";
-  // css#16: the bars only change with the data or the selection, not with each scroll-follow step of the cursor.
+  // css#16: the bars only change with the data, not with each scroll-follow step of the cursor; the highlighted bar
+  // (the selected round, or in the list the round at the top of the list) is drawn on its own over them.
   const minPct = 5; // ≥ 2 px bars: every round is visible and can be aimed at
-  const bars = useMemo(() => {
-    const max = Math.max(1, ...vals);
+  const max = useMemo(() => Math.max(1, ...vals), [vals]);
+  const bar = (j: number) => {
+    const h = Math.max((vals[j]! / max) * 100, minPct);
+    const m = p.hasRbe ? Math.min((p.parts[j]!.moab / max) * 100, h) : 0;
     return (
-      <svg class="rv-bars" viewBox={`0 0 ${n} 100`} preserveAspectRatio="none" aria-hidden="true">
-        {p.rounds.map((x, j) => {
-          const h = Math.max((vals[j]! / max) * 100, minPct);
-          const m = p.hasRbe ? Math.min((p.parts[j]!.moab / max) * 100, h) : 0;
-          return (
-            <g key={x.n} class={x.n === p.sel ? "sel" : undefined}>
-              <rect class="b" x={j + 0.08} width={0.84} y={100 - h} height={Math.max(h - m, 0)} />
-              {m > 0 && <rect class="m" x={j + 0.08} width={0.84} y={100 - m} height={m} />}
-            </g>
-          );
-        })}
-      </svg>
+      <>
+        <rect class="b" x={j + 0.08} width={0.84} y={100 - h} height={Math.max(h - m, 0)} />
+        {m > 0 && <rect class="m" x={j + 0.08} width={0.84} y={100 - m} height={m} />}
+      </>
     );
-  }, [vals, p.rounds, p.parts, p.hasRbe, p.sel, n]);
+  };
+  const bars = useMemo(
+    () => (
+      <svg class="rv-bars" viewBox={`0 0 ${n} 100`} preserveAspectRatio="none" aria-hidden="true">
+        {p.rounds.map((x, j) => (
+          <g key={x.n}>{bar(j)}</g>
+        ))}
+      </svg>
+    ),
+    [vals, p.rounds, p.parts, p.hasRbe, n],
+  );
+  const hl = p.follow ? i : p.sel === undefined ? -1 : p.sel - p.from;
   return (
     <div class="rv-ov">
       <div
@@ -1073,6 +1079,11 @@ function Strip(p: {
           </div>
         )}
         {bars}
+        {hl >= 0 && hl < n && (
+          <svg class="rv-bars" viewBox={`0 0 ${n} 100`} preserveAspectRatio="none" aria-hidden="true">
+            <g class="sel">{bar(hl)}</g>
+          </svg>
+        )}
         {p.runs.length > 0 && (
           <div class="rv-ribbon" aria-hidden="true">
             {p.runs.map(([a, b]) => (
