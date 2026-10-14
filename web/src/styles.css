@@ -8561,10 +8561,90 @@ footer a {
   }
 }
 .ps-ctl-l {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--ink);
   font: 700 15px/1 var(--f-display);
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+/* header: the tool's art, a big title and every paragon (each opens the calculator at the picked degree) */
+.ps-hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px 16px;
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(120deg, color-mix(in srgb, var(--ps-main) 22%, var(--s1)), var(--s1) 70%);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+}
+.ps-hero-art {
+  width: 72px;
+  height: 72px;
+  filter: drop-shadow(0 3px 6px rgb(0 0 0 / 0.35));
+}
+.ps-h1 {
+  font: 800 clamp(30px, 6vw, 48px)/0.95 var(--f-display);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+.ps-sub {
+  margin-top: 6px;
+  color: var(--ink);
+  font-weight: 600;
+}
+.ps-pgs {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(7, auto);
+  justify-content: space-between;
+  gap: 4px;
+}
+.ps-pg {
+  display: block;
+  padding: 2px;
+  border-radius: 8px;
+  transition: transform 0.12s;
+}
+.ps-pg .spr {
+  --s: 38px;
+}
+.ps-pg:hover,
+.ps-pg:focus-visible {
+  background: var(--s2);
+  transform: translateY(-2px);
+}
+@media (min-width: 701px) {
+  .ps-hero {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    padding: 18px 22px;
+  }
+  .ps-hero-art {
+    width: 96px;
+    height: 96px;
+  }
+  .ps-pgs {
+    grid-column: auto;
+  }
+  .ps-pg .spr {
+    --s: 44px;
+  }
+}
+.ps-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ps-h .spr {
+  --s: 30px;
+}
+.ps-sum dt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 .ps-ctl .pg-tstep .pg-step,
 .ps-cmp .pg-tstep .pg-step {
@@ -8758,6 +8838,26 @@ footer a {
 }
 .ps-hover {
   opacity: 0.5;
+}
+/* the picked degree's value, read across to the left axis */
+.ps-hl {
+  stroke: var(--ink-2);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.ps-hl.ps-main {
+  stroke: var(--ps-main);
+}
+.ps-tag rect {
+  fill: var(--ink-2);
+}
+.ps-tag.ps-main rect {
+  fill: var(--ps-main);
+}
+.ps-tag text {
+  fill: var(--s1);
+  font: 700 12px var(--f-body);
+  font-variant-numeric: tabular-nums;
 }
 .ps-tw {
   overflow-x: auto;
