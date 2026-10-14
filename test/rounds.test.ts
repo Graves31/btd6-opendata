@@ -322,8 +322,12 @@ describe("tools hub and paragon calculator routes", () => {
     assert.equal(parse(U("/tools/paragon/x")).name, "notfound");
   });
   it("/tools/paragon-scaling: degree param", () => {
-    assert.deepEqual(parse(U("/tools/paragon-scaling")), { name: "pgscaling", d: undefined });
-    assert.deepEqual(parse(U("/tools/paragon-scaling?d=40")), { name: "pgscaling", d: 40 });
+    assert.deepEqual(parse(U("/tools/paragon-scaling")), { name: "pgscaling", d: undefined, to: undefined });
+    assert.deepEqual(parse(U("/tools/paragon-scaling?d=40")), { name: "pgscaling", d: 40, to: undefined });
+    assert.deepEqual(parse(U("/tools/paragon-scaling?d=40&to=75")), { name: "pgscaling", d: 40, to: 75 });
+    assert.equal((parse(U("/tools/paragon-scaling?to=0")) as { to?: number }).to, undefined);
+    assert.equal((parse(U("/tools/paragon-scaling?to=101")) as { to?: number }).to, undefined);
+    assert.equal(href.paragonScaling(40, 75), "/tools/paragon-scaling?d=40&to=75");
     assert.equal((parse(U("/tools/paragon-scaling?d=101")) as { d?: number }).d, undefined);
     assert.equal(href.paragonScaling(), "/tools/paragon-scaling");
     assert.equal(href.paragonScaling(40), "/tools/paragon-scaling?d=40");

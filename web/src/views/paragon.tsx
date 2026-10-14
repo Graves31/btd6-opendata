@@ -576,6 +576,9 @@ function ResultCard(p: { res: ParagonResult; ver: GameVer; boost: boolean; copie
       <dl class="pg-hero">
         <Stat k={<><FieldIcon k="ParagonDegree" size={24} />Degree</>} v={res.degree} accent note={p.boost ? `${res.base} from power + ${res.degree - res.base} Paragon Boost` : undefined} />
       </dl>
+      <A href={href.paragonScaling(res.degree)} class="pg-link">
+        See what degree {res.degree} gives ›
+      </A>
       <dl class="pg-nums">
         <Stat k={<><FieldIcon k="ParagonPower" size={24} />Power</>} v={fmtInt(res.power)} />
         <Stat k="Next degree" v={res.next ? `+${fmtInt(res.next.gap)}` : "Max"} note={res.next ? `degree ${res.next.degree} at ${fmtInt(res.next.power)}` : "degree 100 reached"} />

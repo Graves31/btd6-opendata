@@ -62,7 +62,7 @@ function Page(props: { r: Route }) {
     case "farming":
       return <FarmingPage r={r.r} />;
     case "pgscaling":
-      return <ParagonScalingPage d={r.d} />;
+      return <ParagonScalingPage d={r.d} to={r.to} />;
     case "stats":
       return <StatsPage />;
     case "suggest":

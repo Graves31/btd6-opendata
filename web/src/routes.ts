@@ -29,7 +29,7 @@ export type Route =
   | { name: "tools" }
   | ParagonRoute
   | { name: "farming"; r?: number }
-  | { name: "pgscaling"; d?: number }
+  | { name: "pgscaling"; d?: number; to?: number }
   | { name: "stats" }
   | { name: "suggest" }
   | MapsRoute
@@ -345,8 +345,11 @@ export function parse(url: URL): Route {
     return { name: "farming", r: Number.isInteger(r) && r >= 1 && r <= 1000 ? r : undefined };
   }
   if (a === "tools" && b === "paragon-scaling" && !c) {
-    const d = Number(q.get("d"));
-    return { name: "pgscaling", d: Number.isInteger(d) && d >= 1 && d <= 100 ? d : undefined };
+    const deg = (k: string) => {
+      const n = Number(q.get(k));
+      return Number.isInteger(n) && n >= 1 && n <= 100 ? n : undefined;
+    };
+    return { name: "pgscaling", d: deg("d"), to: deg("to") };
   }
   if (a === "challenges" && !c && (!b || ["daily", "newest", "trending"].includes(b))) {
     const filter = (b ?? "daily") as ChallengeFilter;
@@ -495,7 +498,7 @@ export const href = {
   /** Farming resources; `r` = the round whose length the banana chart is drawn in. */
   farming: (r?: number) => `/tools/farming${qs({ r })}`,
   /** Paragon scaling charts; `d` = a degree to mark. */
-  paragonScaling: (d?: number) => `/tools/paragon-scaling${qs({ d })}`,
+  paragonScaling: (d?: number, to?: number) => `/tools/paragon-scaling${qs({ d, to })}`,
   /** The paragon calculator; only non-default values are written (`pin`: tower and difficulty always, so a link keeps them). */
   paragon: (s: Partial<Omit<ParagonRoute, "name" | "picked">> = {}, pin = false) =>
     `/tools/paragon${qs({
