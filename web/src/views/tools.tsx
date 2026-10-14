@@ -3,6 +3,7 @@
 import type { ComponentChildren } from "preact";
 import farmingArt from "../art/tools/farming.webp";
 import paragonArt from "../art/tools/paragon.webp";
+import paragonScalingArt from "../art/tools/paragonScaling.webp";
 import roundsArt from "../art/tools/rounds.webp";
 import { href } from "../routes.ts";
 import { A } from "../ui.tsx";
@@ -42,7 +43,7 @@ export function ToolsHub() {
         <ToolTile to={href.paragon()} title="Paragon calculator" art={art(paragonArt)}>
           What degree your sacrifices make, and the quickest way to reach the next boss breakpoint.
         </ToolTile>
-        <ToolTile to={href.paragonScaling()} title="Paragon scaling" art={art(paragonArt)}>
+        <ToolTile to={href.paragonScaling()} title="Paragon scaling" art={art(paragonScalingArt)}>
           What each paragon degree from 1 to 100 adds: power needed, damage, pierce, cooldown and boss damage, charted.
         </ToolTile>
         <ToolTile to={href.farming()} title="Farming resources" art={art(farmingArt)}>
