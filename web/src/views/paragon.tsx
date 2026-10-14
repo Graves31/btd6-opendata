@@ -269,6 +269,7 @@ export function ParagonPage(props: { r: ParagonRoute }) {
         <b>{res.degree}</b>
         <span>{fmtInt(res.power)} power</span>
         <span class="pg-mbar-n">{res.next ? `next in ${fmtInt(res.next.gap)}` : "max degree"}</span>
+        <i class="pg-mbar-go" aria-hidden="true" />
       </button>
 
       <Picker s={s} go={go} />
@@ -367,13 +368,12 @@ function Settings(props: { s: ParagonRoute; go: (p: Patch) => void }) {
           <button type="button" class={`rv-chip${s.boost ? " on" : ""}`} aria-pressed={s.boost} onClick={() => go({ boost: !s.boost })}>
             Paragon Boost
           </button>
-          <span class="pg-hint">+{REF.boostDegrees} degrees on the game's first paragon</span>
+          <span class="pg-hint">+{REF.boostDegrees} degrees</span>
+          <label class="pg-check">
+            <input type="checkbox" checked={s.noTotems} onChange={() => go({ noTotems: !s.noTotems })} />
+            No Geraldo
+          </label>
         </div>
-        <label class="pg-tog pg-check">
-          <input type="checkbox" checked={s.noTotems} onChange={() => go({ noTotems: !s.noTotems })} />
-          No Geraldo totems
-          <span class="pg-hint">never suggest power totems</span>
-        </label>
       </div>
     </section>
   );
@@ -620,9 +620,7 @@ function ResultCard(p: { res: ParagonResult; ver: GameVer; boost: boolean; copie
 // ─────────────────────────────── folds
 
 function ScalingFold(p: { degree: number; ver: GameVer }) {
-  const set = new Set<number>([20, 40, 60, 80, 100]);
-  for (let d = p.degree - 3; d <= p.degree + 3; d++) if (d >= 1 && d <= 100) set.add(d);
-  const rows = [...set].sort((a, b) => a - b);
+  const rows = [...new Set([1, 20, 40, 60, 80, 100, p.degree])].sort((a, b) => a - b);
   const one = (n: number) => +n.toFixed(1);
   const H = (long: string, short: string) => (
     <th scope="col">
@@ -640,8 +638,8 @@ function ScalingFold(p: { degree: number; ver: GameVer }) {
             {H("Damage", "Dmg")}
             {H("Pierce", "Prc")}
             {H("Cooldown", "CD")}
-            {H("Boss N", "Bos N")}
-            {H("Boss E", "Bos E")}
+            {H("Boss N", "Boss N")}
+            {H("Boss E", "Boss E")}
           </tr>
         </thead>
         <tbody>

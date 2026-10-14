@@ -7084,6 +7084,26 @@ h1.title.ti .ev-icon {
   margin-left: auto;
   color: var(--ink-2);
 }
+/* "tap me": a down chevron in an accent box (the bar jumps to the full result) */
+.pg-mbar-go {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-right: -4px;
+  background: var(--accent);
+  border-radius: var(--r);
+}
+.pg-mbar-go::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  border: solid var(--on-accent);
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
 @media (min-width: 701px) {
   .pg-mbar {
     top: var(--hdr);
@@ -7235,6 +7255,9 @@ h1.title.ti .ev-icon {
   min-width: 0;
 }
 .pg-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 600;
   cursor: pointer;
 }
