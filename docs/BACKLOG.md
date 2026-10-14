@@ -10,10 +10,12 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
   the events in the lists, ~11 bosses and ~11 races; odysseys not shown yet). (2) Product/UI/end-user review of
   /maps and the map page. Maps sits in the top nav; move it under Tools if the nav gets crowded.
 
-- **Paragon calculator: re-check v57 formulas in game code** (2026-10-07). v57 changed only three caps in the data
-  (cash 60k→80k, pops 90k→125k, upgrade tiers 10k→0) and ParagonTower kept the same methods, so the v56.3 formulas,
-  totem power (2,000) and cost rules are kept for v57 (toggle on /tools/paragon, `gv=56` = old). Confirm with an
-  in-game paragon when possible, or with Cpp2IL once it reads metadata v39.
+- **Paragon calculator: re-check v57 power formulas in game code** (2026-10-07). v57 changed only three caps in the
+  data (cash 60k→80k, pops 90k→125k, upgrade tiers 10k→0) and ParagonTower kept the same methods, so the v56.3
+  power formulas, totem power (2,000) and cost rules are kept for v57 (toggle on /tools/paragon, `gv=56` = old).
+  Cpp2IL now reads the v57 code (CLAUDE.md, tooling): the per-degree stats were checked with it on 2026-10-14;
+  the power side (ParagonTower.GetTowerInvestment, cost mods, rounding) is still to check the same way.
+  The ×2 on elite bosses comes from the wiki only; it isn't in GetDegreeMutator, so find where the game applies it.
 
 - **UI audit follow-ups (fixes deployed 2026-09-30, version 89a3822d).** Objective findings from the six reports in `.audit/`
   fixed by 4 parallel agents + a CSS fold pass (layers merged into styles.css; pre-fold copy in
@@ -40,6 +42,10 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
   in src/worker/stats.ts).
 
 ## Ideas (not approved)
+
+- **Paragon scaling follow-ups** (2026-10-14, from the product/UI/end-user review). A "value per 1,000 power" chart
+  (what each extra degree buys for its cost) and a short explanation of the power sources on the scaling page.
+- **Tools hub title card**: the /tools hub has no ToolHero (it isn't a tool); add one if the hub should match.
 
 - **Feature gaps vs other BTD6 sites** (2026-10-09, competitor research: btd6portal.com, BTD6 API Explorer). Each needs
   its own go:
@@ -73,7 +79,8 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
 - **Game-style identity** (UI audit, 2026-09-30; owner: "for later"). The visual designer's "Bigger ideas" A–E in
   `.audit/visual.md` (from l.344): chunky game-style buttons for controls, outlined game-style numerals for hero
   figures, game icons instead of caps labels, a "blue sky" light theme, ribbon-shaped podium plates. Each needs the
-  owner's go before it's built; a mock-up per idea first.
+  owner's go before it's built; a mock-up per idea first. Tool pages already got theirs (2026-10-14): the title
+  card template and game icons on stats (CLAUDE.md, product rules).
 - **Search** players/teams by name (NK has no search API: only names on boards we've already loaded/archived).
 - **Player boss history**: past boss placements per player from archived boards (like team CT history).
 - **Name the remaining unnamed ability keys** (17 read fine as-is; see `scripts/build_names.py` output).

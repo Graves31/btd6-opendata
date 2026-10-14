@@ -18,7 +18,9 @@ architecture; this file is how to work on it.
 - `web/src/` Preact SPA: `routes.ts` (routes + `needs()` = what a page prefetches), `nav.ts` (navigation,
   link prefetch, back link), `store.ts` (client cache, /api/batch), `views/*.tsx` pages, `rules.tsx` (rules
   panel), `rounds.ts` + `views/rounds.tsx` (round visualizer), `paragon.ts` + `views/paragon.tsx`
-  (paragon calculator; provisional constants in `REF`), `views/tools.tsx` (/tools hub), `styles.css`.
+  (paragon calculator; provisional constants in `REF`; `scaling()` = per-degree stats, checked against the v57
+  game code), `views/paragonScaling.tsx` (paragon scaling charts), `views/farming.tsx` (banana timing),
+  `views/tools.tsx` (/tools hub), `ui.tsx` `ToolHero`/`ToolBack` (tool page header), `styles.css`.
 - Generated from the owner's game install (`C:\Program Files (x86)\Steam\steamapps\common\BloonsTD6`) by
   `npm run art` (venv `.venv-art`): `web/src/art/*` sprite sheets, `web/public/art/maps`, `web/src/data/names.ts`
   (map/ability/relic names), `web/src/data/rounds/*` (54 round sets), `web/src/data/paragons.json` (`build_paragons.py`; v56.3 frozen in
@@ -117,3 +119,8 @@ Commits: Conventional Commits. One logical change per commit. Enforced by `.gith
 - Puppeteer: use `waitUntil: "load"` + a short wait (the app keeps connections open; `networkidle0` can hang).
 - The first live e2e right after a deploy can see the previous build (service-worker shell): rerun once before
   digging. Offline e2e "NOT INSTANT" on rounds steps = Silent power plan; switch to performance mode.
+- Some working-tree files are CRLF (core.autocrlf, git stores LF): edit scripts must match `\r\n` when present.
+- Game formulas (code, not data): MelonLoader's Cpp2IL (`../ModStuff/MelonLoader/Dependencies/Il2CppAssemblyGenerator/
+  Cpp2IL/Cpp2IL.exe --game-path "<BloonsTD6 dir>" --output-as isil --output-to <scratchpad>`, ~40 s) dumps each
+  class's asm, e.g. `Simulation/Towers/Behaviors/ParagonTower.txt`; float constants are read from GameAssembly.dll.
+  bloonswiki pages: `https://www.bloonswiki.com/index.php?title=<Page>&action=raw` with a browser user agent.
