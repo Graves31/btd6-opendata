@@ -23,10 +23,8 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
   neutral row-hover edge. Left for a small TSX pass: `theme.tsx`/`index.html` always set `data-theme` (css#2, so the
   light theme stops being written twice), `Emblem` inline size (css#6), `Rank` `plate bare` (css#7), dead
   `ScoringPair` `compact` prop; interaction#24 (CT history can't link a group: archive has no group id).
-- **Stats page follow-ups** (hidden `/stats`, live 2026-10-01). Check after a few days of data: 7-day totals
-  came back smaller than the same-day 30-day totals (t7 3/1 vs t30 10/10), so likely sampling; if it persists,
-  derive d7 from the daily series. Countries show ISO codes ("FR"); map via `Intl.DisplayNames`. Mobile chart
-  axis labels are tiny.
+- **Stats page follow-ups** (hidden `/stats`). Countries show ISO codes ("FR"); map via `Intl.DisplayNames`.
+  Mobile chart axis labels are tiny.
 - **Daily challenges list: map art on every row** (2026-09-27). Older dailies show an empty grey well until
   hovered, because the map comes from each daily's challenge document, loaded on link intent. Fix = load the
   documents of the rows on screen when the list opens: one NK request per daily, fetched once and cached for

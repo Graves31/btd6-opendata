@@ -3,22 +3,6 @@
   "viewer": {
    "accounts": [
     {
-     "t7": [
-      {
-       "count": 151,
-       "sum": {
-        "visits": 94
-       }
-      }
-     ],
-     "t30": [
-      {
-       "count": 404,
-       "sum": {
-        "visits": 251
-       }
-      }
-     ],
      "daily": [
       {
        "count": 4,

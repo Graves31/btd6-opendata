@@ -4,8 +4,8 @@
 //
 // Dataset: viewer.accounts(filter:{accountTag}).rumPageloadEventsAdaptiveGroups — `count` is page views,
 // `sum { visits }` is visits (sessions); dimensions date / requestPath / refererHost / countryName / deviceType;
-// filter datetime_geq / datetime_leq / requestHost_in / bot (1 = Cloudflare thinks it's a bot); orderBy count_DESC.
-// `?bots=0` leaves bot page views out.
+// filter datetime_geq / datetime_leq / requestHost_in; orderBy count_DESC.
+// The 7/30-day totals are sums of the daily series (separate GraphQL groups are sampled separately and disagreed).
 // (Cloudflare Web Analytics GraphQL; see https://developers.cloudflare.com/analytics/graphql-api/.)
 
 import { jsonResponse } from "./proxy.ts";
@@ -43,14 +43,12 @@ export interface Stats {
 
 const GROUP = "limit: 10, orderBy: [count_DESC]";
 /** Filters are inlined (built only from our own constants and numbers), so no input-type names are needed. */
-const filterOf = (hosts: string[], from: string, to: string, noBots: boolean) =>
-  `{ requestHost_in: ${JSON.stringify(hosts)}, datetime_geq: "${from}", datetime_leq: "${to}"${noBots ? ", bot: 0" : ""} }`;
-export function statsQuery(account: string, f7: string, f30: string): string {
+const filterOf = (hosts: string[], from: string, to: string) =>
+  `{ requestHost_in: ${JSON.stringify(hosts)}, datetime_geq: "${from}", datetime_leq: "${to}" }`;
+export function statsQuery(account: string, f30: string): string {
   const g = (alias: string, args: string, f: string, dim?: string) =>
     `${alias}: rumPageloadEventsAdaptiveGroups(${args}, filter: ${f}) { count sum { visits }${dim ? ` dimensions { ${dim} }` : ""} }`;
   return `{ viewer { accounts(filter: { accountTag: "${account}" }) {
-    ${g("t7", "limit: 1", f7)}
-    ${g("t30", "limit: 1", f30)}
     ${g("daily", "limit: 40, orderBy: [date_ASC]", f30, "date")}
     ${g("pages", GROUP, f30, "requestPath")}
     ${g("referrers", GROUP, f30, "refererHost")}
@@ -70,7 +68,7 @@ export interface GraphqlResponse {
 }
 
 const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
-const sumOf = (rows: Group[] = []) => ({ views: rows.reduce((s, g) => s + n(g.count), 0), visits: rows.reduce((s, g) => s + n(g.sum?.visits), 0) });
+const sumDays = (rows: { views: number; visits: number }[]) => ({ views: rows.reduce((s, d) => s + d.views, 0), visits: rows.reduce((s, d) => s + d.visits, 0) });
 const ymd = (ms: number) => new Date(ms).toISOString().slice(0, 10);
 
 /** Pure: GraphQL response → Stats. `now` anchors the zero-filled 30-day series. */
@@ -90,7 +88,7 @@ export function shapeStats(res: GraphqlResponse, now: number): Stats {
   return {
     generatedAt: new Date(now).toISOString(),
     host: STATS_HOST,
-    totals: { d7: sumOf(acct.t7), d30: sumOf(acct.t30) },
+    totals: { d7: sumDays(daily.slice(-7)), d30: sumDays(daily) },
     daily,
     pages: rank(acct.pages, "requestPath"),
     referrers: rank(acct.referrers, "refererHost"),
@@ -99,29 +97,29 @@ export function shapeStats(res: GraphqlResponse, now: number): Stats {
   };
 }
 
-/** Keyed by noBots: all page views, or only those Cloudflare doesn't flag as bots (`bot` = 0). */
-const memo = new Map<boolean, { at: number; json: string }>();
-export const resetStatsMemo = () => memo.clear();
+let memo: { at: number; json: string } | undefined;
+export const resetStatsMemo = () => {
+  memo = undefined;
+};
 
 const HEADERS = { "X-Robots-Tag": "noindex, nofollow" };
 const fail = (status: number, error: string, extra: Record<string, unknown> = {}) =>
   jsonResponse(JSON.stringify({ success: false, error, ...extra }), status, "no-store", HEADERS);
 
-export async function handleStats(cfg: StatsConfig, fetchFn: typeof fetch, now: number, noBots = false): Promise<Response> {
+export async function handleStats(cfg: StatsConfig, fetchFn: typeof fetch, now: number): Promise<Response> {
   if (!cfg.token || !cfg.accountId) return fail(503, "not-configured");
   const cc = "public, max-age=900";
-  const m = memo.get(noBots);
-  if (m && now - m.at < STATS_TTL_MS) return jsonResponse(m.json, 200, cc, HEADERS);
+  if (memo && now - memo.at < STATS_TTL_MS) return jsonResponse(memo.json, 200, cc, HEADERS);
   const iso = (ms: number) => new Date(ms).toISOString();
   const day0 = Math.floor(now / DAY_MS) * DAY_MS; // UTC midnight: the daily buckets are whole days
-  const f = (days: number) => filterOf(STATS_HOSTS, iso(day0 - (days - 1) * DAY_MS), iso(now), noBots);
+  const f30 = filterOf(STATS_HOSTS, iso(day0 - 29 * DAY_MS), iso(now));
   if (!/^[0-9a-f]{32}$/.test(cfg.accountId)) return fail(503, "not-configured");
   let res: Response;
   try {
     res = await fetchFn(cfg.graphqlUrl, {
       method: "POST",
       headers: { Authorization: `Bearer ${cfg.token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ query: statsQuery(cfg.accountId, f(7), f(30)) }),
+      body: JSON.stringify({ query: statsQuery(cfg.accountId, f30) }),
     });
   } catch {
     return fail(502, "Could not reach Cloudflare analytics");
@@ -137,7 +135,7 @@ export async function handleStats(cfg: StatsConfig, fetchFn: typeof fetch, now: 
     return fail(502, msg.split(cfg.token).join("***").slice(0, 300));
   }
   const json = JSON.stringify({ success: true, body: shapeStats(body, now) });
-  memo.set(noBots, { at: now, json });
+  memo = { at: now, json };
   return jsonResponse(json, 200, cc, HEADERS);
 }
 

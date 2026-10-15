@@ -1327,7 +1327,9 @@ describe("stats", () => {
     assert.equal(s.daily.at(-1)!.date, "2026-09-30");
     assert.equal(s.daily[0].date, "2026-09-01");
     assert.equal(s.totals.d30.views, fixture.data.viewer.accounts[0].daily.reduce((a: number, g: { count: number }) => a + g.count, 0));
-    assert.ok(s.totals.d7.views < s.totals.d30.views && s.totals.d7.visits > 0);
+    assert.ok(s.totals.d7.views <= s.totals.d30.views && s.totals.d7.visits > 0);
+    assert.equal(s.totals.d7.views, s.daily.slice(-7).reduce((a, d) => a + d.views, 0));
+    assert.equal(s.totals.d7.visits, s.daily.slice(-7).reduce((a, d) => a + d.visits, 0));
     assert.equal(s.pages[0].name, "/");
     assert.equal(s.referrers[0].name, ""); // direct; the page labels it
     assert.equal(s.devices.length, 3);
@@ -1361,13 +1363,6 @@ describe("stats", () => {
     await handleStats(cfg, ok, NOW + 16 * MIN);
     assert.equal(calls, 2);
 
-    // Without bots: its own query (bot: 0 in every filter) and its own cache.
-    const seen: string[] = [];
-    const spy = (async (_u: string, init: RequestInit) => (seen.push(String(init.body)), new Response(JSON.stringify(fixture)))) as unknown as typeof fetch;
-    await handleStats(cfg, spy, NOW + 17 * MIN, true);
-    await handleStats(cfg, spy, NOW + 18 * MIN, true);
-    assert.equal(seen.length, 1);
-    assert.equal(seen[0].match(/bot: 0/g)?.length, 7);
     resetStatsMemo();
   });
 });
