@@ -8652,6 +8652,9 @@ a.map-stat:hover {
   border-color: var(--dc);
 }
 @media (max-width: 560px) {
+  .map-div {
+    display: none;
+  }
   .map-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
