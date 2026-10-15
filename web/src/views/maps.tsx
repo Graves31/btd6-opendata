@@ -87,10 +87,11 @@ function Stat(p: { art: ComponentChildren; big: ComponentChildren; small: string
       {p.art}
       <b class="num">{p.big}</b>
       <small>{p.small}</small>
+      {p.href && <span class="map-stat-go" aria-hidden="true">›</span>}
     </>
   );
   return p.href ? (
-    <A href={p.href} class="map-stat">
+    <A href={p.href} class="map-stat map-stat-link">
       {inner}
     </A>
   ) : (
@@ -185,8 +186,8 @@ export function MapsPage(props: { r: MapsRoute }) {
       <div class="map-strip">
         <Stat art={<Spr family="ui" k="Trophy" size={40} label />} big={MAP_LIST.length} small="maps in the game" />
         <Stat art={<EvIcon k="boss" size={40} />} big={loading ? "–" : never} small="never had a boss event" />
-        {lb?.map && <Stat art={<MapArt map={lb.map} size={48} />} big={mapName(lb.map)} small={`latest boss · ${fmtAgo(lb.start, now)}`} href={href.boss(lb.id!)} />}
-        {lr?.map && <Stat art={<MapArt map={lr.map} size={48} />} big={mapName(lr.map)} small={`latest race · ${fmtAgo(lr.start, now)}`} href={href.race(lr.id!)} />}
+        {lb?.map && <Stat art={<MapArt map={lb.map} size={48} />} big="Latest boss" small={`${mapName(lb.map)} · ${fmtAgo(lb.start, now)}`} href={href.boss(lb.id!)} />}
+        {lr?.map && <Stat art={<MapArt map={lr.map} size={48} />} big="Latest race" small={`${mapName(lr.map)} · ${fmtAgo(lr.start, now)}`} href={href.race(lr.id!)} />}
       </div>
       <div class="map-bar">
         <label class="map-search">

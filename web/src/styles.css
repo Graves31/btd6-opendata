@@ -8275,8 +8275,20 @@ footer p {
   font: 800 18px/1 var(--f-display);
   cursor: pointer;
 }
-.jump:hover {
+.jump:hover,
+.jump:focus-visible {
   background: var(--s2);
+  border-color: var(--dc);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .jump,
+  .map-stat-link {
+    transition: transform 0.12s, border-color 0.12s;
+  }
+  .jump:hover,
+  .map-stat-link:hover {
+    transform: translateY(-2px);
+  }
 }
 .jump small {
   font: 700 9.5px/1 var(--f-body);
@@ -8290,17 +8302,32 @@ footer p {
   gap: 8px;
   margin-bottom: 12px;
 }
+/* plain stats are flat text; linked ones (.map-stat-link) are raised buttons with a chevron */
 .map-stat {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 0 10px;
   min-width: 0;
   padding: 10px 12px;
   color: var(--ink);
-  background: var(--s1);
-  border: 1px solid var(--rule);
+  border: 1px solid transparent;
   border-radius: var(--r);
+}
+.map-stat-link {
+  background: var(--s1);
+  border-color: var(--rule-2);
+  box-shadow: 0 3px 0 var(--rule);
+}
+.map-stat-link:hover,
+.map-stat-link:focus-visible {
+  border-color: var(--accent);
+}
+.map-stat-go {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  font: 800 28px/1 var(--f-display);
+  color: var(--accent-ink, var(--accent));
 }
 .map-stat > :first-child {
   grid-row: span 2;
@@ -8313,6 +8340,10 @@ footer p {
 }
 a.map-stat:hover {
   background: var(--s2);
+}
+.map-stat b,
+.map-stat small {
+  grid-column: 2;
 }
 .map-stat b {
   font: 800 24px/1 var(--f-display);
@@ -8341,6 +8372,12 @@ a.map-stat:hover {
   background: color-mix(in srgb, var(--bg) 92%, transparent);
   backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--rule);
+}
+/* the header scrolls away on phones (max-width 700px), so the bar sticks to the very top there */
+@media (max-width: 700px) {
+  .map-bar {
+    top: 0;
+  }
 }
 .map-search {
   display: flex;
