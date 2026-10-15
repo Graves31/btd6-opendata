@@ -36,7 +36,7 @@ export type Route =
   | { name: "map"; id: string }
   | { name: "notfound" };
 
-export type MapSort = "game" | "az" | "bosses" | "races";
+export type MapSort = "game" | "az" | "bosses" | "races" | "recent" | "bossgap" | "racegap";
 /** Maps explorer (/maps): name search, difficulty (0..3) and water filters, sort. Defaults are left out of the URL. */
 export interface MapsRoute {
   name: "maps";
@@ -44,9 +44,12 @@ export interface MapsRoute {
   /** difficulty filter, canonical (sorted, unique, 0..3); empty = all */
   d: number[];
   water: boolean;
+  /** only maps with no boss event / no race on record */
+  noBoss: boolean;
+  noRace: boolean;
   sort: MapSort;
 }
-const MAP_SORTS = ["game", "az", "bosses", "races"] as const;
+const MAP_SORTS = ["game", "az", "bosses", "races", "recent", "bossgap", "racegap"] as const;
 const normMapQ = (v: string) => v.trim().slice(0, 40).trim();
 const normMapDiff = (v: readonly number[]): number[] => [...new Set(v.filter((n) => Number.isInteger(n) && n >= 0 && n <= 3))].sort();
 
@@ -334,7 +337,7 @@ export function parse(url: URL): Route {
   if (a === "stats" && !b) return { name: "stats" };
   if (a === "suggest" && !b) return { name: "suggest" };
   if (a === "maps" && !b) {
-    return { name: "maps", q: normMapQ(q.get("q") ?? ""), d: normMapDiff(list(q.get("d")).map(Number)), water: q.get("water") === "1", sort: oneOf(q.get("sort"), MAP_SORTS, "game") };
+    return { name: "maps", q: normMapQ(q.get("q") ?? ""), d: normMapDiff(list(q.get("d")).map(Number)), water: q.get("water") === "1", noBoss: q.get("noboss") === "1", noRace: q.get("norace") === "1", sort: oneOf(q.get("sort"), MAP_SORTS, "game") };
   }
   if (a === "maps" && b && !c && MAP_IDS.has(b)) return { name: "map", id: b }; // other ids: a real 404 (og.ts)
   if (a === "tools" && !b) return ROUNDS_PARAMS.some((k) => q.has(k)) ? parseRounds(q) : { name: "tools" }; // old shared /tools?… links
@@ -491,7 +494,7 @@ export const href = {
   /** The maps explorer; only non-default values are written. */
   maps: (p: Partial<Omit<MapsRoute, "name">> = {}) => {
     const d = normMapDiff(p.d ?? []);
-    return `/maps${qs({ q: normMapQ(p.q ?? "") || undefined, d: d.length ? d.join(",") : undefined, water: p.water ? 1 : undefined, sort: p.sort && p.sort !== "game" ? p.sort : undefined }).replace(/%2C/g, ",")}`;
+    return `/maps${qs({ q: normMapQ(p.q ?? "") || undefined, d: d.length ? d.join(",") : undefined, water: p.water ? 1 : undefined, noboss: p.noBoss ? 1 : undefined, norace: p.noRace ? 1 : undefined, sort: p.sort && p.sort !== "game" ? p.sort : undefined }).replace(/%2C/g, ",")}`;
   },
   map: (id: string) => `/maps/${encodeURIComponent(id)}`,
   tools: () => "/tools",

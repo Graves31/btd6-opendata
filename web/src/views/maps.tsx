@@ -5,18 +5,21 @@ import { BOSS_HISTORY_SOURCE } from "../data/bossHistory.ts";
 import { RACE_HISTORY_SOURCE } from "../data/raceHistory.ts";
 import { MAP_LIST } from "../data/names.ts";
 import { bossName, bossTitle, fmtDate, mapName, oldDates } from "../format.ts";
-import { DIFF_ICON, DIFF_LABEL, mapCounts, mapEvents, mapMetaKeys, type MapEvent } from "../maps.ts";
+import { DIFF_ICON, DIFF_LABEL, fmtAgo, mapCounts, mapEvents, mapMetaKeys, type MapEvent } from "../maps.ts";
 import { navigate, store } from "../nav.ts";
 import { historyKey, href, LIST_KEY, type MapSort, type MapsRoute } from "../routes.ts";
 import { MapArt, Spr } from "../sprite.tsx";
-import { A, body, EvIcon, peek, Skeleton, StatusBadge } from "../ui.tsx";
+import { A, body, EvIcon, peek, Skeleton, StatusBadge, ToolHero } from "../ui.tsx";
 import { NotFound } from "./errors.tsx";
 
 const SORTS: [MapSort, string][] = [
   ["game", "Game order"],
-  ["az", "A–Z"],
+  ["recent", "Recently played"],
+  ["bossgap", "Longest since a boss"],
+  ["racegap", "Longest since a race"],
   ["bosses", "Most boss events"],
   ["races", "Most races"],
+  ["az", "A–Z"],
 ];
 const plain = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
@@ -29,67 +32,169 @@ function useMapData(): boolean {
 
 const DiffIcon = (p: { d: number; size: number }) => <Spr family="ui" k={DIFF_ICON[p.d]} size={p.size} label />;
 
-function Tile(p: { id: string; d: number; water: boolean; boss: number; race: number }) {
+/** One kind's cell in a card footer: count + last played, "No boss yet", or a skeleton while the maps are still loading. */
+function Cell(p: { kind: "boss" | "race"; n: number; last?: number; loading: boolean; now: number }) {
+  const { kind, n } = p;
+  if (!n)
+    return (
+      <span class={`map-cnt${p.loading ? "" : " never"}`}>
+        <EvIcon k={kind} size={24} />
+        {p.loading ? <span class="sk" /> : <b>No {kind} yet</b>}
+      </span>
+    );
+  const word = kind === "boss" ? (n === 1 ? "boss" : "bosses") : n === 1 ? "race" : "races";
+  return (
+    <span class="map-cnt">
+      <EvIcon k={kind} size={24} />
+      <b class="num">
+        {n}
+        <small>{word}</small>
+      </b>
+      {p.last != null && <em>last {fmtAgo(p.last, p.now)}</em>}
+    </span>
+  );
+}
+
+function Tile(p: { id: string; d: number; water: boolean; boss: number; race: number; lb?: number; lr?: number; fresh: boolean; loading: boolean; now: number }) {
   return (
     <li data-diff={p.d}>
       <A href={href.map(p.id)} class="map-tile">
-        <MapArt framed map={p.id} size={200} />
-        <span class="map-tile-n">{mapName(p.id)}</span>
-        <span class="map-tile-meta">
-          {p.water && <Spr family="ui" k="Water" size={24} name="Has water" />}
-          {p.boss > 0 && (
-            <span class="map-cnt" title="Boss events">
-              <EvIcon k="boss" size={24} />
-              <b class="num">{p.boss}</b>
-              <span class="vh"> boss events</span>
+        <span class="map-tile-art">
+          <MapArt map={p.id} size={200} />
+          <span class="map-tile-d">
+            <DiffIcon d={p.d} size={34} />
+          </span>
+          {p.water && (
+            <span class="map-tile-w">
+              <Spr family="ui" k="Water" size={28} name="Has water" />
             </span>
           )}
-          {p.race > 0 && (
-            <span class="map-cnt" title="Races">
-              <EvIcon k="race" size={24} />
-              <b class="num">{p.race}</b>
-              <span class="vh"> races</span>
-            </span>
-          )}
+          {p.fresh && <span class="map-tile-new">Latest</span>}
+          <b class="map-tile-n">{mapName(p.id)}</b>
+        </span>
+        <span class="map-tile-f">
+          <Cell kind="boss" n={p.boss} last={p.lb} loading={p.loading} now={p.now} />
+          <Cell kind="race" n={p.race} last={p.lr} loading={p.loading} now={p.now} />
         </span>
       </A>
     </li>
   );
 }
 
+function Stat(p: { art: ComponentChildren; big: ComponentChildren; small: string; href?: string }) {
+  const inner = (
+    <>
+      {p.art}
+      <b class="num">{p.big}</b>
+      <small>{p.small}</small>
+    </>
+  );
+  return p.href ? (
+    <A href={p.href} class="map-stat">
+      {inner}
+    </A>
+  ) : (
+    <div class="map-stat">{inner}</div>
+  );
+}
+
+function jump(d: number) {
+  const el = document.getElementById(`map-s${d}`);
+  if (!el) return;
+  (el as HTMLDetailsElement).open = true;
+  el.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+}
+
 export function MapsPage(props: { r: MapsRoute }) {
   const r = props.r;
-  useMapData();
+  const loading = useMapData();
   const [q, setQ] = useState(r.q);
+  const [open, setOpen] = useState(false);
   useEffect(() => setQ((x) => (x.trim() === r.q ? x : r.q)), [r.q]);
   const go = (p: Partial<Omit<MapsRoute, "name">>) => navigate(href.maps({ ...r, ...p }), { replace: true, keepScroll: true });
-  const counts = mapCounts(body);
+  const now = Date.now();
+  const counts = mapCounts(body, now);
   const needle = plain(r.q);
-  const list = MAP_LIST.filter(([id, d, water]) => (!r.d.length || r.d.includes(d)) && (!r.water || water) && plain(mapName(id)).includes(needle));
-  if (r.sort === "az") list.sort((a, b) => mapName(a[0]).localeCompare(mapName(b[0])));
-  if (r.sort === "bosses" || r.sort === "races") {
-    const c = r.sort === "bosses" ? counts.boss : counts.race;
-    list.sort((a, b) => (c.get(b[0]) ?? 0) - (c.get(a[0]) ?? 0)); // stable: ties keep game order
-  }
+  const n = (c: Map<string, number>, id: string) => c.get(id) ?? 0;
+  const list = MAP_LIST.filter(
+    ([id, d, water]) =>
+      (!r.d.length || r.d.includes(d)) &&
+      (!r.water || water) &&
+      (!r.noBoss || !n(counts.boss, id)) &&
+      (!r.noRace || !n(counts.race, id)) &&
+      plain(mapName(id)).includes(needle),
+  );
+  // Stable sorts: ties keep game order. A map never played is -Infinity: first in the "longest since" lists.
+  const t = (m: Map<string, number>, id: string) => m.get(id) ?? -Infinity;
+  const gap = (m: Map<string, number>, a: string, b: string) => (t(m, a) === t(m, b) ? 0 : t(m, a) - t(m, b));
+  const newest = (id: string) => Math.max(t(counts.last.boss, id), t(counts.last.race, id));
+  const by: Partial<Record<MapSort, (a: string, b: string) => number>> = {
+    az: (a, b) => mapName(a).localeCompare(mapName(b)),
+    bosses: (a, b) => n(counts.boss, b) - n(counts.boss, a),
+    races: (a, b) => n(counts.race, b) - n(counts.race, a),
+    recent: (a, b) => (newest(a) === newest(b) ? 0 : newest(b) - newest(a)),
+    bossgap: (a, b) => gap(counts.last.boss, a, b),
+    racegap: (a, b) => gap(counts.last.race, a, b),
+  };
+  const cmp = by[r.sort];
+  if (cmp) list.sort((a, b) => cmp(a[0], b[0]));
   const tile = ([id, d, water]: (typeof MAP_LIST)[number]) => (
-    <Tile key={id} id={id} d={d} water={water} boss={counts.boss.get(id) ?? 0} race={counts.race.get(id) ?? 0} />
+    <Tile
+      key={id}
+      id={id}
+      d={d}
+      water={water}
+      boss={n(counts.boss, id)}
+      race={n(counts.race, id)}
+      lb={counts.last.boss.get(id)}
+      lr={counts.last.race.get(id)}
+      fresh={id === counts.latest.boss?.map || id === counts.latest.race?.map}
+      loading={loading}
+      now={now}
+    />
+  );
+  const perDiff = [0, 1, 2, 3].map((d) => MAP_LIST.filter((m) => m[1] === d).length);
+  const never = MAP_LIST.filter(([id]) => !n(counts.boss, id)).length;
+  const lb = counts.latest.boss;
+  const lr = counts.latest.race;
+  const filters = r.d.length + +r.water + +r.noBoss + +r.noRace;
+  const toggle = (key: "water" | "noBoss" | "noRace", label: string, icon?: ComponentChildren) => (
+    <button type="button" class="map-tog" aria-pressed={r[key]} onClick={() => go({ [key]: !r[key] })}>
+      {icon}
+      {label}
+    </button>
   );
   return (
     <>
-      <header class="page-h">
-        <h1 class="title ti">
-          <Spr family="ui" k="MapBeginner" size={64} label />
-          Maps
-        </h1>
-        <p class="lede">Every map in Bloons TD 6, with the boss events and races played on it.</p>
-      </header>
+      <ToolHero art={<Spr family="ui" k="MapBeginner" size={72} label />} eyebrow="Every map in Bloons TD 6" title="Maps" sub="When each map last had a boss event or a race, and how often.">
+        <div class="jumps">
+          {DIFF_LABEL.map((l, d) => (
+            <button key={l} type="button" class="jump" data-diff={d} onClick={() => {
+                // Sections only exist in game order (and only for shown difficulties): switch there first.
+                if (r.sort === "game" && document.getElementById(`map-s${d}`)) return jump(d);
+                go({ sort: "game", d: r.d.length && !r.d.includes(d) ? [] : r.d });
+                setTimeout(() => jump(d), 80);
+              }}>
+              <DiffIcon d={d} size={34} />
+              <span class="num">{perDiff[d]}</span>
+              <small>{l}</small>
+            </button>
+          ))}
+        </div>
+      </ToolHero>
+      <div class="map-strip">
+        <Stat art={<Spr family="ui" k="Trophy" size={40} label />} big={MAP_LIST.length} small="maps in the game" />
+        <Stat art={<EvIcon k="boss" size={40} />} big={loading ? "–" : never} small="never had a boss event" />
+        {lb?.map && <Stat art={<MapArt map={lb.map} size={48} />} big={mapName(lb.map)} small={`latest boss · ${fmtAgo(lb.start, now)}`} href={href.boss(lb.id!)} />}
+        {lr?.map && <Stat art={<MapArt map={lr.map} size={48} />} big={mapName(lr.map)} small={`latest race · ${fmtAgo(lr.start, now)}`} href={href.race(lr.id!)} />}
+      </div>
       <div class="map-bar">
         <label class="map-search">
           <Spr family="ui" k="Search" size={24} label />
           <span class="vh">Search maps</span>
           <input
             type="search"
-            placeholder="Search maps"
+            placeholder={`Search ${MAP_LIST.length} maps`}
             value={q}
             maxLength={40}
             autocomplete="off"
@@ -100,28 +205,36 @@ export function MapsPage(props: { r: MapsRoute }) {
             }}
           />
         </label>
-        <div class="rv-chips" role="group" aria-label="Difficulty">
-          {DIFF_LABEL.map((l, d) => {
-            const on = r.d.includes(d);
-            return (
-              <button key={l} type="button" class={`rv-chip mp-chip${on ? " on" : ""}`} aria-pressed={on} onClick={() => go({ d: on ? r.d.filter((x) => x !== d) : [...r.d, d] })}>
-                <DiffIcon d={d} size={24} />
+        <button type="button" class="map-filt" aria-expanded={open} onClick={() => setOpen(!open)}>
+          Filters{filters > 0 && <i>{filters}</i>}
+        </button>
+        <div class={`map-panel${open ? " open" : ""}`}>
+          <div class="map-seg" role="group" aria-label="Difficulty">
+            {DIFF_LABEL.map((l, d) => {
+              const on = r.d.includes(d);
+              return (
+                <button key={l} type="button" data-diff={d} aria-pressed={on} aria-label={l} onClick={() => go({ d: on ? r.d.filter((x) => x !== d) : [...r.d, d] })}>
+                  <DiffIcon d={d} size={26} />
+                  <span class="t">{l}</span>
+                  <span class="c num">{perDiff[d]}</span>
+                </button>
+              );
+            })}
+          </div>
+          {toggle("water", "Water", <Spr family="ui" k="Water" size={26} label />)}
+          {toggle("noBoss", "No boss yet")}
+          {toggle("noRace", "Never raced")}
+        </div>
+        <label class="map-sort">
+          <span>Sort</span>
+          <select aria-label="Sort" value={r.sort} onChange={(e) => go({ sort: (e.currentTarget as HTMLSelectElement).value as MapSort })}>
+            {SORTS.map(([s, l]) => (
+              <option key={s} value={s}>
                 {l}
-              </button>
-            );
-          })}
-          <button type="button" class={`rv-chip mp-chip${r.water ? " on" : ""}`} aria-pressed={r.water} onClick={() => go({ water: !r.water })}>
-            <Spr family="ui" k="Water" size={24} label />
-            Water
-          </button>
-        </div>
-        <div class="rv-chips" role="group" aria-label="Sort">
-          {SORTS.map(([s, l]) => (
-            <button key={s} type="button" class={`rv-chip${r.sort === s ? " on" : ""}`} aria-pressed={r.sort === s} onClick={() => go({ sort: s })}>
-              {l}
-            </button>
-          ))}
-        </div>
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
       {list.length === 0 ? (
         <p class="quiet map-none">
@@ -132,13 +245,16 @@ export function MapsPage(props: { r: MapsRoute }) {
           const rows = list.filter((m) => m[1] === d);
           return (
             rows.length > 0 && (
-              <section key={l} class="map-sec" aria-labelledby={`map-h${d}`}>
-                <h2 class="kicker-h mp-h" id={`map-h${d}`}>
-                  <DiffIcon d={d} size={24} />
-                  {l} <span class="bs-count num">{rows.length}</span>
-                </h2>
+              <details key={l} open class="map-sec" id={`map-s${d}`} data-diff={d}>
+                <summary class="map-band">
+                  <DiffIcon d={d} size={40} />
+                  <h2>{l}</h2>
+                  <span class="c">
+                    <b class="num">{rows.length}</b> maps
+                  </span>
+                </summary>
                 <ul class="map-grid">{rows.map(tile)}</ul>
-              </section>
+              </details>
             )
           );
         })

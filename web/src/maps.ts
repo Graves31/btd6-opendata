@@ -87,9 +87,31 @@ export function eventGap(kind: "boss" | "race", get: Get): { from: number; to: n
   return to - from > 14 * 864e5 ? { from, to } : null;
 }
 
-/** Boss event and race counts per map id, for the explorer tiles and the "most boss events" sort. */
-export function mapCounts(get: Get): { boss: Map<string, number>; race: Map<string, number> } {
+/**
+ * Per map id: boss/race counts, the newest start (<= now) per kind, and the newest started event of each kind
+ * (with an id and a known map) for the "latest" tags.
+ */
+export function mapCounts(get: Get, now = Date.now()) {
   const c = { boss: new Map<string, number>(), race: new Map<string, number>() };
-  for (const e of all(get)) if (e.map) c[e.kind].set(e.map, (c[e.kind].get(e.map) ?? 0) + 1);
-  return c;
+  const last = { boss: new Map<string, number>(), race: new Map<string, number>() };
+  const latest: { boss?: HistEvent; race?: HistEvent } = {};
+  for (const e of all(get)) {
+    if (!e.map) continue;
+    c[e.kind].set(e.map, (c[e.kind].get(e.map) ?? 0) + 1);
+    if (e.start > now) continue;
+    if (e.start > (last[e.kind].get(e.map) ?? -Infinity)) last[e.kind].set(e.map, e.start);
+    if (e.id && e.start > (latest[e.kind]?.start ?? -Infinity)) latest[e.kind] = e;
+  }
+  return { ...c, last, latest };
+}
+
+const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+/** "today", "5 days ago", "6 wk ago", then "Mon YYYY" (UTC). */
+export function fmtAgo(t: number, now = Date.now()): string {
+  const d = Math.floor((now - t) / 864e5);
+  if (d < 1) return "today";
+  if (d < 14) return d === 1 ? "1 day ago" : `${d} days ago`;
+  if (d < 70) return `${Math.round(d / 7)} wk ago`;
+  const x = new Date(t);
+  return `${MON[x.getUTCMonth()]} ${x.getUTCFullYear()}`;
 }

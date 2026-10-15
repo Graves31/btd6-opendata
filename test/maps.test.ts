@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { BOSS_HISTORY } from "../web/src/data/bossHistory.ts";
 import { MAP_LIST, MAP_NAMES } from "../web/src/data/names.ts";
 import { RACE_HISTORY } from "../web/src/data/raceHistory.ts";
-import { eventGap, eventHistory, mapCounts, mapEvents } from "../web/src/maps.ts";
+import { eventGap, eventHistory, fmtAgo, mapCounts, mapEvents } from "../web/src/maps.ts";
 import { bossMetaKey, historyKey, href, LIST_KEY, needs, parse, raceMetaKey, type MapsRoute } from "../web/src/routes.ts";
 
 const at = (p: string) => parse(new URL(p, "https://x.invalid")) as MapsRoute;
@@ -13,9 +13,9 @@ const at = (p: string) => parse(new URL(p, "https://x.invalid")) as MapsRoute;
 describe("maps routes", () => {
   it("round-trips /maps with defaults left out", () => {
     assert.equal(href.maps(), "/maps");
-    assert.deepEqual(at("/maps"), { name: "maps", q: "", d: [], water: false, sort: "game" });
-    const r = { name: "maps" as const, q: "ouch", d: [0, 2], water: true, sort: "az" as const };
-    assert.equal(href.maps(r), "/maps?q=ouch&d=0,2&water=1&sort=az");
+    assert.deepEqual(at("/maps"), { name: "maps", q: "", d: [], water: false, noBoss: false, noRace: false, sort: "game" });
+    const r = { name: "maps" as const, q: "ouch", d: [0, 2], water: true, noBoss: true, noRace: true, sort: "az" as const };
+    assert.equal(href.maps(r), "/maps?q=ouch&d=0,2&water=1&noboss=1&norace=1&sort=az");
     assert.deepEqual(at(href.maps(r)), r);
   });
   it("canonicalises d, q and sort", () => {
@@ -56,6 +56,23 @@ describe("map events", () => {
     assert.ok(e.every((x, i) => !i || e[i - 1].start >= x.start));
     assert.equal(mapCounts(get).boss.get("InTheLoop"), e.filter((x) => x.kind === "boss").length);
     assert.equal(mapCounts(get).race.get("InTheLoop"), 1);
+  });
+  it("last and latest ignore the future and events without an id", () => {
+    const m = mapCounts(get, 2e12 + 1);
+    assert.equal(m.last.boss.get("InTheLoop"), 2e12);
+    assert.equal(m.latest.boss?.id, "b1");
+    assert.equal(m.latest.race?.id, "r1");
+    assert.equal(m.last.race.get("InTheLoop"), 1e12);
+    assert.equal(mapCounts(get, 2e12 + 9).latest.boss?.id, "b2");
+  });
+  it("fmtAgo", () => {
+    const now = Date.UTC(2026, 9, 15, 12);
+    const d = (n: number) => now - n * 864e5;
+    assert.equal(fmtAgo(now - 3600e3, now), "today");
+    assert.equal(fmtAgo(d(1), now), "1 day ago");
+    assert.equal(fmtAgo(d(13), now), "13 days ago");
+    assert.equal(fmtAgo(d(14), now), "2 wk ago");
+    assert.equal(fmtAgo(Date.UTC(2025, 2, 3), now), "Mar 2025");
   });
   it("adds wiki rows the archive does not cover (no id), and drops the covered ones", () => {
     const e = mapEvents(wikiMap, get);
