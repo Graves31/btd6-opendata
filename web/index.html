@@ -11,6 +11,14 @@
         var t = localStorage.getItem("theme");
         if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
       } catch (e) {}
+      // Analytics counts a page view per address change; a query-only change (slider, tab, pager) is the same
+      // page. Registered before the beacon's listener, this keeps those from it.
+      // ponytail: Navigation API browsers only; elsewhere the beacon patches pushState, so a pager click still counts.
+      try {
+        navigation.addEventListener("navigate", function (e) {
+          if (new URL(e.destination.url).pathname === location.pathname) e.stopImmediatePropagation();
+        });
+      } catch (e) {}
     </script>
     <title>BTD6 Open Data</title>
     <!-- Site name in search results -->
