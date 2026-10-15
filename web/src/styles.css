@@ -8548,8 +8548,10 @@ a.map-stat:hover {
 .map-sec .map-grid {
   margin-top: 0;
 }
+/* every card in a row is as tall as the tallest; the footer takes the slack, split evenly between its two cells */
 .map-tile {
   display: grid;
+  grid-template-rows: auto 1fr;
   height: 100%;
   min-width: 0;
   color: var(--ink);
@@ -8618,6 +8620,7 @@ a.map-stat:hover {
 }
 .map-tile-f {
   display: grid;
+  grid-template-rows: 1fr 1fr;
   border-top: 3px solid var(--dc);
   background: var(--s1);
 }
@@ -8781,7 +8784,9 @@ a.map-stat:hover {
   }
   .map-cnt {
     flex-wrap: wrap;
+    align-content: center;
     gap: 2px 6px;
+    min-height: 52px; /* a count with its "last …" line under it; "No boss yet" gets the same height */
   }
   .map-cnt em {
     flex-basis: 100%;
