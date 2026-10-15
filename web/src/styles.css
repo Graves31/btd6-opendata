@@ -8255,46 +8255,13 @@ footer p {
   height: auto;
 }
 
-/* /maps: jump buttons in the title card */
-.jumps {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.jump {
-  display: grid;
-  justify-items: center;
-  gap: 2px;
-  min-width: 64px;
-  padding: 6px 8px 5px;
-  color: var(--ink);
-  background: var(--s1);
-  border: 1px solid var(--rule-2);
-  border-bottom: 3px solid var(--dc);
-  border-radius: var(--r);
-  font: 800 18px/1 var(--f-display);
-  cursor: pointer;
-}
-.jump:hover,
-.jump:focus-visible {
-  background: var(--s2);
-  border-color: var(--dc);
-}
 @media (prefers-reduced-motion: no-preference) {
-  .jump,
   .map-stat-link {
     transition: transform 0.12s, border-color 0.12s;
   }
-  .jump:hover,
   .map-stat-link:hover {
     transform: translateY(-2px);
   }
-}
-.jump small {
-  font: 700 9.5px/1 var(--f-body);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-3);
 }
 .map-strip {
   display: grid;
@@ -8359,24 +8326,23 @@ a.map-stat:hover {
   color: var(--ink-3);
 }
 
-/* control bar */
+/* control panel: search + sort on row 1, filter pills on row 2 */
 .map-bar {
-  position: sticky;
-  top: var(--hdr);
-  z-index: var(--z-sticky);
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px 12px;
   align-items: center;
-  padding: 10px 0;
-  background: color-mix(in srgb, var(--bg) 92%, transparent);
-  backdrop-filter: blur(6px);
-  border-bottom: 1px solid var(--rule);
+  margin-bottom: 4px;
+  padding: 12px;
+  background: var(--s1);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
 }
-/* the header scrolls away on phones (max-width 700px), so the bar sticks to the very top there */
-@media (max-width: 700px) {
+@media (min-width: 701px) {
   .map-bar {
-    top: 0;
+    position: sticky;
+    top: var(--hdr);
+    z-index: var(--z-sticky);
   }
 }
 .map-search {
@@ -8384,10 +8350,9 @@ a.map-stat:hover {
   align-items: center;
   gap: 8px;
   flex: 1 1 160px;
-  max-width: 320px;
   min-width: 0;
   padding: 0 10px;
-  background: var(--s1);
+  background: var(--bg);
   border: 1px solid var(--rule-2);
   border-radius: var(--r);
 }
@@ -8397,96 +8362,95 @@ a.map-stat:hover {
 .map-search input {
   flex: 1;
   min-width: 0;
-  min-height: 42px;
+  min-height: 40px;
   font: inherit;
   color: var(--ink);
   background: none;
   border: 0;
   outline: 0;
 }
-.map-panel {
-  display: contents;
-}
-.map-seg {
-  display: flex;
-  border: 1px solid var(--rule-2);
-  border-radius: var(--r);
-  overflow: hidden;
-}
-.map-seg button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 42px;
-  padding: 0 10px;
-  color: var(--ink-2);
-  background: var(--s1);
-  border: 0;
-  border-right: 1px solid var(--rule);
-  font: 800 15px/1 var(--f-display);
+.map-sort,
+.map-cap {
+  font: 700 11px/1 var(--f-body);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.map-seg button:last-child {
-  border-right: 0;
-}
-.map-seg button .c {
-  font: 700 12px var(--f-body);
   color: var(--ink-3);
-}
-.map-seg button[aria-pressed="true"] {
-  color: var(--ink);
-  background: color-mix(in srgb, var(--dc) 22%, var(--s1));
-  box-shadow: inset 0 -3px var(--dc);
-}
-.map-tog {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 44px;
-  padding: 0 12px;
-  color: var(--ink-2);
-  background: var(--s1);
-  border: 1px solid var(--rule-2);
-  border-radius: var(--r);
-  font: 800 15px/1 var(--f-display);
-  text-transform: uppercase;
-  cursor: pointer;
-}
-.map-tog[aria-pressed="true"] {
-  color: var(--ink);
-  border-color: var(--focus);
-  background: color-mix(in srgb, var(--accent) 20%, var(--s1));
 }
 .map-sort {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   margin-left: auto;
-  font: 700 11px/1 var(--f-body);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-3);
 }
 .map-sort select {
-  height: 44px;
+  height: 40px;
   padding: 0 10px;
   color: var(--ink);
-  background: var(--s1);
+  background: var(--bg);
   border: 1px solid var(--rule-2);
   border-radius: var(--r);
   font: 700 14px var(--f-body);
 }
+.map-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex-basis: 100%;
+}
+.map-cap {
+  margin-right: 2px;
+}
+.map-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  color: var(--ink-2);
+  background: transparent;
+  border: 1px solid var(--rule-2);
+  border-radius: 999px;
+  font: 700 14px/1 var(--f-body);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.map-pill:hover {
+  color: var(--ink);
+  border-color: var(--ink-3);
+}
+.map-pill[aria-pressed="true"] {
+  color: var(--ink);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, var(--s1));
+}
+.map-pill[data-diff][aria-pressed="true"] {
+  border-color: var(--dc);
+  background: color-mix(in srgb, var(--dc) 22%, var(--s1));
+}
+.map-pill .ck {
+  font-size: 12px;
+}
+.map-div {
+  align-self: stretch;
+  width: 1px;
+  margin: 4px 2px;
+  background: var(--rule-2);
+}
+.map-clear {
+  padding: 6px 8px;
+  color: var(--ink-2);
+  background: none;
+  border: 0;
+  font: 700 13px var(--f-body);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.map-clear:hover {
+  color: var(--ink);
+}
 .map-filt {
   display: none;
-}
-@media (max-width: 1400px) {
-  .map-seg button .c,
-  .map-sort > span {
-    display: none;
-  }
 }
 
 /* results */
@@ -8688,16 +8652,6 @@ a.map-stat:hover {
   border-color: var(--dc);
 }
 @media (max-width: 560px) {
-  .jumps {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-  .jump {
-    min-width: 0;
-  }
-  .jump small {
-    display: none;
-  }
   .map-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -8713,32 +8667,16 @@ a.map-stat:hover {
     height: 36px;
   }
   .map-bar {
-    gap: 6px;
+    gap: 8px;
   }
   .map-search {
     flex-basis: 100%;
-    max-width: none;
   }
   .map-panel {
     display: none;
   }
   .map-panel.open {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    flex-basis: 100%;
-  }
-  .map-seg {
-    flex-basis: 100%;
-  }
-  .map-seg button {
-    flex: 1;
-    min-width: 0;
-    justify-content: center;
-    padding: 0 4px;
-  }
-  .map-seg button .t {
-    display: none;
   }
   .map-filt {
     display: inline-flex;
@@ -8747,7 +8685,7 @@ a.map-stat:hover {
     height: 40px;
     padding: 0 12px;
     color: var(--ink);
-    background: var(--s1);
+    background: var(--bg);
     border: 1px solid var(--rule-2);
     border-radius: var(--r);
     font: 800 15px/1 var(--f-display);
@@ -8764,14 +8702,9 @@ a.map-stat:hover {
   .map-sort {
     flex: 1;
     min-width: 0;
-    margin-left: 0;
-    justify-content: flex-end;
-  }
-  .map-sort span {
-    display: none;
   }
   .map-sort select {
-    height: 40px;
+    flex: 1;
     max-width: 100%;
     min-width: 0;
   }

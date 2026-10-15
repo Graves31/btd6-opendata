@@ -150,7 +150,7 @@ export async function describe(deps: Deps, pathname: string): Promise<PageMeta> 
   if (a === "tools" && b === "paragon-scaling" && !c) return page(...PARAGON_SCALING);
   if (a === "tools" && !b) return page(...TOOLS_HUB);
   if (a === "stats" && !b) return page("Site stats", "How many people use BTD6 Open Data: visits, page views and the most-opened pages."); // old /tools?set=… links are the visualizer, but the hub text is true of both
-  if (a === "maps" && !b) return page("BTD6 Maps", "Every map in Bloons TD 6, with the boss events and races played on it.");
+  if (a === "maps" && !b) return page("BTD6 Maps", "Every official Bloons TD 6 map, with the boss events and races played on it.");
   const m = a === "maps" && b && !c ? MAP_LIST.find((x) => x[0] === b) : undefined;
   if (m) {
     const diff = ["Beginner", "Intermediate", "Advanced", "Expert"][m[1]];

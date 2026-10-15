@@ -99,13 +99,6 @@ function Stat(p: { art: ComponentChildren; big: ComponentChildren; small: string
   );
 }
 
-function jump(d: number) {
-  const el = document.getElementById(`map-s${d}`);
-  if (!el) return;
-  (el as HTMLDetailsElement).open = true;
-  el.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
-}
-
 export function MapsPage(props: { r: MapsRoute }) {
   const r = props.r;
   const loading = useMapData();
@@ -154,35 +147,21 @@ export function MapsPage(props: { r: MapsRoute }) {
       now={now}
     />
   );
-  const perDiff = [0, 1, 2, 3].map((d) => MAP_LIST.filter((m) => m[1] === d).length);
   const never = MAP_LIST.filter(([id]) => !n(counts.boss, id)).length;
   const lb = counts.latest.boss;
   const lr = counts.latest.race;
   const filters = r.d.length + +r.water + +r.noBoss + +r.noRace;
-  const toggle = (key: "water" | "noBoss" | "noRace", label: string, icon?: ComponentChildren) => (
-    <button type="button" class="map-tog" aria-pressed={r[key]} onClick={() => go({ [key]: !r[key] })}>
+  const pill = (on: boolean, onClick: () => void, label: string, icon?: ComponentChildren, d?: number) => (
+    <button type="button" class="map-pill" data-diff={d} aria-pressed={on} onClick={onClick}>
+      {on && <span class="ck" aria-hidden="true">✓</span>}
       {icon}
       {label}
     </button>
   );
+  const flip = (key: "water" | "noBoss" | "noRace") => () => go({ [key]: !r[key] });
   return (
     <>
-      <ToolHero art={<Spr family="ui" k="MapBeginner" size={72} label />} eyebrow="Every map in Bloons TD 6" title="Maps" sub="When each map last had a boss event or a race, and how often.">
-        <div class="jumps">
-          {DIFF_LABEL.map((l, d) => (
-            <button key={l} type="button" class="jump" data-diff={d} onClick={() => {
-                // Sections only exist in game order (and only for shown difficulties): switch there first.
-                if (r.sort === "game" && document.getElementById(`map-s${d}`)) return jump(d);
-                go({ sort: "game", d: r.d.length && !r.d.includes(d) ? [] : r.d });
-                setTimeout(() => jump(d), 80);
-              }}>
-              <DiffIcon d={d} size={34} />
-              <span class="num">{perDiff[d]}</span>
-              <small>{l}</small>
-            </button>
-          ))}
-        </div>
-      </ToolHero>
+      <ToolHero art={<Spr family="ui" k="MapBeginner" size={72} label />} eyebrow="Official maps · Bloons TD 6" title="Maps" sub={`All ${MAP_LIST.length} official maps: when each last had a boss event or a race, and how often.`} />
       <div class="map-strip">
         <Stat art={<Spr family="ui" k="Trophy" size={40} label />} big={MAP_LIST.length} small="maps in the game" />
         <Stat art={<EvIcon k="boss" size={40} />} big={loading ? "–" : never} small="never had a boss event" />
@@ -192,10 +171,10 @@ export function MapsPage(props: { r: MapsRoute }) {
       <div class="map-bar">
         <label class="map-search">
           <Spr family="ui" k="Search" size={24} label />
-          <span class="vh">Search maps</span>
+          <span class="vh">Search official maps</span>
           <input
             type="search"
-            placeholder={`Search ${MAP_LIST.length} maps`}
+            placeholder="Search official maps"
             value={q}
             maxLength={40}
             autocomplete="off"
@@ -209,26 +188,9 @@ export function MapsPage(props: { r: MapsRoute }) {
         <button type="button" class="map-filt" aria-expanded={open} onClick={() => setOpen(!open)}>
           Filters{filters > 0 && <i>{filters}</i>}
         </button>
-        <div class={`map-panel${open ? " open" : ""}`}>
-          <div class="map-seg" role="group" aria-label="Difficulty">
-            {DIFF_LABEL.map((l, d) => {
-              const on = r.d.includes(d);
-              return (
-                <button key={l} type="button" data-diff={d} aria-pressed={on} aria-label={l} onClick={() => go({ d: on ? r.d.filter((x) => x !== d) : [...r.d, d] })}>
-                  <DiffIcon d={d} size={26} />
-                  <span class="t">{l}</span>
-                  <span class="c num">{perDiff[d]}</span>
-                </button>
-              );
-            })}
-          </div>
-          {toggle("water", "Water", <Spr family="ui" k="Water" size={26} label />)}
-          {toggle("noBoss", "No boss yet")}
-          {toggle("noRace", "Never raced")}
-        </div>
         <label class="map-sort">
-          <span>Sort</span>
-          <select aria-label="Sort" value={r.sort} onChange={(e) => go({ sort: (e.currentTarget as HTMLSelectElement).value as MapSort })}>
+          <span>Sort by</span>
+          <select aria-label="Sort by" value={r.sort} onChange={(e) => go({ sort: (e.currentTarget as HTMLSelectElement).value as MapSort })}>
             {SORTS.map(([s, l]) => (
               <option key={s} value={s}>
                 {l}
@@ -236,6 +198,22 @@ export function MapsPage(props: { r: MapsRoute }) {
             ))}
           </select>
         </label>
+        <div class={`map-panel${open ? " open" : ""}`}>
+          <span class="map-cap">Show</span>
+          {DIFF_LABEL.map((l, d) => {
+            const on = r.d.includes(d);
+            return pill(on, () => go({ d: on ? r.d.filter((x) => x !== d) : [...r.d, d] }), l, <DiffIcon d={d} size={20} />, d);
+          })}
+          <span class="map-div" aria-hidden="true" />
+          {pill(r.water, flip("water"), "Water", <Spr family="ui" k="Water" size={20} label />)}
+          {pill(r.noBoss, flip("noBoss"), "No boss yet")}
+          {pill(r.noRace, flip("noRace"), "Never raced")}
+          {filters > 0 && (
+            <button type="button" class="map-clear" onClick={() => go({ d: [], water: false, noBoss: false, noRace: false })}>
+              Clear
+            </button>
+          )}
+        </div>
       </div>
       {list.length === 0 ? (
         <p class="quiet map-none">
