@@ -7796,13 +7796,33 @@ h1.title.ti .ev-icon {
   font-size: 13px;
 }
 
-/* ── Footer: one sentence group per line. */
+/* ── Footer: site name + version and the suggest link on one row, the fine print under it. */
 footer {
   flex-direction: column;
-  gap: 4px;
+  gap: 10px;
 }
 footer p {
   margin: 0;
+}
+.ft-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px 24px;
+}
+.ft-brand a {
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.ft-brand span {
+  margin-left: 10px;
+}
+.ft-fine {
+  max-width: 72ch;
+  line-height: 1.5;
 }
 
 /* ── Phones (owner mobile pass 2026-10-08): the home card breathes over the page wash, compact Normal/Elite

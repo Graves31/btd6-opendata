@@ -385,13 +385,17 @@ function App() {
         <Page r={r} />
       </main>
       <footer>
-        <p>Unofficial fan site, not affiliated with Ninja Kiwi.</p>
-        <p>Data and images from the Ninja Kiwi Open Data API. Game art © Ninja Kiwi.</p>
-        <p>Times are in your time zone.</p>
-        <p>
+        <div class="ft-top">
+          <p class="ft-brand">
+            <A href="/">btd6data.com</A>
+            <span>BTD6 Open Data · v{__APP_VERSION__}</span>
+          </p>
           <A href="/suggest">Suggest an improvement</A>
+        </div>
+        <p class="ft-fine">
+          Unofficial fan site, not affiliated with Ninja Kiwi. Data and images from the Ninja Kiwi Open Data API; game
+          art © Ninja Kiwi. Times are in your time zone.
         </p>
-        <p>v{__APP_VERSION__}</p>
       </footer>
     </>
   );
