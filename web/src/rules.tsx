@@ -5,7 +5,7 @@ import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { ChallengeDocument, PowerRestriction, TowerRestriction } from "../../src/nk/types.ts";
 import { cap, fmtInt, fmtRounds, human, mapName, unitName } from "./format.ts";
-import { roundsFor, type RulesRounds } from "./rounds.ts";
+import { roundsFor, setLabel, type RulesRounds } from "./rounds.ts";
 import { href } from "./routes.ts";
 import { AnyHero, artName, hasArt, MODE_NAME, Spr } from "./sprite.tsx";
 import { A, Fact } from "./ui.tsx";
@@ -470,7 +470,9 @@ function roundSetRows(d: ChallengeDocument, rs: RulesRounds, keyed = false): Com
     if (keyed && !sets.length) return [];
     const shown = rs.fastTrack ? sets.find((v) => /fast/i.test(v))! : rs.info.id;
     const [fam, icon] = sets.length || rs.info.id !== "default" ? roundSetIcon(shown) : ["ui", `mode:${d.difficulty}`];
-    return [<IFact key="rs" icon={icon} fam={fam} k="Round set" v={<RoundsLink href={rs.href} name={roundSetName(shown)} />} />];
+    // a known set: its own name (event sets such as "chimpsbloonarius" would read as a boss from the API value)
+    const name = rs.fastTrack ? roundSetName(shown) : setLabel(rs.info);
+    return [<IFact key="rs" icon={icon} fam={fam} k="Round set" v={<RoundsLink href={rs.href} name={name} />} />];
   }
   if (sets.length)
     return sets.map((r) => {
