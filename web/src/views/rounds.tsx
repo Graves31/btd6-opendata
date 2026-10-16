@@ -642,7 +642,7 @@ function EditForm(p: { r: RoundsRoute; info?: RoundSetInfo; go: Go; onDone?: () 
   const { r, info, go } = p;
   const chips = modChips(r, info);
   return (
-    <section id="rv-edit" class={`rv-form${p.sheet ? " sheet" : ""}`} aria-labelledby="rv-edit-h">
+    <section id="rv-edit" class={`rv-form${p.sheet ? " in-sheet" : ""}`} aria-labelledby="rv-edit-h">
       <div class="rv-form-h">
         <h2 id="rv-edit-h" class="label">
           Round set

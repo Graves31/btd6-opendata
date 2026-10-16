@@ -3865,7 +3865,7 @@ button.fd-tile:hover {
 .rv-sheet::backdrop {
   background: rgb(0 0 0 / 0.6);
 }
-.rv-form.sheet {
+.rv-form.in-sheet {
   margin: 0;
   border: 0;
   padding: 16px var(--gut) calc(16px + env(safe-area-inset-bottom));
