@@ -8461,6 +8461,19 @@ a.map-stat:hover {
   margin-top: 18px;
   scroll-margin-top: calc(var(--hdr) + 70px);
 }
+/* Fresh visit (maps.tsx): the browser skips sections below the fold until they scroll in. The 6px padding,
+   cancelled by the margins, keeps hover shadows and focus rings clear of the paint clip. */
+.map-sec.cv {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 1100px;
+  padding: 6px;
+  margin: 12px -6px -6px;
+}
+@media (max-width: 700px) {
+  .map-sec.cv {
+    contain-intrinsic-block-size: auto 2400px;
+  }
+}
 .map-band {
   display: flex;
   align-items: center;

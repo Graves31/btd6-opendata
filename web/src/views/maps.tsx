@@ -104,6 +104,9 @@ export function MapsPage(props: { r: MapsRoute }) {
   const loading = useMapData();
   const [q, setQ] = useState(r.q);
   const [open, setOpen] = useState(false);
+  // Opened fresh at the top: let the browser skip the sections below the fold (.cv). Not when Back restores a
+  // scroll position: that needs the real heights, not the estimates.
+  const [cv] = useState(() => !((history.state as { scrollY?: number } | null)?.scrollY ?? 0));
   useEffect(() => setQ((x) => (x.trim() === r.q ? x : r.q)), [r.q]);
   const go = (p: Partial<Omit<MapsRoute, "name">>) => navigate(href.maps({ ...r, ...p }), { replace: true, keepScroll: true });
   const now = Date.now();
@@ -224,7 +227,7 @@ export function MapsPage(props: { r: MapsRoute }) {
           const rows = list.filter((m) => m[1] === d);
           return (
             rows.length > 0 && (
-              <details key={l} open class="map-sec" id={`map-s${d}`} data-diff={d}>
+              <details key={l} open class={`map-sec${cv ? " cv" : ""}`} id={`map-s${d}`} data-diff={d}>
                 <summary class="map-band">
                   <DiffIcon d={d} size={40} />
                   <h2>{l}</h2>
