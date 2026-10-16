@@ -11,6 +11,8 @@
 
 import type { ComponentChildren } from "preact";
 import heroArt from "../art/tools/rounds.webp";
+/** Every set icon at 192 px for the title card (build_art.py SET_ICONS); the sprite sheets blur at that size. */
+const SET_ART = import.meta.glob<string>("../art/sets/*.webp", { eager: true, import: "default" });
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
 import { BLOON_TYPES, GAME_VERSION, ROUND_SETS, type Round, type RoundSetData, type RoundSetInfo } from "../data/rounds/index.ts";
 import { fmtInt } from "../format.ts";
@@ -501,7 +503,7 @@ function SetBar(p: {
   return (
     <>
       <ToolHero
-        art={<Spr family={fam} k={icon} size={72} label />}
+        art={SET_ART[`../art/sets/${fam}-${icon.replace(":", "_")}.webp`] ? <img src={SET_ART[`../art/sets/${fam}-${icon.replace(":", "_")}.webp`]} width={96} height={96} alt="" /> : <Spr family={fam} k={icon} size={72} label />}
         eyebrow="Round visualizer"
         title={rangeTitle(info, p.from, p.to)}
         sub={

@@ -578,6 +578,14 @@ TOOL_ICONS = {
     "halfCash": "ref/HalfCashIcon",
 }
 TOOL_PX = 192
+# The round visualizer's title card shows the set's icon (web/src/rounds.ts setIcon) at 96 px: the sheets' 48/96 px
+# cells blur there, so every set icon also gets its own TOOL_PX file. Key "<family>-<key>", ":" -> "_".
+SET_ICONS = {
+    "ui-CustomRounds": UI["CustomRounds"],
+    "ui-mode_AlternateBloonsRounds": UI["mode:AlternateBloonsRounds"],
+    "tower-Mermonkey": TOWERS["Mermonkey"],
+    **{f"hero-{k}": v for k, v in HEROES.items()},
+}
 
 EVENT_ICONS = {
     "boss": "ref/BossChallenge",
@@ -1476,6 +1484,14 @@ def qa_sheets(fams: dict, maps: dict, out_dir: Path) -> None:
     print(f"  QA contact sheets -> {out_dir}")
 
 
+def write_set_icons(src: "Source") -> None:
+    """SET_ICONS plus the boss portraits (BOSSES is complete only here) -> web/src/art/sets/<key>.webp."""
+    for key, entry in {**SET_ICONS, **{f"boss-{b}": BOSSES[b] for b in _BOSSES}}.items():
+        spec, opts = (entry, {}) if isinstance(entry, str) else entry
+        write_if_changed(ART_DIR / "sets" / f"{key}.webp",
+                         webp_bytes(render_cell(src.get(spec), TOOL_PX, bool(opts.get("halo"))), **WEBP_MAP))
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--qa", nargs="?", const=str(CACHE_DIR / "qa"), default=None,
@@ -1507,6 +1523,7 @@ def main() -> None:
     for key, spec in TOOL_ICONS.items():
         write_if_changed(ART_DIR / "tools" / f"{key}.webp",
                          webp_bytes(render_cell(src.get(spec), TOOL_PX, False), **WEBP_MAP))
+    write_set_icons(src)
     if args.skip_maps and (ART_DIR / "manifest.json").exists():
         old = json.loads((ART_DIR / "manifest.json").read_text("utf-8"))["maps"]
         maps = {n: {"source": m["source"], "px": m["px"], "bytes": m["bytes"],
