@@ -135,16 +135,17 @@ def load_game_version() -> str:
 #
 # Layout observed in sim_model (reverse-engineered, validated below):
 #   header list:  [int32 type][u8 0][int32 x][u8 0][7-bit-len string name]  one per BloonModel, all the same type
-#   data records: [u8 0][str id][u8 0][str baseId][str display guid][str icon "Atlas[Sprite]"] + a 112-byte block
-#       (v57; v56 was 110 bytes, without +35 and with health at +52, variant flags at +105):
+#   data records: [u8 0][str id][u8 0][str baseId][str display guid][str icon "Atlas[Sprite]"] + a 116-byte block
+#       (v57.2; v57.0 was 112 bytes, speed at +93 and variant flags at +107: 4 bytes came in between health and
+#       speed; v56 was 110 bytes, without +35 and with health at +52, variant flags at +105):
 #       +24 int32 bloonProperties bitmask     +32 u8 isMoab   +33 u8 isBoss   +34 u8 camo  +35 u8 (0 on every bloon)
-#       +36 u8 regrow   +37 u8 fortified      +54 int32 health   +93 f32 speed  +107 int32 variant flags (1|2|4, -1=all)
+#       +36 u8 regrow   +37 u8 fortified      +54 int32 health   +97 f32 speed  +111 int32 variant flags (1|2|4, -1=all)
 #   string[] stream (elsewhere): [int32 n] n x ([u8 0][str]) per array, in BloonModel order: each bloon's tags array,
 #       followed (for bloons that spawn children) by its children id array (one entry per child).
 
-BLOCK = 112  # BloonModel block size; HP_AT / SPEED_AT: offsets of health (i32) and speed (f32) in it
+BLOCK = 116  # BloonModel block size; HP_AT / SPEED_AT: offsets of health (i32) and speed (f32) in it
 HP_AT = 54
-SPEED_AT = 93
+SPEED_AT = 97
 _VARIANT_TAGS = {"Camo": 1, "Grow": 2, "Fortified": 4}
 _SUFFIX = (("Regrow", 2), ("Fortified", 4), ("Camo", 1))  # order the game uses in ids: <Base>Regrow?Fortified?Camo?
 
@@ -220,7 +221,7 @@ def parse_bloon_models(b: bytes) -> dict:
             sys.exit(f"sim_model: unexpected BloonModel layout at {bid!r} (flag bytes {bools.hex()})")
         camo, grow, fort = bools[2], bools[4], bools[5]
         flags = camo | grow << 1 | fort << 2
-        var = struct.unpack_from("<i", blk, 107)[0]
+        var = struct.unpack_from("<i", blk, BLOCK - 5)[0]
         if (7 if var == -1 else var) != flags:
             sys.exit(f"sim_model: variant flags {var} of {bid!r} disagree with its camo/regrow/fortified bytes")
         m_icon = re.fullmatch(r"(\w+)\[(\w+)\]", icon)
