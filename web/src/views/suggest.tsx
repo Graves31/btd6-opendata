@@ -23,7 +23,9 @@ const PAGES: [string, string][] = [
   ["Players and teams", "Pages"],
   ["Round visualizer", "Tools"],
   ["Paragon calculator", "Tools"],
+  ["Paragon scaling", "Tools"],
   ["Farming resources", "Tools"],
+  ["Bank & IMF Loan planner", "Tools"],
   ["The whole site", "Other"],
 ];
 const OTHER = "Other (specify above)";
