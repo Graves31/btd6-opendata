@@ -41,6 +41,9 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
 
 ## Ideas (not approved)
 
+- **IMF loan planner** (2026-10-16, from the bank planner review). When to take IMF loans and what the debt skim costs
+  (skim % and cooldowns are wiki-only; collecting while in debt is skimmed per the game code, untested in game). Also
+  unverified for the bank planner: buying mid-round, Overclock packet value, Monkey City rounding, Benjamin's range, Double Cash.
 - **Paragon scaling follow-ups** (2026-10-14, from the product/UI/end-user review). A "value per 1,000 power" chart
   (what each extra degree buys for its cost) and a short explanation of the power sources on the scaling page.
 - **Tools hub title card**: the /tools hub has no ToolHero (it isn't a tool); add one if the hub should match.
