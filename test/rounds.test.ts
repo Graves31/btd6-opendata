@@ -14,6 +14,7 @@ import {
   bloonLabel,
   bloonRbe,
   bounds,
+  cashSum,
   gameId,
   activeFilters,
   changedRuns,
@@ -113,6 +114,15 @@ describe("rounds: set resolution and range", () => {
     assert.deepEqual(bounds(info, {}), { from: 1, to: 140, open: undefined });
     assert.deepEqual(bounds(info, { from: 90, to: 20, r: 5 }), { from: 20, to: 90, open: 20 });
     assert.deepEqual(bounds(info, { from: 500, to: 999, r: 999 }), { from: 140, to: 140, open: 140 });
+  });
+});
+
+describe("cash (pops + end-of-round, everything popped)", () => {
+  // Pinned to a calculation that matched btd6apiexplorer's per-round income on all 100 Default and CHIMPS Bloonarius
+  // rounds (within $0.50): a change here means the bloon data or the cash rules moved.
+  it("Default and CHIMPS boss, rounds 1-100", () => {
+    assert.equal(Math.round(cashSum(setFile("default").rounds, 1, 100)!), 178994);
+    assert.equal(Math.round(cashSum(setFile("chimpsboss").rounds, 1, 100)!), 564227);
   });
 });
 

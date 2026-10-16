@@ -8,6 +8,7 @@ import {
   BLOON_TYPES,
   BLOONS,
   FLAG,
+  INCOME_SETS,
   MODE_MODS,
   resolveRoundSet,
   ROUND_SET_BY_ID,
@@ -156,6 +157,64 @@ export function rbeSum(rounds: readonly Round[], from: number, to: number, mods:
     const p = roundRbeParts(x, mods, moabHp);
     if (!p) return undefined;
     t += p.total;
+  }
+  return t;
+}
+
+// ─────────────────────────────── cash
+// bloonswiki "List of rounds in BTD6" / "Cash" / "CHIMPS": $1 per layer popped, times the round's cash-per-pop
+// multiplier (the set's IncomeSet); from round 81 non-MOAB bloons spawn one child and a Ceramic layer pays $87 (Super
+// Ceramic); $100 + the round number at the end of each round. Checked against btd6apiexplorer's per-round income:
+// all 100 Default and CHIMPS Bloonarius rounds within $0.50. Not included: modes' cash rules, Monkey Knowledge, farms.
+
+/** Cash-per-pop multiplier of round `n`: a threshold applies up to and including its round. */
+export function popMult(n: number, incomeSet = "DefaultIncomeSet"): number {
+  const s = INCOME_SETS[incomeSet] ?? INCOME_SETS.DefaultIncomeSet!;
+  for (const [th, m] of s.thresholds) if (n <= th) return m;
+  return s.final;
+}
+
+const popMemo = new Map<string, number | undefined>();
+/** Cash for popping game bloon `bid` and everything it spawns, before the multiplier; undefined if not decoded. */
+function popCash(bid: string, late: boolean): number | undefined {
+  const k = `${bid}|${late ? 1 : 0}`;
+  if (popMemo.has(k)) return popMemo.get(k);
+  const b = BLOONS[bid];
+  let v: number | undefined;
+  if (b?.children) {
+    v = late && b.base === "Ceramic" ? 87 : 1;
+    for (const c of late && !b.moab ? b.children.slice(0, 1) : b.children) {
+      const x = popCash(c, late);
+      if (x === undefined) {
+        v = undefined;
+        break;
+      }
+      v += x;
+    }
+  }
+  popMemo.set(k, v);
+  return v;
+}
+
+/** A round's cash when everything is popped: pops (with the multiplier) + the end-of-round cash. */
+export function roundCash(round: Round, incomeSet?: string): { pops: number; bonus: number } | undefined {
+  let pops = 0;
+  for (const [k, f, count] of round.g) {
+    const c = popCash(gameId(k, f), round.n >= 81);
+    if (c === undefined) return undefined;
+    pops += count * c;
+  }
+  return { pops: pops * popMult(round.n, incomeSet), bonus: 100 + round.n };
+}
+
+/** Cash of rounds `from`..`to`; undefined when a round in it can't be counted. */
+export function cashSum(rounds: readonly Round[], from: number, to: number, incomeSet?: string): number | undefined {
+  let t = 0;
+  for (const x of rounds) {
+    if (x.n < from || x.n > to) continue;
+    const c = roundCash(x, incomeSet);
+    if (!c) return undefined;
+    t += c.pops + c.bonus;
   }
   return t;
 }

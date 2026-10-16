@@ -23,6 +23,7 @@ import {
   activeMods,
   bloonLabel,
   bounds,
+  cashSum,
   changedRuns,
   distinctBloons,
   effGroups,
@@ -35,6 +36,7 @@ import {
   rbeSum,
   roundCount,
   roundMatches,
+  roundCash,
   roundRbeParts,
   setIcon,
   setLabel,
@@ -1197,9 +1199,12 @@ function RoundCard(p: {
   // RBE popped from the range's first round (an event's start round) through this one: what pop income follows.
   const soFar = rbeSum(p.all, p.from, round.n, p.mods, p.moab);
   const baseSoFar = p.base && soFar !== undefined ? rbeSum(p.base, p.from, round.n, p.mods, p.moab) : undefined;
-  const diff = baseSoFar !== undefined && soFar !== undefined ? soFar - baseSoFar : undefined;
-  const vsDefault =
-    diff === undefined ? "" : diff === 0 ? " · same as Default" : ` · ${diff > 0 ? "+" : "−"}${fmtInt(Math.round(Math.abs(diff)))}${baseSoFar ? ` (${diff > 0 ? "+" : "−"}${Math.abs((diff / baseSoFar) * 100).toFixed(1)}%)` : ""} vs Default`;
+  // Cash the same way (pops + end-of-round, everything popped), with the set's own income set; Default's for the base.
+  const inc = info.incomeSet;
+  const cash = roundCash(round, inc);
+  const cashSoFar = cashSum(p.all, p.from, round.n, inc);
+  const baseCash = p.base && cashSoFar !== undefined ? cashSum(p.base, p.from, round.n) : undefined;
+  const range = `rounds ${p.from}–${round.n}`;
   const t0 = Math.min(0, ...groups.map((g) => g.start));
   const t1 = Math.max(spawnEnd(round), t0 + 1);
   const span = t1 - t0;
@@ -1270,7 +1275,9 @@ function RoundCard(p: {
       </header>
       <dl class="rv-stats">
         {parts && <Stat k="RBE" v={fmtInt(Math.round(parts.total))} note={p.beforeHp ? "before bloon health modifier" : parts.moab > 0 ? `${fmtInt(Math.round(parts.moab))} in MOAB-class layers` : undefined} />}
-        {soFar !== undefined && <Stat k="RBE so far" v={fmtInt(Math.round(soFar))} note={`rounds ${p.from}–${round.n}${vsDefault}`} />}
+        {soFar !== undefined && <Stat k="RBE so far" v={fmtInt(Math.round(soFar))} note={range + vsDefault(soFar, baseSoFar)} />}
+        {cash && <Stat k="Cash" v={`$${fmtInt(Math.round(cash.pops + cash.bonus))}`} note={`$${fmtInt(Math.round(cash.pops))} pops + $${cash.bonus} end of round`} />}
+        {cashSoFar !== undefined && <Stat k="Earned so far" v={`$${fmtInt(Math.round(cashSoFar))}`} note={range + vsDefault(cashSoFar, baseCash, "$")} />}
         <Stat k="Bloons" v={fmtInt(roundCount(round))} />
         <Stat k="Groups" v={fmtInt(round.g.length)} />
         <Stat k="Spawns over" v={secs(spawnEnd(round))} />
@@ -1383,6 +1390,15 @@ function RoundCard(p: {
       )}
     </section>
   );
+}
+
+/** " · +17,562 (+197.4%) vs Default" (nothing without a base to compare with). */
+function vsDefault(cur: number, base: number | undefined, unit = ""): string {
+  if (base === undefined) return "";
+  const d = cur - base;
+  if (Math.round(d) === 0) return " · same as Default";
+  const s = d > 0 ? "+" : "−";
+  return ` · ${s}${unit}${fmtInt(Math.round(Math.abs(d)))}${base ? ` (${s}${Math.abs((d / base) * 100).toFixed(1)}%)` : ""} vs Default`;
 }
 
 const Stat = (p: { k: string; v: ComponentChildren; note?: string }) => (
