@@ -323,17 +323,22 @@ function Visualizer(p: { r: RoundsRoute; info: RoundSetInfo; data?: RoundSetData
   const fromRow = useRef(false);
   useLayoutEffect(() => {
     if (focus || !data) return;
-    const first = prevSel.current === null;
-    const changed = prevSel.current !== sel;
+    const prev = prevSel.current;
+    const first = prev === null;
+    const changed = prev !== sel;
     prevSel.current = sel;
+    // Desktop opened on a named round (a link with r=, not Back restoring a scroll position): show its row too.
+    const opened = first && r.r !== undefined && !((history.state as { scrollY?: number } | null)?.scrollY ?? 0);
     const row = (n: number) => listRef.current?.querySelector<HTMLElement>(`[data-n="${n}"]`);
     if (rowOnList !== null) {
       const n = rowOnList;
       rowOnList = null;
       // after nav.ts has applied the navigation's scroll position (queued before this render committed)
       queueMicrotask(() => row(n)?.scrollIntoView({ block: "center" }));
-    } else if (!first && changed && desktop && !fromRow.current) {
-      queueMicrotask(() => row(sel)?.scrollIntoView({ block: "nearest" }));
+    } else if ((opened || (!first && changed)) && desktop && !fromRow.current) {
+      // a jump (graph, jump field, link) centres the row; a one-round step only scrolls as far as needed
+      const block = opened || Math.abs(sel - (prev ?? sel)) > 1 ? "center" : "nearest";
+      queueMicrotask(() => row(sel)?.scrollIntoView({ block }));
     }
     fromRow.current = false;
   }, [sel, data, focus]);
@@ -374,7 +379,7 @@ function Visualizer(p: { r: RoundsRoute; info: RoundSetInfo; data?: RoundSetData
             runs={runs}
             boss={info.boss ? info.name : undefined}
             sel={focus || desktop ? sel : undefined}
-            follow={!focus}
+            follow={!focus && !desktop}
             listRef={listRef}
             from={from}
             to={to}
@@ -985,8 +990,9 @@ function Jump(p: { cur: number; from: number; to: number; inputRef: { current: H
 // ─────────────────────────────── scrubber
 
 /**
- * RBE (or bloon count) per round. List view (`follow`): the cursor follows the topmost visible row, and dragging
- * scrolls the page to a round without selecting it. Round view: dragging picks the round. Filter matches are
+ * RBE (or bloon count) per round. Phone list view (`follow`): the cursor follows the topmost visible row, and dragging
+ * scrolls the page to a round without selecting it. Round view, and desktop (list + detail): it shows the selected
+ * round and dragging picks one (the list then scrolls to it). Filter matches are
  * ticks above the bars; rounds a boss set changed are one ribbon per run under them.
  */
 function Strip(p: {
