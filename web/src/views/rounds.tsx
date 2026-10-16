@@ -709,9 +709,12 @@ function RangeControls(p: { r: RoundsRoute; info: RoundSetInfo; go: Go }) {
       <div class="rv-presets" role="group" aria-label="Round range presets">
         {presets.map(([name, lo, hi]) => {
           const x = b(lo, hi);
-          // CHIMPS is played on the Default set: picking it from the Alternate set switches back.
-          const chimps = name === "CHIMPS" && info.id === "alternate";
-          const on = x.from === from && x.to === to && !chimps;
+          // CHIMPS has Impoppable's rounds: it also sets the CHIMPS mode (mode=Clicks) so only one of the two is lit.
+          // It is played on the Default set: picking it from the Alternate set switches back.
+          const isChimps = name === "CHIMPS";
+          const chimps = isChimps && info.id === "alternate";
+          const pair = isChimps || name === "Impoppable";
+          const on = x.from === from && x.to === to && !chimps && (!pair || isChimps === (r.mode === "Clicks"));
           return (
             <button
               key={name}
@@ -719,7 +722,7 @@ function RangeControls(p: { r: RoundsRoute; info: RoundSetInfo; go: Go }) {
               class={`rv-chip${on ? " on" : ""}${name === "Event" ? " ev" : ""}`}
               aria-pressed={on}
               title={`Rounds ${x.from}–${x.to}`}
-              onClick={() => go({ ...(chimps ? { set: "default" } : {}), from: x.from, to: x.to, r: r.r === undefined ? undefined : Math.min(x.to, Math.max(x.from, r.r)) })}
+              onClick={() => go({ ...(chimps ? { set: "default" } : {}), ...(isChimps ? { mode: "Clicks" } : name === "Impoppable" && r.mode === "Clicks" ? { mode: undefined } : {}), from: x.from, to: x.to, r: r.r === undefined ? undefined : Math.min(x.to, Math.max(x.from, r.r)) })}
             >
               {name}
             </button>
