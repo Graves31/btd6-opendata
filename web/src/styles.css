@@ -9811,7 +9811,8 @@ a.th-ic:focus-visible {
 .bk-tw {
   overflow-x: auto;
 }
-.bk-grid > * {
+.bk-grid > *,
+.bk-col > * {
   min-width: 0; /* a wide table scrolls in its box instead of widening the page */
 }
 @media (max-width: 599px) {
@@ -9882,6 +9883,11 @@ a.th-ic:focus-visible {
 }
 .bk-pick[aria-pressed="true"] {
   color: var(--accent-ink);
+}
+.bk-sub {
+  display: block;
+  color: var(--ink-3);
+  font-size: 12px;
 }
 .bk-best {
   display: inline-block;

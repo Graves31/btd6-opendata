@@ -16,6 +16,7 @@ import overclockArt from "../art/tools/overclock.webp";
 import {
   BANK,
   bestCycle,
+  clickOptions,
   collectPlan,
   depositClicks,
   depositLadder,
@@ -527,6 +528,8 @@ function Deposit(p: {
     ladder[0],
   );
   const { full, rest } = depositClicks(b0, sel.deposit, cap);
+  const opts = clickOptions(r.r, b0, P, cap);
+  const top = opts.reduce((m, x) => (x.perRound > m.perRound ? x : m), opts[0]);
   const rows = depositRows(r.r, b0, sel.deposit, P, cap, k + 3);
   // Every cycle after the first collect: an empty bank, re-deposited at the fastest rung.
   const again = depositLadder(sel.r + 1, 0, P, cap)[0];
@@ -627,6 +630,58 @@ function Deposit(p: {
                   <td>
                     {money(x.perRound)}
                     {x === best && <span class="bk-best">most per round</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="pg-panel" aria-labelledby="bk-clk">
+        <div class="pg-ph">
+          <h2 class="eyebrow" id="bk-clk">
+            Plenty of cash? Count the clicks
+          </h2>
+          <span class="pg-hint">each click puts in half the room left</span>
+        </div>
+        <p class="bk-read">
+          With more cash than you need, the button decides the amount. Best:{" "}
+          <strong>
+            {top.clicks === 0
+              ? "don't deposit"
+              : `${top.clicks} click${top.clicks > 1 ? "s" : ""} (${money(top.deposit)})`}
+          </strong>
+          , collect before round {top.r + 1}.
+        </p>
+        <div class="bk-tw">
+          <table class="bk-ladder">
+            <thead>
+              <tr>
+                <th>Clicks</th>
+                <th>Deposit</th>
+                <th>Collect before</th>
+                <th class="bk-out">You get</th>
+                <th class="bk-out">Lost</th>
+                <th>Gain per round</th>
+              </tr>
+            </thead>
+            <tbody>
+              {opts.map((x) => (
+                <tr key={x.clicks} class={x === top ? "hit" : ""}>
+                  <td>{x.clicks}</td>
+                  <td>{money(x.deposit)}</td>
+                  <td>
+                    {x.r + 1}
+                    <span class="bk-sub">
+                      {x.rounds} round{x.rounds > 1 ? "s" : ""}
+                    </span>
+                  </td>
+                  <td class="bk-out">{money(x.out)}</td>
+                  <td class="bk-out">{x.lost > 0 ? money(x.lost) : "–"}</td>
+                  <td>
+                    {money(x.perRound)}
+                    {x === top && <span class="bk-best">most per round</span>}
                   </td>
                 </tr>
               ))}

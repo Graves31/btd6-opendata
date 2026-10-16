@@ -58,3 +58,14 @@ describe("bank maths", () => {
     assert.deepEqual(depositClicks(500, 100, 12500), { full: [], rest: 100 });
   });
 });
+
+describe("deposit clicks with plenty of cash", () => {
+  it("each click adds half the room left; 0 clicks = the plain bank's best cycle", async () => {
+    const { clickOptions, bestCycle } = await import("../web/src/bank.ts");
+    const P = income({ ...mk, tier: 4, path: 2 });
+    const o = clickOptions(30, 0, P, 12500);
+    assert.deepEqual(o.map((x) => x.deposit), [0, 6250, 9375, 10937, 11718]);
+    near(o[0].perRound, bestCycle(P, 12500).avg);
+    for (const x of o) assert.equal(x.r, 30 + x.rounds - 1);
+  });
+});

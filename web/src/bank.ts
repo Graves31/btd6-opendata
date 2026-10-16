@@ -167,3 +167,29 @@ export function depositClicks(balance: number, D: number, cap: number) {
   }
   return { full, rest: D - sum };
 }
+
+/**
+ * Plenty of cash: the Deposit button only puts in set chunks (half the room left per click). For 0..max clicks
+ * before round `start`, the round to collect that makes the most per round held:
+ * (collected − b0 − deposit) / rounds. rounds = n: deposit before round start, collect before round start + n.
+ */
+export function clickOptions(start: number, b0: number, P: number, cap: number, max = 4) {
+  const out: { clicks: number; deposit: number; r: number; rounds: number; out: number; lost: number; gain: number; perRound: number }[] = [];
+  let D = 0;
+  for (let c = 0; c <= max; c++) {
+    if (c > 0) {
+      const d = Math.trunc((cap - b0 - D) * BANK.depositShare) || cap - b0 - D;
+      if (d <= 0) break;
+      D += d;
+    }
+    const rows = depositRows(start, b0, D, P, cap, 120);
+    let n = 1;
+    for (let i = 1; i <= rows.length; i++) {
+      if ((rows[i - 1].b - b0 - D) / i > (rows[n - 1].b - b0 - D) / n + 1e-9) n = i;
+      if (rows[i - 1].b >= cap) break; // a full bank only loses per round from here
+    }
+    const x = rows[n - 1];
+    out.push({ clicks: c, deposit: D, r: x.r, rounds: n, out: x.b, lost: Math.max(0, x.raw - cap), gain: x.b - b0 - D, perRound: (x.b - b0 - D) / n });
+  }
+  return out;
+}
