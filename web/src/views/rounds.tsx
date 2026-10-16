@@ -14,7 +14,7 @@ import heroArt from "../art/tools/rounds.webp";
 /** Every set icon at 192 px for the title card (build_art.py SET_ICONS); the sprite sheets blur at that size. */
 const SET_ART = import.meta.glob<string>("../art/sets/*.webp", { eager: true, import: "default" });
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
-import { BLOON_TYPES, GAME_VERSION, ROUND_SETS, type Round, type RoundSetData, type RoundSetInfo } from "../data/rounds/index.ts";
+import { BLOON_TYPES, GAME_VERSION, ROUND_SET_BY_ID, ROUND_SETS, type Round, type RoundSetData, type RoundSetInfo } from "../data/rounds/index.ts";
 import { fmtInt } from "../format.ts";
 import { backTo, navigate, pageLabel, store } from "../nav.ts";
 import { href, parse, type HasFilter, type RoundMods, type RoundsRoute } from "../routes.ts";
@@ -32,6 +32,7 @@ import {
   modeMoabHealth,
   moabMult,
   pickSet,
+  rbeSum,
   roundCount,
   roundMatches,
   roundRbeParts,
@@ -197,9 +198,13 @@ export function RoundsPage(props: { r: RoundsRoute }) {
   const url = info?.url;
   const entry = url ? store.peek(url) : undefined;
   const data = entry?.ok ? (entry.data as RoundSetData) : undefined;
+  // any other set: the Default rounds too, for "RBE so far" (prefetched with the page, see roundSetKeys)
+  const baseUrl = info && info.id !== "default" ? ROUND_SET_BY_ID.default!.url : undefined;
+  const baseEntry = baseUrl ? store.peek(baseUrl) : undefined;
+  const base = baseEntry?.ok ? (baseEntry.data as RoundSetData).rounds : undefined;
   useEffect(() => {
-    if (url) void store.want([url]);
-  }, [url]);
+    if (url) void store.want(baseUrl ? [url, baseUrl] : [url]);
+  }, [url, baseUrl]);
 
   const go: Go = (patch, opts = {}) => {
     const to = href.rounds({ ...r, ...patch });
@@ -222,7 +227,7 @@ export function RoundsPage(props: { r: RoundsRoute }) {
         </A>
       )}
       {pick.kind === "set" ? (
-        <Visualizer r={r} info={info!} data={data} go={go} />
+        <Visualizer r={r} info={info!} data={data} base={base} go={go} />
       ) : (
         <>
           <ToolHero art={<img src={heroArt} width={96} height={96} alt="" />} title="Round visualizer" sub="The bloons, RBE and spawn timing of every round, from the game's own data.">
@@ -254,7 +259,7 @@ export function RoundsPage(props: { r: RoundsRoute }) {
   );
 }
 
-function Visualizer(p: { r: RoundsRoute; info: RoundSetInfo; data?: RoundSetData; go: Go }) {
+function Visualizer(p: { r: RoundsRoute; info: RoundSetInfo; data?: RoundSetData; base?: Round[]; go: Go }) {
   const { r, info, data, go } = p;
   const desktop = useMedia(DESKTOP);
   const setup = !r.set && !r.mode; // bare /tools: the setup form stays open
@@ -406,6 +411,7 @@ function Visualizer(p: { r: RoundsRoute; info: RoundSetInfo; data?: RoundSetData
             focus
             flt={on ? flt : null}
             all={data!.rounds}
+            base={p.base}
             go={(n) => go({ r: n })}
           />
         ) : (
@@ -453,6 +459,7 @@ function Visualizer(p: { r: RoundsRoute; info: RoundSetInfo; data?: RoundSetData
                   beforeHp={beforeHp}
                   flt={null}
                   all={data!.rounds}
+                  base={p.base}
                   go={(n) => go({ r: n })}
                   onFocus={() => navigate(focusHref(sel))}
                 />
@@ -1177,6 +1184,8 @@ function RoundCard(p: {
   focus?: boolean;
   flt: Filters | null;
   all: Round[];
+  /** the Default set's rounds (any other set), for the "RBE so far" comparison */
+  base?: Round[];
   go: (n: number) => void;
   onFocus?: () => void;
 }) {
@@ -1185,6 +1194,12 @@ function RoundCard(p: {
     .map((g, i) => ({ ...g, i }))
     .sort((a, b) => a.start - b.start || a.i - b.i);
   const parts = roundRbeParts(round, p.mods, p.moab);
+  // RBE popped from the range's first round (an event's start round) through this one: what pop income follows.
+  const soFar = rbeSum(p.all, p.from, round.n, p.mods, p.moab);
+  const baseSoFar = p.base && soFar !== undefined ? rbeSum(p.base, p.from, round.n, p.mods, p.moab) : undefined;
+  const diff = baseSoFar !== undefined && soFar !== undefined ? soFar - baseSoFar : undefined;
+  const vsDefault =
+    diff === undefined ? "" : diff === 0 ? " · same as Default" : ` · ${diff > 0 ? "+" : "−"}${fmtInt(Math.round(Math.abs(diff)))}${baseSoFar ? ` (${diff > 0 ? "+" : "−"}${Math.abs((diff / baseSoFar) * 100).toFixed(1)}%)` : ""} vs Default`;
   const t0 = Math.min(0, ...groups.map((g) => g.start));
   const t1 = Math.max(spawnEnd(round), t0 + 1);
   const span = t1 - t0;
@@ -1255,6 +1270,7 @@ function RoundCard(p: {
       </header>
       <dl class="rv-stats">
         {parts && <Stat k="RBE" v={fmtInt(Math.round(parts.total))} note={p.beforeHp ? "before bloon health modifier" : parts.moab > 0 ? `${fmtInt(Math.round(parts.moab))} in MOAB-class layers` : undefined} />}
+        {soFar !== undefined && <Stat k="RBE so far" v={fmtInt(Math.round(soFar))} note={`rounds ${p.from}–${round.n}${vsDefault}`} />}
         <Stat k="Bloons" v={fmtInt(roundCount(round))} />
         <Stat k="Groups" v={fmtInt(round.g.length)} />
         <Stat k="Spawns over" v={secs(spawnEnd(round))} />

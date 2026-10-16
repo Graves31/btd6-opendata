@@ -34,9 +34,11 @@ export function pickSet(r: Pick<RoundsRoute, "set" | "mode">): SetPick {
 }
 
 /** Store key (hashed asset URL) of the set file a route needs; none for random / unknown sets. */
+/** The set file, plus the Default set's for any other set (the round card's "RBE so far" compares with it). */
 export function roundSetKeys(r: RoundsRoute): string[] {
   const p = pickSet(r);
-  return p.kind === "set" ? [p.info.url] : [];
+  if (p.kind !== "set") return [];
+  return p.info.id === "default" ? [p.info.url] : [p.info.url, ROUND_SET_BY_ID.default!.url];
 }
 
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
@@ -146,6 +148,18 @@ export function effGroups(round: Round, mods: RoundMods): EffGroup[] {
  * MOAB-health multiplier (rbeMoab). `moab` = the part from MOAB-class layers. Undefined when a bloon's health
  * tree isn't in the data.
  */
+/** Total RBE of rounds `from`..`to` with the modifiers; undefined when a round in it has none. */
+export function rbeSum(rounds: readonly Round[], from: number, to: number, mods: RoundMods, moabHp = 1): number | undefined {
+  let t = 0;
+  for (const x of rounds) {
+    if (x.n < from || x.n > to) continue;
+    const p = roundRbeParts(x, mods, moabHp);
+    if (!p) return undefined;
+    t += p.total;
+  }
+  return t;
+}
+
 export function roundRbeParts(round: Round, mods: RoundMods, moabHp = 1): { total: number; moab: number } | undefined {
   const flagged = round.g.some(([k, f]) => applyFlags(k, f, mods) !== f);
   if (!flagged) {

@@ -84,12 +84,13 @@ describe("rounds route: URL ⇄ route", () => {
     const r = parse(U(`/tools/rounds?src=${encodeURIComponent("//evil.example")}`)) as RoundsRoute;
     assert.equal(r.src, undefined);
   });
-  it("needs() is the set's static file (once the browser registers the resolver)", () => {
+  it("needs() is the set's static file, plus Default's for any other set (once the browser registers the resolver)", () => {
     setRoundKeys(roundSetKeys);
+    const def = ROUND_SET_BY_ID.default!.url;
     try {
-      assert.deepEqual(needs(parse(U("/tools/rounds"))), [ROUND_SET_BY_ID.default!.url]);
-      assert.deepEqual(needs(parse(U("/tools/rounds?set=vortex"))), [ROUND_SET_BY_ID.vortex!.url]);
-      assert.deepEqual(needs(parse(U("/tools/rounds?mode=AlternateBloonsRounds"))), [ROUND_SET_BY_ID.alternate!.url]);
+      assert.deepEqual(needs(parse(U("/tools/rounds"))), [def]);
+      assert.deepEqual(needs(parse(U("/tools/rounds?set=vortex"))), [ROUND_SET_BY_ID.vortex!.url, def]);
+      assert.deepEqual(needs(parse(U("/tools/rounds?mode=AlternateBloonsRounds"))), [ROUND_SET_BY_ID.alternate!.url, def]);
       assert.deepEqual(needs(parse(U("/tools/rounds?set=nope"))), []);
       assert.deepEqual(needs(parse(U("/tools/rounds?mode=Apopalypse"))), []);
       for (const k of needs(parse(U("/tools/rounds?set=lych")))) assert.ok(!k.startsWith("/api/") && !k.includes("ninjakiwi"), k);
