@@ -255,11 +255,14 @@ async function main() {
     if (!(await has(".bs-tiers .bs-tier")) || !(await has(".hb-stage .hb-skull")) || !((await has(".bs-skull-list li")) || (await has(".bs-every")))) problems.push("boss stats: tiers / skull bar / skull stretches missing");
     await step("Boss stats → back to the event", "a.backlink");
     if (!(await here()).startsWith("/boss/")) problems.push(`boss stats back link went to ${await here()}`);
-    // The rules' "Max paragons" row links to the paragon calculator (no data to fetch: opens from memory).
-    await step("Boss rules → Paragon calculator", "a.pg-rlink[href^='/tools/paragon']");
-    if (!(await has(".pg-picker")) || !(await has(".pg-res"))) problems.push("boss → paragon calculator: page didn't render");
-    await page.goBack();
-    await page.waitForFunction(() => location.pathname.startsWith("/boss/"), { timeout: 3000 }).catch(() => problems.push("paragon calculator: Back didn't return to the boss"));
+    // The rules' "Max paragons" row links to the paragon calculator (no data to fetch: opens from memory). Live, the
+    // newest boss may allow no paragons (then there is no link: e.g. a CHIMPS boss event).
+    if (!REMOTE || (await has("a.pg-rlink[href^='/tools/paragon']"))) {
+      await step("Boss rules → Paragon calculator", "a.pg-rlink[href^='/tools/paragon']");
+      if (!(await has(".pg-picker")) || !(await has(".pg-res"))) problems.push("boss → paragon calculator: page didn't render");
+      await page.goBack();
+      await page.waitForFunction(() => location.pathname.startsWith("/boss/"), { timeout: 3000 }).catch(() => problems.push("paragon calculator: Back didn't return to the boss"));
+    } else console.log("  (live: the newest boss allows no paragons; paragon link step skipped)");
     await step("Boss → Elite tab", "nav.tabs a.tab[href*='d=elite']");
     // The rules' "Round set" row links to the round visualizer with the event applied (set file prefetched).
     await step("Boss rules → See rounds", "a.rs-link[href^='/tools/rounds']");
