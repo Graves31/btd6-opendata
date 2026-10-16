@@ -134,6 +134,15 @@ describe("rules panel link (resolveRoundSet)", () => {
     assert.equal(r.mods.bspd, d._bloonModifiers.bossSpeedMultiplier);
     assert.equal(r.src, "/boss/Vortex46_ms8tf3cb?d=elite");
   });
+  it("an event round set from NK's server settings wins over default and the mode (Diamondback 8: CHIMPS boss)", () => {
+    const d = { ...fixture("btd6__bosses__Vortex46_ms8tf3cb__metadata__elite.json"), roundSets: ["default", "chimpsboss"], mode: "Clicks" };
+    const rs = roundsFor(d);
+    assert.equal(rs.kind, "link");
+    if (rs.kind !== "link") return;
+    assert.equal(rs.info.id, "chimpsboss");
+    assert.equal(rs.info.group, "event");
+    assert.equal(ROUND_SET_BY_ID.chimpsboss!.last, 140);
+  });
   it("a single-round challenge gets from = to = r, with all-camo", () => {
     const d = fixture("btd6__challenges__challenge__ZFVHOWM.json");
     const rs = roundsFor(d);

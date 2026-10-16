@@ -71,13 +71,14 @@ export function roundsBoss(r: RoundsRoute): string | undefined {
 const GROUPS: [RoundSetInfo["group"], string][] = [
   ["standard", "Standard"],
   ["boss", "Boss events"],
+  ["event", "Event round sets"],
   ["frontier", "Legends: Frontier"],
   ["rogue", "Legends: Rogue"],
   ["other", "Other game modes"],
   ["quest", "Quests"],
 ];
 /** Groups folded in the picker unless they hold the current set (rarely used). */
-const FOLDED = new Set<RoundSetInfo["group"]>(["frontier", "rogue", "other", "quest"]);
+const FOLDED = new Set<RoundSetInfo["group"]>(["event", "frontier", "rogue", "other", "quest"]);
 
 const secs = (s: number) => `${+s.toFixed(2)}s`;
 const mult = (n: number) => `${+(n * 100).toFixed(1)}%`;

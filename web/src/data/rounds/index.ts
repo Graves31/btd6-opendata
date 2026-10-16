@@ -13,8 +13,9 @@
 //            BloonModel health + RBE of each spawned child (recursively). Omitted when a bloon's tree could not be
 //            decoded (Legends-only bloons such as AuraBloon). Before any event health multiplier.
 //   rbeMoab  the part of rbe from MOAB-class layers (BloonModel isMoab), so a MOAB health multiplier can rescale.
-//   o        1 = the boss set replaced this round with different groups (boss sets = the default set with the
-//            boss set's rounds swapped in; the game's entries all have addToRound = 0, i.e. replace).
+//   o        1 = a mergeable set (boss / event) changed this round (those sets = the default set with their
+//            entries applied in order: replace, or append with addToRound; numbers past the base skipped).
+//   A set's `scale` is already applied to start/end (the game multiplies both by it).
 // Cash is NOT included: the model's per-pop cash rules are code, not data (see INCOME_SETS / MODE_MODS for the
 // data that does exist).
 
@@ -45,33 +46,64 @@ import u23 from "./he-man-stage-3.json?url";
 import u24 from "./mastery-mode.json?url";
 import u25 from "./moab-madness.json?url";
 import u26 from "./quest-adora-trial.json?url";
-import u27 from "./quest-brickell-trial.json?url";
-import u28 from "./quest-churchill-trial.json?url";
-import u29 from "./quest-corvus-trial.json?url";
-import u30 from "./quest-etienne-trial.json?url";
-import u31 from "./quest-ezili-trial.json?url";
-import u32 from "./quest-geraldo-trial.json?url";
-import u33 from "./quest-gwendolin-trial.json?url";
-import u34 from "./quest-mermonkey-stage-1.json?url";
-import u35 from "./quest-obyn-trial.json?url";
-import u36 from "./quest-pat-trial.json?url";
-import u37 from "./quest-psi-trial.json?url";
-import u38 from "./quest-quincy-trial.json?url";
-import u39 from "./quest-rosalia-trial.json?url";
-import u40 from "./quest-sauda-trial.json?url";
-import u41 from "./quest-silas-trial.json?url";
-import u42 from "./quest-striker-trial.json?url";
-import u43 from "./rogue.json?url";
-import u44 from "./rogue-bloonier-set.json?url";
-import u45 from "./rogue-dense-set.json?url";
-import u46 from "./rogue-immune-set.json?url";
-import u47 from "./rogue-lead-set.json?url";
-import u48 from "./rogue-pink-set.json?url";
-import u49 from "./rogue-purple-set.json?url";
-import u50 from "./scoops-tale-i-part-1.json?url";
-import u51 from "./scoops-tale-i-part-2.json?url";
-import u52 from "./scoops-tale-i-part-3.json?url";
-import u53 from "./skeletor-quest-1.json?url";
+import u27 from "./quest-churchill-trial.json?url";
+import u28 from "./quest-corvus-trial.json?url";
+import u29 from "./quest-etienne-trial.json?url";
+import u30 from "./quest-ezili-trial.json?url";
+import u31 from "./quest-geraldo-trial.json?url";
+import u32 from "./quest-mermonkey-stage-1.json?url";
+import u33 from "./quest-obyn-trial.json?url";
+import u34 from "./quest-pat-trial.json?url";
+import u35 from "./quest-psi-trial.json?url";
+import u36 from "./quest-rosalia-trial.json?url";
+import u37 from "./quest-silas-trial.json?url";
+import u38 from "./quest-striker-trial.json?url";
+import u39 from "./rogue.json?url";
+import u40 from "./rogue-bloonier-set.json?url";
+import u41 from "./rogue-dense-set.json?url";
+import u42 from "./rogue-immune-set.json?url";
+import u43 from "./rogue-lead-set.json?url";
+import u44 from "./rogue-pink-set.json?url";
+import u45 from "./rogue-purple-set.json?url";
+import u46 from "./scoops-tale-i-part-1.json?url";
+import u47 from "./scoops-tale-i-part-2.json?url";
+import u48 from "./scoops-tale-i-part-3.json?url";
+import u49 from "./skeletor-quest-1.json?url";
+import u50 from "./1roundearly.json?url";
+import u51 from "./2roundearly.json?url";
+import u52 from "./31plus.json?url";
+import u53 from "./3roundearly.json?url";
+import u54 from "./4roundearly.json?url";
+import u55 from "./5roundearly.json?url";
+import u56 from "./abrbutharder.json?url";
+import u57 from "./allornothingend60.json?url";
+import u58 from "./allornothingend80.json?url";
+import u59 from "./apocrypha3.json?url";
+import u60 from "./badbutfortharder.json?url";
+import u61 from "./badbutharder.json?url";
+import u62 from "./beasthandlerjourney.json?url";
+import u63 from "./ceramicflood.json?url";
+import u64 from "./chimpsbloonarius.json?url";
+import u65 from "./chimpsboss.json?url";
+import u66 from "./corntada3.json?url";
+import u67 from "./countdowngroupof5.json?url";
+import u68 from "./ddtbadness.json?url";
+import u69 from "./eggs.json?url";
+import u70 from "./jumpscare.json?url";
+import u71 from "./jumpscare1.json?url";
+import u72 from "./jumpscare2.json?url";
+import u73 from "./jumpscare3.json?url";
+import u74 from "./jumpscare4.json?url";
+import u75 from "./jumpscare5.json?url";
+import u76 from "./masterymode.json?url";
+import u77 from "./monkeyvsmachines.json?url";
+import u78 from "./quest-brickell-trial.json?url";
+import u79 from "./quest-gwendolin-trial.json?url";
+import u80 from "./quest-quincy-trial.json?url";
+import u81 from "./quest-sauda-trial.json?url";
+import u82 from "./rabbityear.json?url";
+import u83 from "./thefinalgambit.json?url";
+import u84 from "./valentinescf.json?url";
 
 /** [key, flags, count, startSec, endSec] */
 export type Group = [key: string, flags: number, count: number, start: number, end: number];
@@ -94,20 +126,20 @@ export interface RoundSetInfo {
   /** the game's own round-set asset name, e.g. "DefaultRoundSet", "vortex" */
   gameId: string;
   name: string;
-  group: "standard" | "boss" | "quest" | "frontier" | "rogue" | "other";
+  group: "standard" | "boss" | "event" | "quest" | "frontier" | "rogue" | "other";
   /** ChallengeDocument.roundSets values that select this set (boss sets: the boss id; see README notes) */
   api: string[];
   /** ChallengeDocument.mode values whose game mutator swaps in this set (RoundSetModModel), e.g. AlternateBloonsRounds */
   modes: string[];
   /** boss sets: boss type (as in Boss.bossType / art keys) */
   boss?: string;
-  /** boss sets: the set the boss rounds are merged onto */
+  /** boss / event sets: the set their rounds are merged onto */
   base?: string;
-  /** boss sets: round numbers where the boss set's groups differ from the base set */
+  /** boss / event sets: round numbers where the merged groups differ from the base set */
   overrides?: number[];
   /** the game's linked IncomeSet (pop-cash multiplier by round), see INCOME_SETS */
   incomeSet?: string;
-  /** the set's raw `scale` field when not 1 (meaning not known) */
+  /** the set's `scale` when not 1: spawn times are multiplied by it (already applied to start/end) */
   scale?: number;
   first: number;
   last: number;
@@ -146,7 +178,7 @@ export interface BloonInfo {
 }
 
 export const FLAG = { camo: 1, regrow: 2, fortified: 4 } as const;
-export const GAME_VERSION = "57.0";
+export const GAME_VERSION = "57.2";
 /** Which optional values the data provides. */
 export const ROUND_FIELDS = { rbe: true, rbeMoab: true, cash: false, perLayerHealth: true, modeIncomeRules: "partial" } as const;
 
@@ -184,42 +216,73 @@ export const ROUND_SETS: RoundSetInfo[] = [
   { id: "mastery-mode", gameId: "MasteryModeRoundSet", name: "Mastery Mode", group: "other", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u24, file: () => loadRoundSet(u24) },
   { id: "moab-madness", gameId: "MOABMadnessRoundSet", name: "MOAB Madness", group: "other", api: [], modes: [], incomeSet: "MOABMadnessIncomeSet", first: 1, last: 5, hasRbe: true, url: u25, file: () => loadRoundSet(u25) },
   { id: "quest-adora-trial", gameId: "QuestAdoraTrialRoundSet", name: "Quest Adora Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u26, file: () => loadRoundSet(u26) },
-  { id: "quest-brickell-trial", gameId: "QuestBrickellTrialRoundSet", name: "Quest Brickell Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 15, hasRbe: true, url: u27, file: () => loadRoundSet(u27) },
-  { id: "quest-churchill-trial", gameId: "QuestChurchillTrialRoundSet", name: "Quest Churchill Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u28, file: () => loadRoundSet(u28) },
-  { id: "quest-corvus-trial", gameId: "QuestCorvusTrialRoundSet", name: "Quest Corvus Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u29, file: () => loadRoundSet(u29) },
-  { id: "quest-etienne-trial", gameId: "QuestEtienneTrialRoundSet", name: "Quest Etienne Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u30, file: () => loadRoundSet(u30) },
-  { id: "quest-ezili-trial", gameId: "QuestEziliTrialRoundSet", name: "Quest Ezili Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u31, file: () => loadRoundSet(u31) },
-  { id: "quest-geraldo-trial", gameId: "QuestGeraldoTrialRoundSet", name: "Quest Geraldo Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u32, file: () => loadRoundSet(u32) },
-  { id: "quest-gwendolin-trial", gameId: "QuestGwendolinTrialRoundSet", name: "Quest Gwendolin Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", scale: 0.85, first: 1, last: 15, hasRbe: true, url: u33, file: () => loadRoundSet(u33) },
-  { id: "quest-mermonkey-stage-1", gameId: "QuestMermonkeyStage1RoundSet", name: "Quest Mermonkey Stage 1", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u34, file: () => loadRoundSet(u34) },
-  { id: "quest-obyn-trial", gameId: "QuestObynTrialRoundSet", name: "Quest Obyn Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u35, file: () => loadRoundSet(u35) },
-  { id: "quest-pat-trial", gameId: "QuestPatTrialRoundSet", name: "Quest Pat Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u36, file: () => loadRoundSet(u36) },
-  { id: "quest-psi-trial", gameId: "QuestPsiTrialRoundSet", name: "Quest Psi Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u37, file: () => loadRoundSet(u37) },
-  { id: "quest-quincy-trial", gameId: "QuestQuincyTrialRoundSet", name: "Quest Quincy Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 16, hasRbe: true, url: u38, file: () => loadRoundSet(u38) },
-  { id: "quest-rosalia-trial", gameId: "QuestRosaliaTrialRoundSet", name: "Quest Rosalia Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 107, hasRbe: true, url: u39, file: () => loadRoundSet(u39) },
-  { id: "quest-sauda-trial", gameId: "QuestSaudaTrialRoundSet", name: "Quest Sauda Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", scale: 0.85, first: 1, last: 140, hasRbe: true, url: u40, file: () => loadRoundSet(u40) },
-  { id: "quest-silas-trial", gameId: "QuestSilasTrialRoundSet", name: "Quest Silas Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u41, file: () => loadRoundSet(u41) },
-  { id: "quest-striker-trial", gameId: "QuestStrikerTrialRoundSet", name: "Quest Striker Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u42, file: () => loadRoundSet(u42) },
-  { id: "rogue", gameId: "RogueRoundSet", name: "Rogue", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u43, file: () => loadRoundSet(u43) },
-  { id: "rogue-bloonier-set", gameId: "RogueBloonierSet", name: "Rogue Bloonier Set", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u44, file: () => loadRoundSet(u44) },
-  { id: "rogue-dense-set", gameId: "RogueDenseSet", name: "Rogue Dense Set", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", scale: 0.8, first: 1, last: 145, hasRbe: true, url: u45, file: () => loadRoundSet(u45) },
-  { id: "rogue-immune-set", gameId: "RogueImmuneSet", name: "Rogue Immune Set", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 143, hasRbe: true, url: u46, file: () => loadRoundSet(u46) },
-  { id: "rogue-lead-set", gameId: "RogueLeadSet", name: "Rogue Lead Set", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u47, file: () => loadRoundSet(u47) },
-  { id: "rogue-pink-set", gameId: "RoguePinkSet", name: "Rogue Pink Set", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u48, file: () => loadRoundSet(u48) },
-  { id: "rogue-purple-set", gameId: "RoguePurpleSet", name: "Rogue Purple Set", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u49, file: () => loadRoundSet(u49) },
-  { id: "scoops-tale-i-part-1", gameId: "ScoopsTaleIPart1RoundSet", name: "Scoops Tale I Part 1", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 13, hasRbe: true, url: u50, file: () => loadRoundSet(u50) },
-  { id: "scoops-tale-i-part-2", gameId: "ScoopsTaleIPart2RoundSet", name: "Scoops Tale I Part 2", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 15, hasRbe: true, url: u51, file: () => loadRoundSet(u51) },
-  { id: "scoops-tale-i-part-3", gameId: "ScoopsTaleIPart3RoundSet", name: "Scoops Tale I Part 3", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 23, hasRbe: true, url: u52, file: () => loadRoundSet(u52) },
-  { id: "skeletor-quest-1", gameId: "SkeletorQuestRoundSet1", name: "Skeletor Quest 1", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u53, file: () => loadRoundSet(u53) },
+  { id: "quest-churchill-trial", gameId: "QuestChurchillTrialRoundSet", name: "Quest Churchill Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u27, file: () => loadRoundSet(u27) },
+  { id: "quest-corvus-trial", gameId: "QuestCorvusTrialRoundSet", name: "Quest Corvus Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u28, file: () => loadRoundSet(u28) },
+  { id: "quest-etienne-trial", gameId: "QuestEtienneTrialRoundSet", name: "Quest Etienne Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u29, file: () => loadRoundSet(u29) },
+  { id: "quest-ezili-trial", gameId: "QuestEziliTrialRoundSet", name: "Quest Ezili Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u30, file: () => loadRoundSet(u30) },
+  { id: "quest-geraldo-trial", gameId: "QuestGeraldoTrialRoundSet", name: "Quest Geraldo Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u31, file: () => loadRoundSet(u31) },
+  { id: "quest-mermonkey-stage-1", gameId: "QuestMermonkeyStage1RoundSet", name: "Quest Mermonkey Stage 1", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u32, file: () => loadRoundSet(u32) },
+  { id: "quest-obyn-trial", gameId: "QuestObynTrialRoundSet", name: "Quest Obyn Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u33, file: () => loadRoundSet(u33) },
+  { id: "quest-pat-trial", gameId: "QuestPatTrialRoundSet", name: "Quest Pat Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u34, file: () => loadRoundSet(u34) },
+  { id: "quest-psi-trial", gameId: "QuestPsiTrialRoundSet", name: "Quest Psi Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u35, file: () => loadRoundSet(u35) },
+  { id: "quest-rosalia-trial", gameId: "QuestRosaliaTrialRoundSet", name: "Quest Rosalia Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 107, hasRbe: true, url: u36, file: () => loadRoundSet(u36) },
+  { id: "quest-silas-trial", gameId: "QuestSilasTrialRoundSet", name: "Quest Silas Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u37, file: () => loadRoundSet(u37) },
+  { id: "quest-striker-trial", gameId: "QuestStrikerTrialRoundSet", name: "Quest Striker Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u38, file: () => loadRoundSet(u38) },
+  { id: "rogue", gameId: "RogueRoundSet", name: "Rogue", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u39, file: () => loadRoundSet(u39) },
+  { id: "rogue-bloonier-set", gameId: "RogueBloonierSet", name: "Rogue Bloonier Set", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u40, file: () => loadRoundSet(u40) },
+  { id: "rogue-dense-set", gameId: "RogueDenseSet", name: "Rogue Dense Set", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", scale: 0.8, first: 1, last: 145, hasRbe: true, url: u41, file: () => loadRoundSet(u41) },
+  { id: "rogue-immune-set", gameId: "RogueImmuneSet", name: "Rogue Immune Set", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 143, hasRbe: true, url: u42, file: () => loadRoundSet(u42) },
+  { id: "rogue-lead-set", gameId: "RogueLeadSet", name: "Rogue Lead Set", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u43, file: () => loadRoundSet(u43) },
+  { id: "rogue-pink-set", gameId: "RoguePinkSet", name: "Rogue Pink Set", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u44, file: () => loadRoundSet(u44) },
+  { id: "rogue-purple-set", gameId: "RoguePurpleSet", name: "Rogue Purple Set", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u45, file: () => loadRoundSet(u45) },
+  { id: "scoops-tale-i-part-1", gameId: "ScoopsTaleIPart1RoundSet", name: "Scoops Tale I Part 1", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 13, hasRbe: true, url: u46, file: () => loadRoundSet(u46) },
+  { id: "scoops-tale-i-part-2", gameId: "ScoopsTaleIPart2RoundSet", name: "Scoops Tale I Part 2", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 15, hasRbe: true, url: u47, file: () => loadRoundSet(u47) },
+  { id: "scoops-tale-i-part-3", gameId: "ScoopsTaleIPart3RoundSet", name: "Scoops Tale I Part 3", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 23, hasRbe: true, url: u48, file: () => loadRoundSet(u48) },
+  { id: "skeletor-quest-1", gameId: "SkeletorQuestRoundSet1", name: "Skeletor Quest 1", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u49, file: () => loadRoundSet(u49) },
+  { id: "1roundearly", gameId: "1roundEarly", name: "1 round early", group: "event", base: "default", api: ["1roundEarly"], modes: [], first: 1, last: 80, hasRbe: true, url: u50, file: () => loadRoundSet(u50) },
+  { id: "2roundearly", gameId: "2roundEarly", name: "2 rounds early", group: "event", base: "default", api: ["2roundEarly"], modes: [], first: 1, last: 80, hasRbe: true, url: u51, file: () => loadRoundSet(u51) },
+  { id: "31plus", gameId: "31Plus", name: "31 plus", group: "event", base: "default", api: ["31Plus"], modes: [], first: 1, last: 100, hasRbe: true, url: u52, file: () => loadRoundSet(u52) },
+  { id: "3roundearly", gameId: "3roundEarly", name: "3 rounds early", group: "event", base: "default", api: ["3roundEarly"], modes: [], first: 1, last: 80, hasRbe: true, url: u53, file: () => loadRoundSet(u53) },
+  { id: "4roundearly", gameId: "4roundEarly", name: "4 rounds early", group: "event", base: "default", api: ["4roundEarly"], modes: [], first: 1, last: 80, hasRbe: true, url: u54, file: () => loadRoundSet(u54) },
+  { id: "5roundearly", gameId: "5roundEarly", name: "5 rounds early", group: "event", base: "default", api: ["5roundEarly"], modes: [], first: 1, last: 80, hasRbe: true, url: u55, file: () => loadRoundSet(u55) },
+  { id: "abrbutharder", gameId: "abrbutharder", name: "ABR but harder", group: "event", base: "default", api: ["abrbutharder"], modes: [], first: 1, last: 140, hasRbe: true, url: u56, file: () => loadRoundSet(u56) },
+  { id: "allornothingend60", gameId: "allOrNothingEnd60", name: "All or nothing (end 60)", group: "event", base: "default", api: ["allOrNothingEnd60"], modes: [], first: 1, last: 1, hasRbe: true, url: u57, file: () => loadRoundSet(u57) },
+  { id: "allornothingend80", gameId: "allOrNothingEnd80", name: "All or nothing (end 80)", group: "event", base: "default", api: ["allOrNothingEnd80"], modes: [], first: 1, last: 1, hasRbe: true, url: u58, file: () => loadRoundSet(u58) },
+  { id: "apocrypha3", gameId: "Apocrypha3", name: "Apocrypha 3", group: "event", base: "default", api: ["Apocrypha3"], modes: [], first: 1, last: 100, hasRbe: true, url: u59, file: () => loadRoundSet(u59) },
+  { id: "badbutfortharder", gameId: "BADbutfortharder", name: "BAD but fortified harder", group: "event", base: "default", api: ["BADbutfortharder"], modes: [], first: 1, last: 140, hasRbe: true, url: u60, file: () => loadRoundSet(u60) },
+  { id: "badbutharder", gameId: "BADbutharder", name: "BAD but harder", group: "event", base: "default", api: ["BADbutharder"], modes: [], first: 1, last: 40, hasRbe: true, url: u61, file: () => loadRoundSet(u61) },
+  { id: "beasthandlerjourney", gameId: "BeastHandlerjourney", name: "Beast Handler journey", group: "event", base: "default", api: ["BeastHandlerjourney"], modes: [], first: 1, last: 85, hasRbe: true, url: u62, file: () => loadRoundSet(u62) },
+  { id: "ceramicflood", gameId: "CeramicFlood", name: "Ceramic Flood", group: "event", base: "default", api: ["CeramicFlood"], modes: [], first: 1, last: 98, hasRbe: true, url: u63, file: () => loadRoundSet(u63) },
+  { id: "chimpsbloonarius", gameId: "chimpsbloonarius", name: "CHIMPS Bloonarius", group: "event", base: "default", api: ["chimpsbloonarius"], modes: [], first: 1, last: 140, hasRbe: true, url: u64, file: () => loadRoundSet(u64) },
+  { id: "chimpsboss", gameId: "chimpsboss", name: "CHIMPS boss", group: "event", base: "default", api: ["chimpsboss"], modes: [], first: 1, last: 140, hasRbe: true, url: u65, file: () => loadRoundSet(u65) },
+  { id: "corntada3", gameId: "corntada3", name: "Corntada 3", group: "event", base: "default", api: ["corntada3"], modes: [], first: 1, last: 140, hasRbe: true, url: u66, file: () => loadRoundSet(u66) },
+  { id: "countdowngroupof5", gameId: "countdownGroupOf5", name: "Countdown, groups of 5", group: "event", base: "default", api: ["countdownGroupOf5"], modes: [], first: 1, last: 80, hasRbe: true, url: u67, file: () => loadRoundSet(u67) },
+  { id: "ddtbadness", gameId: "DDTbadness", name: "DDT badness", group: "event", base: "default", api: ["DDTbadness"], modes: [], first: 1, last: 80, hasRbe: true, url: u68, file: () => loadRoundSet(u68) },
+  { id: "eggs", gameId: "eggs", name: "Eggs", group: "event", base: "default", api: ["eggs"], modes: [], first: 1, last: 79, hasRbe: true, url: u69, file: () => loadRoundSet(u69) },
+  { id: "jumpscare", gameId: "Jumpscare", name: "Jumpscare", group: "event", base: "default", api: ["Jumpscare"], modes: [], scale: 0.9795, first: 1, last: 140, hasRbe: true, url: u70, file: () => loadRoundSet(u70) },
+  { id: "jumpscare1", gameId: "Jumpscare1", name: "Jumpscare 1", group: "event", base: "default", api: ["Jumpscare1"], modes: [], scale: 0.9692, first: 1, last: 40, hasRbe: true, url: u71, file: () => loadRoundSet(u71) },
+  { id: "jumpscare2", gameId: "Jumpscare2", name: "Jumpscare 2", group: "event", base: "default", api: ["Jumpscare2"], modes: [], scale: 0.9692, first: 1, last: 40, hasRbe: true, url: u72, file: () => loadRoundSet(u72) },
+  { id: "jumpscare3", gameId: "Jumpscare3", name: "Jumpscare 3", group: "event", base: "default", api: ["Jumpscare3"], modes: [], scale: 0.9692, first: 1, last: 40, hasRbe: true, url: u73, file: () => loadRoundSet(u73) },
+  { id: "jumpscare4", gameId: "Jumpscare4", name: "Jumpscare 4", group: "event", base: "default", api: ["Jumpscare4"], modes: [], scale: 0.9692, first: 1, last: 40, hasRbe: true, url: u74, file: () => loadRoundSet(u74) },
+  { id: "jumpscare5", gameId: "Jumpscare5", name: "Jumpscare 5", group: "event", base: "default", api: ["Jumpscare5"], modes: [], scale: 0.9692, first: 1, last: 40, hasRbe: true, url: u75, file: () => loadRoundSet(u75) },
+  { id: "masterymode", gameId: "masterymode", name: "Mastery mode (event)", group: "event", base: "default", api: ["masterymode"], modes: [], first: 1, last: 140, hasRbe: true, url: u76, file: () => loadRoundSet(u76) },
+  { id: "monkeyvsmachines", gameId: "monkeyVSmachines", name: "Monkey vs machines", group: "event", base: "default", api: ["monkeyVSmachines"], modes: [], first: 1, last: 79, hasRbe: true, url: u77, file: () => loadRoundSet(u77) },
+  { id: "quest-brickell-trial", gameId: "QuestBrickellTrialRoundSet", name: "Quest Brickell Trial", group: "quest", api: [], modes: [], first: 1, last: 15, hasRbe: true, url: u78, file: () => loadRoundSet(u78) },
+  { id: "quest-gwendolin-trial", gameId: "QuestGwendolinTrialRoundSet", name: "Quest Gwendolin Trial", group: "quest", api: [], modes: [], scale: 0.85, first: 1, last: 16, hasRbe: true, url: u79, file: () => loadRoundSet(u79) },
+  { id: "quest-quincy-trial", gameId: "QuestQuincyTrialRoundSet", name: "Quest Quincy Trial", group: "quest", api: [], modes: [], first: 1, last: 16, hasRbe: true, url: u80, file: () => loadRoundSet(u80) },
+  { id: "quest-sauda-trial", gameId: "QuestSaudaTrialRoundSet", name: "Quest Sauda Trial", group: "quest", api: [], modes: [], first: 1, last: 16, hasRbe: true, url: u81, file: () => loadRoundSet(u81) },
+  { id: "rabbityear", gameId: "rabbitYear", name: "Rabbit year", group: "event", base: "default", api: ["rabbitYear"], modes: [], first: 1, last: 80, hasRbe: true, url: u82, file: () => loadRoundSet(u82) },
+  { id: "thefinalgambit", gameId: "TheFinalGambit", name: "The Final Gambit", group: "event", base: "default", api: ["TheFinalGambit"], modes: [], first: 1, last: 100, hasRbe: true, url: u83, file: () => loadRoundSet(u83) },
+  { id: "valentinescf", gameId: "valentinesCF", name: "Valentine's CF", group: "event", base: "default", api: ["valentinesCF"], modes: [], first: 1, last: 80, hasRbe: true, url: u84, file: () => loadRoundSet(u84) },
 ];
 
 export const ROUND_SET_BY_ID: Record<string, RoundSetInfo> = Object.fromEntries(ROUND_SETS.map((s) => [s.id, s]));
 
-/** Resolve a ChallengeDocument's roundSets + mode to a set: a boss value wins, then a mode that swaps the set,
- *  then the first API value. Returns undefined for unknown values. */
+/** Resolve a ChallengeDocument's roundSets + mode to a set: a boss or event value wins (merged onto the rest),
+ *  then a mode that swaps the set, then the first API value. Returns undefined for unknown values. */
 export function resolveRoundSet(roundSets: readonly string[] = [], mode?: string): RoundSetInfo | undefined {
-  const boss = ROUND_SETS.find((s) => s.boss && roundSets.includes(s.api[0]!));
-  if (boss) return boss;
+  const own = ROUND_SETS.find((s) => (s.boss || s.group === "event") && roundSets.some((v) => s.api.includes(v)));
+  if (own) return own;
   const byMode = mode ? ROUND_SETS.find((s) => s.modes.includes(mode)) : undefined;
   if (byMode) return byMode;
   return ROUND_SETS.find((s) => roundSets.some((v) => s.api.includes(v)));
@@ -243,7 +306,7 @@ export const BLOON_TYPES: Record<string, BloonType> = {
   "pink": {"icons": {"0": "Bloons/Pink", "1": "Bloons/PinkCamo", "2": "Bloons/PinkRegrow", "3": "Bloons/PinkRegrowCamo"}, "id": "Pink", "moab": false, "name": "Pink", "sprite": "pink", "used": [0, 1, 2, 3], "variants": [0, 1, 2, 3]},
   "purple": {"icons": {"0": "Bloons/Purple", "1": "Bloons/PurpleCamo", "2": "Bloons/PurpleRegrow", "3": "Bloons/PurpleRegrowCamo"}, "id": "Purple", "moab": false, "name": "Purple", "sprite": "purple", "used": [0, 1, 2, 3], "variants": [0, 1, 2, 3]},
   "rainbow": {"icons": {"0": "Bloons/Rainbow", "1": "Bloons/RainbowCamo", "2": "Bloons/RainbowRegrow", "3": "Bloons/RainbowRegrowCamo"}, "id": "Rainbow", "moab": false, "name": "Rainbow", "sprite": "rainbow", "used": [0, 1, 2, 3], "variants": [0, 1, 2, 3]},
-  "red": {"icons": {"0": "Bloons/Red", "1": "Bloons/RedCamo", "2": "Bloons/RedRegrow", "3": "Bloons/RedRegrowCamo"}, "id": "Red", "moab": false, "name": "Red", "sprite": "red", "used": [0, 1, 3], "variants": [0, 1, 2, 3]},
+  "red": {"icons": {"0": "Bloons/Red", "1": "Bloons/RedCamo", "2": "Bloons/RedRegrow", "3": "Bloons/RedRegrowCamo"}, "id": "Red", "moab": false, "name": "Red", "sprite": "red", "used": [0, 1, 2, 3], "variants": [0, 1, 2, 3]},
   "retributionbloon": {"icons": {"0": "Bloons/RetributionBloon"}, "id": "RetributionBloon", "moab": false, "name": "Retribution Bloon", "sprite": null, "used": [0], "variants": [0]},
   "ringleaderbloon": {"icons": {"0": "Bloons/RingleaderBloon"}, "id": "RingleaderBloon", "moab": false, "name": "Ringleader Bloon", "sprite": null, "used": [0], "variants": [0]},
   "white": {"icons": {"0": "Bloons/White", "1": "Bloons/WhiteCamo", "2": "Bloons/WhiteRegrow", "3": "Bloons/WhiteRegrowCamo"}, "id": "White", "moab": false, "name": "White", "sprite": "white", "used": [0, 1, 2, 3], "variants": [0, 1, 2, 3]},

@@ -24,7 +24,8 @@ architecture; this file is how to work on it.
   `views/tools.tsx` (/tools hub), `ui.tsx` `ToolHero`/`ToolBack` (tool page header), `styles.css`.
 - Generated from the owner's game install (`C:\Program Files (x86)\Steam\steamapps\common\BloonsTD6`) by
   `npm run art` (venv `.venv-art`): `web/src/art/*` sprite sheets, `web/public/art/maps`, `web/src/data/names.ts`
-  (map/ability/relic names), `web/src/data/rounds/*` (54 round sets), `web/src/data/paragons.json` (`build_paragons.py`; v56.3 frozen in
+  (map/ability/relic names), `web/src/data/rounds/*` (85 round sets: the game's 54 + NK's event sets from the game's
+  cached server settings, so launch the game once before `npm run art`), `web/src/data/paragons.json` (`build_paragons.py`; v56.3 frozen in
   `paragons-56.json` for the old/new toggle). `scripts/build_og.py` → `web/public/og.jpg`; `scripts/build_icons.py` → site icon (favicon.svg/.ico, apple-touch-icon.png). `node scripts/boss_history.ts` → `web/src/data/bossHistory.ts`
   (boss events before the archive: bloonswiki.com exact times over the old Fandom list, which still fills gaps; numbering checked against archived NK ids); `node scripts/race_history.ts`
   → `web/src/data/raceHistory.ts` (bloonswiki.com races, Dec 2018 – Dec 2025; no public list after that).

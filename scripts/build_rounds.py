@@ -17,6 +17,15 @@ Sources (all read-only, from the Addressables bundles under BloonsTD6_Data/Strea
   localization_assets_all_*.bundle English text table (bloon / boss / mode names), via build_names.load_english.
   sprite_atlases_assets_all_*.bundle  only to check that each bloon's icon sprite exists.
   globalgamemanagers               PlayerSettings.bundleVersion (the game version, e.g. "56.3").
+  NK's server settings             the game's cached download of its remote config (skuSettings, LocalLow/Ninja Kiwi/
+                                   BloonsTD6/kvs/www-cache, "DGDATA"-obfuscated): settings.gameEvents.roundSets holds
+                                   the event round sets (chimpsboss, Jumpscare, ...) in the boss-set format. The game
+                                   looks a set up there FIRST, then in its own files (RoundSetModModel.Mutate), so a
+                                   server copy wins. Launch the game once before `npm run art` so the cache is fresh.
+
+Merge rule (RoundSetModModel.Merge): a set with {roundNumber, addToRound} entries is applied in order onto the base
+set (Default): entry n replaces round n's groups (or appends to them with addToRound), later entries win, and numbers
+outside the base are skipped. A set's `scale` multiplies every group's start and end time (RoundData.GetRoundDef).
 
 Run:
   npm run art                         (build_art.py calls this at the end)
@@ -41,6 +50,8 @@ BTD6_DIR = Path(os.environ.get("BTD6_DIR", r"C:\Program Files (x86)\Steam\steama
 DATA_DIR = BTD6_DIR / "BloonsTD6_Data"
 AA_DIR = DATA_DIR / "StreamingAssets" / "aa" / "StandaloneWindows64" / "Full"
 FORMAT_VERSION = 1
+SERVER_CACHE = Path(os.environ.get("BTD6_CACHE", Path.home() / "AppData" / "LocalLow" / "Ninja Kiwi" / "BloonsTD6"
+                                   / "kvs" / "www-cache"))
 
 
 def _relaunch_in_venv() -> None:
@@ -87,6 +98,43 @@ def load_game_data() -> tuple[dict, dict, dict]:
     if "DefaultRoundSet" not in sets:
         sys.exit("DefaultRoundSet not found in game_data bundle")
     return sets, incomes, modes
+
+
+def _dgdata(b: bytes) -> bytes:
+    """Undo NK's cache wrapping, as often as it is nested: "DGDATA" + 8 hash chars + bytes shifted by 21 + i % 6, and
+    {"Data": "<base64>"} / {"data": "<json>"} envelopes."""
+    import base64
+
+    for _ in range(6):
+        if b[:6] == b"DGDATA":
+            b = bytes((x - 21 - (i % 6)) & 0xFF for i, x in enumerate(b[14:]))
+            continue
+        try:
+            o = json.loads(b)
+        except ValueError:
+            break
+        if isinstance(o, dict) and isinstance(o.get("Data"), str):
+            b = base64.b64decode(o["Data"])
+        elif isinstance(o, dict) and isinstance(o.get("data"), str) and o["data"][:1] == "{":
+            b = o["data"].encode("utf-8")
+        else:
+            break
+    return b
+
+
+def load_server_sets() -> tuple[dict, str]:
+    """-> (event round sets by name from the newest cached server settings, that file's date)."""
+    import datetime
+
+    hits = sorted(SERVER_CACHE.glob("skuSettings-*-PRODUCTION"), key=lambda p: p.stat().st_mtime)
+    if not hits:
+        sys.exit(f"no cached server settings (skuSettings-*) in {SERVER_CACHE}: launch the game once (or set BTD6_CACHE)")
+    path = hits[-1]
+    try:
+        sets = json.loads(_dgdata(path.read_bytes()))["settings"]["gameEvents"]["roundSets"]
+    except (ValueError, KeyError, TypeError) as e:
+        sys.exit(f"{path.name}: no settings.gameEvents.roundSets ({e}); has the cache format changed?")
+    return sets, datetime.date.fromtimestamp(path.stat().st_mtime).isoformat()
 
 
 def load_sim_model() -> bytes:
@@ -420,12 +468,22 @@ def _lit(v) -> str:
 # ─────────────────────────────────────────────────────────────── build
 
 
-BOSS_SETS_BASE = "DefaultRoundSet"  # API roundSets ["default", "<boss>"]: the boss set is merged onto the default set
+BOSS_SETS_BASE = "DefaultRoundSet"  # API roundSets ["default", "<set>"]: a mergeable set is merged onto the default set
 API_DEFAULT = {"DefaultRoundSet": ["default"]}  # "default" is the only non-boss value seen in docs/api/fixtures
+# Server-only event sets: their key is all the name there is; spell out the ones a word split can't.
+EVENT_NAMES = {
+    "chimpsboss": "CHIMPS boss", "chimpsbloonarius": "CHIMPS Bloonarius", "BADbutharder": "BAD but harder",
+    "BADbutfortharder": "BAD but fortified harder", "abrbutharder": "ABR but harder", "DDTbadness": "DDT badness",
+    "masterymode": "Mastery mode (event)", "31Plus": "31 plus", "valentinesCF": "Valentine's CF",
+    **{f"{n}roundEarly": f"{n} round{'s' if n > 1 else ''} early" for n in range(1, 6)},
+    "allOrNothingEnd60": "All or nothing (end 60)", "allOrNothingEnd80": "All or nothing (end 80)",
+    "BeastHandlerjourney": "Beast Handler journey", "monkeyVSmachines": "Monkey vs machines",
+    "countdownGroupOf5": "Countdown, groups of 5", "rabbitYear": "Rabbit year",
+}
 
 
 def build(sets: dict, incomes: dict, modes: dict, bloons: dict, text: dict, sprites: set, version: str,
-          sprite_keys: set) -> tuple[dict, str]:
+          sprite_keys: set, boss_names: set, server: set) -> tuple[dict, str]:
     used_ids = sorted({g["bloon"] for s in sets.values() for r in s["rounds"] for g in r["bloonGroups"]})
     unknown = [i for i in used_ids if i not in bloons]
     if unknown:
@@ -460,12 +518,16 @@ def build(sets: dict, incomes: dict, modes: dict, bloons: dict, text: dict, spri
             if cls == "RoundSetModModel" and data.get("roundsetName"):
                 set_modes.setdefault(data["roundsetName"], []).append(mode)
 
-    def groups_of(r):
+    def groups_of(r, scale=1.0):
         g = []
         for grp in r["bloonGroups"]:
             bid = grp["bloon"]
             start = grp["start"]
-            g.append([key_of(bid), bloons[bid]["flags"], int(grp["count"]), f32(start), end_of(start, grp["duration"])])
+            if scale == 1:
+                t = [f32(start), end_of(start, grp["duration"])]
+            else:  # the game multiplies start and end by the set's scale
+                t = [f32(float(f32(start)) * scale), round(float(end_of(start, grp["duration"])) * scale, 4)]
+            g.append([key_of(bid), bloons[bid]["flags"], int(grp["count"]), *t])
         return g
 
     def round_obj(n, g, override=False):
@@ -488,31 +550,43 @@ def build(sets: dict, incomes: dict, modes: dict, bloons: dict, text: dict, spri
 
     manifest = []
     files: dict = {}
-    boss_names = {n for n, s in sets.items() if s["rounds"] and "roundNumber" in s["rounds"][0]}
+    def merged(s, cap=False, mark=True):
+        """RoundSetModModel.Merge onto the base set: -> (rounds, round numbers whose groups changed). `cap`: stop at
+        the set's last own round (event and quest sets; a boss set keeps the whole base)."""
+        base = [groups_of(r) for r in sets[BOSS_SETS_BASE]["rounds"]]
+        out = list(base)
+        scale = float(s.get("scale") or 1)
+        for e in s["rounds"]:
+            n = e["roundNumber"]
+            if 1 <= n <= len(out):
+                g = groups_of(e, scale)
+                out[n - 1] = out[n - 1] + g if e.get("addToRound") else g
+        if cap:
+            out = out[:max(min(e["roundNumber"], len(out)) for e in s["rounds"])]
+        changed = [i + 1 for i, g in enumerate(out) if g != base[i]]
+        return [round_obj(i + 1, g, mark and i + 1 in changed) for i, g in enumerate(out)], changed
+
     rank = {"DefaultRoundSet": 0, "AlternateRoundSet": 1}
-    for gid in sorted(sets, key=lambda g: (rank.get(g, 2 if g in boss_names else 3), kebab(g))):
+    for gid in sorted(sets, key=lambda g: (rank.get(g, 2 if g in boss_names else 4 if g in server else 3), kebab(g))):
         s = sets[gid]
-        sid = kebab(gid)
+        # event sets: the API value itself, lower-cased (like boss ids); game sets: kebab-case of the asset name
+        sid = gid.lower() if gid in server and gid not in boss_names and not gid.startswith("Quest") else kebab(gid)
         entry: dict = {"id": sid, "gameId": gid}
+        mergeable = bool(s["rounds"]) and "roundNumber" in s["rounds"][0]
         if gid in boss_names:
-            base = sets[BOSS_SETS_BASE]["rounds"]
-            over = {r["roundNumber"]: r for r in s["rounds"]}
-            if any(r.get("addToRound") for r in s["rounds"]):
-                sys.exit(f"{gid}: addToRound=1 entries seen; merge semantics need a look")
-            rounds, changed = [], []
-            for n in range(1, max(len(base), max(over)) + 1):
-                if n in over:
-                    diff = n > len(base) or over[n]["bloonGroups"] != base[n - 1]["bloonGroups"]
-                    rounds.append(round_obj(n, groups_of(over[n]), diff))
-                    if diff:
-                        changed.append(n)
-                else:
-                    rounds.append(round_obj(n, groups_of(base[n - 1])))
+            rounds, changed = merged(s)
             entry.update(name=type_name(gid.capitalize()) if text.get(gid.capitalize()) else humanize(gid).title(),
                          group="boss", boss=gid, base=kebab(BOSS_SETS_BASE), api=[gid], modes=[],
                          overrides=changed)
+        elif gid in server and not gid.startswith("Quest"):
+            rounds = merged(s, cap=True, mark=False)[0]  # mostly whole-set replacements: no "changed" marks
+            entry.update(name=EVENT_NAMES.get(gid) or humanize(gid[:1].upper() + gid[1:]), group="event",
+                         base=kebab(BOSS_SETS_BASE), api=[gid], modes=[])
         else:
-            rounds = [round_obj(i + 1, groups_of(r)) for i, r in enumerate(s["rounds"])]
+            if mergeable:  # a server copy of a quest: merged like an event set
+                rounds = merged(s, cap=True, mark=False)[0]
+            else:
+                rounds = [round_obj(i + 1, groups_of(r, float(s.get("scale") or 1))) for i, r in enumerate(s["rounds"])]
             name = {"DefaultRoundSet": "Default"}.get(gid)
             if not name and set_modes.get(gid):
                 name = text.get("Mode " + set_modes[gid][0])
@@ -592,8 +666,9 @@ HEAD = """// Round sets from the game's own data (© Ninja Kiwi).
 //            BloonModel health + RBE of each spawned child (recursively). Omitted when a bloon's tree could not be
 //            decoded (Legends-only bloons such as AuraBloon). Before any event health multiplier.
 //   rbeMoab  the part of rbe from MOAB-class layers (BloonModel isMoab), so a MOAB health multiplier can rescale.
-//   o        1 = the boss set replaced this round with different groups (boss sets = the default set with the
-//            boss set's rounds swapped in; the game's entries all have addToRound = 0, i.e. replace).
+//   o        1 = a mergeable set (boss / event) changed this round (those sets = the default set with their
+//            entries applied in order: replace, or append with addToRound; numbers past the base skipped).
+//   A set's `scale` is already applied to start/end (the game multiplies both by it).
 // Cash is NOT included: the model's per-pop cash rules are code, not data (see INCOME_SETS / MODE_MODS for the
 // data that does exist).
 """
@@ -633,20 +708,20 @@ export interface RoundSetInfo {
   /** the game's own round-set asset name, e.g. "DefaultRoundSet", "vortex" */
   gameId: string;
   name: string;
-  group: "standard" | "boss" | "quest" | "frontier" | "rogue" | "other";
+  group: "standard" | "boss" | "event" | "quest" | "frontier" | "rogue" | "other";
   /** ChallengeDocument.roundSets values that select this set (boss sets: the boss id; see README notes) */
   api: string[];
   /** ChallengeDocument.mode values whose game mutator swaps in this set (RoundSetModModel), e.g. AlternateBloonsRounds */
   modes: string[];
   /** boss sets: boss type (as in Boss.bossType / art keys) */
   boss?: string;
-  /** boss sets: the set the boss rounds are merged onto */
+  /** boss / event sets: the set their rounds are merged onto */
   base?: string;
-  /** boss sets: round numbers where the boss set's groups differ from the base set */
+  /** boss / event sets: round numbers where the merged groups differ from the base set */
   overrides?: number[];
   /** the game's linked IncomeSet (pop-cash multiplier by round), see INCOME_SETS */
   incomeSet?: string;
-  /** the set's raw `scale` field when not 1 (meaning not known) */
+  /** the set's `scale` when not 1: spawn times are multiplied by it (already applied to start/end) */
   scale?: number;
   first: number;
   last: number;
@@ -700,11 +775,11 @@ export const ROUND_SETS: RoundSetInfo[] = [
 
 export const ROUND_SET_BY_ID: Record<string, RoundSetInfo> = Object.fromEntries(ROUND_SETS.map((s) => [s.id, s]));
 
-/** Resolve a ChallengeDocument's roundSets + mode to a set: a boss value wins, then a mode that swaps the set,
- *  then the first API value. Returns undefined for unknown values. */
+/** Resolve a ChallengeDocument's roundSets + mode to a set: a boss or event value wins (merged onto the rest),
+ *  then a mode that swaps the set, then the first API value. Returns undefined for unknown values. */
 export function resolveRoundSet(roundSets: readonly string[] = [], mode?: string): RoundSetInfo | undefined {
-  const boss = ROUND_SETS.find((s) => s.boss && roundSets.includes(s.api[0]!));
-  if (boss) return boss;
+  const own = ROUND_SETS.find((s) => (s.boss || s.group === "event") && roundSets.some((v) => s.api.includes(v)));
+  if (own) return own;
   const byMode = mode ? ROUND_SETS.find((s) => s.modes.includes(mode)) : undefined;
   if (byMode) return byMode;
   return ROUND_SETS.find((s) => roundSets.some((v) => s.api.includes(v)));
@@ -751,11 +826,15 @@ def main() -> None:
     for _sec, i, t in build_names.load_english():
         text.setdefault(i, build_names.clean(t))
     sets, incomes, modes = load_game_data()
+    boss_names = {n for n, s in sets.items() if s["rounds"] and "roundNumber" in s["rounds"][0]}
+    server, server_date = load_server_sets()
+    sets.update(server)  # the game looks a set up on the server first
     sim = load_sim_model()
     bloons = parse_bloon_models(sim)
     have = set(attach_tags_children(sim, bloons))
     compute_rbe(bloons, have)
-    files, ts = build(sets, incomes, modes, bloons, text, load_atlas_sprites(), load_game_version(), _sprite_keys())
+    files, ts = build(sets, incomes, modes, bloons, text, load_atlas_sprites(), load_game_version(), _sprite_keys(),
+                      boss_names, set(server))
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     total = 0
@@ -774,6 +853,7 @@ def main() -> None:
         idx.write_bytes(data)
     used = sorted({g["bloon"] for s in sets.values() for r in s["rounds"] for g in r["bloonGroups"]})
     no_rbe = [i for i in used if "rbe" not in bloons[i]]
+    print(f"  rounds     {len(server)} server sets from the {server_date} settings cache")
     print(f"  rounds     {len(files)} sets, {len(used)} bloon ids ({len(have)} decoded trees) -> "
           f"{OUT_DIR.relative_to(ROOT)} ({total / 1024:.1f} KB json, index {len(data) / 1024:.1f} KB)")
     if no_rbe:
