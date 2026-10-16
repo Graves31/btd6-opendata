@@ -351,11 +351,11 @@ async function main() {
     pages["farming-round"] = await here();
     await shoot(page, "desktop-farming-round");
 
-    // Tools → Bank & IMF Loan planner: default 1-3-0 bought before round 30 with full MK collects after round 41 (test/bank.test.ts).
+    // Tools → Bank & IMF Loan planner: default 1-3-0 bought before round 30 with full MK collects before round 42 (after round 41, test/bank.test.ts).
     await step("→ Tools hub", 'header nav a[href="/tools"]');
     await step("Tools → Bank & IMF Loan planner", ".tools-tiles a.tile[href='/tools/bank-planner']", "bank-planner");
     const bankAns = await page.$eval(".bk-big .v", (el) => el.textContent).catch(() => "");
-    if (bankAns !== "41") problems.push(`bank planner: default answer reads "${bankAns}", want round 41`);
+    if (bankAns !== "42") problems.push(`bank planner: default answer reads "${bankAns}", want round 42`);
     await page.click(".bk-mode .tab:last-child");
     await page.waitForFunction(() => location.search.includes("m=dep") && document.querySelectorAll(".bk-ladder tbody tr").length > 0 && /\$/.test(document.querySelector(".bk-big .v")?.textContent ?? ""), { timeout: 3000 }).catch(() => problems.push("bank planner: Deposit planner shows no amount / ladder"));
     pages["bank-planner-deposit"] = await here();

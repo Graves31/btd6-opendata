@@ -111,11 +111,11 @@ function Strip(p: {
   return (
     <>
       <p class="bk-read" aria-live="polite">
-        <b>Round {s.r}</b>: {money(s.b)} in the bank
+        <b>Before round {s.r + 1}</b>: {money(s.b)} in the bank
         {dep !== undefined && si === 0 && (
           <> (your {money(dep)} deposit included)</>
         )}
-        , +{money(s.add)} this round
+        , +{money(s.add)} during round {s.r}
         {lost(s) > 0 && (
           <span class="loss">, {money(lost(s))} lost to the cap</span>
         )}
@@ -130,7 +130,7 @@ function Strip(p: {
       <div
         class={`bk-strip${crowd}`}
         role="group"
-        aria-label={`Bank balance from round ${rows[0].r} to ${rows[rows.length - 1].r}; collect after round ${h.r} at ${money(h.b)}.`}
+        aria-label={`Bank balance before rounds ${rows[0].r + 1} to ${rows[rows.length - 1].r + 1}; collect before round ${h.r + 1}: ${money(h.b)}.`}
       >
         <div
           class="bk-capline"
@@ -190,7 +190,7 @@ function Strip(p: {
           <span key={x.r} class={i === hit ? "on" : ""}>
             {i === hit ||
             (i % every === 0 && (every === 1 || Math.abs(i - hit) > 1))
-              ? x.r
+              ? x.r + 1
               : ""}
           </span>
         ))}
@@ -312,24 +312,25 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
         </div>
         <div class="bk-ans">
           <div class="bk-big">
-            <span class="k">Collect after round</span>
-            <span class="v">{h.r}</span>
+            <span class="k">Collect before round</span>
+            <span class="v">{h.r + 1}</span>
             <span class="c">{money(h.b)}</span>
           </div>
           <div class="bk-ans-t">
             <p>
-              The counter will show <strong>{h.r + 1}</strong>: collect before
-              you press Play.
+              When the round counter shows <strong>{h.r + 1}</strong>, collect
+              before you press Play: {pl.hit + 1} round{pl.hit ? "s" : ""}{" "}
+              {b0 > 0 ? "from now" : "after buying it"}.
             </p>
             {end && h.r === end && h.raw <= cap ? (
               <p>
-                Your game ends after round {end}: collect, or sell the bank
-                (selling pays out the balance too).
+                Round {end} is your last: collect or sell the bank before the
+                game ends (selling pays out the balance too).
               </p>
             ) : h.raw > cap ? (
               <>
                 <p>
-                  The bank fills up in round {h.r}:{" "}
+                  The bank fills up during round {h.r}:{" "}
                   <span class="bk-loss">
                     {money(h.raw - cap)} over the cap is lost.
                   </span>
@@ -344,7 +345,7 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
               </p>
             ) : (
               <p>
-                Waiting for round {h.r + 1} adds only{" "}
+                Waiting one more round (to before round {h.r + 2}) adds only{" "}
                 <strong>{money(nx.b - h.b)}</strong>
                 {nx.raw > cap && (
                   <>
@@ -368,7 +369,7 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
             </caption>
             <thead>
               <tr>
-                <th>Collect after</th>
+                <th>Collect before</th>
                 <th>You get</th>
                 <th>Lost to the cap</th>
                 <th>Per round</th>
@@ -380,7 +381,7 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
                 .map((i) => (
                   <tr key={i} class={i === pl.hit ? "hit" : ""}>
                     <td>
-                      {rows[i].r}
+                      {rows[i].r + 1}
                       {i === pl.hit
                         ? " · best"
                         : i < pl.hit
@@ -402,10 +403,10 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
       <section class="pg-panel" aria-labelledby="bk-rr">
         <div class="pg-ph">
           <h2 class="eyebrow" id="bk-rr">
-            Balance at the end of each round
+            Bank balance before each round
           </h2>
           <span class="pg-hint">
-            rounds {rows[0].r}–{rows[rows.length - 1].r}
+            rounds {rows[0].r + 1}–{rows[rows.length - 1].r + 1}
           </span>
         </div>
         <Strip rows={rows} cap={cap} hit={pl.hit} />
@@ -415,7 +416,7 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
             <table>
               <thead>
                 <tr>
-                  <th>Round</th>
+                  <th>Before round</th>
                   <th>Added</th>
                   <th>Balance</th>
                   <th>Lost</th>
@@ -429,7 +430,7 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
                     class={i === pl.hit ? "hit" : i > pl.hit ? "after" : ""}
                   >
                     <td>
-                      {x.r}
+                      {x.r + 1}
                       {i === pl.hit ? " · collect" : ""}
                     </td>
                     <td>+{money(x.add).slice(1)}</td>
@@ -447,7 +448,7 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
       <section class="pg-panel" aria-labelledby="bk-cy">
         <div class="pg-ph">
           <h2 class="eyebrow" id="bk-cy">
-            Then, after each collect
+            Collect before these rounds
           </h2>
           <span class="pg-hint">
             every {bc.k} round{bc.k > 1 ? "s" : ""} · {money(bc.v)} ·{" "}
@@ -456,16 +457,17 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
         </div>
         <div class="bk-cards">
           <div class="bk-card first">
-            <div class="r">Round {h.r}</div>
+            <div class="r">Round {h.r + 1}</div>
             <div class="m">
               first collect: <b>{money(h.b)}</b>
             </div>
           </div>
           {pl.cycles.map((c) => (
             <div class="bk-card" key={c.r}>
-              <div class="r">Round {c.r}</div>
+              <div class="r">{c.last ? "Game end" : `Round ${c.r + 1}`}</div>
               <div class="m">
-                {c.last ? "game ends" : `${c.k} rounds`}: <b>{money(c.v)}</b>
+                {c.last ? `last ${c.k} rounds` : `${c.k} rounds`}:{" "}
+                <b>{money(c.v)}</b>
               </div>
             </div>
           ))}
@@ -505,7 +507,7 @@ function Deposit(p: {
         <p class="bk-none">
           {all.length
             ? `No deposit fits before your last round (${end}).`
-            : `No deposit needed: the bank fills on its own by round ${at}.`}
+            : `No deposit needed: the bank fills on its own; collect before round ${at + 1}.`}
         </p>
         <button
           type="button"
@@ -566,18 +568,18 @@ function Deposit(p: {
             <span class="k">Deposit up to</span>
             <span class="v">{money(sel.deposit)}</span>
             <span class="c">
-              Full after round {sel.r} · {money(sel.out)}
+              Collect before round {sel.r + 1} · {money(sel.out)}
             </span>
           </div>
           <div class="bk-ans-t">
             <p>
-              Deposit before you press Play on round <strong>{r.r}</strong>.
-              Round {r.r} pays no interest on it yet (only on that round's
-              bananas{b0 > 0 ? " and the balance" : ""}): end of round {r.r},{" "}
-              <strong>{money(first.b)}</strong>. From round {r.r + 1} on it
-              compounds, and the bank reaches the cap at the end of round{" "}
-              {sel.r}: collect before round <strong>{sel.r + 1}</strong>. A
-              bigger deposit only goes over the cap.
+              Deposit before round <strong>{r.r}</strong> and collect before
+              round <strong>{sel.r + 1}</strong>: {k + 1} rounds. During round{" "}
+              {r.r} the deposit earns no interest yet (only the bananas
+              {b0 > 0 ? " and the balance" : ""} do), so the bank has{" "}
+              <strong>{money(first.b)}</strong> before round {r.r + 1}. From
+              then on it compounds and reaches the cap. A bigger deposit only
+              goes over the cap.
             </p>
             <p>In game: {clicks}</p>
           </div>
@@ -595,7 +597,7 @@ function Deposit(p: {
           <table class="bk-ladder">
             <thead>
               <tr>
-                <th>Full after</th>
+                <th>Collect before</th>
                 <th>Deposit</th>
                 <th class="bk-out">Collect</th>
                 <th>Gain</th>
@@ -614,9 +616,9 @@ function Deposit(p: {
                       type="button"
                       class="bk-pick"
                       aria-pressed={x.k === k}
-                      aria-label={`Deposit ${money(x.deposit)}, full after round ${x.r}`}
+                      aria-label={`Deposit ${money(x.deposit)}, collect before round ${x.r + 1}`}
                     >
-                      {x.r}
+                      {x.r + 1}
                     </button>
                   </td>
                   <td>{money(x.deposit)}</td>
@@ -636,10 +638,10 @@ function Deposit(p: {
       <section class="pg-panel" aria-labelledby="bk-rr">
         <div class="pg-ph">
           <h2 class="eyebrow" id="bk-rr">
-            Balance at the end of each round
+            Bank balance before each round
           </h2>
           <span class="pg-hint">
-            rounds {rows[0].r}–{rows[rows.length - 1].r}
+            rounds {rows[0].r + 1}–{rows[rows.length - 1].r + 1}
           </span>
         </div>
         <Strip rows={rows} cap={cap} hit={k} dep={sel.deposit} />
@@ -649,22 +651,23 @@ function Deposit(p: {
         <section class="pg-panel" aria-labelledby="bk-cy">
           <div class="pg-ph">
             <h2 class="eyebrow" id="bk-cy">
-              Then, every {N} rounds
+              Collect before these rounds
             </h2>
             <span class="pg-hint">
-              collect, then deposit {money(again.deposit)} into the empty bank
+              every {N} rounds: collect, then deposit {money(again.deposit)}{" "}
+              again
             </span>
           </div>
           <div class="bk-cards">
             <div class="bk-card first">
-              <div class="r">Round {sel.r}</div>
+              <div class="r">Round {sel.r + 1}</div>
               <div class="m">
                 first collect: <b>{money(sel.out)}</b>
               </div>
             </div>
             {cycles.map((c) => (
               <div class="bk-card" key={c.r}>
-                <div class="r">Round {c.r}</div>
+                <div class="r">Round {c.r + 1}</div>
                 <div class="m">
                   {N} rounds: <b>{money(again.out)}</b>
                 </div>
@@ -991,11 +994,11 @@ export function BankPlannerPage(p: { r: BankRoute }) {
                 </div>
                 <div class="bk-gap">
                   <span class="bk-lab" id="bk-end-lab">
-                    Game ends after round
+                    Last round you play
                   </span>
                   <NumField
                     value={r.end}
-                    label="Game ends after round"
+                    label="Last round you play"
                     max={999}
                     placeholder="—"
                     onChange={(n) => set({ end: n })}
