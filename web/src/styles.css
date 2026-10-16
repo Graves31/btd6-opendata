@@ -9838,6 +9838,15 @@ a.th-ic:focus-visible {
 .bk-tw td:first-child {
   text-align: left;
 }
+.bk-cmp {
+  margin-top: 14px;
+}
+.bk-cmp caption {
+  padding-bottom: 4px;
+  color: var(--ink-3);
+  font-size: 12px;
+  text-align: left;
+}
 .bk-tw th {
   color: var(--ink-3);
   font-size: 11px;

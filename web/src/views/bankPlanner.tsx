@@ -13,7 +13,22 @@ import mkBiggerBanks from "../art/tools/mkBiggerBanks.webp";
 import mkMoreValuableBananas from "../art/tools/mkMoreValuableBananas.webp";
 import monkeyCityArt from "../art/tools/monkeyCity.webp";
 import overclockArt from "../art/tools/overclock.webp";
-import { BANK, bestCycle, collectPlan, depositClicks, depositLadder, depositRows, income, capacity, step, type BankInput, type Ben, type Path, type Row, type Tier } from "../bank.ts";
+import {
+  BANK,
+  bestCycle,
+  collectPlan,
+  depositClicks,
+  depositLadder,
+  depositRows,
+  income,
+  capacity,
+  step,
+  type BankInput,
+  type Ben,
+  type Path,
+  type Row,
+  type Tier,
+} from "../bank.ts";
 import { navigate } from "../nav.ts";
 import { href, type BankRoute } from "../routes.ts";
 import { A, ToolBack, ToolHero } from "../ui.tsx";
@@ -34,7 +49,13 @@ const BENS: { b: Ben; label: string }[] = [
 ];
 
 /** A whole-number box that may be empty (no value). Commits on blur / Enter, like TargetInput. */
-function NumField(p: { value?: number; onChange: (n: number | undefined) => void; label: string; max: number; placeholder?: string }) {
+function NumField(p: {
+  value?: number;
+  onChange: (n: number | undefined) => void;
+  label: string;
+  max: number;
+  placeholder?: string;
+}) {
   const [draft, setDraft] = useState<string | null>(null);
   const commit = (text: string) => {
     setDraft(null);
@@ -70,7 +91,13 @@ function NumField(p: { value?: number; onChange: (n: number | undefined) => void
  * deposit as a bottom segment. Each bar shows its amount (on crowded phones only the collect bar);
  * tapping a bar reads it out above the chart (default: the collect round).
  */
-function Strip(p: { rows: Row[]; cap: number; hit: number; dep?: number; legend?: boolean }) {
+function Strip(p: {
+  rows: Row[];
+  cap: number;
+  hit: number;
+  dep?: number;
+  legend?: boolean;
+}) {
   const { rows, cap, hit, dep } = p;
   const [pick, setPick] = useState<number | undefined>(undefined);
   const top = Math.max(cap, ...rows.map((x) => x.raw)) * 1.04;
@@ -85,16 +112,41 @@ function Strip(p: { rows: Row[]; cap: number; hit: number; dep?: number; legend?
     <>
       <p class="bk-read" aria-live="polite">
         <b>Round {s.r}</b>: {money(s.b)} in the bank
-        {dep !== undefined && si === 0 && <> (your {money(dep)} deposit included)</>}, +{money(s.add)} this round
-        {lost(s) > 0 && <span class="loss">, {money(lost(s))} lost to the cap</span>}
-        {si === hit ? <strong> · collect now</strong> : si > hit ? <> · if you wait</> : ""}
+        {dep !== undefined && si === 0 && (
+          <> (your {money(dep)} deposit included)</>
+        )}
+        , +{money(s.add)} this round
+        {lost(s) > 0 && (
+          <span class="loss">, {money(lost(s))} lost to the cap</span>
+        )}
+        {si === hit ? (
+          <strong> · collect now</strong>
+        ) : si > hit ? (
+          <> · if you wait</>
+        ) : (
+          ""
+        )}
       </p>
-      <div class={`bk-strip${crowd}`} role="group" aria-label={`Bank balance from round ${rows[0].r} to ${rows[rows.length - 1].r}; collect after round ${h.r} at ${money(h.b)}.`}>
-        <div class="bk-capline" style={{ bottom: `calc((100% - var(--bk-pad)) * ${cap / top})` }}>
+      <div
+        class={`bk-strip${crowd}`}
+        role="group"
+        aria-label={`Bank balance from round ${rows[0].r} to ${rows[rows.length - 1].r}; collect after round ${h.r} at ${money(h.b)}.`}
+      >
+        <div
+          class="bk-capline"
+          style={{ bottom: `calc((100% - var(--bk-pad)) * ${cap / top})` }}
+        >
           <span>cap {money(cap)}</span>
         </div>
         {rows.map((x, i) => (
-          <button type="button" class={`bk-bc${i === si ? " sel" : ""}`} key={x.r} aria-label={`Round ${x.r}: ${money(x.b)}`} aria-pressed={i === si} onClick={() => setPick(i)}>
+          <button
+            type="button"
+            class={`bk-bc${i === si ? " sel" : ""}`}
+            key={x.r}
+            aria-label={`Round ${x.r}: ${money(x.b)}`}
+            aria-pressed={i === si}
+            onClick={() => setPick(i)}
+          >
             {i === hit ? (
               <span class="bk-flag" style={{ bottom: pos(x.raw) }}>
                 Collect
@@ -111,10 +163,21 @@ function Strip(p: { rows: Row[]; cap: number; hit: number; dep?: number; legend?
                 {money(x.b)}
               </span>
             )}
-            {x.raw > cap && <div class="bk-ov" style={{ height: `${((x.raw - cap) / top) * 100}%` }} />}
-            <div class={`bk-b${i === hit ? " col" : i > hit ? " dim" : ""}`} style={{ height: `${(x.b / top) * 100}%` }}>
+            {x.raw > cap && (
+              <div
+                class="bk-ov"
+                style={{ height: `${((x.raw - cap) / top) * 100}%` }}
+              />
+            )}
+            <div
+              class={`bk-b${i === hit ? " col" : i > hit ? " dim" : ""}`}
+              style={{ height: `${(x.b / top) * 100}%` }}
+            >
               {dep !== undefined && i <= hit && (
-                <i class="bk-dep" style={{ height: `${Math.min(100, (dep / x.b) * 100)}%` }}>
+                <i
+                  class="bk-dep"
+                  style={{ height: `${Math.min(100, (dep / x.b) * 100)}%` }}
+                >
                   {i === 0 && <span>{money(dep)}</span>}
                 </i>
               )}
@@ -125,7 +188,10 @@ function Strip(p: { rows: Row[]; cap: number; hit: number; dep?: number; legend?
       <div class="bk-xs" aria-hidden="true">
         {rows.map((x, i) => (
           <span key={x.r} class={i === hit ? "on" : ""}>
-            {i === hit || (i % every === 0 && (every === 1 || Math.abs(i - hit) > 1)) ? x.r : ""}
+            {i === hit ||
+            (i % every === 0 && (every === 1 || Math.abs(i - hit) > 1))
+              ? x.r
+              : ""}
           </span>
         ))}
       </div>
@@ -149,7 +215,14 @@ function Strip(p: { rows: Row[]; cap: number; hit: number; dep?: number; legend?
           Lost to the cap if you wait
         </span>
         <span>
-          <i style={{ borderTop: "2px dashed var(--ink-3)", height: 0, width: 16, verticalAlign: 3 }} />
+          <i
+            style={{
+              borderTop: "2px dashed var(--ink-3)",
+              height: 0,
+              width: 16,
+              verticalAlign: 3,
+            }}
+          />
           Capacity
         </span>
       </div>
@@ -157,10 +230,21 @@ function Strip(p: { rows: Row[]; cap: number; hit: number; dep?: number; legend?
   );
 }
 
-function Check(p: { on: boolean; set: (v: boolean) => void; art: string; name: string; sub: string; tag?: string }) {
+function Check(p: {
+  on: boolean;
+  set: (v: boolean) => void;
+  art: string;
+  name: string;
+  sub: string;
+  tag?: string;
+}) {
   return (
     <label class="bk-check">
-      <input type="checkbox" checked={p.on} onChange={(e) => p.set(e.currentTarget.checked)} />
+      <input
+        type="checkbox"
+        checked={p.on}
+        onChange={(e) => p.set(e.currentTarget.checked)}
+      />
       <img src={p.art} width={32} height={32} alt="" decoding="async" />
       <span>
         <b>{p.name}</b>
@@ -178,7 +262,11 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
   const pl = collectPlan(r.r, b0, P, cap, end);
   if (pl.hit < 0) {
     return (
-      <section class="pg-panel bk-hot" aria-labelledby="bk-ans" aria-live="polite">
+      <section
+        class="pg-panel bk-hot"
+        aria-labelledby="bk-ans"
+        aria-live="polite"
+      >
         <div class="pg-ph">
           <h2 class="eyebrow" id="bk-ans">
             When to collect
@@ -191,7 +279,11 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
             <span class="c">{money(b0)}</span>
           </div>
           <div class="bk-ans-t">
-            <p>{b0 >= cap ? "The bank is full. A full bank earns nothing until you collect." : "It is this close to the cap: collecting now and restarting earns more than waiting."}</p>
+            <p>
+              {b0 >= cap
+                ? "The bank is full. A full bank earns nothing until you collect."
+                : "It is this close to the cap: collecting now and restarting earns more than waiting."}
+            </p>
           </div>
         </div>
       </section>
@@ -199,12 +291,17 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
   }
   const rows = pl.rows;
   const h = rows[pl.hit];
-  const prev = rows[pl.hit - 1];
+  /** Cash the bank made per round you kept it, if you collect after rows[i]. */
+  const perRound = (i: number) => (rows[i].b - b0) / (i + 1);
   const nx = step(h.b, P, cap);
   const bc = pl.best;
   return (
     <>
-      <section class="pg-panel bk-hot" aria-labelledby="bk-ans" aria-live="polite">
+      <section
+        class="pg-panel bk-hot"
+        aria-labelledby="bk-ans"
+        aria-live="polite"
+      >
         <div class="pg-ph">
           <h2 class="eyebrow" id="bk-ans">
             When to collect
@@ -221,38 +318,84 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
           </div>
           <div class="bk-ans-t">
             <p>
-              The counter will show <strong>{h.r + 1}</strong>: collect before you press Play.
+              The counter will show <strong>{h.r + 1}</strong>: collect before
+              you press Play.
             </p>
             {end && h.r === end && h.raw <= cap ? (
-              <p>Your game ends after round {end}: collect, or sell the bank (selling pays out the balance too).</p>
+              <p>
+                Your game ends after round {end}: collect, or sell the bank
+                (selling pays out the balance too).
+              </p>
             ) : h.raw > cap ? (
               <>
                 <p>
-                  The bank fills up in round {h.r}: <span class="bk-loss">{money(h.raw - cap)} over the cap is lost.</span>
+                  The bank fills up in round {h.r}:{" "}
+                  <span class="bk-loss">
+                    {money(h.raw - cap)} over the cap is lost.
+                  </span>
                 </p>
-                {prev && (
-                  <p>
-                    Collecting after round {prev.r} loses nothing to the cap, but leaves you <span class="bk-loss">{money(h.b - (prev.b + (1 + BANK.interest) * P))} behind</span> by the end of round {h.r}.
-                  </p>
-                )}
               </>
             ) : end ? (
               <p>
-                Timed around your last round ({end}): collecting here leaves room for {pl.cycles.length} more fill{pl.cycles.length === 1 ? "" : "s"}, the most cash you can bank by then.
+                Timed around your last round ({end}): collecting here leaves
+                room for {pl.cycles.length} more fill
+                {pl.cycles.length === 1 ? "" : "s"}, the most cash you can bank
+                by then.
               </p>
             ) : (
               <p>
-                Waiting for round {h.r + 1} adds only <strong>{money(nx.b - h.b)}</strong>
+                Waiting for round {h.r + 1} adds only{" "}
+                <strong>{money(nx.b - h.b)}</strong>
                 {nx.raw > cap && (
                   <>
                     {" "}
-                    and <span class="bk-loss">loses {money(nx.raw - cap)}</span> to the cap
+                    and <span class="bk-loss">
+                      loses {money(nx.raw - cap)}
+                    </span>{" "}
+                    to the cap
                   </>
                 )}
-                . An empty bank averages {money(bc.avg)} a round, so restarting wins.
+                . An empty bank averages {money(bc.avg)} a round, so restarting
+                wins.
               </p>
             )}
           </div>
+        </div>
+        <div class="bk-tw bk-cmp">
+          <table>
+            <caption>
+              What each collect round is worth: cash out ÷ rounds held
+            </caption>
+            <thead>
+              <tr>
+                <th>Collect after</th>
+                <th>You get</th>
+                <th>Lost to the cap</th>
+                <th>Per round</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[pl.hit - 1, pl.hit, pl.hit + 1]
+                .filter((i) => i >= 0 && i < rows.length)
+                .map((i) => (
+                  <tr key={i} class={i === pl.hit ? "hit" : ""}>
+                    <td>
+                      {rows[i].r}
+                      {i === pl.hit
+                        ? " · best"
+                        : i < pl.hit
+                          ? " · a round early"
+                          : " · a round late"}
+                    </td>
+                    <td>{money(rows[i].b - b0)}</td>
+                    <td>
+                      {rows[i].raw > cap ? money(rows[i].raw - cap) : "–"}
+                    </td>
+                    <td>{money(perRound(i))}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
@@ -276,11 +419,15 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
                   <th>Added</th>
                   <th>Balance</th>
                   <th>Lost</th>
+                  <th>Per round</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((x, i) => (
-                  <tr key={x.r} class={i === pl.hit ? "hit" : i > pl.hit ? "after" : ""}>
+                  <tr
+                    key={x.r}
+                    class={i === pl.hit ? "hit" : i > pl.hit ? "after" : ""}
+                  >
                     <td>
                       {x.r}
                       {i === pl.hit ? " · collect" : ""}
@@ -288,6 +435,7 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
                     <td>+{money(x.add).slice(1)}</td>
                     <td>{money(x.b)}</td>
                     <td>{x.raw > cap ? money(x.raw - cap) : "–"}</td>
+                    <td>{money(perRound(i))}</td>
                   </tr>
                 ))}
               </tbody>
@@ -302,7 +450,8 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
             Then, after each collect
           </h2>
           <span class="pg-hint">
-            every {bc.k} round{bc.k > 1 ? "s" : ""} · {money(bc.v)} · {money(bc.avg)} a round
+            every {bc.k} round{bc.k > 1 ? "s" : ""} · {money(bc.v)} ·{" "}
+            {money(bc.avg)} a round
           </span>
         </div>
         <div class="bk-cards">
@@ -326,7 +475,12 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
   );
 }
 
-function Deposit(p: { r: BankRoute; P: number; cap: number; go: (o: Partial<BankRoute>) => void }) {
+function Deposit(p: {
+  r: BankRoute;
+  P: number;
+  cap: number;
+  go: (o: Partial<BankRoute>) => void;
+}) {
   const { r, P, cap, go } = p;
   const b0 = Math.min(r.b ?? 0, cap);
   const end = r.end ?? 0;
@@ -338,14 +492,26 @@ function Deposit(p: { r: BankRoute; P: number; cap: number; go: (o: Partial<Bank
     let at = r.r - 1;
     while (b < cap && at < r.r + 300) [b, at] = [step(b, P, cap).b, at + 1];
     return (
-      <section class="pg-panel bk-hot" aria-labelledby="bk-ans" aria-live="polite">
+      <section
+        class="pg-panel bk-hot"
+        aria-labelledby="bk-ans"
+        aria-live="polite"
+      >
         <div class="pg-ph">
           <h2 class="eyebrow" id="bk-ans">
             How much to deposit
           </h2>
         </div>
-        <p class="bk-none">{all.length ? `No deposit fits before your last round (${end}).` : `No deposit needed: the bank fills on its own by round ${at}.`}</p>
-        <button type="button" class="bk-chip" onClick={() => go({ dep: false })}>
+        <p class="bk-none">
+          {all.length
+            ? `No deposit fits before your last round (${end}).`
+            : `No deposit needed: the bank fills on its own by round ${at}.`}
+        </p>
+        <button
+          type="button"
+          class="bk-chip"
+          onClick={() => go({ dep: false })}
+        >
           Switch to Collect timing
         </button>
       </section>
@@ -353,19 +519,26 @@ function Deposit(p: { r: BankRoute; P: number; cap: number; go: (o: Partial<Bank
   }
   const k = Math.min(r.k, ladder.length);
   const sel = ladder[k - 1];
-  const best = ladder.reduce((m, x) => (x.perRound > m.perRound ? x : m), ladder[0]);
+  const first = depositRows(r.r, b0, sel.deposit, P, cap, 1)[0];
+  const best = ladder.reduce(
+    (m, x) => (x.perRound > m.perRound ? x : m),
+    ladder[0],
+  );
   const { full, rest } = depositClicks(b0, sel.deposit, cap);
   const rows = depositRows(r.r, b0, sel.deposit, P, cap, k + 3);
   // Every cycle after the first collect: an empty bank, re-deposited at the fastest rung.
   const again = depositLadder(sel.r + 1, 0, P, cap)[0];
   const N = again ? again.k + 1 : 0;
   const cycles: { r: number }[] = [];
-  if (again) for (let at = sel.r + N; cycles.length < 5 && (!end || at <= end); at += N) cycles.push({ r: at });
+  if (again)
+    for (let at = sel.r + N; cycles.length < 5 && (!end || at <= end); at += N)
+      cycles.push({ r: at });
   const clicks = (
     <>
       {full.length > 0 && (
         <>
-          click Deposit {full.length === 1 ? "once" : `${full.length}×`} ({full.map(money).join(" + ")})
+          click Deposit {full.length === 1 ? "once" : `${full.length}×`} (
+          {full.map(money).join(" + ")})
         </>
       )}
       {full.length > 0 && rest > 0 && ", then click once more"}
@@ -375,7 +548,11 @@ function Deposit(p: { r: BankRoute; P: number; cap: number; go: (o: Partial<Bank
   );
   return (
     <>
-      <section class="pg-panel bk-hot" aria-labelledby="bk-ans" aria-live="polite">
+      <section
+        class="pg-panel bk-hot"
+        aria-labelledby="bk-ans"
+        aria-live="polite"
+      >
         <div class="pg-ph">
           <h2 class="eyebrow" id="bk-ans">
             How much to deposit
@@ -394,8 +571,13 @@ function Deposit(p: { r: BankRoute; P: number; cap: number; go: (o: Partial<Bank
           </div>
           <div class="bk-ans-t">
             <p>
-              Deposit before you press Play on round <strong>{r.r}</strong>. It earns its first interest at the end of round {r.r + 1}
-              {k > 1 && ` and the bank reaches the cap exactly at the end of round ${sel.r}`}: collect before round <strong>{sel.r + 1}</strong>. A bigger deposit only goes over the cap.
+              Deposit before you press Play on round <strong>{r.r}</strong>.
+              Round {r.r} pays no interest on it yet (only on that round's
+              bananas{b0 > 0 ? " and the balance" : ""}): end of round {r.r},{" "}
+              <strong>{money(first.b)}</strong>. From round {r.r + 1} on it
+              compounds, and the bank reaches the cap at the end of round{" "}
+              {sel.r}: collect before round <strong>{sel.r + 1}</strong>. A
+              bigger deposit only goes over the cap.
             </p>
             <p>In game: {clicks}</p>
           </div>
@@ -422,9 +604,18 @@ function Deposit(p: { r: BankRoute; P: number; cap: number; go: (o: Partial<Bank
             </thead>
             <tbody>
               {ladder.map((x) => (
-                <tr key={x.k} class={x.k === k ? "hit" : ""} onClick={() => go({ k: x.k })}>
+                <tr
+                  key={x.k}
+                  class={x.k === k ? "hit" : ""}
+                  onClick={() => go({ k: x.k })}
+                >
                   <td>
-                    <button type="button" class="bk-pick" aria-pressed={x.k === k} aria-label={`Deposit ${money(x.deposit)}, full after round ${x.r}`}>
+                    <button
+                      type="button"
+                      class="bk-pick"
+                      aria-pressed={x.k === k}
+                      aria-label={`Deposit ${money(x.deposit)}, full after round ${x.r}`}
+                    >
                       {x.r}
                     </button>
                   </td>
@@ -481,7 +672,10 @@ function Deposit(p: { r: BankRoute; P: number; cap: number; go: (o: Partial<Bank
             ))}
           </div>
           <p class="bk-cmp">
-            Without deposits this bank averages <strong>{money(bestCycle(P, cap).avg)}</strong> a round; depositing <strong>{money(again.deposit)}</strong> every {N} rounds makes <strong>{money(again.perRound)}</strong> a round.
+            Without deposits this bank averages{" "}
+            <strong>{money(bestCycle(P, cap).avg)}</strong> a round; depositing{" "}
+            <strong>{money(again.deposit)}</strong> every {N} rounds makes{" "}
+            <strong>{money(again.perRound)}</strong> a round.
           </p>
         </section>
       )}
@@ -491,18 +685,36 @@ function Deposit(p: { r: BankRoute; P: number; cap: number; go: (o: Partial<Bank
 
 export function BankPlannerPage(p: { r: BankRoute }) {
   const r = p.r;
-  const go = (o: Partial<BankRoute>) => navigate(href.bankPlanner({ ...r, ...o }), { replace: true, keepScroll: true });
+  const go = (o: Partial<BankRoute>) =>
+    navigate(href.bankPlanner({ ...r, ...o }), {
+      replace: true,
+      keepScroll: true,
+    });
   /** A setup change; the deposit rung goes back to the fastest. */
   const set = (o: Partial<BankRoute>) => go({ k: 1, ...o });
-  const input: BankInput = { tier: r.tier, path: r.path, bb: r.bb, mvb: r.mvb, ben: r.ben, city: r.city, oc: r.oc, half: r.half };
+  const input: BankInput = {
+    tier: r.tier,
+    path: r.path,
+    bb: r.bb,
+    mvb: r.mvb,
+    ben: r.ben,
+    city: r.city,
+    oc: r.oc,
+    half: r.half,
+  };
   const P = income(input);
   const cap = capacity(input);
   const cash = r.b !== undefined || r.dep;
-  const label = !r.dep && r.b === undefined ? "Bought before round" : "Next round to play";
+  const label =
+    !r.dep && r.b === undefined ? "Bought before round" : "Next round to play";
   return (
     <div class="pg bk">
       <ToolBack />
-      <ToolHero art={<img src={heroArt} width={96} height={96} alt="" />} title="Bank & IMF Loan planner" sub="When to collect a Monkey Bank, and how much to deposit in an IMF Loan.">
+      <ToolHero
+        art={<img src={heroArt} width={96} height={96} alt="" />}
+        title="Bank & IMF Loan planner"
+        sub="When to collect a Monkey Bank, and how much to deposit in an IMF Loan."
+      >
         {[
           { art: farm030, alt: "Monkey Bank 0-3-0" },
           { art: farm040, alt: "IMF Loan 0-4-0" },
@@ -510,16 +722,32 @@ export function BankPlannerPage(p: { r: BankRoute }) {
           { art: benjaminArt, alt: "Benjamin" },
         ].map((x) => (
           <span key={x.alt} class="th-ic">
-            <img src={x.art} width={44} height={44} alt={x.alt} decoding="async" />
+            <img
+              src={x.art}
+              width={44}
+              height={44}
+              alt={x.alt}
+              decoding="async"
+            />
           </span>
         ))}
       </ToolHero>
 
       <div class="tabs bk-mode" role="group" aria-label="Mode">
-        <button type="button" class={`tab${r.dep ? "" : " on"}`} aria-pressed={!r.dep} onClick={() => set({ dep: false })}>
+        <button
+          type="button"
+          class={`tab${r.dep ? "" : " on"}`}
+          aria-pressed={!r.dep}
+          onClick={() => set({ dep: false })}
+        >
           Collect timing
         </button>
-        <button type="button" class={`tab${r.dep ? " on" : ""}`} aria-pressed={r.dep} onClick={() => set({ dep: true, tier: Math.max(4, r.tier) as Tier })}>
+        <button
+          type="button"
+          class={`tab${r.dep ? " on" : ""}`}
+          aria-pressed={r.dep}
+          onClick={() => set({ dep: true, tier: Math.max(4, r.tier) as Tier })}
+        >
           Deposit planner
         </button>
       </div>
@@ -538,10 +766,24 @@ export function BankPlannerPage(p: { r: BankRoute }) {
               <span class="bk-lab">Tier</span>
               <div class="bk-tiles" role="group" aria-label="Tier">
                 {TIERS.filter((t) => !r.dep || t.t > 3).map((t) => (
-                  <button key={t.t} type="button" class="bk-tile" aria-pressed={r.tier === t.t} onClick={() => set({ tier: t.t })}>
-                    <img src={t.art} width={56} height={56} alt="" decoding="async" />
+                  <button
+                    key={t.t}
+                    type="button"
+                    class="bk-tile"
+                    aria-pressed={r.tier === t.t}
+                    onClick={() => set({ tier: t.t })}
+                  >
+                    <img
+                      src={t.art}
+                      width={56}
+                      height={56}
+                      alt=""
+                      decoding="async"
+                    />
                     <span>{t.name}</span>
-                    <small>cap {money(capacity({ ...input, tier: t.t }))}</small>
+                    <small>
+                      cap {money(capacity({ ...input, tier: t.t }))}
+                    </small>
                   </button>
                 ))}
               </div>
@@ -550,7 +792,13 @@ export function BankPlannerPage(p: { r: BankRoute }) {
               <span class="bk-lab">Top path</span>
               <div class="bk-seg" role="group" aria-label="Top path">
                 {PATHS.map((x) => (
-                  <button key={x} type="button" class="bk-chip" aria-pressed={r.path === x} onClick={() => set({ path: x })}>
+                  <button
+                    key={x}
+                    type="button"
+                    class="bk-chip"
+                    aria-pressed={r.path === x}
+                    onClick={() => set({ path: x })}
+                  >
                     <span class="bk-path">
                       {x}-{r.tier}-0
                     </span>
@@ -562,10 +810,20 @@ export function BankPlannerPage(p: { r: BankRoute }) {
               {!r.dep && <span class="bk-lab">Start</span>}
               {!r.dep && (
                 <div class="bk-seg" role="group" aria-label="Start">
-                  <button type="button" class="bk-chip" aria-pressed={r.b === undefined} onClick={() => set({ b: undefined })}>
+                  <button
+                    type="button"
+                    class="bk-chip"
+                    aria-pressed={r.b === undefined}
+                    onClick={() => set({ b: undefined })}
+                  >
                     Just bought
                   </button>
-                  <button type="button" class="bk-chip" aria-pressed={r.b !== undefined} onClick={() => set({ b: r.b ?? Math.floor(cap / 2) })}>
+                  <button
+                    type="button"
+                    class="bk-chip"
+                    aria-pressed={r.b !== undefined}
+                    onClick={() => set({ b: r.b ?? Math.floor(cap / 2) })}
+                  >
                     Already has cash
                   </button>
                 </div>
@@ -575,12 +833,34 @@ export function BankPlannerPage(p: { r: BankRoute }) {
                   <span class="bk-lab" id="bk-round-lab">
                     {label}
                   </span>
-                  <div class="pg-tstep" role="group" aria-labelledby="bk-round-lab">
-                    <button type="button" class="pg-step" aria-label="Previous round" disabled={r.r <= 1} onClick={() => set({ r: r.r - 1 })}>
+                  <div
+                    class="pg-tstep"
+                    role="group"
+                    aria-labelledby="bk-round-lab"
+                  >
+                    <button
+                      type="button"
+                      class="pg-step"
+                      aria-label="Previous round"
+                      disabled={r.r <= 1}
+                      onClick={() => set({ r: r.r - 1 })}
+                    >
                       −
                     </button>
-                    <TargetInput value={r.r} label={label} onChange={(n) => set({ r: Math.min(999, Math.max(1, n)) })} />
-                    <button type="button" class="pg-step" aria-label="Next round" disabled={r.r >= 999} onClick={() => set({ r: r.r + 1 })}>
+                    <TargetInput
+                      value={r.r}
+                      label={label}
+                      onChange={(n) =>
+                        set({ r: Math.min(999, Math.max(1, n)) })
+                      }
+                    />
+                    <button
+                      type="button"
+                      class="pg-step"
+                      aria-label="Next round"
+                      disabled={r.r >= 999}
+                      onClick={() => set({ r: r.r + 1 })}
+                    >
                       +
                     </button>
                   </div>
@@ -590,7 +870,12 @@ export function BankPlannerPage(p: { r: BankRoute }) {
                     <span class="bk-lab" id="bk-bal-lab">
                       Balance now
                     </span>
-                    <NumField value={r.b ?? 0} label="Balance now" max={cap} onChange={(n) => set({ b: n ?? 0 })} />
+                    <NumField
+                      value={r.b ?? 0}
+                      label="Balance now"
+                      max={cap}
+                      onChange={(n) => set({ b: n ?? 0 })}
+                    />
                   </div>
                 )}
               </div>
@@ -606,11 +891,29 @@ export function BankPlannerPage(p: { r: BankRoute }) {
             <div class="bk-field">
               <span class="bk-lab">Monkey Knowledge</span>
               <div class="bk-checks">
-                <Check on={r.bb} set={(v) => set({ bb: v })} art={mkBiggerBanks} name="Bigger Banks" sub={`+${money(BANK.biggerBanks)} capacity`} />
-                <Check on={r.mvb} set={(v) => set({ mvb: v })} art={mkMoreValuableBananas} name="More Valuable Bananas" sub={`bank income +${pct(BANK.valuable)} → +${pct(BANK.valuable + BANK.mvb)}`} />
+                <Check
+                  on={r.bb}
+                  set={(v) => set({ bb: v })}
+                  art={mkBiggerBanks}
+                  name="Bigger Banks"
+                  sub={`+${money(BANK.biggerBanks)} capacity`}
+                />
+                <Check
+                  on={r.mvb}
+                  set={(v) => set({ mvb: v })}
+                  art={mkMoreValuableBananas}
+                  name="More Valuable Bananas"
+                  sub={`bank income +${pct(BANK.valuable)} → +${pct(BANK.valuable + BANK.mvb)}`}
+                />
                 {r.dep && (
                   <div class="bk-check bk-fixed">
-                    <img src={mkBankDeposits} width={32} height={32} alt="" decoding="async" />
+                    <img
+                      src={mkBankDeposits}
+                      width={32}
+                      height={32}
+                      alt=""
+                      decoding="async"
+                    />
                     <span>
                       <b>Bank Deposits</b>
                       <small>needed for the Deposit button</small>
@@ -618,15 +921,35 @@ export function BankPlannerPage(p: { r: BankRoute }) {
                   </div>
                 )}
               </div>
-              <p class="pg-hint bk-gap">Off in CHIMPS: the game ignores Monkey Knowledge there.</p>
+              <p class="pg-hint bk-gap">
+                Off in CHIMPS: the game ignores Monkey Knowledge there.
+              </p>
             </div>
 
             <div class="bk-field">
               <span class="bk-lab">Benjamin (Bank Hack)</span>
-              <div class="bk-seg" role="group" aria-label="Benjamin (Bank Hack)">
+              <div
+                class="bk-seg"
+                role="group"
+                aria-label="Benjamin (Bank Hack)"
+              >
                 {BENS.map((x) => (
-                  <button key={x.b} type="button" class="bk-chip" aria-pressed={r.ben === x.b} onClick={() => set({ ben: x.b })}>
-                    {x.b > 0 && <img src={benjaminArt} width={24} height={24} alt="" decoding="async" />}
+                  <button
+                    key={x.b}
+                    type="button"
+                    class="bk-chip"
+                    aria-pressed={r.ben === x.b}
+                    onClick={() => set({ ben: x.b })}
+                  >
+                    {x.b > 0 && (
+                      <img
+                        src={benjaminArt}
+                        width={24}
+                        height={24}
+                        alt=""
+                        decoding="async"
+                      />
+                    )}
                     {x.label}
                     {x.b > 0 && <span class="bk-x">+{pct(BANK.ben[x.b])}</span>}
                   </button>
@@ -635,19 +958,51 @@ export function BankPlannerPage(p: { r: BankRoute }) {
             </div>
 
             <div class="bk-field">
-              <details class="bk-more" open={r.city || r.oc || r.half || r.end !== undefined || undefined}>
+              <details
+                class="bk-more"
+                open={
+                  r.city || r.oc || r.half || r.end !== undefined || undefined
+                }
+              >
                 <summary>More buffs and modes</summary>
                 <div class="bk-checks">
-                  <Check on={r.city} set={(v) => set({ city: v })} art={monkeyCityArt} name="Monkey City" sub={`village 0-0-4 in range, +${pct(BANK.city)}`} />
-                  <Check on={r.oc} set={(v) => set({ oc: v })} art={overclockArt} name="Overclock" sub="more bananas a round" tag="approx." />
-                  <Check on={r.half} set={(v) => set({ half: v })} art={halfCashArt} name="Half Cash" sub="bank income halved" />
+                  <Check
+                    on={r.city}
+                    set={(v) => set({ city: v })}
+                    art={monkeyCityArt}
+                    name="Monkey City"
+                    sub={`village 0-0-4 in range, +${pct(BANK.city)}`}
+                  />
+                  <Check
+                    on={r.oc}
+                    set={(v) => set({ oc: v })}
+                    art={overclockArt}
+                    name="Overclock"
+                    sub="more bananas a round"
+                    tag="approx."
+                  />
+                  <Check
+                    on={r.half}
+                    set={(v) => set({ half: v })}
+                    art={halfCashArt}
+                    name="Half Cash"
+                    sub="bank income halved"
+                  />
                 </div>
                 <div class="bk-gap">
                   <span class="bk-lab" id="bk-end-lab">
                     Game ends after round
                   </span>
-                  <NumField value={r.end} label="Game ends after round" max={999} placeholder="—" onChange={(n) => set({ end: n })} />
-                  <p class="pg-hint bk-gap">Leave empty for boss events and endless play.</p>
+                  <NumField
+                    value={r.end}
+                    label="Game ends after round"
+                    max={999}
+                    placeholder="—"
+                    onChange={(n) => set({ end: n })}
+                  />
+                  <p class="pg-hint bk-gap">
+                    Leave empty for boss events and endless play.
+                  </p>
                 </div>
               </details>
             </div>
@@ -655,17 +1010,34 @@ export function BankPlannerPage(p: { r: BankRoute }) {
         </div>
 
         <div class="bk-col">
-          {r.dep ? <Deposit r={r} P={P} cap={cap} go={go} /> : <Collect r={r} P={P} cap={cap} />}
+          {r.dep ? (
+            <Deposit r={r} P={P} cap={cap} go={go} />
+          ) : (
+            <Collect r={r} P={P} cap={cap} />
+          )}
           <div class="bk-foot">
             <p>
-              Bank capacity ({money(BANK.cap[3])} Monkey Bank, {money(BANK.cap[4])} IMF Loan and Monkey-Nomics), {pct(BANK.interest)} interest and banana values come from the game data (v57.1). Banana counts, Monkey Knowledge, Benjamin, Monkey City, Overclock and Half Cash come from bloonswiki.
+              Bank capacity ({money(BANK.cap[3])} Monkey Bank,{" "}
+              {money(BANK.cap[4])} IMF Loan and Monkey-Nomics),{" "}
+              {pct(BANK.interest)} interest and banana values come from the game
+              data (v57.1). Banana counts, Monkey Knowledge, Benjamin, Monkey
+              City, Overclock and Half Cash come from bloonswiki.
             </p>
             <p>
-              Each round the bank adds its bananas, then pays {pct(BANK.interest)} at the end of the round on its balance, that round's bananas included. At capacity it stops and anything over is lost. Bottom-path upgrades change nothing here; a 0-x-2 bank collects by itself once full. Selling a bank pays out its balance.
+              Each round the bank adds its bananas, then pays{" "}
+              {pct(BANK.interest)} at the end of the round on its balance, that
+              round's bananas included. At capacity it stops and anything over
+              is lost. Bottom-path upgrades change nothing here; a 0-x-2 bank
+              collects by itself once full. Selling a bank pays out its balance.
             </p>
             {r.dep && (
               <p>
-                Deposits need the Bank Deposits knowledge and an IMF Loan or Monkey-Nomics. The button puts in half the room left, or all your cash if you have less. Deposited cash earns interest from the second round end on. If you still owe an IMF loan, collecting likely pays part of the debt first (from the game code, not tested in game).
+                Deposits need the Bank Deposits knowledge and an IMF Loan or
+                Monkey-Nomics. The button puts in half the room left, or all
+                your cash if you have less. Deposited cash earns interest from
+                the second round end on. If you still owe an IMF loan,
+                collecting likely pays part of the debt first (from the game
+                code, not tested in game).
               </p>
             )}
             <p>
