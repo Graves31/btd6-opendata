@@ -98,7 +98,7 @@ import {
   Ruleset,
   TowerRoster,
 } from "../rules.tsx";
-import { hasArt, MapArt, MODE_NAME, Spr } from "../sprite.tsx";
+import { hasArt, MapArt, mapH, MODE_NAME, Spr } from "../sprite.tsx";
 import {
   ApproxNote,
   JumpToRules,
@@ -633,7 +633,7 @@ function NoMapFrame(props: { size: number }) {
     <span class="mf">
       <span
         class="mf-ph"
-        style={{ width: `${props.size}px`, height: `${props.size}px` }}
+        style={{ width: `${props.size}px`, height: `${mapH(props.size)}px` }}
       >
         {hasArt("eventIcon", "ct") ? (
           <Spr family="eventIcon" k="ct" size={icon} />

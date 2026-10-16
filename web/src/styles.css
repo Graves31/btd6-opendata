@@ -798,8 +798,8 @@ footer {
 }
 .fm-map .map-art {
   flex: none;
-  width: 120px;
-  height: 120px;
+  width: 150px;
+  height: auto;
   border: 1px solid var(--rule-2);
 }
 .fm-t {
@@ -1927,8 +1927,8 @@ button.fd-tile:hover {
     gap: 14px;
   }
   .fm-map .map-art {
-    width: 80px;
-    height: 80px;
+    width: 96px;
+    height: auto;
   }
   .fm-name {
     font-size: 30px;
@@ -2158,10 +2158,11 @@ button.fd-tile:hover {
   width: 24px;
 }
 
-/* Maps: never cropped. Built-in art is square; custom maps (597:400) letterbox on --s2. */
+/* Maps: never cropped. Every map shows at the game's 597:400; built-in art is stored square, so it is stretched back. */
 .map-art {
   display: block;
-  object-fit: contain;
+  object-fit: fill;
+  aspect-ratio: 597 / 400;
   background: var(--s2);
 }
 
@@ -2647,7 +2648,7 @@ button.fd-tile:hover {
     height: auto;
   }
   .tile-art .mf-ph {
-    height: 88px !important;
+    height: 59px !important;
   }
   .cab-row,
   .mode-row {
@@ -7907,8 +7908,8 @@ footer p {
     white-space: nowrap;
   }
   .mini-map .map-art {
-    width: 44px !important;
-    height: 44px !important;
+    width: 54px !important;
+    height: auto !important;
   }
   main > .vh + .feature + .tiles + section,
   main > .vh + .feature ~ section {
@@ -8300,10 +8301,9 @@ footer p {
   grid-row: span 2;
 }
 .map-stat .map-art {
-  width: 48px;
-  height: 48px;
+  width: 66px;
+  height: auto;
   border-radius: 3px;
-  object-fit: cover;
 }
 a.map-stat:hover {
   background: var(--s2);
@@ -8526,7 +8526,7 @@ a.map-stat:hover {
 }
 .map-tile-art {
   position: relative;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 597 / 400;
   overflow: hidden;
   background: #05070c;
   color: #fff;
@@ -8534,7 +8534,6 @@ a.map-stat:hover {
 .map-tile-art .map-art {
   width: 100%;
   height: 100%;
-  object-fit: cover;
   background: none;
 }
 .map-tile-art::after {
@@ -8666,8 +8665,7 @@ a.map-stat:hover {
     font-size: 19px;
   }
   .map-stat .map-art {
-    width: 36px;
-    height: 36px;
+    width: 54px;
   }
   .map-bar {
     gap: 8px;

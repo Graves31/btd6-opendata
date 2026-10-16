@@ -294,16 +294,19 @@ export function AnyHero(p: { size: number; banned?: boolean; label?: boolean }) 
 
 // ─────────────────────────────── maps: never cropped
 
-/** Custom (player-made) maps are 597:400 JPEG previews; built-in map art is square. */
+/** Custom (player-made) maps are 597:400 JPEG previews; built-in map art is stored square but shown at 597:400 too. */
 export const isCustomMap = (map: string | undefined, url: string | null | undefined) =>
   map === "CustomMap" || /\.jpe?g($|\?)/i.test(url ?? "") || /\/maps\/map\/[^/]+\/preview/.test(url ?? "");
+
+/** Height of a map picture `w` wide: every BTD6 map is 597:400. */
+export const mapH = (w: number) => Math.round((w * 400) / 597);
 
 export function MapArt(p: { map?: string; url?: string | null; custom?: boolean; size: number; eager?: boolean; alt?: string; class?: string; framed?: boolean }) {
   const [broken, setBroken] = useState(false);
   const own = p.map ? MAPS[p.map] : undefined;
   const custom = p.custom ?? isCustomMap(p.map, p.url);
   const cls = `map-art${custom ? " custom" : ""}${p.class ? ` ${p.class}` : ""}`;
-  const [w, h] = custom ? [p.size, Math.round((p.size * 400) / 597)] : [p.size, p.size];
+  const [w, h] = [p.size, mapH(p.size)];
   // `framed`: the one map-preview look (mat + hairline), inset, native aspect (.mf in styles.css).
   const frame = (el: JSX.Element) => (p.framed ? <span class={`mf${custom ? " custom" : ""}`}>{el}</span> : el);
   if ((!own && !p.url) || broken) {
