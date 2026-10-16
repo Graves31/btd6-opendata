@@ -94,7 +94,7 @@ export interface RoundSetInfo {
   /** the game's own round-set asset name, e.g. "DefaultRoundSet", "vortex" */
   gameId: string;
   name: string;
-  group: "standard" | "boss" | "quest" | "legends" | "other";
+  group: "standard" | "boss" | "quest" | "frontier" | "rogue" | "other";
   /** ChallengeDocument.roundSets values that select this set (boss sets: the boss id; see README notes) */
   api: string[];
   /** ChallengeDocument.mode values whose game mutator swaps in this set (RoundSetModModel), e.g. AlternateBloonsRounds */
@@ -173,13 +173,13 @@ export const ROUND_SETS: RoundSetInfo[] = [
   { id: "default-skip-every-odd-round", gameId: "DefaultSkipEveryOddRound", name: "Default Skip Every Odd Round", group: "other", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u13, file: () => loadRoundSet(u13) },
   { id: "endurance", gameId: "EnduranceRoundSet", name: "Endurance", group: "other", api: [], modes: [], incomeSet: "EnduranceIncomeSet", first: 1, last: 205, hasRbe: true, url: u14, file: () => loadRoundSet(u14) },
   { id: "fast-upgrades", gameId: "FastUpgradesRoundSet", name: "Fast Upgrades", group: "other", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 6, hasRbe: true, url: u15, file: () => loadRoundSet(u15) },
-  { id: "frontier-base-1", gameId: "FrontierBase1", name: "Frontier Base 1", group: "legends", api: [], modes: [], incomeSet: "FrontierReducedIncomeSet", first: 1, last: 184, hasRbe: false, url: u16, file: () => loadRoundSet(u16) },
-  { id: "frontier-base-2", gameId: "FrontierBase2", name: "Frontier Base 2", group: "legends", api: [], modes: [], incomeSet: "FrontierReducedIncomeSet", first: 1, last: 179, hasRbe: false, url: u17, file: () => loadRoundSet(u17) },
-  { id: "frontier-base-3", gameId: "FrontierBase3", name: "Frontier Base 3", group: "legends", api: [], modes: [], incomeSet: "FrontierReducedIncomeSet", scale: 1.5, first: 1, last: 174, hasRbe: false, url: u18, file: () => loadRoundSet(u18) },
-  { id: "frontier-rush-1", gameId: "FrontierRush1", name: "Frontier Rush 1", group: "legends", api: [], modes: [], incomeSet: "FrontierReducedIncomeSet", first: 1, last: 31, hasRbe: false, url: u19, file: () => loadRoundSet(u19) },
-  { id: "frontier-rush-2", gameId: "FrontierRush2", name: "Frontier Rush 2", group: "legends", api: [], modes: [], incomeSet: "FrontierReducedIncomeSet", first: 1, last: 50, hasRbe: false, url: u20, file: () => loadRoundSet(u20) },
-  { id: "frontier-rush-3", gameId: "FrontierRush3", name: "Frontier Rush 3", group: "legends", api: [], modes: [], incomeSet: "FrontierReducedIncomeSet", first: 1, last: 81, hasRbe: false, url: u21, file: () => loadRoundSet(u21) },
-  { id: "frontier-rush-final", gameId: "FrontierRushFinal", name: "Frontier Rush Final", group: "legends", api: [], modes: [], incomeSet: "FrontierReducedIncomeSet", first: 1, last: 81, hasRbe: false, url: u22, file: () => loadRoundSet(u22) },
+  { id: "frontier-base-1", gameId: "FrontierBase1", name: "Frontier Base 1", group: "frontier", api: [], modes: [], incomeSet: "FrontierReducedIncomeSet", first: 1, last: 184, hasRbe: false, url: u16, file: () => loadRoundSet(u16) },
+  { id: "frontier-base-2", gameId: "FrontierBase2", name: "Frontier Base 2", group: "frontier", api: [], modes: [], incomeSet: "FrontierReducedIncomeSet", first: 1, last: 179, hasRbe: false, url: u17, file: () => loadRoundSet(u17) },
+  { id: "frontier-base-3", gameId: "FrontierBase3", name: "Frontier Base 3", group: "frontier", api: [], modes: [], incomeSet: "FrontierReducedIncomeSet", scale: 1.5, first: 1, last: 174, hasRbe: false, url: u18, file: () => loadRoundSet(u18) },
+  { id: "frontier-rush-1", gameId: "FrontierRush1", name: "Frontier Rush 1", group: "frontier", api: [], modes: [], incomeSet: "FrontierReducedIncomeSet", first: 1, last: 31, hasRbe: false, url: u19, file: () => loadRoundSet(u19) },
+  { id: "frontier-rush-2", gameId: "FrontierRush2", name: "Frontier Rush 2", group: "frontier", api: [], modes: [], incomeSet: "FrontierReducedIncomeSet", first: 1, last: 50, hasRbe: false, url: u20, file: () => loadRoundSet(u20) },
+  { id: "frontier-rush-3", gameId: "FrontierRush3", name: "Frontier Rush 3", group: "frontier", api: [], modes: [], incomeSet: "FrontierReducedIncomeSet", first: 1, last: 81, hasRbe: false, url: u21, file: () => loadRoundSet(u21) },
+  { id: "frontier-rush-final", gameId: "FrontierRushFinal", name: "Frontier Rush Final", group: "frontier", api: [], modes: [], incomeSet: "FrontierReducedIncomeSet", first: 1, last: 81, hasRbe: false, url: u22, file: () => loadRoundSet(u22) },
   { id: "he-man-stage-3", gameId: "HeManStage3RoundSet", name: "He Man Stage 3", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: false, url: u23, file: () => loadRoundSet(u23) },
   { id: "mastery-mode", gameId: "MasteryModeRoundSet", name: "Mastery Mode", group: "other", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u24, file: () => loadRoundSet(u24) },
   { id: "moab-madness", gameId: "MOABMadnessRoundSet", name: "MOAB Madness", group: "other", api: [], modes: [], incomeSet: "MOABMadnessIncomeSet", first: 1, last: 5, hasRbe: true, url: u25, file: () => loadRoundSet(u25) },
@@ -200,13 +200,13 @@ export const ROUND_SETS: RoundSetInfo[] = [
   { id: "quest-sauda-trial", gameId: "QuestSaudaTrialRoundSet", name: "Quest Sauda Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", scale: 0.85, first: 1, last: 140, hasRbe: true, url: u40, file: () => loadRoundSet(u40) },
   { id: "quest-silas-trial", gameId: "QuestSilasTrialRoundSet", name: "Quest Silas Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u41, file: () => loadRoundSet(u41) },
   { id: "quest-striker-trial", gameId: "QuestStrikerTrialRoundSet", name: "Quest Striker Trial", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 140, hasRbe: true, url: u42, file: () => loadRoundSet(u42) },
-  { id: "rogue", gameId: "RogueRoundSet", name: "Rogue", group: "legends", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u43, file: () => loadRoundSet(u43) },
-  { id: "rogue-bloonier-set", gameId: "RogueBloonierSet", name: "Rogue Bloonier Set", group: "legends", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u44, file: () => loadRoundSet(u44) },
-  { id: "rogue-dense-set", gameId: "RogueDenseSet", name: "Rogue Dense Set", group: "legends", api: [], modes: [], incomeSet: "RogueIncomeSet", scale: 0.8, first: 1, last: 145, hasRbe: true, url: u45, file: () => loadRoundSet(u45) },
-  { id: "rogue-immune-set", gameId: "RogueImmuneSet", name: "Rogue Immune Set", group: "legends", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 143, hasRbe: true, url: u46, file: () => loadRoundSet(u46) },
-  { id: "rogue-lead-set", gameId: "RogueLeadSet", name: "Rogue Lead Set", group: "legends", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u47, file: () => loadRoundSet(u47) },
-  { id: "rogue-pink-set", gameId: "RoguePinkSet", name: "Rogue Pink Set", group: "legends", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u48, file: () => loadRoundSet(u48) },
-  { id: "rogue-purple-set", gameId: "RoguePurpleSet", name: "Rogue Purple Set", group: "legends", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u49, file: () => loadRoundSet(u49) },
+  { id: "rogue", gameId: "RogueRoundSet", name: "Rogue", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u43, file: () => loadRoundSet(u43) },
+  { id: "rogue-bloonier-set", gameId: "RogueBloonierSet", name: "Rogue Bloonier Set", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u44, file: () => loadRoundSet(u44) },
+  { id: "rogue-dense-set", gameId: "RogueDenseSet", name: "Rogue Dense Set", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", scale: 0.8, first: 1, last: 145, hasRbe: true, url: u45, file: () => loadRoundSet(u45) },
+  { id: "rogue-immune-set", gameId: "RogueImmuneSet", name: "Rogue Immune Set", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 143, hasRbe: true, url: u46, file: () => loadRoundSet(u46) },
+  { id: "rogue-lead-set", gameId: "RogueLeadSet", name: "Rogue Lead Set", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u47, file: () => loadRoundSet(u47) },
+  { id: "rogue-pink-set", gameId: "RoguePinkSet", name: "Rogue Pink Set", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u48, file: () => loadRoundSet(u48) },
+  { id: "rogue-purple-set", gameId: "RoguePurpleSet", name: "Rogue Purple Set", group: "rogue", api: [], modes: [], incomeSet: "RogueIncomeSet", first: 1, last: 145, hasRbe: true, url: u49, file: () => loadRoundSet(u49) },
   { id: "scoops-tale-i-part-1", gameId: "ScoopsTaleIPart1RoundSet", name: "Scoops Tale I Part 1", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 13, hasRbe: true, url: u50, file: () => loadRoundSet(u50) },
   { id: "scoops-tale-i-part-2", gameId: "ScoopsTaleIPart2RoundSet", name: "Scoops Tale I Part 2", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 15, hasRbe: true, url: u51, file: () => loadRoundSet(u51) },
   { id: "scoops-tale-i-part-3", gameId: "ScoopsTaleIPart3RoundSet", name: "Scoops Tale I Part 3", group: "quest", api: [], modes: [], incomeSet: "DefaultIncomeSet", first: 1, last: 23, hasRbe: true, url: u52, file: () => loadRoundSet(u52) },

@@ -69,10 +69,13 @@ export function roundsBoss(r: RoundsRoute): string | undefined {
 const GROUPS: [RoundSetInfo["group"], string][] = [
   ["standard", "Standard"],
   ["boss", "Boss events"],
+  ["frontier", "Legends: Frontier"],
+  ["rogue", "Legends: Rogue"],
   ["other", "Other game modes"],
   ["quest", "Quests"],
-  ["legends", "Legends"],
 ];
+/** Groups folded in the picker unless they hold the current set (rarely used). */
+const FOLDED = new Set<RoundSetInfo["group"]>(["frontier", "rogue", "other", "quest"]);
 
 const secs = (s: number) => `${+s.toFixed(2)}s`;
 const mult = (n: number) => `${+(n * 100).toFixed(1)}%`;
@@ -174,6 +177,7 @@ const PRESETS: [string, { start: number; end: number }][] = [
   ["Medium", gameDefaults("Standard", "Medium")],
   ["Hard", gameDefaults("Standard", "Hard")],
   ["Impoppable", gameDefaults("Impoppable", "Hard")],
+  ["CHIMPS", gameDefaults("Clicks", "Hard")],
 ];
 
 /** A round to bring into view when the list next renders (set by "‹ List" from the round view). */
@@ -602,21 +606,32 @@ function SetPicker(p: { info?: RoundSetInfo; go: Go }) {
       </button>
       {open && (
         <div id="rv-setmenu" class="rv-setmenu" role="group" aria-label="Round sets">
-          {GROUPS.map(([g, label]) => (
-            <div key={g} class="rv-setgrp">
-              <span class="label">{label}</span>
-              {ROUND_SETS.filter((s) => s.group === g).map((s) => {
-                const [f, k] = setIcon(s);
-                const on = s.id === p.info?.id;
-                return (
-                  <button key={s.id} type="button" class={`rv-fchip${on ? " on" : ""}`} aria-pressed={on} onClick={() => { setOpen(false); p.go({ set: s.id }); }}>
-                    <Spr family={f} k={k} size={24} label optional />
-                    {setLabel(s)}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
+          {GROUPS.map(([g, label]) => {
+            const sets = ROUND_SETS.filter((s) => s.group === g);
+            const chips = sets.map((s) => {
+              const [f, k] = setIcon(s);
+              const on = s.id === p.info?.id;
+              return (
+                <button key={s.id} type="button" class={`rv-fchip${on ? " on" : ""}`} aria-pressed={on} onClick={() => { setOpen(false); p.go({ set: s.id }); }}>
+                  <Spr family={f} k={k} size={24} label optional />
+                  {setLabel(s)}
+                </button>
+              );
+            });
+            return FOLDED.has(g) ? (
+              <details key={g} class="rv-setgrp rv-fold" open={sets.some((s) => s.id === p.info?.id)}>
+                <summary class="label">
+                  {label} <span class="n">{sets.length}</span>
+                </summary>
+                {chips}
+              </details>
+            ) : (
+              <div key={g} class="rv-setgrp">
+                <span class="label">{label}</span>
+                {chips}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -692,7 +707,9 @@ function RangeControls(p: { r: RoundsRoute; info: RoundSetInfo; go: Go }) {
       <div class="rv-presets" role="group" aria-label="Round range presets">
         {presets.map(([name, lo, hi]) => {
           const x = b(lo, hi);
-          const on = x.from === from && x.to === to;
+          // CHIMPS is played on the Default set: picking it from the Alternate set switches back.
+          const chimps = name === "CHIMPS" && info.id === "alternate";
+          const on = x.from === from && x.to === to && !chimps;
           return (
             <button
               key={name}
@@ -700,7 +717,7 @@ function RangeControls(p: { r: RoundsRoute; info: RoundSetInfo; go: Go }) {
               class={`rv-chip${on ? " on" : ""}${name === "Event" ? " ev" : ""}`}
               aria-pressed={on}
               title={`Rounds ${x.from}–${x.to}`}
-              onClick={() => go({ from: x.from, to: x.to, r: r.r === undefined ? undefined : Math.min(x.to, Math.max(x.from, r.r)) })}
+              onClick={() => go({ ...(chimps ? { set: "default" } : {}), from: x.from, to: x.to, r: r.r === undefined ? undefined : Math.min(x.to, Math.max(x.from, r.r)) })}
             >
               {name}
             </button>

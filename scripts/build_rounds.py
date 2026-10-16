@@ -518,7 +518,7 @@ def build(sets: dict, incomes: dict, modes: dict, bloons: dict, text: dict, spri
             if not name:
                 name = text.get(gid + "QuestName") or humanize(gid)
             group = ("standard" if gid in ("DefaultRoundSet", "AlternateRoundSet") else
-                     "legends" if gid.startswith(("Frontier", "Rogue")) else
+                     "frontier" if gid.startswith("Frontier") else "rogue" if gid.startswith("Rogue") else
                      "quest" if re.match(r"Quest|.*(Quest|Tale|Stage)", gid) else "other")
             entry.update(name=name, group=group, api=API_DEFAULT.get(gid, []), modes=sorted(set_modes.get(gid, [])))
             inc = s.get("linkedIncomeSet") or {}
@@ -632,7 +632,7 @@ export interface RoundSetInfo {
   /** the game's own round-set asset name, e.g. "DefaultRoundSet", "vortex" */
   gameId: string;
   name: string;
-  group: "standard" | "boss" | "quest" | "legends" | "other";
+  group: "standard" | "boss" | "quest" | "frontier" | "rogue" | "other";
   /** ChallengeDocument.roundSets values that select this set (boss sets: the boss id; see README notes) */
   api: string[];
   /** ChallengeDocument.mode values whose game mutator swaps in this set (RoundSetModModel), e.g. AlternateBloonsRounds */

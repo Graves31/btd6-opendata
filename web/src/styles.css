@@ -3660,6 +3660,35 @@ button.fd-tile:hover {
 .rv-setgrp .label {
   flex: 0 0 100%;
 }
+/* Folded groups (Legends, other modes, quests): a tappable header, chips once opened. */
+.rv-fold {
+  display: block;
+  margin-bottom: 2px;
+}
+.rv-fold[open] {
+  display: flex;
+}
+.rv-fold > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  cursor: pointer;
+  list-style: none;
+}
+.rv-fold > summary::-webkit-details-marker {
+  display: none;
+}
+.rv-fold > summary::before {
+  content: "▸";
+  color: var(--ink-2);
+}
+.rv-fold[open] > summary::before {
+  content: "▾";
+}
+.rv-fold > summary .n {
+  color: var(--ink-2);
+}
 .rv input[type="number"] {
   height: 44px;
   min-width: 0;
