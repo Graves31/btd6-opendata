@@ -1,6 +1,7 @@
 // URL ⇄ Route, and the data keys each route needs. `needs()` is what makes generic prefetching possible:
 // any link can compute exactly which keys its target page will read, before the user clicks it.
 
+import type { Ben, Path, Tier } from "./bank.ts";
 import { MAP_LIST } from "./data/names.ts";
 import { paragonTowers, type Difficulty, type GameVer, type ParagonTower } from "./paragon.ts";
 
@@ -29,12 +30,63 @@ export type Route =
   | { name: "tools" }
   | ParagonRoute
   | { name: "farming"; r?: number }
+  | BankRoute
   | { name: "pgscaling"; d?: number; to?: number }
   | { name: "stats" }
   | { name: "suggest" }
   | MapsRoute
   | { name: "map"; id: string }
   | { name: "notfound" };
+
+/** Bank & IMF Loan planner (/tools/bank-planner). Defaults (Collect, 1-3-0, round 30, both MK, no extras) stay out of the URL. */
+export interface BankRoute {
+  name: "bankPlanner";
+  dep: boolean;
+  tier: Tier;
+  path: Path;
+  /** round bought before / next round to play */
+  r: number;
+  /** balance now; Collect: undefined = just bought, a number = already has cash */
+  b?: number;
+  bb: boolean;
+  mvb: boolean;
+  ben: Ben;
+  city: boolean;
+  oc: boolean;
+  half: boolean;
+  /** game ends after this round */
+  end?: number;
+  /** selected deposit rung (1 = fastest) */
+  k: number;
+}
+export const BANK_DEFAULT = { dep: false, tier: 3, path: 1, r: 30, bb: true, mvb: true, ben: 0, city: false, oc: false, half: false, k: 1 } as const;
+export const BANK_RUNGS = 6;
+
+function parseBank(q: URLSearchParams): BankRoute {
+  const bank = /^([012])([345])0$/.exec(q.get("bank") ?? "");
+  const dep = q.get("m") === "dep";
+  const mk = q.get("mk");
+  const x = list(q.get("x"));
+  const ben = q.get("ben");
+  const b = q.get("b");
+  const end = int(q.get("end"), 0, 1, 999);
+  return {
+    name: "bankPlanner",
+    dep,
+    tier: (dep ? Math.max(4, Number(bank?.[2] ?? 4)) : Number(bank?.[2] ?? 3)) as Tier,
+    path: Number(bank?.[1] ?? 1) as Path,
+    r: int(q.get("r"), BANK_DEFAULT.r, 1, 999),
+    b: b !== null && /^\d{1,6}$/.test(b) ? Number(b) : undefined,
+    bb: mk === null || mk === "bb",
+    mvb: mk === null || mk === "mvb",
+    ben: ben === "5" ? 5 : ben === "9" ? 9 : 0,
+    city: x.includes("city"),
+    oc: x.includes("oc"),
+    half: x.includes("half"),
+    end: end || undefined,
+    k: int(q.get("k"), 1, 1, BANK_RUNGS),
+  };
+}
 
 export type MapSort = "game" | "az" | "bosses" | "races" | "recent" | "bossgap" | "racegap";
 /** Maps explorer (/maps): name search, difficulty (0..3) and water filters, sort. Defaults are left out of the URL. */
@@ -274,6 +326,8 @@ export function needs(r: Route): string[] {
       return [challengeListKey(r.filter, r.p)];
     case "rounds":
       return roundKeys(r);
+    case "bankPlanner":
+      return []; // pure client maths
     case "tools":
     case "farming":
       return roundKeys(parseRounds(new URLSearchParams())); // the default round set (round lengths)
@@ -347,6 +401,7 @@ export function parse(url: URL): Route {
     const r = Number(q.get("r"));
     return { name: "farming", r: Number.isInteger(r) && r >= 1 && r <= 1000 ? r : undefined };
   }
+  if (a === "tools" && b === "bank-planner" && !c) return parseBank(q);
   if (a === "tools" && b === "paragon-scaling" && !c) {
     const deg = (k: string) => {
       const n = Number(q.get(k));
@@ -500,6 +555,23 @@ export const href = {
   tools: () => "/tools",
   /** Farming resources; `r` = the round whose length the banana chart is drawn in. */
   farming: (r?: number) => `/tools/farming${qs({ r })}`,
+  /** The bank planner; only non-default values are written. */
+  bankPlanner: (p: Partial<Omit<BankRoute, "name">> = {}) => {
+    const d = { ...BANK_DEFAULT, ...p };
+    const mk = d.bb && d.mvb ? undefined : d.bb ? "bb" : d.mvb ? "mvb" : "0";
+    const x = (["city", "oc", "half"] as const).filter((k) => d[k]).join(",");
+    return `/tools/bank-planner${qs({
+      m: d.dep ? "dep" : undefined,
+      bank: d.tier !== BANK_DEFAULT.tier || d.path !== BANK_DEFAULT.path ? `${d.path}${d.tier}0` : undefined,
+      r: d.r !== BANK_DEFAULT.r ? d.r : undefined,
+      b: p.b !== undefined && (!d.dep || p.b > 0) ? p.b : undefined,
+      mk,
+      ben: d.ben || undefined,
+      x: x || undefined,
+      end: p.end,
+      k: d.dep && d.k > 1 ? d.k : undefined,
+    }).replace(/%2C/g, ",")}`;
+  },
   /** Paragon scaling charts; `d` = a degree to mark. */
   paragonScaling: (d?: number, to?: number) => `/tools/paragon-scaling${qs({ d, to })}`,
   /** The paragon calculator; only non-default values are written (`pin`: tower and difficulty always, so a link keeps them). */

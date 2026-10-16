@@ -564,6 +564,18 @@ TOOL_ICONS = {
     "farm000": "ref/000-BananaFarm",
     "farm100": "ref/100-BananaFarm",
     "farm200": "ref/200-BananaFarm",
+    # Bank & IMF Loan planner
+    "bank": "ref/MonkeyBankUpgradeIcon",
+    "farm030": "ref/030-BananaFarm",
+    "farm040": "ref/040-BananaFarm",
+    "farm050": "ref/050-BananaFarm",
+    "benjamin": "MonkeyIcons/BenjaminIcon",
+    "mkBiggerBanks": "MonkeyKnowledgeUi/BiggerBanksIcon",
+    "mkMoreValuableBananas": "MonkeyKnowledgeUi/MoreValuableBananasIcon",
+    "mkBankDeposits": "MonkeyKnowledgeUi/BankDepositsIcon",
+    "monkeyCity": "ref/MonkeyCityUpgradeIcon",
+    "overclock": "ref/OverclockUpgradeIcon",
+    "halfCash": "ref/HalfCashIcon",
 }
 TOOL_PX = 192
 

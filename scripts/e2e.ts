@@ -307,7 +307,7 @@ async function main() {
     await home();
 
     await step("Now → Tools", 'header nav a[href="/tools"]', "tools");
-    if ((await page.evaluate(() => document.querySelectorAll(".tools-tiles a.tile").length)) !== 4) problems.push("tools hub: want 4 tool cards");
+    if ((await page.evaluate(() => document.querySelectorAll(".tools-tiles a.tile").length)) !== 5) problems.push("tools hub: want 5 tool cards");
     await step("Tools → Round visualizer", ".tools-tiles a.tile[href^='/tools/rounds']", "rounds-tool");
     if (!(await has("ol.rv-list li.rv-row"))) problems.push("tools: no round rows");
     // One scroll context: nothing on the page may be an inner vertical scroller, and the wheel over the list
@@ -350,6 +350,16 @@ async function main() {
     await page.waitForFunction(() => location.search.includes("r=1") && document.querySelectorAll(".fm-b i").length === 18, { timeout: 3000 }).catch(() => problems.push("farming: round 1 didn't put seconds on the chart"));
     pages["farming-round"] = await here();
     await shoot(page, "desktop-farming-round");
+
+    // Tools → Bank & IMF Loan planner: default 1-3-0 bought before round 30 with full MK collects after round 41 (test/bank.test.ts).
+    await step("→ Tools hub", 'header nav a[href="/tools"]');
+    await step("Tools → Bank & IMF Loan planner", ".tools-tiles a.tile[href='/tools/bank-planner']", "bank-planner");
+    const bankAns = await page.$eval(".bk-big .v", (el) => el.textContent).catch(() => "");
+    if (bankAns !== "41") problems.push(`bank planner: default answer reads "${bankAns}", want round 41`);
+    await page.click(".bk-mode .tab:last-child");
+    await page.waitForFunction(() => location.search.includes("m=dep") && document.querySelectorAll(".bk-ladder tbody tr").length > 0 && /\$/.test(document.querySelector(".bk-big .v")?.textContent ?? ""), { timeout: 3000 }).catch(() => problems.push("bank planner: Deposit planner shows no amount / ladder"));
+    pages["bank-planner-deposit"] = await here();
+    await shoot(page, "desktop-bank-planner-deposit");
 
     // Tools → Paragon calculator: the URL is the state; changing an input rewrites it in place (no new history entry).
     await step("→ Tools hub", 'header nav a[href="/tools"]');

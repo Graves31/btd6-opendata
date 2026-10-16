@@ -13,7 +13,7 @@ import { ROUND_SET_BY_ID, type RoundSetData } from "../data/rounds/index.ts";
 import { navigate, store } from "../nav.ts";
 import { spawnEnd } from "../rounds.ts";
 import { href } from "../routes.ts";
-import { ToolBack, ToolHero } from "../ui.tsx";
+import { A, ToolBack, ToolHero } from "../ui.tsx";
 import { TargetInput } from "./paragon.tsx";
 
 const FARMS = [
@@ -124,6 +124,9 @@ export function FarmingPage(p: { r?: number }) {
         ))}
       </ToolHero>
       <SpawnChart r={p.r} />
+      <A href={href.bankPlanner()} class="pg-rlink fm-more">
+        When to collect a bank → Bank & IMF Loan planner
+      </A>
     </div>
   );
 }

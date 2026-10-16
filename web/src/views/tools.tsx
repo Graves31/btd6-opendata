@@ -1,6 +1,7 @@
 // Tools hub (/tools): the site's calculators and visualizers, one card each (the Live page's tile look).
 
 import type { ComponentChildren } from "preact";
+import bankArt from "../art/tools/bank.webp";
 import farmingArt from "../art/tools/farming.webp";
 import paragonArt from "../art/tools/paragon.webp";
 import paragonScalingArt from "../art/tools/paragonScaling.webp";
@@ -48,6 +49,9 @@ export function ToolsHub() {
         </ToolTile>
         <ToolTile to={href.farming()} title="Farming resources" art={art(farmingArt)}>
           Banana farm reference charts: when a 0-0-0, 1-0-0 and 2-0-0 farm drops its bananas during a round.
+        </ToolTile>
+        <ToolTile to={href.bankPlanner()} title="Bank & IMF Loan planner" art={art(bankArt)}>
+          When to collect a Monkey Bank so the cap never eats your cash, and how much to deposit in an IMF Loan.
         </ToolTile>
       </div>
     </div>

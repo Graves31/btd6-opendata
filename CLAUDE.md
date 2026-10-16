@@ -19,7 +19,8 @@ architecture; this file is how to work on it.
   link prefetch, back link), `store.ts` (client cache, /api/batch), `views/*.tsx` pages, `rules.tsx` (rules
   panel), `rounds.ts` + `views/rounds.tsx` (round visualizer), `paragon.ts` + `views/paragon.tsx`
   (paragon calculator; provisional constants in `REF`; `scaling()` = per-degree stats, checked against the v57
-  game code), `views/paragonScaling.tsx` (paragon scaling charts), `views/farming.tsx` (banana timing),
+  game code), `views/paragonScaling.tsx` (paragon scaling charts), `views/farming.tsx` (banana timing), `bank.ts` + `views/bankPlanner.tsx` (bank collect timing and IMF
+  deposits; v57.1 game code + wiki values in `BANK`),
   `views/tools.tsx` (/tools hub), `ui.tsx` `ToolHero`/`ToolBack` (tool page header), `styles.css`.
 - Generated from the owner's game install (`C:\Program Files (x86)\Steam\steamapps\common\BloonsTD6`) by
   `npm run art` (venv `.venv-art`): `web/src/art/*` sprite sheets, `web/public/art/maps`, `web/src/data/names.ts`
