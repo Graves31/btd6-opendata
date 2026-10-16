@@ -9651,8 +9651,9 @@ a.th-ic:focus-visible {
   display: flex;
   align-items: flex-end;
   gap: 3px;
-  height: 210px;
-  padding: 18px 0 0;
+  --bk-pad: 44px; /* room for the amounts; the cap line scales with the bars, not the padding */
+  height: 240px;
+  padding: var(--bk-pad) 0 0;
   border-bottom: 1px solid var(--rule-2);
 }
 .bk-capline {
@@ -9673,6 +9674,12 @@ a.th-ic:focus-visible {
 }
 .bk-bc {
   position: relative;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
   display: flex;
   flex: 1 1 0;
   flex-direction: column;
@@ -9703,14 +9710,69 @@ a.th-ic:focus-visible {
   border: 1px solid var(--ban);
   border-bottom: 0;
 }
+.bk-bc.sel .bk-b:not(.col) {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+.bk-v {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--ink-2);
+  font: 600 11px/1 var(--f-body);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.bk-v.loss,
+.bk-read .loss {
+  color: var(--ban);
+  font-weight: 700;
+}
+.bk-strip.many .bk-v {
+  display: none;
+}
+@media (max-width: 599px) {
+  .bk-strip.mid .bk-v {
+    display: none;
+  }
+}
+.bk-dep span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 6px;
+  color: var(--on-accent);
+  font: 700 11px/1 var(--f-body);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  white-space: nowrap;
+}
+.bk-read {
+  margin: 0 0 4px;
+  color: var(--ink-2);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.bk-read b,
+.bk-read strong {
+  color: var(--ink);
+}
 .bk-flag {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   color: var(--accent-ink);
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  padding: 1px 3px;
+  background: var(--s1);
   font: 800 13px/1 var(--f-display);
   text-transform: uppercase;
   white-space: nowrap;
+}
+.bk-flag b {
+  font: 700 12px/1.2 var(--f-body);
+  font-variant-numeric: tabular-nums;
 }
 .bk-xs {
   display: flex;
@@ -9748,6 +9810,14 @@ a.th-ic:focus-visible {
 /* tables */
 .bk-tw {
   overflow-x: auto;
+}
+.bk-grid > * {
+  min-width: 0; /* a wide table scrolls in its box instead of widening the page */
+}
+@media (max-width: 599px) {
+  .bk-out {
+    display: none; /* always about the cap; the answer card shows it */
+  }
 }
 .bk-tbl .bk-tw {
   margin-top: 10px;

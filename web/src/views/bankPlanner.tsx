@@ -65,30 +65,61 @@ function NumField(p: { value?: number; onChange: (n: number | undefined) => void
   );
 }
 
-/** Balance per round as bars: balance (blue), collect round (yellow), later rounds dimmed, overshoot hatched, your deposit as a bottom segment. */
+/**
+ * Balance per round as bars: balance (blue), collect round (yellow), later rounds dimmed, overshoot hatched, your
+ * deposit as a bottom segment. Each bar shows its amount (on crowded phones only the collect bar);
+ * tapping a bar reads it out above the chart (default: the collect round).
+ */
 function Strip(p: { rows: Row[]; cap: number; hit: number; dep?: number; legend?: boolean }) {
   const { rows, cap, hit, dep } = p;
+  const [pick, setPick] = useState<number | undefined>(undefined);
   const top = Math.max(cap, ...rows.map((x) => x.raw)) * 1.04;
   const every = rows.length > 24 ? 3 : rows.length > 14 ? 2 : 1;
   const h = rows[hit];
+  const si = pick !== undefined && pick < rows.length ? pick : hit;
+  const s = rows[si];
+  const lost = (x: Row) => Math.max(0, x.raw - cap);
+  const pos = (v: number) => `calc(${(v / top) * 100}% + 3px)`;
+  const crowd = rows.length > 16 ? " many" : rows.length > 6 ? " mid" : "";
   return (
     <>
-      <div class="bk-strip" role="img" aria-label={`Bank balance from round ${rows[0].r} to ${rows[rows.length - 1].r}; collect after round ${h.r} at ${money(h.b)}.`}>
-        <div class="bk-capline" style={{ bottom: `${(cap / top) * 100}%` }}>
+      <p class="bk-read" aria-live="polite">
+        <b>Round {s.r}</b>: {money(s.b)} in the bank
+        {dep !== undefined && si === 0 && <> (your {money(dep)} deposit included)</>}, +{money(s.add)} this round
+        {lost(s) > 0 && <span class="loss">, {money(lost(s))} lost to the cap</span>}
+        {si === hit ? <strong> · collect now</strong> : si > hit ? <> · if you wait</> : ""}
+      </p>
+      <div class={`bk-strip${crowd}`} role="group" aria-label={`Bank balance from round ${rows[0].r} to ${rows[rows.length - 1].r}; collect after round ${h.r} at ${money(h.b)}.`}>
+        <div class="bk-capline" style={{ bottom: `calc((100% - var(--bk-pad)) * ${cap / top})` }}>
           <span>cap {money(cap)}</span>
         </div>
         {rows.map((x, i) => (
-          <div class="bk-bc" key={x.r}>
-            {i === hit && (
-              <span class="bk-flag" style={{ bottom: `${(x.raw / top) * 100 + 2}%` }}>
+          <button type="button" class={`bk-bc${i === si ? " sel" : ""}`} key={x.r} aria-label={`Round ${x.r}: ${money(x.b)}`} aria-pressed={i === si} onClick={() => setPick(i)}>
+            {i === hit ? (
+              <span class="bk-flag" style={{ bottom: pos(x.raw) }}>
                 Collect
+                <b>{money(x.b)}</b>
+              </span>
+            ) : i > hit ? (
+              lost(x) > 0 && (
+                <span class="bk-v loss" style={{ bottom: pos(x.raw) }}>
+                  −{money(lost(x))}
+                </span>
+              )
+            ) : (
+              <span class="bk-v" style={{ bottom: pos(x.raw) }}>
+                {money(x.b)}
               </span>
             )}
             {x.raw > cap && <div class="bk-ov" style={{ height: `${((x.raw - cap) / top) * 100}%` }} />}
             <div class={`bk-b${i === hit ? " col" : i > hit ? " dim" : ""}`} style={{ height: `${(x.b / top) * 100}%` }}>
-              {dep !== undefined && i <= hit && <i class="bk-dep" style={{ height: `${Math.min(100, (dep / x.b) * 100)}%` }} />}
+              {dep !== undefined && i <= hit && (
+                <i class="bk-dep" style={{ height: `${Math.min(100, (dep / x.b) * 100)}%` }}>
+                  {i === 0 && <span>{money(dep)}</span>}
+                </i>
+              )}
             </div>
-          </div>
+          </button>
         ))}
       </div>
       <div class="bk-xs" aria-hidden="true">
@@ -384,7 +415,7 @@ function Deposit(p: { r: BankRoute; P: number; cap: number; go: (o: Partial<Bank
               <tr>
                 <th>Full after</th>
                 <th>Deposit</th>
-                <th>Collect</th>
+                <th class="bk-out">Collect</th>
                 <th>Gain</th>
                 <th>Gain per round</th>
               </tr>
@@ -398,7 +429,7 @@ function Deposit(p: { r: BankRoute; P: number; cap: number; go: (o: Partial<Bank
                     </button>
                   </td>
                   <td>{money(x.deposit)}</td>
-                  <td>{money(x.out)}</td>
+                  <td class="bk-out">{money(x.out)}</td>
                   <td>{money(x.gain)}</td>
                   <td>
                     {money(x.perRound)}
@@ -510,7 +541,7 @@ export function BankPlannerPage(p: { r: BankRoute }) {
                   <button key={t.t} type="button" class="bk-tile" aria-pressed={r.tier === t.t} onClick={() => set({ tier: t.t })}>
                     <img src={t.art} width={56} height={56} alt="" decoding="async" />
                     <span>{t.name}</span>
-                    <small>cap {money(BANK.cap[t.t])}</small>
+                    <small>cap {money(capacity({ ...input, tier: t.t }))}</small>
                   </button>
                 ))}
               </div>
