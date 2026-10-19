@@ -98,6 +98,7 @@ import {
   Ruleset,
   TowerRoster,
 } from "../rules.tsx";
+import { ShareButton, type CardSpec } from "../share.tsx";
 import { hasArt, MapArt, mapH, MODE_NAME, Spr } from "../sprite.tsx";
 import {
   ApproxNote,
@@ -1473,6 +1474,8 @@ function BossHero(props: {
   class?: string;
   /** Home: the map, after the number ("Vortex #47 · Sanctuary"). */
   sub?: string;
+  /** Event page: the Share button under the dates. */
+  share?: CardSpec;
   children?: ComponentChildren;
 }) {
   const b = props.boss;
@@ -1524,6 +1527,7 @@ function BossHero(props: {
               <When start={b.start} end={b.end} />
             </>
           )}
+          {props.share && <ShareButton spec={props.share} />}
         </div>
       </div>
       {props.children}
@@ -2087,6 +2091,20 @@ export function BossPage(props: {
         boss={ev}
         fallback={pre ? bossTitle(pre) : "Boss event"}
         heading="h1"
+        share={
+          ev && meta
+            ? {
+                eyebrow: `Boss event · ${d === "elite" ? "Elite" : "Normal"}`,
+                title: bossTitle(ev.bossType, bossNum(ev.name)),
+                banner: ev.bossTypeURL,
+                start: ev.start,
+                end: ev.end,
+                meta,
+                scoring: scoring ? { k: scoring, name: scoringShort(scoring) } : undefined,
+                path: location.pathname,
+              }
+            : undefined
+        }
       >
         <BossMapRow
           meta={meta}
@@ -2326,6 +2344,21 @@ export function RacePage(props: { id: string; p: number }) {
       >
         {/* Phones: jumps to the rules below (inside the header, not a row of its own). */}
         <JumpToRules />
+        <ShareButton
+          spec={
+            ev && meta
+              ? {
+                  eyebrow: "Race",
+                  title: ev.name,
+                  start: ev.start,
+                  end: ev.end,
+                  meta,
+                  extra: ev.totalScores ? `${fmtInt(ev.totalScores)} finishers` : undefined,
+                  path: location.pathname,
+                }
+              : undefined
+          }
+        />
       </EventHead>
       <div class="split">
         <section class="board-sec" aria-labelledby="lb-h">

@@ -187,6 +187,13 @@ export function warmAllOnIdle(): void {
   next();
 }
 
+/** Where a key's picture sits on its sheet (px), for drawing it on a canvas. */
+export function spriteCell(family: AnyFamily, k: string): { url: string; sx: number; sy: number; size: number } | null {
+  const s = sheetOf(family);
+  const i = s?.keys[k];
+  return s && i !== undefined ? { url: s.url, sx: (i % s.cols) * s.cell, sy: Math.floor(i / s.cols) * s.cell, size: s.cell } : null;
+}
+
 // ─────────────────────────────── <Spr>
 
 export interface SprProps {

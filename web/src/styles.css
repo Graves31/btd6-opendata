@@ -9994,3 +9994,60 @@ a.th-ic:focus-visible {
 .fm-more {
   margin-top: 16px;
 }
+
+/* Share button + card dialog (boss and race pages) */
+.share-btn {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 16px;
+  border: 2px solid var(--ink);
+  border-radius: var(--r);
+  background: transparent;
+  color: var(--ink);
+  font: 800 16px/1 var(--f-display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+.share-btn:hover,
+.share-btn.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.share-dlg {
+  width: min(1240px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  padding: 16px;
+  border: 2px solid var(--accent);
+  background: var(--s1);
+  color: var(--ink);
+  overflow-y: auto;
+}
+.share-dlg::backdrop {
+  background: rgb(0 0 0 / 0.7);
+}
+.share-h {
+  margin: 0 0 12px;
+  font: 800 22px/1.1 var(--f-display);
+  text-transform: uppercase;
+}
+.share-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1200 / 630;
+  background: var(--bg);
+}
+.share-wait {
+  display: grid;
+  place-items: center;
+  color: var(--ink-2);
+}
+.share-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 8px;
+}

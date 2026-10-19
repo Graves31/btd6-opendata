@@ -55,7 +55,7 @@ function powerTile(id: string): string {
 }
 
 /** Tower id → in-game shop category (the colour of its tile). Heroes are "Hero". */
-const CATEGORY = new Map(TOWER_GROUPS.flatMap(([cat, ids]) => ids.map((id) => [id, cat] as const)));
+export const CATEGORY = new Map(TOWER_GROUPS.flatMap(([cat, ids]) => ids.map((id) => [id, cat] as const)));
 
 // ─────────────────────────────── rosters: in-game tower tiles
 
@@ -401,7 +401,7 @@ export function Crew(p: { family: "tower" | "power"; items: { id: string; n: num
 // ─────────────────────────────── facts & modifiers
 
 /** A multiplier as the game's challenge editor shows it: 0.9 → "90%". */
-const x = (n: number) => `${+(n * 100).toFixed(1)}%`;
+export const x = (n: number) => `${+(n * 100).toFixed(1)}%`;
 
 /** A spec row with a rules-panel icon (the icon is decoration: the label is visible). */
 const IFact = (p: { icon?: string; fam?: string; k: string; v: ComponentChildren }) => (
@@ -487,8 +487,8 @@ export const modeIcon = (d: Pick<ChallengeDocument, "mode" | "difficulty">) =>
   d.mode === "Standard" ? `mode:${d.difficulty}` : `mode:${d.mode}`;
 
 /** NK's defaults: no tower cap (9999), paragon limit 10, lives cap 5,000. */
-const NO_TOWER_CAP = 9999;
-const DEFAULT_PARAGONS = 10;
+export const NO_TOWER_CAP = 9999;
+export const DEFAULT_PARAGONS = 10;
 const DEFAULT_MAX_LIVES = 5000;
 
 /**
@@ -591,7 +591,7 @@ function ModifierRows(p: { d: ChallengeDocument }) {
   );
 }
 
-function modifierRows(d: ChallengeDocument): { fam: string; icon: string; k: string; v: ComponentChildren }[] {
+export function modifierRows(d: ChallengeDocument): { fam: string; icon: string; k: string; v: ComponentChildren }[] {
   const m = d._bloonModifiers;
   const rows: { fam: string; icon: string; k: string; v: ComponentChildren }[] = [];
   const mult = (v: number, up: string, down: string, k: string) => {
