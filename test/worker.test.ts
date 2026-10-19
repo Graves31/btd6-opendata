@@ -1385,6 +1385,10 @@ describe("notifications (new boss / race → Discord)", () => {
     t.deps.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
       if (String(input) === "https://api.cloudflare.com/client/v4/accounts/acc1/browser-rendering/screenshot") {
         discord.shots.push({ auth: new Headers(init?.headers).get("authorization")!, body: JSON.parse(String(init?.body)) });
+        if (discord.shotStatus === 429) {
+          discord.shotStatus = 200; // refused once, like the free plan's 1-per-10 s limit
+          return new Response("{}", { status: 429, headers: { "retry-after": "0" } });
+        }
         return discord.shotStatus === 200 ? new Response("PNGDATA", { headers: { "content-type": "image/png" } }) : new Response("no", { status: discord.shotStatus });
       }
       if (!String(input).startsWith("https://discord.test/")) return nk(input, init);
@@ -1477,6 +1481,14 @@ describe("notifications (new boss / race → Discord)", () => {
     assert.equal(embeds[0].image.url, "attachment://normal.png");
     assert.equal(embeds[1].image.url, "attachment://elite.png");
     assert.equal(embeds[0].title, "New boss event: Lych #99");
+  });
+
+  it("screenshot refused (429) → waits Retry-After, retries, card still sent", async () => {
+    const { discord, list } = await setup({ token: true });
+    discord.shotStatus = 429;
+    await list();
+    assert.equal(discord.shots.length, 2);
+    assert.deepEqual(discord.posts[0].files, ["card.png"]);
   });
 
   it("screenshot fails → today's text embed, still sent", async () => {

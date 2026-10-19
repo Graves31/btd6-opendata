@@ -38,7 +38,7 @@ export function factChips(d: ChallengeDocument): { icon: string; fam?: string; t
   const boat = d.lives === 0 && d.maxLives === 0;
   const t = (v: unknown): string => (typeof v === "string" ? v : String((v as { props?: { children?: unknown } })?.props?.children ?? ""));
   const rows = [{ icon: "StartingCash", text: `$${fmtInt(d.startingCash)} cash` }];
-  if (!boat) rows.push({ icon: "StartingLives", text: `${fmtInt(d.lives)} lives` });
+  if (!boat) rows.push({ icon: "StartingLives", text: `${fmtInt(d.lives)} ${d.lives === 1 ? "life" : "lives"}` });
   if (d.maxTowers > 0 && d.maxTowers < NO_TOWER_CAP) rows.push({ icon: "MaxTowers", text: `Max ${fmtInt(d.maxTowers)} towers` });
   if (d.maxParagons < DEFAULT_PARAGONS) rows.push({ icon: "ParagonLimit", text: d.maxParagons === 0 ? "No paragons" : `Max ${fmtInt(d.maxParagons)} paragons` });
   if (d.leastCashUsed >= 0) rows.push({ icon: "LeastCashRule", text: `Cash cap $${fmtInt(d.leastCashUsed)}` });

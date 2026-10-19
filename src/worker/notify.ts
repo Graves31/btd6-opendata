@@ -221,8 +221,9 @@ async function eventDoc(deps: Deps, p: NewEventPayload): Promise<EventDoc | null
 /**
  * One PNG of the site's `?card` page via Cloudflare Browser Rendering (REST Quick Action /screenshot,
  * https://developers.cloudflare.com/browser-run/quick-actions/screenshot-endpoint/). Null on any failure.
+ * Free plan: one screenshot per 10 s; a 429 waits out Retry-After (capped) and tries again, twice at most.
  */
-async function screenshot(fetchFn: typeof fetch, accountId: string, token: string, page: string): Promise<Blob | null> {
+async function screenshot(fetchFn: typeof fetch, accountId: string, token: string, page: string, tries = 3): Promise<Blob | null> {
   try {
     const res = await fetchFn(`https://api.cloudflare.com/client/v4/accounts/${accountId}/browser-rendering/screenshot`, {
       method: "POST",
@@ -236,6 +237,11 @@ async function screenshot(fetchFn: typeof fetch, accountId: string, token: strin
       }),
       signal: AbortSignal.timeout(50_000),
     });
+    if (res.status === 429 && tries > 1) {
+      const s = Number(res.headers.get("retry-after") ?? 10);
+      await new Promise((r) => setTimeout(r, Math.min(Number.isFinite(s) ? s : 10, 30) * 1000));
+      return screenshot(fetchFn, accountId, token, page, tries - 1);
+    }
     if (!res.ok || !(res.headers.get("content-type") ?? "").startsWith("image/png")) return null;
     return await res.blob();
   } catch {
@@ -255,7 +261,9 @@ export async function cardMessage(fetchFn: typeof fetch, cfg: Deps["notify"], p:
   const cards = p.kind === "boss"
     ? [{ name: "normal.png", q: "?card=1" }, { name: "elite.png", q: "?d=elite&card=1" }]
     : [{ name: "card.png", q: "?card=1" }];
-  const blobs = await Promise.all(cards.map((c) => screenshot(fetchFn, accountId, token, page + c.q)));
+  // One after the other: the free plan refuses a second screenshot within 10 s.
+  const blobs: (Blob | null)[] = [];
+  for (const c of cards) blobs.push(await screenshot(fetchFn, accountId, token, page + c.q));
   if (blobs.some((b) => !b)) return null;
   const first = formatNewEvent(p, titlePrefix).embeds[0];
   const fields = (first.fields as { name: string }[]).slice(0, 2); // Starts, Ends

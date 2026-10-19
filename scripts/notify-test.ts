@@ -1,5 +1,6 @@
 // Sends one test boss and one test race message to the Discord webhook, built with the real formatter from
 // the newest boss/race in the docs/api fixtures, with a fixture ruleset (Vortex 47 / Party Madness) as the document.
+// With BROWSER_TOKEN the newest live boss/race is used instead: the card page only draws events NK still lists.
 //   DISCORD_WEBHOOK_URL=... node scripts/notify-test.ts      (or put it in .dev.vars as KEY=value)
 
 import { readFileSync } from "node:fs";
@@ -18,8 +19,10 @@ if (!url) {
   process.exit(1);
 }
 
-const newest = (kind: "boss" | "race", file: string): NewEventPayload => {
-  const body = (JSON.parse(readFileSync(new URL(`docs/api/fixtures/${file}`, root), "utf8")) as { body: Record<string, unknown>[] }).body;
+const newest = async (kind: "boss" | "race", file: string): Promise<NewEventPayload> => {
+  const body: Record<string, unknown>[] = cfg.browserToken
+    ? JSON.parse((await (await fetch(`https://btd6data.com/api/batch?k=${encodeURIComponent(`/btd6/${kind === "boss" ? "bosses" : "races"}`)}`)).text()).split("\n")[0]).b.body
+    : (JSON.parse(readFileSync(new URL(`docs/api/fixtures/${file}`, root), "utf8")) as { body: Record<string, unknown>[] }).body;
   const it = body.reduce((a, b) => ((b.start as number) > (a.start as number) ? b : a));
   return { kind, id: it.id, name: it.name, bossType: it.bossType, bossTypeURL: it.bossTypeURL, normalScoringType: it.normalScoringType, eliteScoringType: it.eliteScoringType, start: it.start, end: it.end } as NewEventPayload;
 };
@@ -35,9 +38,10 @@ const dv = (k: string) => {
 const cfg = { browserToken: dv("BROWSER_TOKEN"), accountId: /"CF_ACCOUNT_ID":\s*"(\w+)"/.exec(readFileSync(new URL("wrangler.jsonc", root), "utf8"))?.[1] };
 const channel = discordChannel(fetch, url);
 let failed = false;
-for (const p of [newest("boss", "btd6__bosses.json"), newest("race", "btd6__races.json")]) {
-  const r = await channel.send((await cardMessage(fetch, cfg, p, "[Test] ")) ?? formatNewEvent(p, "[Test] ", DOCS[p.kind as "boss" | "race"]));
-  console.log(p.kind, p.id, "ok" in r ? "sent" : JSON.stringify(r));
+for (const p of [await newest("boss", "btd6__bosses.json"), await newest("race", "btd6__races.json")]) {
+  const card = await cardMessage(fetch, cfg, p, "[Test] ");
+  const r = await channel.send(card ?? formatNewEvent(p, "[Test] ", DOCS[p.kind as "boss" | "race"]));
+  console.log(p.kind, p.id, card ? "card" : "text embed", "ok" in r ? "sent" : JSON.stringify(r));
   if (!("ok" in r)) failed = true;
 }
 process.exit(failed ? 1 : 0);
