@@ -1096,10 +1096,10 @@ describe("link previews (og tags on page navigations)", () => {
     const calls = t.origin.calls.length;
     const { r, html } = await page(t, `/boss/${BOSS}?d=elite`);
     assert.equal(r.status, 200);
-    assert.match(html, /<title>Vortex #47 · BTD6 Open Data<\/title>/);
-    assert.equal(meta(html, "og:title"), "Vortex #47 · BTD6 Open Data");
+    assert.match(html, /<title>Vortex #47 · BTD6 Boss Event · BTD6 Open Data<\/title>/);
+    assert.equal(meta(html, "og:title"), "Vortex #47 · BTD6 Boss Event · BTD6 Open Data");
     assert.match(meta(html, "og:image")!, /^https:\/\/static-api\.nkstatic\.com\/.*vortex\.png$/);
-    assert.match(meta(html, "description")!, /^Boss event, \d+ Sep – \d+ Sep 2026\./);
+    assert.match(meta(html, "description")!, /^Bloons TD 6 Vortex boss event, \d+ Sep – \d+ Sep 2026\./);
     assert.equal(meta(html, "twitter:card"), "summary");
     assert.equal(meta(html, "og:url"), "https://btd6data.com/boss/Vortex47_mu62cmt5?d=elite");
     assert.equal((html.match(/og:title/g) ?? []).length, 1, "the shell's own og tags are replaced");
@@ -1112,8 +1112,8 @@ describe("link previews (og tags on page navigations)", () => {
     assert.match((await page(t, "/challenges")).html, /<title>Daily challenges · /);
     assert.match((await page(t, "/challenges/constructor")).html, /<title>BTD6 Open Data<\/title>/);
     const lych = (await page(t, "/bosses/lych")).html;
-    assert.match(lych, /<title>Lych · Boss stats · /);
-    assert.match(lych, /<div id="app"><div class="pre"><h1>Lych · Boss stats · BTD6 Open Data<\/h1><p>Lych boss stats/);
+    assert.match(lych, /<title>BTD6 Lych Boss: Health, Tiers &amp; Past Events · /);
+    assert.match(lych, /<div id="app"><div class="pre"><h1>BTD6 Lych Boss: Health, Tiers &amp; Past Events · BTD6 Open Data<\/h1><p>Lych boss stats/);
     assert.equal(t.origin.calls.length, calls);
   });
 

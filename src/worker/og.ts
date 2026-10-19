@@ -120,7 +120,7 @@ const TOOLS: [string, string] = ["BTD6 Round Visualizer (RBE & bloons per round)
 
 const TOOLS_HUB: [string, string] = ["Tools", "Bloons TD 6 tools built on the game's own data: the round visualizer, the paragon degree calculator and farming resources."];
 const FARMING: [string, string] = ["BTD6 Farming Resources", "Bloons TD 6 farming resources: when a 0-0-0, 1-0-0 and 2-0-0 Banana Farm drops its bananas during a round."];
-const PARAGON: [string, string] = ["BTD6 Paragon Degree Calculator", "Bloons TD 6 paragon degree calculator: how much sacrificed cash, pops, towers and totems a degree takes, and the quickest way to the next boss breakpoint."];
+const PARAGON: [string, string] = ["BTD6 Paragon Calculator: Degree & Power", "Bloons TD 6 paragon degree calculator: the degree your sacrificed cash, pops, towers and totems give, what the next degree takes, and the quickest way to the next boss breakpoint."];
 const PARAGON_SCALING: [string, string] = ["BTD6 Paragon Scaling", "How a Bloons TD 6 paragon grows per degree: power needed, damage, pierce, attack speed and boss damage, charted from the game's data."];
 
 const CHALLENGE_LISTS: Record<string, [string, string]> = {
@@ -158,7 +158,7 @@ export async function describe(deps: Deps, pathname: string): Promise<PageMeta> 
   }
   if (a === "challenges" && !c && (!b || Object.hasOwn(CHALLENGE_LISTS, b))) return page(...CHALLENGE_LISTS[b ?? "daily"]);
   if (a === "bosses" && b && BOSS_TYPES.has(b) && !c) {
-    return page(`${cap(b)} · Boss stats`, `${cap(b)} boss stats in Bloons TD 6: health, skulls and spawns per tier, Normal and Elite.`);
+    return page(`BTD6 ${cap(b)} Boss: Health, Tiers & Past Events`, `${cap(b)} boss stats in Bloons TD 6: health, skulls, spawns and minimum kill time per tier, Normal and Elite, plus every past ${cap(b)} event.`);
   }
   if (!b) return GENERIC;
 
@@ -170,8 +170,8 @@ export async function describe(deps: Deps, pathname: string): Promise<PageMeta> 
     if (kind === "boss") {
       const n = /(\d+)$/.exec(str(ev.name))?.[1];
       const type = str(ev.bossType);
-      const title = type ? `${cap(type)}${n ? ` #${n}` : ""}` : str(ev.name) || "Boss event";
-      return page(title, `Boss event${dates}. Standard and elite leaderboards, rules and top scores.`, asset(ev.bossTypeURL));
+      const title = type ? `${cap(type)}${n ? ` #${n}` : ""} · BTD6 Boss Event` : str(ev.name) || "Boss event";
+      return page(title, `Bloons TD 6 ${type ? `${cap(type)} ` : ""}boss event${dates}. Standard and elite leaderboards, rules and top scores.`, asset(ev.bossTypeURL));
     }
     if (kind === "race") {
       const meta = await cachedBody(deps, `/btd6/races/${b}/metadata`);
