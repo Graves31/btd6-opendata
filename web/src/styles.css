@@ -9997,7 +9997,9 @@ a.th-ic:focus-visible {
 
 /* Share button + card dialog (boss and race pages) */
 .share-btn {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   margin-top: 10px;
   padding: 8px 16px;
   border: 2px solid var(--ink);
