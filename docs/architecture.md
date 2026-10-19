@@ -54,7 +54,7 @@ A refused miss gets a 429 with `Retry-After`, unless an older copy is cached; th
 - A failed write is skipped; the data stays in memory.
 - `/api/now` falls back to D1's working copy.
 - `/api/history` answers 503 with `Retry-After`.
-- **Notifications** (`src/worker/notify.ts`): rules (trigger + filter + channel) turn hot-cron findings into messages. First rules: a boss or race id that is in no `events` row yet is queued in the D1 `notifications` outbox (one read per run with candidates, before the upsert) and posted as a Discord embed. Delivery retries up to 5 times within 24 h and honours Discord's `retry_after`. The webhook is the secret `DISCORD_WEBHOOK_URL`; unset means nothing is queued. `node scripts/notify-test.ts` sends two test messages.
+- **Notifications** (`src/worker/notify.ts`): rules (trigger + filter + channel) turn hot-cron findings into messages. First rules: a boss or race id that is in no `events` row yet is queued in the D1 `notifications` outbox (one read per run with candidates, before the upsert) and posted as a Discord embed. Delivery retries up to 5 times within 24 h and honours Discord's `retry_after`. The webhook is the secret `DISCORD_WEBHOOK_URL`; with the secret `BROWSER_TOKEN` the post is the event's share card (Browser Rendering screenshots of the page's `?card` mode; Normal + Elite for a boss) and any screenshot failure falls back to the text embed; unset means nothing is queued. `node scripts/notify-test.ts` sends two test messages.
 - The crons log the error and never throw. The hot cron stays dirty and retries a failed KV publish every minute. If its D1 write fails, it keeps its state in the isolate, so it neither refetches everything nor republishes to KV.
 
 ## Free-plan budget

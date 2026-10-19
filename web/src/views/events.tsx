@@ -86,6 +86,7 @@ import {
   type CTTab,
   type EventKind,
   type OdyDiff,
+  type Route,
 } from "../routes.ts";
 import {
   Crew,
@@ -98,7 +99,7 @@ import {
   Ruleset,
   TowerRoster,
 } from "../rules.tsx";
-import { ShareButton, type CardSpec } from "../share.tsx";
+import { drawCard, ShareButton, type CardSpec } from "../share.tsx";
 import { hasArt, MapArt, mapH, MODE_NAME, Spr } from "../sprite.tsx";
 import {
   ApproxNote,
@@ -2092,18 +2093,7 @@ export function BossPage(props: {
         fallback={pre ? bossTitle(pre) : "Boss event"}
         heading="h1"
         share={
-          ev && meta
-            ? {
-                eyebrow: `Boss event · ${d === "elite" ? "Elite" : "Normal"}`,
-                title: bossTitle(ev.bossType, bossNum(ev.name)),
-                banner: ev.bossTypeURL,
-                start: ev.start,
-                end: ev.end,
-                meta,
-                scoring: scoring ? { k: scoring, name: scoringShort(scoring) } : undefined,
-                path: location.pathname,
-              }
-            : undefined
+          ev && meta ? bossCard(ev, meta, d) : undefined
         }
       >
         <BossMapRow
@@ -2346,17 +2336,7 @@ export function RacePage(props: { id: string; p: number }) {
         <JumpToRules />
         <ShareButton
           spec={
-            ev && meta
-              ? {
-                  eyebrow: "Race",
-                  title: ev.name,
-                  start: ev.start,
-                  end: ev.end,
-                  meta,
-                  extra: ev.totalScores ? `${fmtInt(ev.totalScores)} finishers` : undefined,
-                  path: location.pathname,
-                }
-              : undefined
+            ev && meta ? raceCard(ev, meta) : undefined
           }
         />
       </EventHead>
@@ -3408,5 +3388,72 @@ export function OdysseyPage(props: { id: string; d: OdyDiff }) {
         <Gate k={odyMetaKey(id, d)} rows={3} />
       )}
     </>
+  );
+}
+
+/** The share card's content for a boss event's difficulty / a race. */
+function bossCard(ev: Boss, meta: ChallengeDocument, d: BossDiff): CardSpec {
+  const scoring = d === "elite" ? ev.eliteScoringType : ev.normalScoringType;
+  return {
+    eyebrow: `Boss event · ${d === "elite" ? "Elite" : "Normal"}`,
+    title: bossTitle(ev.bossType, bossNum(ev.name)),
+    banner: ev.bossTypeURL,
+    start: ev.start,
+    end: ev.end,
+    meta,
+    scoring: scoring ? { k: scoring, name: scoringShort(scoring) } : undefined,
+    path: location.pathname,
+  };
+}
+function raceCard(ev: Race, meta: ChallengeDocument): CardSpec {
+  return {
+    eyebrow: "Race",
+    title: ev.name,
+    start: ev.start,
+    end: ev.end,
+    meta,
+    extra: ev.totalScores ? `${fmtInt(ev.totalScores)} finishers` : undefined,
+    path: location.pathname,
+  };
+}
+
+/**
+ * `?card` on a boss / race URL: only the card as an <img id="card"> (the Discord notification screenshots it,
+ * worker/notify.ts). `data-ready` once loaded, `data-failed` when it can't be drawn.
+ */
+export function CardOnly(props: { r: Extract<Route, { name: "boss" | "race" }> }) {
+  const { r } = props;
+  const isBoss = r.name === "boss";
+  const ev = findEvent<Boss & Race>(r.name, r.id);
+  const metaKey = isBoss ? bossMetaKey(r.id, r.d) : raceMetaKey(r.id);
+  const meta = body<ChallengeDocument>(metaKey);
+  const [pic, setPic] = useState("");
+  const [bad, setBad] = useState(false);
+  const failed = bad || isMissing(metaKey) || (!!meta && !ev && !!peek(LIST_KEY[r.name])?.ok);
+  useEffect(() => {
+    if (!ev || !meta) return;
+    let url = "";
+    let live = true;
+    void drawCard({ ...(isBoss ? bossCard(ev, meta, r.d) : raceCard(ev, meta)), utc: true }).then((b) => {
+      if (!live) return;
+      if (b) setPic((url = URL.createObjectURL(b)));
+      else setBad(true);
+    });
+    return () => {
+      live = false;
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [!!ev, !!meta]);
+  return (
+    <img
+      id="card"
+      src={pic || undefined}
+      width={1200}
+      height={630}
+      style="display:block"
+      alt=""
+      data-failed={failed ? "" : undefined}
+      onLoad={(e) => pic && ((e.currentTarget as HTMLImageElement).dataset.ready = "")}
+    />
   );
 }

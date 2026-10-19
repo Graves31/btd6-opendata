@@ -47,6 +47,9 @@
   //   npx wrangler secret put CF_ANALYTICS_TOKEN   (API token with Account Analytics:Read)
   // New boss/race notifications: a Discord webhook URL as a secret (unset → none are sent):
   //   npx wrangler secret put DISCORD_WEBHOOK_URL
+  // Discord posts show the event's share card, screenshotted with Browser Rendering (unset → text embed);
+  // API token with "Browser Rendering - Edit", account id is CF_ACCOUNT_ID below:
+  //   npx wrangler secret put BROWSER_TOKEN
   // Suggestions box: a private FORUM channel's Discord webhook URL as a secret, one post per suggestion
   // (unset → stored in D1 only):
   //   npx wrangler secret put SUGGEST_WEBHOOK_URL

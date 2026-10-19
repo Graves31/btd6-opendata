@@ -26,6 +26,8 @@ export interface Message {
   allowed_mentions: { parse: string[] };
   /** Forum-channel webhooks: the message opens a new post with this title (max 100 chars). */
   thread_name?: string;
+  /** Pictures sent with the message (multipart); the embeds point at them as `attachment://<name>`. */
+  files?: { name: string; blob: Blob }[];
 }
 export type SendResult = { ok: true } | { retryAfter: number } | { error: string };
 export interface Channel {
@@ -64,7 +66,16 @@ export function discordChannel(fetchFn: typeof fetch, url: string): Channel {
   return {
     async send(message) {
       try {
-        const res = await fetchFn(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(message) });
+        const { files, ...json } = message;
+        let res: Response;
+        if (files?.length) {
+          const form = new FormData(); // fetch adds the multipart content-type and boundary
+          form.set("payload_json", JSON.stringify(json));
+          files.forEach((f, i) => form.set(`files[${i}]`, f.blob, f.name));
+          res = await fetchFn(url, { method: "POST", body: form });
+        } else {
+          res = await fetchFn(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(json) });
+        }
         if (res.ok) return { ok: true };
         if (res.status === 429) {
           const body = (await res.json().catch(() => null)) as { retry_after?: number } | null;
@@ -84,7 +95,8 @@ const CHANNELS: Record<ChannelName, (deps: Deps) => Deliver | null> = {
     const url = deps.notify?.discordWebhookUrl;
     if (!url) return null;
     const channel = discordChannel(deps.fetch, url);
-    return async (d, p) => channel.send(await FORMATTERS["new-event"](d, p));
+    // The event's share card as the picture; today's text embed when it can't be had.
+    return async (d, p) => channel.send((await cardMessage(d.fetch, d.notify, p)) ?? (await FORMATTERS["new-event"](d, p)));
   },
   indexnow: (deps) => (deps.notify?.indexNowKey ? indexNowDeliver(deps.notify.indexNowKey) : null),
 };
@@ -202,6 +214,57 @@ async function eventDoc(deps: Deps, p: NewEventPayload): Promise<EventDoc | null
   } catch {
     return null;
   }
+}
+
+// ─────────────────────────────── share-card message
+
+/**
+ * One PNG of the site's `?card` page via Cloudflare Browser Rendering (REST Quick Action /screenshot,
+ * https://developers.cloudflare.com/browser-run/quick-actions/screenshot-endpoint/). Null on any failure.
+ */
+async function screenshot(fetchFn: typeof fetch, accountId: string, token: string, page: string): Promise<Blob | null> {
+  try {
+    const res = await fetchFn(`https://api.cloudflare.com/client/v4/accounts/${accountId}/browser-rendering/screenshot`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify({
+        url: page,
+        selector: "#card",
+        viewport: { width: 1200, height: 630, deviceScaleFactor: 1 },
+        waitForSelector: { selector: "#card[data-ready]", timeout: 20_000 },
+        screenshotOptions: { type: "png" },
+      }),
+      signal: AbortSignal.timeout(50_000),
+    });
+    if (!res.ok || !(res.headers.get("content-type") ?? "").startsWith("image/png")) return null;
+    return await res.blob();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The card message for a new boss (Normal + Elite, one gallery: both embeds share the title link) or race:
+ * the dates stay as Discord timestamps (they localise per reader), everything else is on the card.
+ * Null when there is no token or any screenshot failed.
+ */
+export async function cardMessage(fetchFn: typeof fetch, cfg: Deps["notify"], p: NewEventPayload, titlePrefix = ""): Promise<Message | null> {
+  const { browserToken: token, accountId } = cfg ?? {};
+  if (!token || !accountId || (p.kind !== "boss" && p.kind !== "race")) return null;
+  const page = `${SITE}/${p.kind}/${encodeURIComponent(p.id)}`;
+  const cards = p.kind === "boss"
+    ? [{ name: "normal.png", q: "?card=1" }, { name: "elite.png", q: "?d=elite&card=1" }]
+    : [{ name: "card.png", q: "?card=1" }];
+  const blobs = await Promise.all(cards.map((c) => screenshot(fetchFn, accountId, token, page + c.q)));
+  if (blobs.some((b) => !b)) return null;
+  const first = formatNewEvent(p, titlePrefix).embeds[0];
+  const fields = (first.fields as { name: string }[]).slice(0, 2); // Starts, Ends
+  const embeds: Record<string, unknown>[] = [{ title: first.title, url: first.url, color: first.color, fields, image: { url: `attachment://${cards[0].name}` } }];
+  if (p.kind === "boss") {
+    embeds[0].fields = [...fields, { name: "Boss stats", value: `[Health, skulls and spawns per tier](${SITE}/bosses/${encodeURIComponent(p.bossType ?? "")})` }].slice(0, p.bossType ? 3 : 2);
+    embeds.push({ url: first.url, image: { url: `attachment://${cards[1].name}` } });
+  }
+  return { embeds, allowed_mentions: { parse: [] }, files: cards.map((c, i) => ({ name: c.name, blob: blobs[i]! })) };
 }
 
 const FORMATTERS: Record<Trigger, (deps: Deps, payload: NewEventPayload) => Promise<Message>> = {

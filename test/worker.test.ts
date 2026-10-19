@@ -1376,19 +1376,24 @@ describe("notifications (new boss / race → Discord)", () => {
   const racesFixture = fixture("btd6__races.json");
 
   /** Env that has already stored today's events (so nothing is new), with a fake Discord webhook. */
-  async function setup(opts: { hook?: boolean } = {}) {
+  async function setup(opts: { hook?: boolean; token?: boolean } = {}) {
     const t = makeEnv();
     await refreshHot(t.deps);
     await t.settle();
-    const discord = { posts: [] as { url: string; body: any }[], status: 204, retryAfter: 0 };
+    const discord = { posts: [] as { url: string; body: any; files: string[] }[], status: 204, retryAfter: 0, shots: [] as { auth: string; body: any }[], shotStatus: 200 };
     const nk = t.deps.fetch;
     t.deps.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input) === "https://api.cloudflare.com/client/v4/accounts/acc1/browser-rendering/screenshot") {
+        discord.shots.push({ auth: new Headers(init?.headers).get("authorization")!, body: JSON.parse(String(init?.body)) });
+        return discord.shotStatus === 200 ? new Response("PNGDATA", { headers: { "content-type": "image/png" } }) : new Response("no", { status: discord.shotStatus });
+      }
       if (!String(input).startsWith("https://discord.test/")) return nk(input, init);
-      discord.posts.push({ url: String(input), body: JSON.parse(String(init?.body)) });
+      const form = init?.body instanceof FormData ? init.body : null;
+      discord.posts.push({ url: String(input), body: JSON.parse(form ? String(form.get("payload_json")) : String(init?.body)), files: form ? [...form.keys()].filter((k) => k.startsWith("files[")).map((k) => (form.get(k) as File).name) : [] });
       if (discord.status === 429) return new Response(JSON.stringify({ retry_after: discord.retryAfter }), { status: 429 });
       return new Response(null, { status: discord.status });
     }) as typeof fetch;
-    if (opts.hook !== false) t.deps.notify = { discordWebhookUrl: HOOK };
+    if (opts.hook !== false) t.deps.notify = { discordWebhookUrl: HOOK, ...(opts.token && { browserToken: "tok", accountId: "acc1" }) };
     const run = async () => {
       t.clock.now += MIN;
       await refreshHot(t.deps);
@@ -1437,6 +1442,58 @@ describe("notifications (new boss / race → Discord)", () => {
     assert.equal(e.title, "New boss event: Lych #99");
     assert.equal(e.url, "https://btd6data.com/boss/Lych99_mzzzzzzz");
     assert.equal(e.thumbnail.url, item.bossTypeURL);
+  });
+
+  it("new race with a browser token → one multipart post with the card", async () => {
+    const { discord, list } = await setup({ token: true });
+    const item = await list();
+    assert.equal(discord.shots.length, 1);
+    assert.equal(discord.shots[0].auth, "Bearer tok");
+    assert.equal(discord.shots[0].body.url, `https://btd6data.com/race/${NEW_RACE}?card=1`);
+    assert.deepEqual(discord.shots[0].body.viewport, { width: 1200, height: 630, deviceScaleFactor: 1 });
+    assert.equal(discord.shots[0].body.waitForSelector.selector, "#card[data-ready]");
+    assert.equal(discord.posts.length, 1);
+    assert.deepEqual(discord.posts[0].files, ["card.png"]);
+    const { embeds } = discord.posts[0].body;
+    assert.equal(embeds.length, 1);
+    assert.equal(embeds[0].image.url, "attachment://card.png");
+    assert.equal(embeds[0].url, `https://btd6data.com/race/${NEW_RACE}`);
+    assert.deepEqual(embeds[0].fields.map((f: { name: string }) => f.name), ["Starts", "Ends"]);
+    assert.equal(embeds[0].fields[0].value, `<t:${Math.floor(item.start / 1000)}:F> (<t:${Math.floor(item.start / 1000)}:R>)`);
+  });
+
+  it("new boss with a browser token → Normal + Elite files, two embeds with the same url", async () => {
+    const { t, discord, run } = await setup({ token: true });
+    const bosses = fixture("btd6__bosses.json");
+    const item = { id: "Lych99_mzzzzzzz", name: "Lych99", bossType: "lych", bossTypeURL: "https://static-api.nkstatic.com/x_lych.png", start: t.clock.now + DAY, end: t.clock.now + 6 * DAY };
+    t.origin.override.set("/btd6/bosses", JSON.stringify({ ...bosses, body: [item, ...bosses.body] }));
+    t.clock.now += 5 * MIN;
+    await run();
+    assert.deepEqual(discord.shots.map((s) => s.body.url).sort(), ["https://btd6data.com/boss/Lych99_mzzzzzzz?card=1", "https://btd6data.com/boss/Lych99_mzzzzzzz?d=elite&card=1"]);
+    assert.deepEqual(discord.posts[0].files, ["normal.png", "elite.png"]);
+    const { embeds } = discord.posts[0].body;
+    assert.equal(embeds.length, 2);
+    assert.equal(embeds[0].url, embeds[1].url);
+    assert.equal(embeds[0].image.url, "attachment://normal.png");
+    assert.equal(embeds[1].image.url, "attachment://elite.png");
+    assert.equal(embeds[0].title, "New boss event: Lych #99");
+  });
+
+  it("screenshot fails → today's text embed, still sent", async () => {
+    const { discord, list, rows } = await setup({ token: true });
+    discord.shotStatus = 500;
+    await list();
+    assert.equal(discord.posts.length, 1);
+    assert.deepEqual(discord.posts[0].files, []);
+    assert.equal(discord.posts[0].body.embeds[0].title, "New race: Brand New");
+    assert.ok(rows()[0].sent_at);
+  });
+
+  it("no browser token → no screenshot, text embed", async () => {
+    const { discord, list } = await setup();
+    await list();
+    assert.equal(discord.shots.length, 0);
+    assert.deepEqual(discord.posts[0].files, []);
   });
 
   it("new race with its ruleset cached → map, rules and map picture in the embed", async () => {

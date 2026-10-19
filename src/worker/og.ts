@@ -299,6 +299,8 @@ export function injectMeta(html: string, m: PageMeta, url: URL): string {
   out = /<meta\s+name="description"[^>]*>/i.test(out)
     ? out.replace(/<meta\s+name="description"[^>]*>/i, () => desc)
     : out.replace(/<\/head>/i, () => `${desc}</head>`);
+  // The notification's card screenshot page (?card): not for search results.
+  if (url.searchParams.has("card")) out = out.replace(/<\/head>/i, () => `<meta name="robots" content="noindex" /></head>`);
   const canonical = `<link rel="canonical" href="${esc(SITE + canonicalPath(url))}" />`;
   out = out.replace(/<\/head>/i, () => `${[canonical, ...tags].join("\n    ")}\n  </head>`);
   // Readable text for crawlers that don't run scripts; the app clears it before its first render.

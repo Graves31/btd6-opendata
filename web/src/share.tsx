@@ -21,6 +21,8 @@ export interface CardSpec {
   /** Race: the finishers line. */
   extra?: string;
   path: string;
+  /** Discord card page: dates in UTC and a "New" pill instead of the countdown. */
+  utc?: boolean;
 }
 
 // The dark theme's tokens (styles.css): the card looks the same whatever theme the viewer picked.
@@ -64,6 +66,9 @@ const img = (src?: string | null) =>
     i.onerror = () => done(null);
     i.src = src;
   });
+
+const utcf = new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "UTC" });
+const utcWhen = (ms: number) => utcf.format(ms);
 
 const rr = (c: CanvasRenderingContext2D, x0: number, y: number, w: number, h: number, r: number) => (c.beginPath(), c.roundRect(x0, y, w, h, r));
 
@@ -112,8 +117,8 @@ export async function drawCard(s: CardSpec): Promise<Blob | null> {
 
   // header: the hero art on the left, the title block on the right
   const st = status(s.start, s.end);
-  const stText = st.label[0].toUpperCase() + st.label.slice(1);
-  const stColor = st.s === "live" ? C.live : st.s === "upcoming" ? C.soon : C.ended;
+  const stText = s.utc ? "New" : st.label[0].toUpperCase() + st.label.slice(1);
+  const stColor = s.utc || st.s === "live" ? C.live : st.s === "upcoming" ? C.soon : C.ended;
   const mapLine = `${d.difficulty} · ${MODE_NAME[d.mode] ?? d.mode} · Rounds ${fmtRounds(d.startRound, d.endRound)}`;
   let tx = PAD;
   let tw = W - 2 * PAD;
@@ -148,7 +153,7 @@ export async function drawCard(s: CardSpec): Promise<Blob | null> {
   c.fill();
   text(stText.toUpperCase(), tx + 14, ty + 1, `800 24px ${DISPLAY}`, "#0a0a0b");
   ty += 38;
-  text(`${fmtWhen(s.start)} → ${fmtWhen(s.end)}`, tx, ty, `600 19px ${BODY}`, C.ink2, tw);
+  text(s.utc ? `${utcWhen(s.start)} → ${utcWhen(s.end)} UTC` : `${fmtWhen(s.start)} → ${fmtWhen(s.end)}`, tx, ty, `600 19px ${BODY}`, C.ink2, tw);
   if (s.banner) {
     // map row under the banner
     let my = 222;

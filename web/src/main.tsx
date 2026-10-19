@@ -9,7 +9,7 @@ import { homePicks } from "./picks.ts";
 import "./styles.css";
 import { warmAllOnIdle, warmFor } from "./sprite.tsx";
 import { A, body, EvIcon } from "./ui.tsx";
-import { BossPage, bossTitleFor, bossTypeFor, CTGroupPage, CTPage, EventList, Home, OdysseyPage, RacePage } from "./views/events.tsx";
+import { BossPage, bossTitleFor, CardOnly, bossTypeFor, CTGroupPage, CTPage, EventList, Home, OdysseyPage, RacePage } from "./views/events.tsx";
 import { MapPage, MapsPage } from "./views/maps.tsx";
 import { ChallengesPage } from "./views/challenges.tsx";
 import { NotFound } from "./views/errors.tsx";
@@ -320,6 +320,8 @@ function App() {
   // The headline boss is known once /api/now lands (after the first paint on a cold start).
   const homeBoss = r.name === "home" ? homePicks(body, store.featured).boss?.bossType : r.name === "boss" ? bossTypeFor(r.id) : undefined;
   useLayoutEffect(() => setArea(r), [homeBoss]);
+  // ?card: just the event card (the Discord notification screenshots it).
+  if ((r.name === "boss" || r.name === "race") && new URLSearchParams(location.search).has("card")) return <CardOnly r={r} />;
   return (
     <>
       <a class="skip" href="#main">
