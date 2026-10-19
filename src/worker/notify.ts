@@ -250,7 +250,8 @@ async function screenshot(fetchFn: typeof fetch, accountId: string, token: strin
 }
 
 /**
- * The card message for a new boss (Normal + Elite, one gallery: both embeds share the title link) or race:
+ * The card message for a new boss (Normal, then Elite under it: each embed has its own link, so Discord
+ * stacks them instead of squeezing them into a side-by-side gallery) or race:
  * the dates stay as Discord timestamps (they localise per reader), everything else is on the card.
  * Null when there is no token or any screenshot failed.
  */
@@ -270,7 +271,7 @@ export async function cardMessage(fetchFn: typeof fetch, cfg: Deps["notify"], p:
   const embeds: Record<string, unknown>[] = [{ title: first.title, url: first.url, color: first.color, fields, image: { url: `attachment://${cards[0].name}` } }];
   if (p.kind === "boss") {
     embeds[0].fields = [...fields, { name: "Boss stats", value: `[Health, skulls and spawns per tier](${SITE}/bosses/${encodeURIComponent(p.bossType ?? "")})` }].slice(0, p.bossType ? 3 : 2);
-    embeds.push({ url: first.url, image: { url: `attachment://${cards[1].name}` } });
+    embeds.push({ url: `${first.url}?d=elite`, color: first.color, image: { url: `attachment://${cards[1].name}` } });
   }
   return { embeds, allowed_mentions: { parse: [] }, files: cards.map((c, i) => ({ name: c.name, blob: blobs[i]! })) };
 }

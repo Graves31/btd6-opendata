@@ -1466,7 +1466,7 @@ describe("notifications (new boss / race → Discord)", () => {
     assert.equal(embeds[0].fields[0].value, `<t:${Math.floor(item.start / 1000)}:F> (<t:${Math.floor(item.start / 1000)}:R>)`);
   });
 
-  it("new boss with a browser token → Normal + Elite files, two embeds with the same url", async () => {
+  it("new boss with a browser token → Normal + Elite files, Elite stacked under Normal (own link)", async () => {
     const { t, discord, run } = await setup({ token: true });
     const bosses = fixture("btd6__bosses.json");
     const item = { id: "Lych99_mzzzzzzz", name: "Lych99", bossType: "lych", bossTypeURL: "https://static-api.nkstatic.com/x_lych.png", start: t.clock.now + DAY, end: t.clock.now + 6 * DAY };
@@ -1477,7 +1477,7 @@ describe("notifications (new boss / race → Discord)", () => {
     assert.deepEqual(discord.posts[0].files, ["normal.png", "elite.png"]);
     const { embeds } = discord.posts[0].body;
     assert.equal(embeds.length, 2);
-    assert.equal(embeds[0].url, embeds[1].url);
+    assert.equal(embeds[1].url, `${embeds[0].url}?d=elite`);
     assert.equal(embeds[0].image.url, "attachment://normal.png");
     assert.equal(embeds[1].image.url, "attachment://elite.png");
     assert.equal(embeds[0].title, "New boss event: Lych #99");
