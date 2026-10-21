@@ -457,6 +457,15 @@ async function main() {
 
     // Boss and race lists: the "Full history" fold (closed by default) opens onto wiki + archive rows with map links.
     const history = async (label: "desktop" | "mobile") => {
+      // Boss order: the button opens the ring of 7 bosses without pushing the page sideways.
+      await load("/bosses");
+      await page.waitForSelector(".bo-btn");
+      await page.$eval(".bo-btn", (el) => (el as HTMLElement).click());
+      if ((await page.evaluate(() => document.querySelectorAll(".bo.open .bo-ring li a[href^='/bosses/']").length)) !== 7) problems.push(`${label} /bosses: boss order doesn't open onto 7 bosses`);
+      const boOverflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+      if (boOverflow > 0) problems.push(`${label} boss order: page scrolls sideways by ${boOverflow}px`);
+      await settleImages(page);
+      await page.screenshot({ path: join(SHOTS, `${label}-boss-order.png`) });
       for (const [kind, path] of [["boss", "/bosses"], ["race", "/races"]] as const) {
         await load(path);
         await page.waitForSelector("details.hist");

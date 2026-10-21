@@ -879,6 +879,7 @@ export function EventList(props: { kind: EventKind }) {
         </h1>
         {KIND_BLURB[kind] && <p class="lede">{KIND_BLURB[kind]}</p>}
         <Freshness k={LIST_KEY[kind]} />
+        {kind === "boss" && <BossOrder />}
       </header>
       {kind === "boss" && (
         // One page per boss type (health per tier, skulls, spawns): each portrait is a prefetched link.
@@ -927,6 +928,62 @@ export function EventList(props: { kind: EventKind }) {
       {!peek(historyKey(kind)) && <p class="quiet">Loading older events…</p>}
       {(kind === "boss" || kind === "race") && <FullHistory key={kind} kind={kind} />}
     </>
+  );
+}
+
+/**
+ * The bosses take turns in a fixed order (BOSS_TYPES; checked against the archive), then start again: a ring of
+ * portraits, the live (or last) one marked Now and the one after it Next. Opens on hover (desktop) or tap.
+ */
+function BossOrder() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const off = (e: Event) =>
+      (e.type === "keydown" ? (e as KeyboardEvent).key === "Escape" : !ref.current?.contains(e.target as Node)) &&
+      setOpen(false);
+    addEventListener("pointerdown", off);
+    addEventListener("keydown", off);
+    return () => {
+      removeEventListener("pointerdown", off);
+      removeEventListener("keydown", off);
+    };
+  }, [open]);
+  const last = (allEvents("boss") as Boss[]).find((e) => e.start <= Date.now());
+  const at = last ? (BOSS_TYPES as readonly string[]).indexOf(last.bossType.toLowerCase()) : -1;
+  const live = !!last && !ended(last);
+  const nx = at < 0 ? -1 : (at + 1) % BOSS_TYPES.length;
+  return (
+    <div class={`bo${open ? " open" : ""}`} ref={ref}>
+      <button type="button" class="share-btn bo-btn" aria-expanded={open} aria-controls="bo-pop" onClick={() => setOpen(!open)}>
+        <span class="bo-ic" aria-hidden="true">↻</span>
+        <span class="bo-l">Boss order</span>
+      </button>
+      <div class="bo-pop" id="bo-pop" role="group" aria-label="Boss order">
+        <ol class="bo-ring" style={{ "--n": BOSS_TYPES.length }}>
+          {BOSS_TYPES.map((t, i) => (
+            <li key={t} style={{ "--i": i }} class={i === at ? "now" : i === nx ? "next" : undefined}>
+              <A href={href.bossstats(t)}>
+                <Spr family="boss" k={t} size={52} label optional />
+                <span class="bo-name">{bossName(t)}</span>
+              </A>
+              {(i === at || i === nx) && <span class="bo-tag">{i === nx ? "Next" : live ? "Now" : "Last"}</span>}
+            </li>
+          ))}
+        </ol>
+        {/* Clockwise arrows between the portraits. */}
+        <div class="bo-arrows" aria-hidden="true">
+          {BOSS_TYPES.map((t, i) => (
+            <span key={t} style={{ "--i": i + 0.5 }}>›</span>
+          ))}
+        </div>
+        <p class="bo-mid">
+          <strong>Boss order</strong>
+          <span>Always this order, then round again</span>
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -1174,7 +1231,7 @@ function noArt(kind: EventKind, e: AnyEvent): boolean {
 }
 
 /** The race rounds NK uses unless a race says otherwise; only different rounds get shown in lists. */
-/** The live boss card's second row: map and rules, then per difficulty its scoring, entries and current #1. */
+/** The live boss card's second row: map and rules, then per difficulty its scoring, entries and current top 3. */
 function BossMore(props: { b: Boss; meta?: ChallengeDocument }) {
   const { b, meta } = props;
   // Normal's board comes with the row's link; Elite's is one more cached request, for the live card only.
@@ -1182,7 +1239,7 @@ function BossMore(props: { b: Boss; meta?: ChallengeDocument }) {
   return (
     <span class="ev-more">
       <span class="evm-map">
-        <MapArt framed map={meta?.map} url={meta?.mapURL} size={72} alt="" />
+        <MapArt framed map={meta?.map} url={meta?.mapURL} size={96} alt="" />
         {meta && (
           <span class="evm-t">
             <strong>{mapName(meta.map)}</strong>
@@ -1196,8 +1253,7 @@ function BossMore(props: { b: Boss; meta?: ChallengeDocument }) {
       {(["standard", "elite"] as const).map((x) => {
         const t = x === "elite" ? b.eliteScoringType : b.normalScoringType;
         const rows = body<BossLeaderboardEntry[]>(bossBoardKey(b.id, x, 1));
-        const top = rows?.[0];
-        const kp = top && keyPart(top.scoreParts, t);
+        const total = x === "elite" ? b.totalScores_elite : b.totalScores_standard;
         return (
           <span key={x} class="evm-d">
             <span class="kicker">{x === "standard" ? "Normal" : "Elite"}</span>
@@ -1205,27 +1261,24 @@ function BossMore(props: { b: Boss; meta?: ChallengeDocument }) {
               <Spr family="ui" k={t} size={32} label optional />
               {scoringShort(t)}
             </span>
-            <span class="evm-n">
-              {fmtInt(
-                x === "elite" ? b.totalScores_elite : b.totalScores_standard,
-              )}{" "}
-              entries
-            </span>
-            <span class="evm-top">
-              {top ? (
-                <>
-                  <span class="evm-k">#1</span>{" "}
-                  <strong>{top.displayName}</strong>{" "}
-                  <span class="num">
-                    {kp ? fmtPart(kp) : fmtInt(top.score)}
-                  </span>
-                </>
-              ) : rows ? (
-                "No scores yet"
-              ) : (
-                "\u00a0"
-              )}
-            </span>
+            <span class="evm-n">{fmtInt(total)} entries</span>
+            {/* Top 3 with their medals (phones: #1 only). Plain text: the whole card is already a link. */}
+            {rows?.length ? (
+              <span class="evm-top">
+                {rows.slice(0, 3).map((r, i) => {
+                  const kp = keyPart(r.scoreParts, t);
+                  return (
+                    <span key={r.profile + i} class="evm-r">
+                      <Medal board={x === "elite" ? "bossElite" : "boss"} rank={i + 1} total={total} size={30} />
+                      <strong>{r.displayName}</strong>
+                      <span class="num">{kp ? fmtPart(kp) : fmtInt(r.score)}</span>
+                    </span>
+                  );
+                })}
+              </span>
+            ) : (
+              <span class="evm-top">{rows ? "No scores yet" : "\u00a0"}</span>
+            )}
           </span>
         );
       })}
