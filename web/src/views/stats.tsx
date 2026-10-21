@@ -65,8 +65,8 @@ async function load(): Promise<State> {
   }
 }
 
-/** Top 10 names over the days from..to (inclusive). */
-function top(rows: DayRow[], from: string, to: string): Row[] {
+/** Top 10 names over the days from..to (inclusive), by page views or by visits. */
+function top(rows: DayRow[], from: string, to: string, by: Metric = "views"): Row[] {
   const m = new Map<string, Row>();
   for (const r of rows) {
     if (r.date < from || r.date > to) continue;
@@ -75,7 +75,10 @@ function top(rows: DayRow[], from: string, to: string): Row[] {
     a.visits += r.visits;
     m.set(r.name, a);
   }
-  return [...m.values()].sort((a, b) => b.views - a.views).slice(0, 10);
+  return [...m.values()]
+    .filter((r) => r[by] > 0)
+    .sort((a, b) => b[by] - a[by])
+    .slice(0, 10);
 }
 
 function Chart(p: { days: { date: string; v: number }[]; label: string; from: string; to: string; onDay: (d: string) => void }) {
@@ -142,8 +145,8 @@ function Chart(p: { days: { date: string; v: number }[]; label: string; from: st
   );
 }
 
-function Rank(p: { title: string; rows: Row[]; label: (n: string) => string; picked?: string; onPick: (n: string) => void }) {
-  const max = Math.max(1, ...p.rows.map((r) => r.views));
+function Rank(p: { title: string; rows: Row[]; by: Metric; label: (n: string) => string; picked?: string; onPick: (n: string) => void }) {
+  const max = Math.max(1, ...p.rows.map((r) => r[p.by]));
   return (
     <section class="st-card">
       <h2 class="st-h">{p.title}</h2>
@@ -152,10 +155,10 @@ function Rank(p: { title: string; rows: Row[]; label: (n: string) => string; pic
       ) : (
         <ol class="st-rank">
           {p.rows.map((r) => (
-            <li key={r.name} style={`--w:${Math.max(2, Math.round((r.views / max) * 100))}%`}>
+            <li key={r.name} style={`--w:${Math.max(2, Math.round((r[p.by] / max) * 100))}%`}>
               <button type="button" class={p.picked === r.name ? "on" : undefined} aria-pressed={p.picked === r.name} onClick={() => p.onPick(r.name)}>
                 <span class="st-name">{p.label(r.name)}</span>
-                <span class="st-n">{nf.format(r.views)}</span>
+                <span class="st-n">{nf.format(r[p.by])}</span>
               </button>
             </li>
           ))}
@@ -194,10 +197,11 @@ function Board(p: { s: Stats }) {
     date: d.date,
     v: pick ? s[pick.dim].reduce((a, r) => (r.date === d.date && r.name === pick.name ? a + r[metric] : a), 0) : d[metric],
   }));
-  const rank = (dim: Dim, title: string) => (
+  const rank = (dim: Dim, title: string, by: Metric = "views") => (
     <Rank
       title={title}
-      rows={top(s[dim], from, to)}
+      by={by}
+      rows={top(s[dim], from, to, by)}
       label={LABEL[dim]}
       picked={pick?.dim === dim ? pick.name : undefined}
       onPick={(name) => setPick(pick?.dim === dim && pick.name === name ? null : { dim, name })}
@@ -254,12 +258,13 @@ function Board(p: { s: Stats }) {
       </div>
       <div class="st-grid2">
         {rank("pages", "Top pages")}
+        {rank("pages", "Entry pages", "visits")}
         {rank("referrers", "Referrers")}
         {rank("countries", "Countries")}
         {rank("devices", "Devices")}
       </div>
       <p class="quiet st-foot">
-        Page views per row. Tap a bar for that day, a row to chart it. Cloudflare Web Analytics, sampled; updated every 15 minutes.
+        Page views per row; entry pages count the visits that started there. Tap a bar for that day, a row to chart it. Cloudflare Web Analytics, sampled; updated every 15 minutes.
       </p>
     </>
   );
