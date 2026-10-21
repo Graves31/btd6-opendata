@@ -957,7 +957,9 @@ function BossOrder() {
   return (
     <div class={`bo${open ? " open" : ""}`} ref={ref}>
       <button type="button" class="share-btn bo-btn" aria-expanded={open} aria-controls="bo-pop" onClick={() => setOpen(!open)}>
-        <span class="bo-ic" aria-hidden="true">↻</span>
+        <svg class="bo-ic" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3" />
+        </svg>
         <span class="bo-l">Boss order</span>
       </button>
       <div class="bo-pop" id="bo-pop" role="group" aria-label="Boss order">
@@ -1239,7 +1241,7 @@ function BossMore(props: { b: Boss; meta?: ChallengeDocument }) {
   return (
     <span class="ev-more">
       <span class="evm-map">
-        <MapArt framed map={meta?.map} url={meta?.mapURL} size={96} alt="" />
+        <MapArt framed map={meta?.map} url={meta?.mapURL} size={120} alt="" />
         {meta && (
           <span class="evm-t">
             <strong>{mapName(meta.map)}</strong>

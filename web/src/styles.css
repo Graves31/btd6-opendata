@@ -6964,7 +6964,7 @@ h1.title.ti .ev-icon {
 .ev-more {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: 330px minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px 24px;
   padding: 14px 0 16px 20px;
   border-top: 1px solid var(--rule);
@@ -6994,13 +6994,13 @@ h1.title.ti .ev-icon {
 .evm-t {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--ink-2);
 }
 .evm-t strong {
-  font: 700 21px/1.05 var(--f-display);
+  font: 700 28px/1 var(--f-display);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--ink);
@@ -7105,8 +7105,13 @@ h1.title.ti .ev-icon {
   }
 }
 .bo-ic {
-  font-size: 20px;
-  line-height: 0;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .bo-pop {
   display: none;
