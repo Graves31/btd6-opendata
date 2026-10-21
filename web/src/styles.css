@@ -5441,8 +5441,70 @@ button.fd-tile:hover {
 .st-bar {
   fill: var(--accent);
 }
-.st-bar:hover {
+.st-hit {
+  fill: transparent;
+}
+.st-day {
+  cursor: pointer;
+  outline: none;
+}
+.st-day.off .st-bar {
+  fill: var(--ink-3);
+  opacity: 0.45;
+}
+.st-day:hover .st-bar,
+.st-day:focus-visible .st-bar,
+.st-day.on .st-bar {
   fill: var(--ink);
+  opacity: 1;
+}
+.st-day:focus-visible .st-hit {
+  fill: rgb(var(--tint) / 0.15);
+}
+.st-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  margin-bottom: 12px;
+}
+.st-head .st-h {
+  margin-bottom: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.st-for {
+  color: var(--accent);
+}
+.st-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+.st-chips .hist-chip {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  line-height: 42px;
+}
+.st-bar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-bottom: 14px;
+}
+.st-sum {
+  margin: 0;
+  color: var(--ink-2);
+}
+.st-sum b {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
 .st-grid {
   stroke: var(--rule);
@@ -5465,11 +5527,28 @@ button.fd-tile:hover {
   gap: 4px;
 }
 .st-rank li {
+  background: linear-gradient(90deg, rgb(var(--tint) / 0.2) var(--w), transparent var(--w));
+}
+.st-rank button {
   display: flex;
   justify-content: space-between;
   gap: 12px;
+  width: 100%;
+  min-height: 32px;
   padding: 5px 8px;
-  background: linear-gradient(90deg, rgb(var(--tint) / 0.2) var(--w), transparent var(--w));
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.st-rank button:hover {
+  border-color: var(--rule-2);
+}
+.st-rank button.on {
+  border-color: var(--accent);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 .st-name {
   min-width: 0;

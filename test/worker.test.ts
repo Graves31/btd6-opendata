@@ -1330,9 +1330,11 @@ describe("stats", () => {
     assert.ok(s.totals.d7.views <= s.totals.d30.views && s.totals.d7.visits > 0);
     assert.equal(s.totals.d7.views, s.daily.slice(-7).reduce((a, d) => a + d.views, 0));
     assert.equal(s.totals.d7.visits, s.daily.slice(-7).reduce((a, d) => a + d.visits, 0));
-    assert.equal(s.pages[0].name, "/");
+    assert.deepEqual(s.pages[0], { date: "2026-09-30", name: "/", views: 95, visits: 60 });
+    assert.equal(s.pages.filter((r) => r.name === "/").reduce((a, r) => a + r.views, 0), 190); // per day, the page sums
     assert.equal(s.referrers[0].name, ""); // direct; the page labels it
-    assert.equal(s.devices.length, 3);
+    assert.ok(!s.referrers.some((r) => r.name === "btd6data.com")); // in-site clicks aren't referrers
+    assert.equal(new Set(s.devices.map((r) => r.name)).size, 3);
     assert.deepEqual(shapeStats({ data: null }, NOW).totals.d30, { views: 0, visits: 0 });
   });
 

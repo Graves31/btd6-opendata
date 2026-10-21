@@ -6,6 +6,7 @@
 // `sum { visits }` is visits (sessions); dimensions date / requestPath / refererHost / countryName / deviceType;
 // filter datetime_geq / datetime_leq / requestHost_in; orderBy count_DESC.
 // The 7/30-day totals are sums of the daily series (separate GraphQL groups are sampled separately and disagreed).
+// The ranked lists come per day (date + dimension), so the page filters any day or range without another request.
 // (Cloudflare Web Analytics GraphQL; see https://developers.cloudflare.com/analytics/graphql-api/.)
 
 import { jsonResponse } from "./proxy.ts";
@@ -29,19 +30,24 @@ export interface RankRow {
   views: number;
   visits: number;
 }
+export interface DayRow extends RankRow {
+  date: string;
+}
 export interface Stats {
   generatedAt: string;
   host: string;
   totals: { d7: { views: number; visits: number }; d30: { views: number; visits: number } };
   /** One row per UTC day, oldest first, the last 30 days (zero-filled). */
   daily: { date: string; views: number; visits: number }[];
-  pages: RankRow[];
-  referrers: RankRow[];
-  countries: RankRow[];
-  devices: RankRow[];
+  /** Per (day, name), the page ranks and sums them over the chosen days. Referrers leave out this site's own hosts. */
+  pages: DayRow[];
+  referrers: DayRow[];
+  countries: DayRow[];
+  devices: DayRow[];
 }
 
-const GROUP = "limit: 10, orderBy: [count_DESC]";
+// ponytail: 5000 (day, name) groups; a busier site would need fewer days per query or a top-N per day.
+const GROUP = "limit: 5000, orderBy: [count_DESC]";
 /** Filters are inlined (built only from our own constants and numbers), so no input-type names are needed. */
 const filterOf = (hosts: string[], from: string, to: string) =>
   `{ requestHost_in: ${JSON.stringify(hosts)}, datetime_geq: "${from}", datetime_leq: "${to}" }`;
@@ -50,10 +56,10 @@ export function statsQuery(account: string, f30: string): string {
     `${alias}: rumPageloadEventsAdaptiveGroups(${args}, filter: ${f}) { count sum { visits }${dim ? ` dimensions { ${dim} }` : ""} }`;
   return `{ viewer { accounts(filter: { accountTag: "${account}" }) {
     ${g("daily", "limit: 40, orderBy: [date_ASC]", f30, "date")}
-    ${g("pages", GROUP, f30, "requestPath")}
-    ${g("referrers", GROUP, f30, "refererHost")}
-    ${g("countries", GROUP, f30, "countryName")}
-    ${g("devices", GROUP, f30, "deviceType")}
+    ${g("pages", GROUP, f30, "date requestPath")}
+    ${g("referrers", GROUP, f30, "date refererHost")}
+    ${g("countries", GROUP, f30, "date countryName")}
+    ${g("devices", GROUP, f30, "date deviceType")}
   } } }`;
 }
 
@@ -74,8 +80,11 @@ const ymd = (ms: number) => new Date(ms).toISOString().slice(0, 10);
 /** Pure: GraphQL response → Stats. `now` anchors the zero-filled 30-day series. */
 export function shapeStats(res: GraphqlResponse, now: number): Stats {
   const acct = res.data?.viewer?.accounts?.[0] ?? {};
-  const rank = (rows: Group[] = [], dim: string): RankRow[] =>
-    rows.map((g) => ({ name: g.dimensions?.[dim] ?? "", views: n(g.count), visits: n(g.sum?.visits) })).sort((a, b) => b.views - a.views);
+  const rank = (rows: Group[] = [], dim: string): DayRow[] =>
+    rows
+      .filter((g) => g.dimensions?.date)
+      .map((g) => ({ date: g.dimensions!.date!, name: g.dimensions?.[dim] ?? "", views: n(g.count), visits: n(g.sum?.visits) }))
+      .sort((a, b) => b.views - a.views);
   const byDate = new Map<string, { views: number; visits: number }>();
   for (const g of acct.daily ?? []) {
     const d = g.dimensions?.date;
@@ -91,7 +100,7 @@ export function shapeStats(res: GraphqlResponse, now: number): Stats {
     totals: { d7: sumDays(daily.slice(-7)), d30: sumDays(daily) },
     daily,
     pages: rank(acct.pages, "requestPath"),
-    referrers: rank(acct.referrers, "refererHost"),
+    referrers: rank(acct.referrers, "refererHost").filter((r) => !STATS_HOSTS.includes(r.name)), // in-site clicks
     countries: rank(acct.countries, "countryName"),
     devices: rank(acct.devices, "deviceType"),
   };

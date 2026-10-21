@@ -432,6 +432,13 @@ async function main() {
       if (!(await has("main .st-rank li"))) problems.push(`stats ${label}: no ranked lists`);
       const robots = await page.evaluate(() => document.querySelector('meta[name="robots"]')?.getAttribute("content") ?? "");
       if (!/noindex/.test(robots)) problems.push(`stats ${label}: no noindex meta`);
+      // Filters: tap today's bar → the lists cover that day only (the fixture's "/" has 95 of its 190 views today);
+      // tap a page → the chart follows it.
+      await page.click("svg.st-chart g.st-day:last-of-type").catch(() => problems.push(`stats ${label}: no day to tap`));
+      const today = await page.evaluate(() => [document.querySelector(".st-sum")?.textContent ?? "", document.querySelector(".st-rank .st-n")?.textContent ?? ""]);
+      if (/Last 30/.test(today[0]) || today[1] !== "95") problems.push(`stats ${label}: tapping a day didn't filter the lists (${today.join(" / ")})`);
+      await page.click(".st-rank button").catch(() => {});
+      if (!(await has(".st-head .st-for"))) problems.push(`stats ${label}: picking a page didn't filter the chart`);
       if (label === "mobile") {
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
         if (overflow > 0) problems.push(`mobile stats: page scrolls sideways by ${overflow}px`);

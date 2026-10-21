@@ -17,8 +17,10 @@ const origin = makeOrigin();
 /** Fake Cloudflare GraphQL endpoint for the hidden /stats page: docs/api/stats-graphql.json with its 30 days re-dated to end today. */
 function statsFixture(): string {
   const j = JSON.parse(readFileSync(new URL("../docs/api/stats-graphql.json", import.meta.url), "utf8"));
-  const daily = j.data.viewer.accounts[0].daily as { dimensions: { date: string } }[];
-  daily.forEach((g, i) => (g.dimensions.date = new Date(Date.now() - (daily.length - 1 - i) * 86_400_000).toISOString().slice(0, 10)));
+  const groups = Object.values(j.data.viewer.accounts[0]).flat() as { dimensions: { date: string } }[];
+  const last = Date.parse(groups.map((g) => g.dimensions.date).sort().at(-1)!);
+  const shift = Math.floor(Date.now() / 86_400_000) * 86_400_000 - last;
+  for (const g of groups) g.dimensions.date = new Date(Date.parse(g.dimensions.date) + shift).toISOString().slice(0, 10);
   return JSON.stringify(j);
 }
 
