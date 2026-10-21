@@ -34,6 +34,9 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
 - **History holes**: races 1 Jan – 30 Jul 2026 and boss events 7 Apr – 31 Jul 2026 (incl. Diamondback #1–6) are on no public list;
   rerun `node scripts/boss_history.ts` and `node scripts/race_history.ts` once bloonswiki has its 2026 pages (both pick new years up by themselves).
 
+- **IndexNow pings for new events never reach Bing** (2026-10-21). Every Worker ping to api.indexnow.org got 429 and
+  was given up after 5 tries (`notifications` rows `index-*`), while the same ping from home got 200. First check
+  the rows after the next new event; if still 429, ping `https://www.bing.com/indexnow` instead (notify.ts).
 - **Drop the old workers.dev host from /stats** (after 2026-11-07, when its 30 days have rolled off; `STATS_HOSTS`
   in src/worker/stats.ts).
 
