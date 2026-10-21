@@ -1064,9 +1064,6 @@ button.fd-tile:hover {
 .k-ct .ev-row {
   grid-template-columns: var(--well) minmax(0, 1fr) 110px 110px 180px;
 }
-.k-odyssey .ev-row {
-  grid-template-columns: var(--well) minmax(0, 1fr) 180px;
-}
 .ev-art {
   align-self: stretch;
   overflow: hidden;
@@ -1774,8 +1771,7 @@ button.fd-tile:hover {
     mask-image: none;
   }
   .k-race .ev-row,
-  .k-ct .ev-row,
-  .k-odyssey .ev-row {
+  .k-ct .ev-row {
     grid-template-columns: var(--well) minmax(0, 1fr) minmax(0, 1fr);
     align-items: start;
   }
@@ -1785,8 +1781,7 @@ button.fd-tile:hover {
     padding-top: 10px;
   }
   .k-race .ev-row > :not(.ev-art),
-  .k-ct .ev-row > :not(.ev-art),
-  .k-odyssey .ev-row > :not(.ev-art) {
+  .k-ct .ev-row > :not(.ev-art) {
     grid-column: 2 / -1;
   }
   /* Stats side by side under the title (CT: Players | Teams). */
@@ -1795,8 +1790,7 @@ button.fd-tile:hover {
     grid-column: auto;
   }
   .k-race .ev-main,
-  .k-ct .ev-main,
-  .k-odyssey .ev-main {
+  .k-ct .ev-main {
     padding: 10px 0 0;
   }
   .ev-col {
@@ -6763,25 +6757,6 @@ a.hist-map:hover {
   .k-ct .ev-row {
     grid-template-columns: var(--well) minmax(0, 1fr) 170px 150px;
   }
-  .k-odyssey .ev-row {
-    grid-template-columns: var(--well) minmax(0, 1fr) 150px;
-  }
-  /* No art (old odyssey): a compact text row, no empty well. */
-  .k-odyssey .ev-row.no-art {
-    grid-template-columns: minmax(0, 1fr) 150px;
-    min-height: 0;
-    padding-left: 20px;
-  }
-}
-@media (max-width: 860px) {
-  .k-odyssey .ev-row.no-art {
-    grid-template-columns: minmax(0, 1fr);
-    min-height: 0;
-    padding-left: 12px;
-  }
-  .k-odyssey .ev-row.no-art > :not(.ev-art) {
-    grid-column: 1 / -1;
-  }
 }
 
 /* Boss list: the stats strip has a label and never splits a name mid-word. */
@@ -10350,4 +10325,347 @@ a.th-ic:focus-visible {
   flex-wrap: wrap;
   gap: 4px 12px;
   margin-top: 8px;
+}
+
+/* Odyssey list. Past cards: a chain of all islands (a fan of cards on phones). Live card: the voyage, Hard's
+   islands as one chain with Easy / Medium / Hard as bars under the islands they cover. */
+.oy-mf {
+  position: relative;
+  display: block;
+  flex: none;
+  aspect-ratio: 200 / 129;
+  background: var(--map-mat);
+  border: 2px solid var(--rule-2);
+  line-height: 0;
+}
+.oy-mf .map-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  object-fit: cover;
+  background: none;
+}
+.oy-mf .img-missing {
+  background: repeating-linear-gradient(135deg, var(--s2) 0 6px, var(--map-mat) 6px 12px);
+}
+.oy-mf.skel {
+  background: repeating-linear-gradient(135deg, var(--s2) 0 6px, var(--map-mat) 6px 12px);
+}
+.oy-mf .n {
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  padding: 3px 6px;
+  font: 800 14px/1 var(--f-display);
+  background: var(--ink);
+  color: var(--bg);
+}
+.oy-mf .md {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  line-height: 0;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.55));
+}
+.oy-desc {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* past rows */
+.k-odyssey .ev-row {
+  grid-template-columns: auto minmax(0, 1fr) 150px;
+  min-height: 0;
+  padding: 12px 20px 12px 18px;
+  gap: 8px 22px;
+}
+.k-odyssey .ev-row.no-art {
+  grid-template-columns: minmax(0, 1fr) 150px;
+}
+.oy-chain {
+  position: relative;
+  display: flex;
+  gap: 6px;
+  align-self: center;
+  justify-self: start;
+}
+.oy-chain::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 50%;
+  border-top: 1.5px dashed color-mix(in srgb, var(--ink) 22%, transparent);
+}
+.oy-chain .oy-mf {
+  width: 62px;
+}
+/* The chain column fits 5 islands, so titles line up whatever the island count. */
+@media (min-width: 861px) {
+  .k-odyssey li:not(.now) .ev-row:not(.no-art) {
+    grid-template-columns: calc(5 * 62px + 4 * 6px) minmax(0, 1fr) 150px;
+  }
+}
+.oy-chain .oy-mf .n {
+  padding: 2px 4px;
+  font-size: 11px;
+}
+.k-odyssey .ev-main {
+  padding: 0;
+}
+
+/* live card */
+.events.k-odyssey li.now .ev-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px 32px;
+  padding: 22px 24px 24px 22px;
+}
+.oy-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+.oy-side {
+  display: grid;
+  gap: 10px;
+  justify-items: end;
+  align-content: start;
+}
+.oy-heroes {
+  display: flex;
+  gap: 4px;
+}
+.oy-hero-w {
+  font-weight: 700;
+}
+.oy-scroll {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.oy-voy {
+  --gap: 18px;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+  column-gap: var(--gap);
+  row-gap: 8px;
+}
+.oy-isl {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  align-content: start;
+}
+.oy-isl strong {
+  font-size: 14px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.oy-mode {
+  margin-top: -3px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.oy-art {
+  position: relative;
+}
+.oy-art::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: calc(var(--gap) * -1);
+  right: calc(var(--gap) * -1);
+  border-top: 2px dashed color-mix(in srgb, var(--ink) 22%, transparent);
+}
+.oy-isl.first .oy-art::before {
+  left: 50%;
+}
+.oy-isl.last .oy-art::before {
+  right: 50%;
+}
+.oy-art .oy-mf {
+  z-index: 1;
+}
+.oy-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  min-width: 0;
+  padding: 7px 12px;
+  border-left: 3px solid var(--bc);
+  background: color-mix(in srgb, var(--bc) 12%, transparent);
+  font-size: 13px;
+  font-weight: 600;
+}
+.oy-bar.d0 {
+  --bc: var(--d0);
+  margin-top: 8px;
+}
+.oy-bar.d1 {
+  --bc: var(--d1);
+}
+.oy-bar.d2 {
+  --bc: var(--d2);
+}
+.oy-bar.plain {
+  --bc: var(--rule-2);
+  margin-top: 8px;
+  color: var(--ink-2);
+}
+.oy-bar .dn {
+  flex: none;
+  width: 62px;
+  font: 800 16px/1 var(--f-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bc);
+}
+.oy-hp,
+.oy-rw {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ink-2);
+}
+.oy-rw small {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+.oy-more {
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+.oy-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--accent-ink);
+  color: var(--accent-ink);
+  font: 800 15px/1 var(--f-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.oy-cta.in-bar {
+  margin-left: auto;
+}
+.ev-row:hover .oy-cta {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.oy-cta-row {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .k-odyssey li:not(.now) .ev-row {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 2px 12px;
+    padding: 10px 12px;
+  }
+  .k-odyssey li:not(.now) .ev-row.no-art {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .k-odyssey li:not(.now) .oy-chain {
+    grid-row: 1 / span 2;
+    /* a 5-island fan: titles line up whatever the island count */
+    width: calc(54px + 4 * 18px);
+    gap: 0;
+  }
+  .k-odyssey li:not(.now) .oy-chain::before {
+    display: none;
+  }
+  .k-odyssey li:not(.now) .oy-chain .oy-mf {
+    width: 54px;
+    margin-left: -36px;
+    box-shadow: -3px 0 6px rgb(0 0 0 / 0.55);
+  }
+  .k-odyssey li:not(.now) .oy-chain .oy-mf:first-child {
+    margin-left: 0;
+    box-shadow: none;
+  }
+  .oy-chain .oy-mf .n,
+  .k-odyssey li:not(.now) .oy-desc,
+  .k-odyssey li:not(.now) .oy-chain ~ .ev-main .ev-dates {
+    display: none;
+  }
+  .k-odyssey li:not(.now) .ev-row > .ev-main,
+  .k-odyssey li:not(.now) .ev-row > .ev-st {
+    grid-column: auto;
+    margin: 0;
+  }
+  .k-odyssey li:not(.now) .ev-row.no-art > * {
+    grid-column: 1 / -1;
+  }
+  .events.k-odyssey li.now .ev-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px 0 16px 12px;
+  }
+  .oy-head {
+    padding-right: 12px;
+  }
+  .oy-head .oy-desc {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .oy-side {
+    display: none;
+  }
+  .oy-scroll {
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    padding: 0 12px 4px 0;
+    -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, #000 88%, transparent);
+    scrollbar-width: none;
+  }
+  .oy-voy {
+    --gap: 10px;
+    grid-template-columns: repeat(var(--n), 112px);
+    width: max-content;
+  }
+  .oy-isl {
+    scroll-snap-align: start;
+  }
+  .oy-isl strong {
+    font-size: 13px;
+  }
+  .oy-bar {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  .oy-bar .dn {
+    width: 58px;
+  }
+  .oy-cta.in-bar {
+    display: none;
+  }
+  .oy-cta-row {
+    display: block;
+    padding-right: 12px;
+  }
+  .oy-cta-row .oy-cta {
+    width: 100%;
+    padding: 11px;
+  }
 }

@@ -91,8 +91,10 @@ import {
 import {
   Crew,
   hasBans,
+  HERO_ORDER,
   HeroRule,
   HideBannedToggle,
+  inOrder,
   MapLine,
   modeIcon,
   PowerGrid,
@@ -1288,6 +1290,210 @@ function BossMore(props: { b: Boss; meta?: ChallengeDocument }) {
   );
 }
 
+const ODY_DIFFS = ["easy", "medium", "hard"] as const;
+
+/** The odyssey page's hero rule, as a row for the live card: icons of the allowed heroes (or a word). */
+function OdyHeroes(props: { meta?: OdysseyMetadata }) {
+  const towers = props.meta?._availableTowers;
+  if (!towers) return null;
+  const listed = towers.filter((t) => t.isHero && t.tower !== "ChosenPrimaryHero");
+  const chosen = towers.find((t) => t.tower === "ChosenPrimaryHero");
+  const allowed = inOrder(HERO_ORDER, listed.map((t) => t.tower)).filter((id) =>
+    listed.some((t) => t.tower === id && t.max !== 0),
+  );
+  return (
+    <span class="oy-side">
+      <span class="kicker">Heroes allowed</span>
+      {(chosen && chosen.max !== 0) || allowed.length === 0 ? (
+        <span class="oy-hero-w">{chosen && chosen.max !== 0 ? "Any hero" : "No heroes"}</span>
+      ) : (
+        <span class="oy-heroes">
+          {allowed.map((id) => (
+            <Spr key={id} family="hero" k={id} size={40} />
+          ))}
+        </span>
+      )}
+    </span>
+  );
+}
+
+/** One difficulty bar of the live card: boat health, then the rewards as icons (names on hover). */
+function OdyBar(props: { d: number; n: number; meta?: OdysseyMetadata; cta?: boolean }) {
+  const { d, n, meta, cta } = props;
+  const rw = meta?._rewards ?? [];
+  return (
+    <span class={`oy-bar d${d}`} style={{ gridColumn: `1 / span ${n}` }}>
+      <span class="dn">{cap(ODY_DIFFS[d])}</span>
+      {meta && (
+        <>
+          <span class="oy-hp" title={`${fmtInt(meta.startingHealth)} boat health`}>
+            <Spr family="ui" k="StartingLives" size={24} label optional />
+            {fmtInt(meta.startingHealth)}
+          </span>
+          {rw.length > 2 ? (
+            <span class="oy-more">Show rewards →</span>
+          ) : (
+            rw.map((r) => {
+              const [fam, k] = rewardIcon(r);
+              const [kind, value = ""] = r.split(":");
+              return (
+                <span key={r} class="oy-rw" title={fmtReward(r)}>
+                  {fam && <Spr family={fam} k={k} size={24} label optional />}
+                  {/^\d+$/.test(value) ? fmtInt(Number(value)) : !fam ? fmtReward(r) : null}
+                  {kind === "InstaMonkey" && value.split(",")[1] && <small>{value.split(",")[1].replace(/^(\d)(\d)(\d)$/, "$1-$2-$3")}</small>}
+                </span>
+              );
+            })
+          )}
+        </>
+      )}
+      {cta && <OdyCta bar />}
+    </span>
+  );
+}
+
+const OdyCta = (p: { bar?: boolean }) => (
+  <span class={p.bar ? "oy-cta in-bar" : "oy-cta"}>Rewards, crew &amp; rules →</span>
+);
+
+/**
+ * An odyssey's list card. Live: the voyage (Hard's islands as one chain, Easy / Medium / Hard as bars under the
+ * islands they cover; Easy and Medium are the first islands of Hard, checked here). Past: just the island chain.
+ */
+function OdyRow(props: { o: Odyssey; st: ComponentChildren; dates: ComponentChildren; live: boolean }) {
+  const { o, st, dates, live } = props;
+  // Past: Hard's islands (never change). Live: the other difficulties too (like the boss card's Elite board).
+  // Easy's maps and metadata come with the row's own link.
+  useEffect(
+    () =>
+      void store.want(
+        live
+          ? [
+              odyMetaKey(o.id, "medium"),
+              odyMetaKey(o.id, "hard"),
+              odyMapsKey(o.id, "medium"),
+              odyMapsKey(o.id, "hard"),
+            ]
+          : [odyMapsKey(o.id, "hard")],
+      ),
+    [o.id, live],
+  );
+  const mp = Object.fromEntries(ODY_DIFFS.map((d) => [d, body<ChallengeDocument[]>(odyMapsKey(o.id, d))])) as Record<
+    OdyDiff,
+    ChallengeDocument[] | undefined
+  >;
+  const title = <span class="ev-title">{o.name}</span>;
+  if (!live) {
+    // Hard's islands once they've arrived (the chain grows to the right), meanwhile Easy's, meanwhile frames.
+    const maps = mp.hard?.length ? mp.hard : mp.easy;
+    if (noArt("odyssey", o)) {
+      return (
+        <>
+          <span class="ev-main">
+            {title}
+            {o.description && <span class="ev-desc oy-desc" title={o.description}>{o.description}</span>}
+            {dates}
+          </span>
+          <span class="ev-st">{st}</span>
+        </>
+      );
+    }
+    return (
+      <>
+        <span class="oy-chain" aria-hidden="true">
+          {maps?.length
+            ? maps.map((m, i) => (
+                <span key={i} class="oy-mf" style={{ zIndex: maps.length - i }}>
+                  <MapArt map={m.map} url={m.mapURL} size={96} alt="" />
+                  <b class="n">{i + 1}</b>
+                </span>
+              ))
+            : [0, 1, 2].map((i) => <span key={i} class="oy-mf skel" />)}
+        </span>
+        <span class="ev-main">
+          {title}
+          {o.description && <span class="ev-desc oy-desc" title={o.description}>{o.description}</span>}
+          {dates}
+        </span>
+        <span class="ev-st">{st}</span>
+      </>
+    );
+  }
+  const chain = mp.hard ?? mp.easy ?? [];
+  const ready = ODY_DIFFS.every((d) => mp[d]);
+  const prefix = (a?: ChallengeDocument[]) =>
+    !!a && !!mp.hard && a.length <= mp.hard.length && a.every((m, i) => m.map === mp.hard![i].map);
+  const aligned = { easy: prefix(mp.easy), medium: prefix(mp.medium), hard: !!mp.hard };
+  const bars = ready && aligned.easy && aligned.medium;
+  // Per island, the modes that aren't Standard and the difficulties they apply to.
+  const modes = (i: number) => {
+    const by = new Map<string, string[]>();
+    for (const d of ODY_DIFFS) {
+      const m = aligned[d] ? mp[d]?.[i] : undefined;
+      if (m && m.mode !== "Standard") by.set(m.mode, [...(by.get(m.mode) ?? []), cap(d)]);
+    }
+    return by;
+  };
+  return (
+    <>
+      <span class="oy-head">
+        <span class="oy-pill">{st}</span>
+        {title}
+        {o.description && <span class="ev-desc oy-desc" title={o.description}>{o.description}</span>}
+        {dates}
+      </span>
+      <OdyHeroes meta={body<OdysseyMetadata>(odyMetaKey(o.id, "easy"))} />
+      <span class="oy-scroll">
+        <span class="oy-voy" style={{ "--n": Math.max(chain.length, 1) }}>
+          {chain.map((m, i) => {
+            const by = modes(i);
+            return (
+              <span key={i} class={`oy-isl${i === chain.length - 1 ? " last" : ""}${i === 0 ? " first" : ""}`}>
+                <span class="oy-art">
+                  <span class="oy-mf">
+                    <MapArt map={m.map} url={m.mapURL} size={200} alt="" />
+                    <b class="n">{i + 1}</b>
+                    {by.size > 0 && (
+                      <span class="md">
+                        <Spr family="modeMedal" k={[...by.keys()].pop()!} size={26} />
+                      </span>
+                    )}
+                  </span>
+                </span>
+                <strong>{mapName(m.map)}</strong>
+                {[...by].map(([mode, ds]) => (
+                  <span key={mode} class="oy-mode">
+                    {MODE_NAME[mode] ?? human(mode)} on {ds.length === 3 ? "all difficulties" : ds.join(", ")}
+                  </span>
+                ))}
+              </span>
+            );
+          })}
+          {bars ? (
+            ODY_DIFFS.map((d, i) => (
+              <OdyBar
+                key={d}
+                d={i}
+                n={mp[d]!.length}
+                meta={body<OdysseyMetadata>(odyMetaKey(o.id, d))}
+                cta={d === "hard"}
+              />
+            ))
+          ) : (
+            <span class="oy-bar plain">
+              {ready && ODY_DIFFS.map((d) => `${cap(d)} ${mp[d]!.length}`).join(" · ") + " islands"}
+              <OdyCta bar />
+            </span>
+          )}
+        </span>
+      </span>
+      <span class="oy-cta-row">
+        <OdyCta />
+      </span>
+    </>
+  );
+}
+
 function EventRow(props: { kind: EventKind; e: AnyEvent; big?: boolean }) {
   const { kind, e, big } = props;
   const well = big ? 96 : 72;
@@ -1418,34 +1624,7 @@ function EventRow(props: { kind: EventKind; e: AnyEvent; big?: boolean }) {
     );
   }
   const o = e as Odyssey;
-  // The row's own link prefetches the Easy islands (the odyssey page opens on Easy).
-  const maps = body<ChallengeDocument[]>(odyMapsKey(o.id, "easy"));
-  const bare = noArt(kind, e);
-  const live = status(o.start, o.end).s === "live";
-  return (
-    <>
-      {!bare && (
-        <span class="ev-art well">
-          <span class="mf-n">
-            <MapArt
-              framed
-              map={maps?.[0]?.map}
-              url={maps?.[0]?.mapURL}
-              size={well}
-              alt=""
-            />
-            {maps && maps.length > 1 && <b class="more">+{maps.length - 1}</b>}
-          </span>
-        </span>
-      )}
-      <span class="ev-main">
-        <span class="ev-title">{o.name}</span>
-        {o.description && live && <span class="ev-desc">{o.description}</span>}
-        {dates}
-      </span>
-      <span class="ev-st">{st}</span>
-    </>
-  );
+  return <OdyRow o={o} st={st} dates={dates} live={status(o.start, o.end).s === "live"} />;
 }
 
 /**
@@ -3270,20 +3449,23 @@ export function CTHistory(props: { guildId: string }) {
 
 // ─────────────────────────────── odyssey
 
-/** Odyssey rewards: "MonkeyMoney:100", "Power:SuperMonkeyStorm", "InstaMonkey:DartMonkey,2-0-3", … */
+/** Sprite of one odyssey reward: "MonkeyMoney:100", "Power:SuperMonkeyStorm", "InstaMonkey:DartMonkey,2-0-3", … */
+const rewardIcon = (r: string): [string, string] => {
+  const [kind, value = ""] = r.split(":");
+  return kind === "MonkeyMoney"
+    ? ["ui", "MonkeyMoney"]
+    : kind === "Power"
+      ? ["power", value]
+      : kind === "InstaMonkey"
+        ? ["tower", value.split(",")[0]]
+        : ["", ""];
+};
+
 function Rewards(props: { rewards: string[] }) {
   return (
     <ul class="rewards">
       {props.rewards.map((r) => {
-        const [kind, value = ""] = r.split(":");
-        const [fam, k] =
-          kind === "MonkeyMoney"
-            ? ["ui", "MonkeyMoney"]
-            : kind === "Power"
-              ? ["power", value]
-              : kind === "InstaMonkey"
-                ? ["tower", value.split(",")[0]]
-                : ["", ""];
+        const [fam, k] = rewardIcon(r);
         return (
           <li key={r}>
             {fam && <Spr family={fam} k={k} size={24} label optional />}
