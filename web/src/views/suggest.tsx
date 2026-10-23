@@ -54,6 +54,7 @@ export function SuggestPage() {
   const [busy, setBusy] = useState(false);
   const [st, setSt] = useState<Status>({ kind: "idle" });
   const t0 = useRef(Date.now());
+  const tooShort = st.kind === "error" && text.trim().length < 10;
   const msg = useRef<HTMLParagraphElement>(null);
   useEffect(() => {
     if (st.kind !== "idle") msg.current?.focus();
@@ -136,7 +137,7 @@ export function SuggestPage() {
             <div class="sug-row">
               <label for="sug-text">Your suggestion</label>
               <div class="sug-field">
-                <textarea id="sug-text" maxLength={MAX} value={text} onInput={(e) => setText(e.currentTarget.value)} aria-describedby="sug-text-h" />
+                <textarea id="sug-text" maxLength={MAX} value={text} onInput={(e) => setText(e.currentTarget.value)} aria-invalid={tooShort} aria-describedby={tooShort ? "sug-text-h sug-status" : "sug-text-h"} />
               </div>
               <div class="sug-sub">
                 <span id="sug-text-h">A feature, a bug, a wrong number, anything</span>
@@ -176,7 +177,7 @@ export function SuggestPage() {
               {busy ? "Sending…" : "Send suggestion"}
             </button>
           </fieldset>
-          <p class={`sug-status${st.kind === "error" ? " err" : ""}`} role="status" aria-live="polite" tabIndex={-1} ref={msg}>
+          <p id="sug-status" class={`sug-status${st.kind === "error" ? " err" : ""}`} role="status" aria-live="polite" tabIndex={-1} ref={msg}>
             {st.kind === "error" || st.kind === "limit" ? st.msg : ""}
           </p>
           <p class="sug-priv">Only the site owner reads this.</p>

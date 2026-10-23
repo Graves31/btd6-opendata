@@ -91,6 +91,7 @@ function Chart(p: { days: { date: string; v: number }[]; label: string; from: st
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+  const [cur, setCur] = useState(-1); // roving tab stop: the focused day, else the latest
   const H = 200;
   const pad = { l: 34, r: 4, t: 8, b: 22 };
   const max = Math.max(1, ...p.days.map((d) => d.v));
@@ -118,11 +119,18 @@ function Chart(p: { days: { date: string; v: number }[]; label: string; from: st
             key={d.date}
             class={`st-day${on && !all ? " on" : ""}${on ? "" : " off"}`}
             role="button"
-            tabIndex={0}
+            tabIndex={i === (cur < 0 ? last : cur) ? 0 : -1}
+            onFocus={() => setCur(i)}
             aria-pressed={on && !all}
             aria-label={`${dayFmt(d.date)}: ${nf.format(d.v)}`}
             onClick={pick}
-            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), pick())}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") return e.preventDefault(), pick();
+              const to = e.key === "ArrowLeft" ? i - 1 : e.key === "ArrowRight" ? i + 1 : e.key === "Home" ? 0 : e.key === "End" ? last : -1;
+              if (to < 0 || to > last) return;
+              e.preventDefault();
+              (ref.current!.querySelectorAll<SVGGElement>(".st-day")[to]).focus();
+            }}
           >
             <title>{`${dayFmt(d.date)}: ${nf.format(d.v)} ${p.label.toLowerCase()}`}</title>
             <rect class="st-hit" x={pad.l + i * bw} y={pad.t} width={bw} height={H - pad.t - pad.b} />
