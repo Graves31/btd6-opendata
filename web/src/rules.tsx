@@ -10,25 +10,8 @@ import { href } from "./routes.ts";
 import { AnyHero, artName, hasArt, MODE_NAME, Spr } from "./sprite.tsx";
 import { A, Fact } from "./ui.tsx";
 
-/** In-game tower order: Primary, Military, Magic, Support. Unknown towers are appended. */
-export const TOWER_GROUPS: [string, string[]][] = [
-  ["Primary", ["DartMonkey", "BoomerangMonkey", "BombShooter", "TackShooter", "IceMonkey", "GlueGunner", "Desperado"]],
-  ["Military", ["SniperMonkey", "MonkeySub", "MonkeyBuccaneer", "MonkeyAce", "HeliPilot", "MortarMonkey", "DartlingGunner"]],
-  ["Magic", ["WizardMonkey", "SuperMonkey", "NinjaMonkey", "Alchemist", "Druid", "Mermonkey", "Skywarden"]],
-  ["Support", ["BananaFarm", "SpikeFactory", "MonkeyVillage", "EngineerMonkey", "BeastHandler"]],
-];
-export const TOWER_ORDER = TOWER_GROUPS.flatMap(([, t]) => t);
-/** Heroes in the game's (release) order. */
-export const HERO_ORDER = [
-  "Quincy", "Gwendolin", "StrikerJones", "ObynGreenfoot", "CaptainChurchill", "Benjamin", "Ezili", "PatFusty", "Adora",
-  "AdmiralBrickell", "Etienne", "Sauda", "Psi", "Geraldo", "Corvus", "Rosalia", "Silas", "DanDMonke",
-];
-
-/** `order` first, then any id the data has that we don't know yet. */
-export function inOrder(order: string[], ids: Iterable<string>): string[] {
-  const extra = [...ids].filter((id) => !order.includes(id));
-  return [...order, ...extra];
-}
+import { HERO_ORDER, heroRule, inOrder, TOWER_GROUPS, TOWER_ORDER } from "./roster.ts";
+export { HERO_ORDER, heroRule, inOrder, TOWER_GROUPS, TOWER_ORDER };
 
 // ─────────────────────────────── tier caps
 
@@ -251,11 +234,10 @@ export function hasBans(towers: TowerRestriction[] | null | undefined, powers: P
   const t = towers ?? [];
   const listed = new Set(t.filter((x) => !x.isHero && x.max !== 0).map((x) => x.tower as string));
   if (t.length && TOWER_ORDER.some((id) => !listed.has(id))) return true;
-  const heroes = t.filter((x) => x.isHero && x.tower !== "ChosenPrimaryHero");
-  const chosen = t.find((x) => x.tower === "ChosenPrimaryHero");
+  const { listed: heroes, selected } = heroRule(t);
   const heroAllowed = heroRoster ? HERO_ORDER.filter((id) => heroes.some((h) => h.tower === id && h.max !== 0)).length : heroes.filter((h) => h.max !== 0).length;
   const heroTotal = heroRoster ? HERO_ORDER.length : heroes.length;
-  if (!(chosen && chosen.max !== 0) && heroAllowed > 1 && heroAllowed < heroTotal) return true;
+  if (!selected && heroAllowed > 1 && heroAllowed < heroTotal) return true;
   return (powers ?? []).some((x) => x.max === 0);
 }
 
@@ -296,16 +278,15 @@ const HeroRuleIcon = (p: { k: "AnyHero" | "NoHero" }) =>
 /** The hero rule: your selected hero / a forced hero / a restricted roster / no heroes. */
 export function HeroRule(p: { towers: TowerRestriction[]; roster?: boolean }) {
   const ban = useBanView();
-  const listed = p.towers.filter((t) => t.isHero && t.tower !== "ChosenPrimaryHero");
+  const { listed, selected } = heroRule(p.towers);
   // `roster`: the list only names what's available (odyssey); every other hero is unavailable.
   const heroes = p.roster
     ? inOrder(HERO_ORDER, listed.map((t) => t.tower)).map((id) => listed.find((t) => t.tower === id) ?? ({ tower: id, max: 0 } as TowerRestriction))
     : listed;
-  const chosen = p.towers.find((t) => t.tower === "ChosenPrimaryHero");
   const allowed = heroes.filter((t) => t.max !== 0);
   let body: ComponentChildren;
   let roster = false;
-  if (chosen && chosen.max !== 0) {
+  if (selected) {
     // NK lists every individual hero as 0 whenever "your selected hero" is on; that isn't a ban.
     body = (
       <span class="hero-one">

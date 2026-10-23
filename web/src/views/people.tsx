@@ -1,13 +1,16 @@
 import type { ChallengeDocument, ChallengeSummary, Guild, UserProfile } from "../../../src/nk/types.ts";
-import { dailyIsOut, dailyStart, fmtWhen, abilityName, cap, dailyAuthor, dailyInfo, dailyNeighbour, dailyTitle, fmtCompact, fmtDate, fmtInt, fmtPct, human, unitName } from "../format.ts";
+import { dailyIsOut, dailyStart, fmtWhen, abilityName, cap, dailyAuthor, dailyInfo, dailyTitle, fmtCompact, fmtDate, fmtInt, fmtPct, human, unitName } from "../format.ts";
+import { dailyNeighbours } from "../challenges.ts";
+import { ctTierName } from "../medals.ts";
 import { Freshness } from "../fresh.tsx";
 import { Ruleset } from "../rules.tsx";
-import { challengeKey, DAILY_KEY, guildKey, href, idFromUrl, userKey } from "../routes.ts";
+import { challengeKey, DAILY_KEY, guildKey, href, idFromUrl, isPublicId, userKey } from "../routes.ts";
 import { hasArt, MEDAL_NAME, MODE_NAME, Spr } from "../sprite.tsx";
 
 import { A, body, Emblem, Gate, Img, Section, Stat } from "../ui.tsx";
 import { backTo } from "../nav.ts";
 import { CTHistory, EventHead } from "./events.tsx";
+import { ErrorPanel } from "./errors.tsx";
 
 /** Event medal tiers, best first (the game's order). Position encodes the tier. */
 const MEDAL_ORDER = ["BlackDiamond", "RedDiamond", "BlueDiamond", "GoldDiamond", "DoubleGold", "GoldSilver", "DoubleSilver", "Silver", "Bronze"];
@@ -247,6 +250,7 @@ function SeasonBadges(props: { badges: Record<string, { id: string; url: string;
 }
 
 export function PlayerPage(props: { id: string }) {
+  if (!isPublicId(props.id)) return <ErrorPanel code="private" what="player" />; // maybe an OAK: never requested
   const key = userKey(props.id);
   const u = body<UserProfile>(key);
   if (!u) return <Gate k={key} rows={10} />;
@@ -372,8 +376,6 @@ const CT_BADGE_ROWS: [scope: string, label: string, prefix: string][] = [
   ["Global", "Global ranking", "ctTeam"],
   ["Local", "Group ranking", "ctGroup"],
 ];
-/** The game's name for the API's BlueDiamond tier (its sprites: CtGlobalTeamDiamondMedal, CtLocalTeamDiamondMedal). */
-const ctTierName = (t: string) => (t === "BlueDiamond" ? "Diamond" : (MEDAL_NAME[t] ?? human(t)));
 
 /**
  * Earned tiers per ranking only, in the game's art, plus one muted "N not earned". The API has no count for
@@ -445,6 +447,7 @@ const longWord = (s: string) => (s.split(/\s+/).some((w) => w.length > 12) ? " n
 const TEAM_STATUS: Record<string, string> = { OPEN: "Open to join", FILTERED: "Join by request", CLOSED: "Closed", DISBANDED: "Disbanded" };
 
 export function TeamPage(props: { id: string }) {
+  if (!isPublicId(props.id)) return <ErrorPanel code="private" what="team" />;
   const key = guildKey(props.id);
   const t = body<Guild>(key);
   if (!t) return <Gate k={key} rows={6} />;
@@ -483,27 +486,8 @@ export function TeamPage(props: { id: string }) {
   );
 }
 
-/** Previous / next daily of the same series. Numbered dailies are computed from the id (NK keeps old ones);
- * co-op dailies follow the order of the daily feed. `next` only once it has been published. */
-function dailyNeighbours(id: string): { prev: string | null; next: string | null } {
-  const info = dailyInfo(id);
-  if (!info) return { prev: null, next: null };
-  const feed = body<ChallengeSummary[]>(DAILY_KEY) ?? [];
-  if (info.kind === "coop") {
-    const coop = feed.filter((c) => dailyInfo(c.id)?.kind === "coop" && c.createdAt <= Date.now()).sort((x, y) => x.createdAt - y.createdAt);
-    const i = coop.findIndex((c) => c.id === id);
-    return i < 0 ? { prev: null, next: null } : { prev: coop[i - 1]?.id ?? null, next: coop[i + 1]?.id ?? null };
-  }
-  const prev = dailyNeighbour(id, -1);
-  const next = dailyNeighbour(id, 1);
-  const nextDay = next ? dailyInfo(next)?.day : null;
-  // Dailies appear at about 01:40 UTC on their date.
-  const published = !!next && (feed.some((c) => c.id === next) || (nextDay != null && Date.now() >= nextDay + 2 * 3_600_000));
-  return { prev, next: published ? next : null };
-}
-
 function DailyNav(props: { id: string }) {
-  const { prev, next } = dailyNeighbours(props.id);
+  const { prev, next } = dailyNeighbours(props.id, body<ChallengeSummary[]>(DAILY_KEY) ?? [], Date.now());
   const label = (id: string) => dailyTitle(id) ?? id;
   return (
     <nav class="daynav" aria-label="Other daily challenges">

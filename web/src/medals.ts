@@ -4,6 +4,8 @@
 // Percent brackets need the board's total entries; without it (co-op boss boards: NK publishes no total) only
 // the rank brackets are applied — nothing is guessed.
 
+import { human } from "./format.ts";
+
 export type Board = "boss" | "bossElite" | "race" | "ctPlayer" | "ctTeam" | "ctGroup";
 
 /** [tier, best rank that qualifies | null, top fraction | null], best tier first. */
@@ -76,6 +78,9 @@ export const MEDAL_NAME: Record<string, string> = {
  */
 export const medalName = (board: Board, tier: string) =>
   tier === "BlueDiamond" && (board === "ctTeam" || board === "ctGroup") ? "Diamond" : (MEDAL_NAME[tier] ?? tier);
+
+/** A CT ranking tier on a profile page (the game's "Diamond" for BlueDiamond; unknown tiers humanised). */
+export const ctTierName = (t: string) => (t === "BlueDiamond" ? "Diamond" : (MEDAL_NAME[t] ?? human(t)));
 
 /** eventMedal art prefix per board (bare keys are the race set). */
 const ART_PREFIX: Record<Board, string> = {

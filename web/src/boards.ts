@@ -1,4 +1,4 @@
-// Pure leaderboard logic shared by the event views (FE-A). No DOM, no store: unit-tested in test/events.test.ts.
+// Pure leaderboard logic shared by the event views. No DOM, no store: unit-tested in test/events.test.ts.
 
 import type { ScorePart } from "../../src/nk/types.ts";
 import { fixParts, fmtInt } from "./format.ts";

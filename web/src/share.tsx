@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import type { ChallengeDocument, TowerRestriction } from "../../src/nk/types.ts";
 import { ART } from "./art/index.ts";
 import { fmtInt, fmtRounds, fmtWhen, mapName, status, unitName } from "./format.ts";
-import { CATEGORY, DEFAULT_PARAGONS, HERO_ORDER, inOrder, modifierRows, NO_TOWER_CAP, TOWER_ORDER, tierCaps, x } from "./rules.tsx";
+import { CATEGORY, DEFAULT_PARAGONS, heroRule, inOrder, modifierRows, NO_TOWER_CAP, TOWER_ORDER, tierCaps, x } from "./rules.tsx";
 import { mapSrc, MODE_NAME, spriteCell } from "./sprite.tsx";
 
 export interface CardSpec {
@@ -49,10 +49,8 @@ export function factChips(d: ChallengeDocument): { icon: string; fam?: string; t
 
 /** The hero rule: one icon + name (any / none / a single hero), else the allowed heroes. */
 export function heroCells(towers: TowerRestriction[]): { id: string; name: string }[] {
-  const listed = towers.filter((t) => t.isHero && t.tower !== "ChosenPrimaryHero");
-  const chosen = towers.find((t) => t.tower === "ChosenPrimaryHero");
-  const allowed = inOrder(HERO_ORDER, listed.map((t) => t.tower)).filter((id) => listed.some((t) => t.tower === id && t.max !== 0));
-  if ((chosen && chosen.max !== 0) || allowed.length === listed.length) return [{ id: "AnyHero", name: "Any hero" }];
+  const { listed, selected, allowed } = heroRule(towers);
+  if (selected || allowed.length === listed.length) return [{ id: "AnyHero", name: "Any hero" }];
   if (!allowed.length) return [{ id: "NoHero", name: "No heroes" }];
   return allowed.map((id) => ({ id, name: unitName(id) }));
 }

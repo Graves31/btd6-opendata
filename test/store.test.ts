@@ -96,4 +96,21 @@ describe("client store", () => {
     assert.equal(e.ok, false);
     assert.equal(e.data.error, "No Scores Available");
   });
+  it("re-reading /api/now does not re-put entries whose data did not change", async () => {
+    const t = makeEnv();
+    await refreshHot(t.deps);
+    const clock = { now: 1_000_000 };
+    let received = 0;
+    const store = new Store({ fetch: async (u) => handleApi(t.deps, get(u)), now: () => clock.now, onEntry: () => received++ });
+    await store.loadNow(true);
+    const first = received;
+    const keys = [...(store as unknown as { map: Map<string, unknown> }).map.keys()];
+    const before = new Map(keys.map((k) => [k, store.peek(k)]));
+    clock.now += 3 * MIN;
+    await store.loadNow(true);
+    assert.ok(first > 0);
+    assert.equal(received, first, "no entry was put again");
+    for (const k of keys) assert.equal(store.peek(k), before.get(k), k);
+    assert.ok(store.isFresh(keys[0]), "freshness was extended");
+  });
 });

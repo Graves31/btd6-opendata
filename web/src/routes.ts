@@ -11,7 +11,12 @@ export type EventKind = "boss" | "race" | "ct" | "odyssey";
 export type BossDiff = "standard" | "elite";
 export type OdyDiff = "easy" | "medium" | "hard";
 export type CTTab = "players" | "teams" | "tiles";
-export type ChallengeFilter = "daily" | "newest" | "trending";
+export const CHALLENGE_FILTERS = ["daily", "newest", "trending"] as const;
+export type ChallengeFilter = (typeof CHALLENGE_FILTERS)[number];
+export const CHALLENGE_LABEL: Record<ChallengeFilter, string> = { daily: "Daily", newest: "Newest", trending: "Trending" };
+
+/** A public player / team id (48 hex). Anything else may be a private OAK and is never put in a key or request. */
+export const isPublicId = (id: string) => /^[0-9a-f]{48}$/.test(id);
 
 export type Route =
   | { name: "home" }
@@ -317,9 +322,9 @@ export function needs(r: Route): string[] {
     case "odyssey":
       return [LIST_KEY.odyssey, odyMetaKey(r.id, r.d), odyMapsKey(r.id, r.d)];
     case "player":
-      return [userKey(r.id)];
+      return isPublicId(r.id) ? [userKey(r.id)] : [];
     case "team":
-      return [guildKey(r.id), teamHistoryKey(r.id)];
+      return isPublicId(r.id) ? [guildKey(r.id), teamHistoryKey(r.id)] : [];
     case "challenge":
       return [challengeKey(r.id), DAILY_KEY]; // prev/next + author need the daily feed
     case "challenges":
@@ -409,8 +414,8 @@ export function parse(url: URL): Route {
     };
     return { name: "pgscaling", d: deg("d"), to: deg("to") };
   }
-  if (a === "challenges" && !c && (!b || ["daily", "newest", "trending"].includes(b))) {
-    const filter = (b ?? "daily") as ChallengeFilter;
+  if (a === "challenges" && !c && (!b || (CHALLENGE_FILTERS as readonly string[]).includes(b))) {
+    const filter = oneOf(b ?? null, CHALLENGE_FILTERS, "daily");
     return { name: "challenges", filter, p: filter === "daily" ? 1 : int(q.get("p"), 1, 1, 50) };
   }
   return { name: "notfound" };

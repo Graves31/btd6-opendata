@@ -9,7 +9,6 @@ import type { ChallengeDocument, ChallengeSummary, UserProfile } from "../../../
 import {
   dailyAuthor,
   dailyInfo,
-  dailyIsOut,
   dailyNeighbour,
   dailyStart,
   dailyTitle,
@@ -19,56 +18,26 @@ import {
   fmtPct,
   fmtRounds,
   mapName,
-  unitName,
 } from "../format.ts";
 import { Freshness } from "../fresh.tsx";
 import { navigate, store } from "../nav.ts";
-import { TOWER_ORDER } from "../rules.tsx";
-import { challengeKey, challengeListKey, DAILY_KEY, href, idFromUrl, userKey, type ChallengeFilter } from "../routes.ts";
+import { CHALLENGE_FILTERS, CHALLENGE_LABEL, challengeKey, challengeListKey, DAILY_KEY, href, idFromUrl, userKey, type ChallengeFilter } from "../routes.ts";
+import { dayBadge, matchesText, olderDaily, ruleChipData, searchTargets, splitDaily, type Kind, type Series } from "../challenges.ts";
 import { MapArt, MODE_NAME, Spr } from "../sprite.tsx";
 import { A, body, Bug, EvIcon, Gate, peek, Section, Tabs } from "../ui.tsx";
 
-const CHALLENGE_FILTERS: readonly ChallengeFilter[] = ["daily", "newest", "trending"];
 const BLURB: Record<ChallengeFilter, string> = {
   daily: "A new standard and advanced challenge every day, plus the co-op daily. Open one for its full rules and win rate.",
   newest: "The latest challenges players have published in the game's challenge browser.",
   trending: "Player challenges getting the most plays right now.",
 };
+const FIRST_FACT = 1; // lines[0] is the blurb (see ChallengesPage), the facts follow
 const PAGE_SIZE = 25; // NK's page size for the newest / trending feeds
 
-type Kind = NonNullable<ReturnType<typeof dailyInfo>>["kind"];
-type Series = { kind: Kind; label: string; cur?: ChallengeSummary; items: ChallengeSummary[] };
-
-const SERIES: [Kind, string][] = [
-  ["standard", "Daily"],
-  ["advanced", "Advanced daily"],
-  ["coop", "Co-op daily"],
-];
 const NOW_LABEL = { standard: "Standard", advanced: "Advanced", coop: "Co-op" } as const;
-
-const hm = new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" });
-
-/** "Today" for the daily live in game now, "Starts 10:00" (viewer's time) for the next one, else nothing. */
-function dayBadge(id: string, now: number): string | undefined {
-  const s = dailyStart(id);
-  if (s === null) return undefined;
-  if (now >= s) return now < s + 86_400_000 ? "Today" : undefined;
-  return s - now <= 86_400_000 ? `Starts ${hm.format(s)}` : undefined;
-}
 
 const media = (q: string) => typeof matchMedia === "function" && matchMedia(q).matches;
 const docOf = (id: string) => body<ChallengeDocument>(challengeKey(id));
-
-/** Per series: the daily live in game now (co-op: the newest), shown big up top; the rest listed below. */
-function splitDaily(list: ChallengeSummary[], now: number): Series[] {
-  return SERIES.map(([kind, label]) => {
-    const all = list
-      .filter((c) => dailyInfo(c.id)?.kind === kind && (kind !== "coop" || c.createdAt <= now + 3_600_000))
-      .sort((a, b) => b.createdAt - a.createdAt);
-    const cur = all.find((c) => dailyIsOut(c.id, now)); // newest started = the one in game now
-    return { kind, label, cur, items: all.filter((c) => c !== cur) };
-  });
-}
 
 const winRate = (d: ChallengeDocument | undefined) => (d?.playsUnique ? d.winsUnique / d.playsUnique : null);
 
@@ -118,7 +87,7 @@ function Sub(props: { lines: string[] }) {
     const t = setInterval(() => setI((x) => x + 1), 6000);
     return () => clearInterval(t);
   }, [still, lines.length]);
-  const cur = still ? Math.min(1, lines.length - 1) : i % lines.length; // still: the first fact, else the blurb
+  const cur = still ? Math.min(FIRST_FACT, lines.length - 1) : i % lines.length; // still: the first fact, else the blurb
   return (
     <div class="chl-sub">
       <span class="chl-sub-l">
@@ -139,28 +108,16 @@ function Sub(props: { lines: string[] }) {
   );
 }
 
-type Sugg = { href: string; text: ComponentChildren; daily?: boolean };
-
 /** What the search text can open directly: a challenge code, a daily id, or a daily number (both series). */
 function suggestions(raw: string, daily: ChallengeSummary[] | undefined): Sugg[] {
-  const out: Sugg[] = [];
-  if (dailyInfo(raw.toLowerCase())) {
-    const id = raw.toLowerCase();
-    out.push({ href: href.challenge(id), daily: true, text: <>Open {dailyTitle(id)}</> });
-  } else if (/^[a-z]{7}$/i.test(raw)) {
-    const code = raw.toUpperCase();
-    out.push({ href: href.challenge(code), text: <>Open challenge <b class="mono">{code}</b></> });
-  }
-  const num = /^#?(\d{1,5})$/.exec(raw);
-  if (num && daily) {
-    for (const kind of ["standard", "advanced"] as const) {
-      const known = daily.find((c) => dailyInfo(c.id)?.kind === kind && dailyInfo(c.id)?.n != null);
-      const id = known && dailyNeighbour(known.id, Number(num[1]) - dailyInfo(known.id)!.n!);
-      if (id && Number(num[1]) > 0) out.push({ href: href.challenge(id), daily: true, text: <>Open {dailyTitle(id)}</> });
-    }
-  }
-  return out;
+  return searchTargets(raw, daily).map((t) => ({
+    href: href.challenge(t.id),
+    daily: t.daily,
+    text: t.code ? <>Open challenge <b class="mono">{t.code}</b></> : <>Open {dailyTitle(t.id)}</>,
+  }));
 }
+
+type Sugg = { href: string; text: ComponentChildren; daily?: boolean };
 
 export function ChallengesPage(props: { filter: ChallengeFilter; p: number }) {
   const key = challengeListKey(props.filter, props.p);
@@ -188,13 +145,10 @@ export function ChallengesPage(props: { filter: ChallengeFilter; p: number }) {
   const raw = q.trim();
   const sugg = raw ? suggestions(raw, feed) : [];
   const needle = /^#?\d+$/.test(raw) ? "" : raw.toLowerCase(); // numbers open dailies; they don't filter
+  const older = props.filter === "daily" ? olderDaily(series) : undefined;
   const olderHref =
     props.filter === "daily"
-      ? (() => {
-          const s = series[0]?.items.at(-1);
-          const o = s && dailyNeighbour(s.id, -1);
-          return o ? href.challenge(o) : undefined;
-        })()
+      ? older && href.challenge(older)
       : next
         ? href.challenges(props.filter, props.p + 1)
         : undefined;
@@ -214,7 +168,7 @@ export function ChallengesPage(props: { filter: ChallengeFilter; p: number }) {
           label="Challenge lists"
           items={CHALLENGE_FILTERS.map((f) => ({
             href: href.challenges(f),
-            label: f === "daily" ? "Daily" : f === "newest" ? "Newest" : "Trending",
+            label: CHALLENGE_LABEL[f],
             current: f === props.filter,
           }))}
         />
@@ -286,7 +240,7 @@ function matches(c: ChallengeSummary, needle: string): boolean {
   const cid = c.creator ? idFromUrl(c.creator) : null;
   const who = dailyAuthor(c.name) ?? (cid ? body<UserProfile>(userKey(cid))?.displayName : "") ?? "";
   const d = docOf(c.id);
-  return [c.name, who, d ? mapName(d.map) : ""].some((s) => s.toLowerCase().includes(needle));
+  return matchesText([c.name, who, d ? mapName(d.map) : ""], needle);
 }
 
 /** "N of M on this page match", or the empty card when none does. */
@@ -398,48 +352,12 @@ const Chip = (p: { icon: ComponentChildren; children: ComponentChildren }) => (
 const ui = (k: string) => <Spr family="ui" k={k} size={24} label optional />;
 
 /** Rules worth a chip, only when unusual and only from the document: hero lock, tower cap, 1 life, no powers. */
-function ruleChips(d: ChallengeDocument): ComponentChildren[] {
-  const out: ComponentChildren[] = [];
-  const t = d._towers;
-  if (t) {
-    const chosen = t.find((x) => x.tower === "ChosenPrimaryHero");
-    if (!(chosen && chosen.max !== 0)) {
-      const heroes = t.filter((x) => x.isHero && x.tower !== "ChosenPrimaryHero" && x.max !== 0);
-      if (heroes.length === 1)
-        out.push(
-          <Chip key="h" icon={<Spr family="hero" k={heroes[0].tower} size={24} label optional />}>
-            {unitName(heroes[0].tower)} only
-          </Chip>,
-        );
-      else if (!heroes.length)
-        out.push(
-          <Chip key="h" icon={<Spr family="hero" k="NoHero" size={24} label optional />}>
-            No hero
-          </Chip>,
-        );
-    }
-    const n = t.filter((x) => !x.isHero && x.max !== 0).length;
-    if (n < TOWER_ORDER.length)
-      out.push(
-        <Chip key="t" icon={ui("MaxTowers")}>
-          {n} / {TOWER_ORDER.length} towers
-        </Chip>,
-      );
-  }
-  if (d.lives === 1)
-    out.push(
-      <Chip key="l" icon={ui("StartingLives")}>
-        1 life
-      </Chip>,
-    );
-  if (d.disablePowers)
-    out.push(
-      <Chip key="p" icon={ui("PowersDisabled")}>
-        No powers
-      </Chip>,
-    );
-  return out;
-}
+const ruleChips = (d: ChallengeDocument) =>
+  ruleChipData(d).map((c) => (
+    <Chip key={c.key} icon={<Spr family={c.family} k={c.icon} size={24} label optional />}>
+      {c.text}
+    </Chip>
+  ));
 
 /** Medal for an unusual mode / difficulty (top right of the art). */
 const Medal = (p: { d?: ChallengeDocument }) => {

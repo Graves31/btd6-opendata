@@ -29,6 +29,7 @@ import {
   dailyAuthor,
   dailyTitle,
   fmtCompact,
+  dayMonUtc,
   fmtDate,
   fmtDay,
   fmtInt,
@@ -63,6 +64,7 @@ import {
 } from "../medals.ts";
 import { eventGap, eventHistory, mapMetaKeys, type HistEvent } from "../maps.ts";
 import { backTo, onRoute, store } from "../nav.ts";
+import type { Envelope } from "../store.ts";
 import { ctLeader, homePicks } from "../picks.ts";
 import {
   bossBoardKey,
@@ -91,10 +93,9 @@ import {
 import {
   Crew,
   hasBans,
-  HERO_ORDER,
+  heroRule,
   HeroRule,
   HideBannedToggle,
-  inOrder,
   MapLine,
   modeIcon,
   PowerGrid,
@@ -126,6 +127,7 @@ import {
   Submitted,
   Tabs,
   useFullRender,
+  useTick,
   When,
 } from "../ui.tsx";
 import { errorKind, NotFound } from "./errors.tsx";
@@ -224,7 +226,7 @@ function isMissing(...keys: string[]): boolean {
     const msg = String(e.data?.error ?? "");
     return (
       msg !== "No Scores Available" &&
-      errorKind({ message: msg, code: e.data?.code }) === "notfound"
+      errorKind({ message: msg, code: e.data?.code === undefined ? undefined : String(e.data.code) }) === "notfound"
     );
   });
 }
@@ -998,7 +1000,6 @@ const monthYear = new Intl.DateTimeFormat("en-GB", { month: "short", year: "nume
 export const OLD_NOTE = { restarted: "Restarted", "taken down": "Taken down", special: "1-day special" } as const;
 
 const dayMon = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" });
-const dayMonUtc = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
 /** Short "10 Oct" of a history row's start and end (the year sits in the header); calendar-day rows read in UTC. */
 function histDates(e: HistEvent): [string, string] {
   const f = e.day ? dayMonUtc : dayMon;
@@ -1296,16 +1297,12 @@ const ODY_DIFFS = ["easy", "medium", "hard"] as const;
 function OdyHeroes(props: { meta?: OdysseyMetadata }) {
   const towers = props.meta?._availableTowers;
   if (!towers) return null;
-  const listed = towers.filter((t) => t.isHero && t.tower !== "ChosenPrimaryHero");
-  const chosen = towers.find((t) => t.tower === "ChosenPrimaryHero");
-  const allowed = inOrder(HERO_ORDER, listed.map((t) => t.tower)).filter((id) =>
-    listed.some((t) => t.tower === id && t.max !== 0),
-  );
+  const { selected, allowed } = heroRule(towers);
   return (
     <span class="oy-side">
       <span class="kicker">Heroes allowed</span>
-      {(chosen && chosen.max !== 0) || allowed.length === 0 ? (
-        <span class="oy-hero-w">{chosen && chosen.max !== 0 ? "Any hero" : "No heroes"}</span>
+      {selected || allowed.length === 0 ? (
+        <span class="oy-hero-w">{selected ? "Any hero" : "No heroes"}</span>
       ) : (
         <span class="oy-heroes">
           {allowed.map((id) => (
@@ -1639,12 +1636,12 @@ function ctGone(c: CT): boolean {
 }
 
 /** A loaded board that is empty, "No Scores Available" or "no such id" (not a transient error / rate limit). */
-function boardGone(e: { ok: boolean; data?: any }): boolean {
+function boardGone(e: { ok: boolean; data?: Envelope }): boolean {
   if (e.ok) return !(e.data?.body as unknown[] | undefined)?.length;
   const msg = String(e.data?.error ?? "");
   return (
     msg === "No Scores Available" ||
-    errorKind({ message: msg, code: e.data?.code }) === "notfound"
+    errorKind({ message: msg, code: e.data?.code === undefined ? undefined : String(e.data.code) }) === "notfound"
   );
 }
 
@@ -1679,15 +1676,6 @@ function useFits<T extends HTMLElement>() {
     };
   }, []);
   return ref;
-}
-
-/** Text that re-renders each second-ish while mounted (a countdown that shouldn't freeze under a ticking bug). */
-function useTick(ms = 1000) {
-  const [, set] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => set((x) => x + 1), ms);
-    return () => clearInterval(t);
-  }, [ms]);
 }
 
 // ─────────────────────────────── boss header (boss page + home)
@@ -3373,16 +3361,13 @@ export function CTHistory(props: { guildId: string }) {
       live = false;
     };
   }, [key]);
-  const raw = e?.ok
-    ? (e.data as (TeamHistory & { body?: TeamHistory }) | undefined)
-    : undefined;
-  const h = raw?.body ?? raw;
+  const h = e?.ok ? (e.data as unknown as TeamHistory) : undefined; // the Worker answers with the bare TeamHistory
   const entries = Array.isArray(h?.entries) ? h.entries : undefined;
   const aside = entries?.length
     ? `${entries.length} CT${entries.length === 1 ? "" : "s"} archived`
     : undefined;
   // Nothing to list (empty archive or endpoint unavailable): one muted line, no empty section.
-  if (entries ? !entries.length : settled) {
+  if (entries ? !entries.length : settled || e?.ok === false) {
     return (
       <p class="quiet ct-hist-none">
         {entries

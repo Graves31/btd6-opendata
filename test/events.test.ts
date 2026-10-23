@@ -1,4 +1,4 @@
-// FE-A: event-page logic that doesn't need a DOM — co-op grouping, medal cut-offs, freshness text, routes.
+// event-page logic that doesn't need a DOM — co-op grouping, medal cut-offs, freshness text, routes.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { ScorePart } from "../src/nk/types.ts";

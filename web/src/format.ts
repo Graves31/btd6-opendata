@@ -61,12 +61,12 @@ export const scoringShort = (t: string | undefined) => (t ? (SCORING[t]?.short ?
 
 const dtf = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 export const fmtDate = (ms: number) => dtf.format(ms);
-const oldDay = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+export const dayMonUtc = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
 /** Wiki calendar days ("2021-07-26", or its UTC-midnight ms) → "26 Jul – 29 Jul 2021" (the year once, or on both ends across New Year). */
 export function oldDates(a: string | number, b: string | number): string {
   const [x, y] = [new Date(a), new Date(b)];
   const [ya, yb] = [x.getUTCFullYear(), y.getUTCFullYear()];
-  return `${oldDay.format(x)}${ya !== yb ? ` ${ya}` : ""} – ${oldDay.format(y)} ${yb}`;
+  return `${dayMonUtc.format(x)}${ya !== yb ? ` ${ya}` : ""} – ${dayMonUtc.format(y)} ${yb}`;
 }
 const dayf = new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" });
 export const fmtDay = (ms: number) => dayf.format(ms);
@@ -257,6 +257,9 @@ export function dailyAuthor(name: string | null | undefined): string | null {
   const m = /^(.+?)'?s\s+Chal\w*$/i.exec(bare.trim());
   return m ? m[1] : null;
 }
+
+/** Lower-case without diacritics, for search ("Café" matches "cafe"). */
+export const plain = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
 export const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 

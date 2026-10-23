@@ -1,5 +1,4 @@
-// Freshness labels ("Updated 3 min ago", "Final", "Top 1,000 of 13,546") — owned by FE-A.
-// Replaces the old "page opened in X ms · cached" footer. Used on every data page (FE-B uses it on people pages).
+// Freshness labels ("Updated 3 min ago", "Final", "Top 1,000 of 13,546").
 
 import { useEffect, useState } from "preact/hooks";
 import { freshParts } from "./boards.ts";

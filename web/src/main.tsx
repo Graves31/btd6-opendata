@@ -378,7 +378,7 @@ function App() {
         </button>
       </nav>
       <div class="scrim" hidden={!more} onClick={() => (setMore(false), moreBtn.current?.focus())} />
-      <div class="sheet" id="more-sheet" ref={sheet} data-open={more ? "" : undefined}>
+      <div class="sheet" id="more-sheet" role="group" aria-label="More sections" ref={sheet} data-open={more ? "" : undefined}>
         {SHEET.map(([h, label, sec]) => (
           <A key={h} href={h} class={section(r) === sec ? "on" : undefined} current={section(r) === sec && location.pathname === h}>
             {sectionIcon(sec)}
@@ -387,11 +387,11 @@ function App() {
         ))}
       </div>
       <p class="vh" role="status" aria-live="polite" ref={live} />
-      <main id="main" tabIndex={-1}>
+      <main id="main" tabIndex={-1} inert={more}>
         <BackLink r={r} />
         <Page r={r} />
       </main>
-      <footer>
+      <footer inert={more}>
         <div class="ft-top">
           <p class="ft-brand">
             <A href="/">btd6data.com</A>

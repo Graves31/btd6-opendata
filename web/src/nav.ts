@@ -37,10 +37,10 @@ const persist: Persist = {
 
 /** Warm the browser image cache for pictures a prefetched page will show (our own map art when we have it). */
 function warmImages(e: ClientEntry): void {
-  const b = e.data?.body;
+  const b = e.data?.body as Record<string, string | undefined | null> | undefined;
   if (!b || typeof b !== "object" || Array.isArray(b)) return;
   for (const f of ["avatarURL", "bannerURL", "iconURL", "mapURL"]) {
-    const u = f === "mapURL" ? mapSrc(b.map, b.mapURL) : b[f];
+    const u = f === "mapURL" ? mapSrc(b.map ?? undefined, b.mapURL) : b[f];
     if (typeof u === "string" && (u.startsWith("https://static-api.nkstatic.com/") || u.startsWith("/"))) new Image().src = u;
   }
 }

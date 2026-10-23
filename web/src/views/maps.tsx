@@ -4,7 +4,7 @@ import { useEffect, useState } from "preact/hooks";
 import { BOSS_HISTORY_SOURCE } from "../data/bossHistory.ts";
 import { RACE_HISTORY_SOURCE } from "../data/raceHistory.ts";
 import { MAP_LIST } from "../data/names.ts";
-import { bossName, bossTitle, fmtDate, mapName, oldDates } from "../format.ts";
+import { bossName, bossTitle, fmtDate, mapName, oldDates, plain } from "../format.ts";
 import { DIFF_ICON, DIFF_LABEL, fmtAgo, mapCounts, mapEvents, mapMetaKeys, type MapEvent } from "../maps.ts";
 import { navigate, store } from "../nav.ts";
 import { historyKey, href, LIST_KEY, type MapSort, type MapsRoute } from "../routes.ts";
@@ -21,7 +21,6 @@ const SORTS: [MapSort, string][] = [
   ["races", "Most races"],
   ["az", "A–Z"],
 ];
-const plain = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
 /** Lists and metadata still on their way: "none" can't be said yet. */
 function useMapData(): boolean {

@@ -10,10 +10,20 @@
 //
 // Stale entries are still served (stale-while-revalidate); `want` refreshes them in the background.
 
+/** What an entry's data looks like: NK's envelope (+ the Worker's error shape), or raw JSON for /api keys. */
+export interface Envelope {
+  success?: boolean;
+  body?: unknown;
+  error?: string;
+  code?: string | number;
+  next?: string;
+  maxPages?: number;
+}
+
 export interface ClientEntry {
   key: string;
   /** NK envelope (model-stripped) for /btd6 keys, raw JSON for /api keys. */
-  data: any;
+  data: Envelope;
   ok: boolean;
   /** Server-side fetch time of the data (null when unknown). */
   fetchedAt: number | null;
@@ -63,7 +73,7 @@ interface BatchLine {
   f: 0 | 1;
   t: number | null;
   c: string;
-  b: any;
+  b: Envelope;
 }
 
 export class Store {
@@ -243,11 +253,18 @@ export class Store {
     }
   }
 
-  private put(p: { key: string; data: any; ok: boolean; fetchedAt: number | null; maxAgeS: number }): void {
+  private put(p: { key: string; data: Envelope; ok: boolean; fetchedAt: number | null; maxAgeS: number }): void {
     const now = this.opts.now();
     const old = this.map.get(p.key);
     // Never replace newer data with older (e.g. a slow batch line after a fresher /api/now).
     if (old && old.fetchedAt !== null && p.fetchedAt !== null && p.fetchedAt < old.fetchedAt) return;
+    // Same server fetch again (every /api/now re-read): keep the entry, only extend its freshness. No IndexedDB
+    // write, no re-render.
+    if (old && old.fetchedAt !== null && old.fetchedAt === p.fetchedAt && old.ok === p.ok && JSON.stringify(old.data) === JSON.stringify(p.data)) {
+      old.receivedAt = now;
+      old.freshUntil = now + Math.max(MIN_FRESH_MS, p.maxAgeS * 1000);
+      return;
+    }
     const e: ClientEntry = {
       key: p.key,
       data: p.data,
@@ -274,7 +291,7 @@ export class Store {
         if (!res.ok) return;
         const bundle = (await res.json()) as {
           featured: Record<string, string | null>;
-          entries: Record<string, { fetchedAt: number; ok: boolean; data: any }>;
+          entries: Record<string, { fetchedAt: number; ok: boolean; data: Envelope }>;
         };
         this.featured = bundle.featured ?? {};
         for (const [key, e] of Object.entries(bundle.entries ?? {})) {
@@ -301,7 +318,7 @@ export class Store {
         if (!this.map.has(e.key)) this.map.set(e.key, e);
       }
       const featured = this.map.get("__featured");
-      if (featured) this.featured = featured.data;
+      if (featured) this.featured = featured.data as unknown as Record<string, string | null>;
       this.notify();
     } catch {
       // private mode / blocked storage: run from memory only

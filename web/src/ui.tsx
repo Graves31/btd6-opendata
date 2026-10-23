@@ -132,7 +132,7 @@ export function body<T>(key: string): T | undefined {
 }
 
 /**
- * Loading / error / empty states for one key. Returns null when the data is ready. (FE-B owns this function.)
+ * Loading / error / empty states for one key. Returns null when the data is ready.
  * Errors go through ErrorPanel/NotFound with human wording; both the NK envelope ({success:false, error}) and the
  * Worker's {error, code} shape are read. Rate-limited keys (the store keeps no entry for a 429) show a
  * "retrying…" panel and are re-requested when the back-off ends; a load that hangs offers a retry.
@@ -262,7 +262,7 @@ export function Emblem(props: { frame?: string; icon?: string; size: number; eag
 /** One shared timer per period; each stops when no clock on the page uses it. */
 const tickers = new Map<number, { subs: Set<() => void>; timer: ReturnType<typeof setInterval> }>();
 /** Re-render every `ms` (default once a second) from the shared timer for that period. */
-function useTick(ms = 1000): number {
+export function useTick(ms = 1000): number {
   const [, set] = useState(0);
   useEffect(() => {
     const fn = () => set((x) => x + 1);

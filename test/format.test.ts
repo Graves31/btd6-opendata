@@ -46,7 +46,7 @@ describe("medal brackets", () => {
   });
 });
 
-// ── FE-B: time zones, names, dailies
+// ── time zones, names, dailies
 import { abilityName, bossNum, bossParts, bossTitle, dailyAuthor, dailyInfo, dailyNeighbour, dailyTitle, mapName, tzLabel } from "../web/src/format.ts";
 
 describe("time zone label per date", () => {
