@@ -842,7 +842,7 @@ function StatsBody(props: {
               )}
             </p>
           )}
-          {same && (
+          {same && anyFx && (
             <p class="bs-every">
               <strong>Every skull:</strong> <Effects list={fx[0]} />
             </p>
