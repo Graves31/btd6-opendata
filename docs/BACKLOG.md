@@ -23,10 +23,10 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
   neutral row-hover edge. Left for a small TSX pass: `theme.tsx`/`index.html` always set `data-theme` (css#2, so the
   light theme stops being written twice), `Emblem` inline size (css#6), `Rank` `plate bare` (css#7), dead
   `ScoringPair` `compact` prop; interaction#24 (CT history can't link a group: archive has no group id).
-- **Daily challenges list: map art on every row** (2026-09-27). Older dailies show an empty grey well until
-  hovered, because the map comes from each daily's challenge document, loaded on link intent. Fix = load the
-  documents of the rows on screen when the list opens: one NK request per daily, fetched once and cached for
-  good (dailies never change).
+- **Challenges: filter chips and sort by win rate** (2026-10-23, from the challenges review). Difficulty, map and
+  hero-lock chips over the cards already loaded, plus sort by win rate (hardest / easiest first). No NK requests.
+- **Challenges: "played" tick and copy-code button** (2026-10-23). A per-browser "played" mark on cards
+  (localStorage), and a copy-code button on the challenge page.
 - **Round visualizer, later items** (docs/round-visualizer-ux-review.md "Later"): `n`/`p` next/prev-match
   shortcuts, filters shown in the tab title, "Up next" = next matches when a filter is on, Edit-panel state in
   the URL, link previews for /tools pages with the set name, heaviest-rounds labels.
@@ -96,6 +96,8 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
 - **Archive every CT group page once at CT end** (would give team history its "1st of 4" for every CT):
   a few hundred extra NK requests per CT. On hold — owner: "for now no extra memory" (2026-09-26).
 - **Compare two round sets** in the visualizer: out of scope for now (2026-09-26).
+- **Search across all challenges or creators**: NK has no search, and paging the feeds would hit the 429 limit.
+  The challenges search covers codes, daily numbers and the cards on the page (owner, 2026-10-23).
 - "Max 3 each" roster headers / ×N plates / folding banned towers: owner wants in-game-style tiles instead.
 
 ## Known limitations (by design)
