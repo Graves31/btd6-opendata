@@ -20,9 +20,11 @@ export function A(props: {
   keepScroll?: boolean;
   /** Pager links: land at the top of the enclosing section (the leaderboard) if the reader is below it. */
   toSection?: boolean;
+  /** false: prefetch on intent only, not when on screen (links that change as you type). */
+  watch?: boolean;
 }) {
   const ref = useRef<HTMLAnchorElement>(null);
-  useEffect(() => (ref.current ? watchLink(ref.current, props.href) : undefined), [props.href]);
+  useEffect(() => (props.watch !== false && ref.current ? watchLink(ref.current, props.href) : undefined), [props.href, props.watch]);
   return (
     <a
       ref={ref}

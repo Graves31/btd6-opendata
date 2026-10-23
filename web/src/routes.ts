@@ -323,7 +323,7 @@ export function needs(r: Route): string[] {
     case "challenge":
       return [challengeKey(r.id), DAILY_KEY]; // prev/next + author need the daily feed
     case "challenges":
-      return [challengeListKey(r.filter, r.p)];
+      return r.filter === "daily" ? [challengeListKey(r.filter, r.p)] : [challengeListKey(r.filter, r.p), DAILY_KEY]; // search jumps to a daily number
     case "rounds":
       return roundKeys(r);
     case "bankPlanner":

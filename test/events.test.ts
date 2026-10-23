@@ -177,7 +177,7 @@ describe("routes (items 1, 14)", () => {
     assert.equal(at("/challenges/bogus").name, "notfound");
     assert.equal(href.challenges("trending", 2), "/challenges/trending?p=2");
     assert.equal(href.challenges(), "/challenges");
-    assert.deepEqual(needs(at("/challenges/newest?p=3")), ["/btd6/challenges/filter/newest?page=3"]);
+    assert.deepEqual(needs(at("/challenges/newest?p=3")), ["/btd6/challenges/filter/newest?page=3", "/btd6/challenges/filter/daily"]);
   });
   it("CT opens on Teams; explicit tabs stay explicit", () => {
     const r = at("/ct/mtv62zza");
