@@ -94,6 +94,7 @@ export async function handleSuggest(deps: Deps, request: Request): Promise<Respo
   const url = new URL(request.url);
   if (request.headers.get("Origin") !== url.origin) return jsonResponse(errorBody("bad_request"), 403, "no-store");
 
+  if (Number(request.headers.get("Content-Length")) > MAX_BODY) return bad(); // before buffering the body
   const raw = await request.text();
   if (raw.length > MAX_BODY) return bad();
   const s = parse(raw);

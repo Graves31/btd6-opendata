@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { runArchive, ARCHIVE_BUDGET } from "../src/worker/archive.ts";
 import { MIN_REFETCH_MS, REFRESH_CAP, refreshHot, resetHotState } from "../src/worker/hot.ts";
 import { readFileSync } from "node:fs";
-import { handleApi, handleRequest, runScheduled } from "../src/worker/app.ts";
+import { CRON_ARCHIVE, CRON_HOT, handleApi, handleRequest, runScheduled } from "../src/worker/app.ts";
 import { clientKey, TokenBuckets } from "../src/worker/limit.ts";
 import { buildHotText, HOT_KEY, hotBody, mem, resetHotMemo, viewOf, type HotBundle } from "../src/worker/store.ts";
 import { MAX_BATCH } from "../src/worker/proxy.ts";
@@ -275,6 +275,17 @@ describe("hot bundle (per-minute cron)", () => {
   });
 });
 
+describe("negative answers", () => {
+  it("unknown ids are remembered in memory for an hour but never written to D1", async () => {
+    const t = makeEnv();
+    t.origin.override.set("/btd6/challenges/challenge/ZZZZZZZ", JSON.stringify({ error: "No Challenge with that ID exists", success: false }));
+    const url = "/api/nk/btd6/challenges/challenge/ZZZZZZZ";
+    assert.equal((await handleApi(t.deps, get(url))).headers.get("X-Cache"), "ORIGIN");
+    assert.equal((await handleApi(t.deps, get(url))).headers.get("X-Cache"), "MEM");
+    assert.equal(t.db.raw.prepare("SELECT COUNT(*) AS n FROM responses WHERE ok = 0").get()!.n, 0);
+  });
+});
+
 describe("archive (cron)", () => {
   it("freezes every page of ended events, then serves them as immutable", async () => {
     const t = makeEnv();
@@ -520,7 +531,7 @@ describe("KV / D1 failures degrade instead of failing", () => {
     assert.equal(health.status, 200);
     const h = await health.json();
     assert.equal(h.d1, "error");
-    assert.equal(h.featured.boss, BOSS);
+    assert.ok(h.hotKeys > 0);
   });
 
   it("D1 unwritable: responses are served and kept in memory; the write is skipped", async () => {
@@ -616,8 +627,8 @@ describe("KV / D1 failures degrade instead of failing", () => {
     assert.ok(r.error);
     assert.ok(t.origin.calls.length - calls <= 6, "stops fetching after the first failed write");
     assert.equal(queued(), before, "nothing lost from the queue");
-    await runScheduled(t.deps, "0 * * * *"); // never throws
-    await runScheduled(t.deps, "* * * * *");
+    await runScheduled(t.deps, CRON_ARCHIVE); // never throws
+    await runScheduled(t.deps, CRON_HOT);
 
     t.db.fail.writes = false;
     for (let i = 0; i < 500 && (await runArchive(t.deps)).queued > 0; i++);
@@ -1102,7 +1113,7 @@ describe("link previews (og tags on page navigations)", () => {
     assert.match(meta(html, "og:image")!, /^https:\/\/static-api\.nkstatic\.com\/.*vortex\.png$/);
     assert.match(meta(html, "description")!, /^Bloons TD 6 Vortex boss event, \d+ Sep – \d+ Sep 2026\./);
     assert.equal(meta(html, "twitter:card"), "summary");
-    assert.equal(meta(html, "og:url"), "https://btd6data.com/boss/Vortex47_mu62cmt5?d=elite");
+    assert.equal(meta(html, "og:url"), "https://btd6data.com/boss/Vortex47_mu62cmt5");
     assert.equal((html.match(/og:title/g) ?? []).length, 1, "the shell's own og tags are replaced");
     assert.equal(r.headers.get("ETag"), null);
     assert.equal(t.origin.calls.length, calls);
@@ -1182,7 +1193,7 @@ describe("link previews (og tags on page navigations)", () => {
     assert.deepEqual(a.seen, []);
     const { r, html } = await page(t, "/races?x=1", a);
     assert.match(html, /<link rel="canonical" href="https:\/\/btd6data\.com\/races" \/>/);
-    assert.equal(r.headers.get("Content-Security-Policy"), "frame-ancestors 'none'");
+    assert.match(r.headers.get("Content-Security-Policy")!, /default-src 'self'.*frame-ancestors 'none'/);
   });
 
   it("search engines: one canonical address per page, real 404s for unknown paths", async () => {
@@ -1358,12 +1369,13 @@ describe("stats", () => {
       assert.match(String(init.body), /rumPageloadEventsAdaptiveGroups/);
       return new Response(JSON.stringify(fixture), { status: 200 });
     }) as unknown as typeof fetch;
-    const r2 = await handleStats(cfg, ok, NOW);
+    assert.equal((await handleStats(cfg, noFetch, NOW + MIN / 2)).status, 502, "a failure is remembered for a minute");
+    const r2 = await handleStats(cfg, ok, NOW + 2 * MIN);
     assert.equal(r2.status, 200);
     assert.equal(r2.headers.get("X-Robots-Tag"), "noindex, nofollow");
     await handleStats(cfg, ok, NOW + 10 * MIN);
     assert.equal(calls, 1);
-    await handleStats(cfg, ok, NOW + 16 * MIN);
+    await handleStats(cfg, ok, NOW + 18 * MIN);
     assert.equal(calls, 2);
 
     resetStatsMemo();

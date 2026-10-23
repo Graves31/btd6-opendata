@@ -202,34 +202,21 @@ export function parseHistoryQuery(url: URL): { before: number; limit: number } |
 
 async function health(deps: Deps): Promise<Response> {
   const hot = await getHot(deps); // never throws
-  let archive: { archiveQueue: number | null; eventsByArchiveState: Record<string, number> | null; d1: "ok" | "error" } = {
-    archiveQueue: null,
-    eventsByArchiveState: null,
-    d1: "error",
-  };
+  let archive: { archiveQueue: number | null; d1: "ok" | "error" } = { archiveQueue: null, d1: "error" };
   try {
     const queued = await deps.db.prepare("SELECT COUNT(*) AS n FROM archive_queue").first<{ n: number }>();
-    const events = await deps.db
-      .prepare("SELECT archive_state AS state, COUNT(*) AS n FROM events GROUP BY archive_state")
-      .all<{ state: number; n: number }>();
-    archive = {
-      archiveQueue: queued?.n ?? 0,
-      eventsByArchiveState: Object.fromEntries(events.results.map((r) => [r.state, r.n])),
-      d1: "ok",
-    };
+    archive = { archiveQueue: queued?.n ?? 0, d1: "ok" };
   } catch (err) {
     console.warn("health: D1 read failed", String(err));
   }
   return jsonResponse(
     JSON.stringify({
       hotGeneratedAt: hot ? new Date(hot.generatedAt).toISOString() : null,
-      hotAgeS: hot ? Math.round((deps.now() - hot.generatedAt) / 1000) : null,
       hotKeys: hot ? hot.keys.size : 0,
-      featured: hot?.featured ?? null,
       ...archive,
     }),
     200,
-    "no-store",
+    "public, max-age=30", // what smoke.ts reads; cached so repeats don't hit D1
   );
 }
 

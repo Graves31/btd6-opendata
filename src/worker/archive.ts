@@ -67,23 +67,34 @@ async function archiveRun(deps: Deps, budget: number, result: ArchiveResult): Pr
     .bind(budget)
     .all<{ key: string; kind: EventKind; event_id: string }>();
 
+  // One query for the already-frozen keys (D1 allows few queries per invocation); the rest is fetched.
+  const frozen = new Set<string>();
+  if (jobs.length) {
+    const rows = await db
+      .prepare("SELECT key FROM responses WHERE frozen = 1 AND key IN (SELECT value FROM json_each(?))")
+      .bind(JSON.stringify(jobs.map((j) => j.key)))
+      .all<{ key: string }>();
+    for (const r of rows.results) frozen.add(r.key);
+  }
+
   let d1Error: unknown = null;
   // Two at a time: NK rate-limits bursts (see limit.ts), and the archive is never in a hurry.
   await mapLimit(jobs, 2, async (job) => {
     if (d1Error || originCooldownS(deps.now())) return; // cooldown: stays queued for the next run
     try {
-      const prev = await d1Get(db, job.key);
       const writes = [];
-      if (!prev?.frozen) {
+      if (!frozen.has(job.key)) {
         let got;
         try {
           got = await fetchUpstream(deps, job.key, null);
           result.fetched++;
-        } catch {
+        } catch (err) {
+          console.warn("archive: fetch failed", job.key, String(err).slice(0, 120));
           result.failed++;
           return; // stays queued; retried next run
         }
         if (d1Error) return;
+        const prev = got.ok ? null : await d1Get(db, job.key); // only a failed fetch needs the old copy
         if (!got.ok && prev?.ok) {
           // NK no longer has it, but we do: freeze our copy rather than the error.
           writes.push(d1FreezeStmt(db, job.key));

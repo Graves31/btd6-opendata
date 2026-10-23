@@ -52,15 +52,10 @@ export type NKErrorMessage = Open<
   | "This endpoint requires an OAK id. An invalid oak ID was given or the player does not play this game"
 >;
 
-export type NKResponse<T> = SuccessEnvelope<T> | ErrorEnvelope;
-
 // ─────────────────────────────── shared enums
 
 export type BossType = Open<"bloonarius" | "lych" | "vortex" | "dreadbloon" | "phayze" | "blastapopoulos" | "diamondback">;
 export type ScoringType = Open<"LeastCash" | "GameTime" | "LeastTiers">;
-export type BossDifficulty = "standard" | "elite";
-export type BossTeamSize = 1 | 2 | 3 | 4;
-export type OdysseyDifficulty = "easy" | "medium" | "hard";
 export type ChallengeFilterType = "newest" | "trending" | "daily";
 export type MapFilterType = "newest" | "trending" | "mostLiked";
 export type EventType = Open<

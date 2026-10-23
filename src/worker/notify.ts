@@ -13,7 +13,7 @@ import type { EventKind } from "../nk/routes.ts";
 import type { D1Like, Deps } from "./deps.ts";
 import type { ListItem } from "./events.ts";
 import { OriginGate } from "./limit.ts";
-import { SITE } from "./og.ts";
+import { cap, SITE } from "./og.ts";
 import { resolveKey } from "./proxy.ts";
 
 const MAX_ATTEMPTS = 5;
@@ -147,7 +147,6 @@ export interface EventDoc {
 }
 
 const str = (v: unknown) => (typeof v === "string" && v ? v : undefined);
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const unix = (ms: number) => Math.floor(ms / 1000);
 const COLORS: Partial<Record<EventKind, number>> = { boss: 0xc0392b, race: 0x2980b9 };
 const SCORING: Record<string, string> = { LeastCash: "Least Cash", GameTime: "Fastest Time", LeastTiers: "Least Tiers" };

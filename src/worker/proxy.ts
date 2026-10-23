@@ -349,7 +349,8 @@ async function fetchAndStore(deps: Deps, key: string, prev: Entry | null, policy
   const entry: Entry = { key, body: got.body, ok: got.ok, etag: got.etag, fetchedAt: got.fetchedAt, frozen: policy.frozen };
   if (degraded && !got.ok) return { ...entry, frozen: false }; // the archive may hold real data: serve, don't remember
   mem.set(entry);
-  const cacheable = entry.ok || policy.frozen || errorTtlMs(errorOf(entry), policy, deps.now()) > 0;
+  // Negative answers (unknown ids, NK 4xx) stay in isolate memory (mem.set above): a probe must not add a permanent D1 row.
+  const cacheable = entry.ok || policy.frozen;
   // One row write either way (a 304 only moves fetched_at, but the row may not exist yet if `prev`
   // came from the hot bundle). A frozen row is never overwritten (d1PutStmt), so this is safe when degraded.
   if (cacheable) {
@@ -430,7 +431,7 @@ async function passthroughImage(deps: Deps, gate: OriginGate, key: string, polic
     return jsonResponse(errorBody("upstream"), 502, "no-store");
   }
   const ct = res.headers.get("content-type") ?? "";
-  if (!res.ok || !ct.startsWith("image/")) {
+  if (!res.ok || !/^image\/(png|jpeg|webp)\b/.test(ct)) { // never SVG from our own origin
     await res.body?.cancel();
     return res.status >= 500
       ? jsonResponse(errorBody("upstream"), 502, "no-store")

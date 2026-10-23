@@ -26,11 +26,25 @@ const GENERIC_DESCRIPTION = "Unofficial, instant-loading browser for Bloons TD 6
 /** Site-wide preview image (absolute path on this site), or null for none. */
 export const SITE_IMAGE: string | null = "/og.jpg";
 const LOOKUP_TIMEOUT_MS = 300;
+/** Inline scripts (theme, ld+json, navigation guard) and React-style inline styles need 'unsafe-inline'. */
+export const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https://static-api.nkstatic.com",
+  "font-src 'self' data:",
+  "connect-src 'self' blob: https://cloudflareinsights.com",
+  "worker-src 'self'",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "form-action 'self'",
+].join("; ");
 /** Same as the "/*" block of web/public/_headers (static files get them from there). */
 export const SECURITY_HEADERS: Record<string, string> = {
   "X-Content-Type-Options": "nosniff",
   "Referrer-Policy": "strict-origin-when-cross-origin",
-  "Content-Security-Policy": "frame-ancestors 'none'",
+  "Content-Security-Policy": CSP,
   "Strict-Transport-Security": "max-age=31536000",
 };
 
@@ -78,6 +92,8 @@ export async function handlePage(deps: Deps, assets: AssetsLike, request: Reques
   for (const h of ["etag", "content-length", "content-encoding", "last-modified"]) headers.delete(h);
   headers.set("Content-Type", "text/html; charset=utf-8");
   headers.set("Cache-Control", "no-cache");
+  // Hidden pages: the app also adds a robots meta, but crawlers that skip scripts only see this.
+  if (/^\/(stats|suggest)\/?$/.test(url.pathname)) headers.set("X-Robots-Tag", "noindex, nofollow");
   for (const [k, v] of Object.entries(SECURITY_HEADERS)) headers.set(k, v);
   // Paths the app has no page for are real 404s (the app still shows its not-found page), not "soft 404s".
   return new Response(request.method === "HEAD" ? null : html, { status: routeName(url) === "notfound" ? 404 : 200, headers });
@@ -120,6 +136,7 @@ const TOOLS: [string, string] = ["BTD6 Round Visualizer (RBE & bloons per round)
 
 const TOOLS_HUB: [string, string] = ["Tools", "Bloons TD 6 tools built on the game's own data: the round visualizer, the paragon degree calculator and farming resources."];
 const FARMING: [string, string] = ["BTD6 Farming Resources", "Bloons TD 6 farming resources: when a 0-0-0, 1-0-0 and 2-0-0 Banana Farm drops its bananas during a round."];
+const BANK: [string, string] = ["BTD6 Bank & IMF Loan Planner", "When to collect a Monkey Bank, and how much to deposit in an IMF Loan."];
 const PARAGON: [string, string] = ["BTD6 Paragon Calculator: Degree & Power", "Bloons TD 6 paragon degree calculator: the degree your sacrificed cash, pops, towers and totems give, what the next degree takes, and the quickest way to the next boss breakpoint."];
 const PARAGON_SCALING: [string, string] = ["BTD6 Paragon Scaling", "How a Bloons TD 6 paragon grows per degree: power needed, damage, pierce, attack speed and boss damage, charted from the game's data."];
 
@@ -148,6 +165,7 @@ export async function describe(deps: Deps, pathname: string): Promise<PageMeta> 
   if (a === "tools" && b === "paragon" && !c) return page(...PARAGON);
   if (a === "tools" && b === "farming" && !c) return page(...FARMING);
   if (a === "tools" && b === "paragon-scaling" && !c) return page(...PARAGON_SCALING);
+  if (a === "tools" && b === "bank-planner" && !c) return page(...BANK);
   if (a === "tools" && !b) return page(...TOOLS_HUB);
   if (a === "stats" && !b) return page("Site stats", "How many people use BTD6 Open Data: visits, page views and the most-opened pages."); // old /tools?set=… links are the visualizer, but the hub text is true of both
   if (a === "maps" && !b) return page("BTD6 Maps", "Every official Bloons TD 6 map, with the boss events and races played on it.");
@@ -255,12 +273,12 @@ function bodyOf(text: string): Obj | null {
 
 const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+export const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 /** "EndOfTheRoad" → "End Of The Road". */
 const spaced = (s: string) => s.replace(/([a-z])([A-Z0-9])/g, "$1 $2");
 const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1).trimEnd()}…` : s);
-/** Only https URLs make it into a preview (NK assets are https://static-api.nkstatic.com/…). */
-const asset = (v: unknown) => (typeof v === "string" && v.startsWith("https://") ? v : null);
+/** Only NK's own image host makes it into a preview (was: any https URL; NK assets are https://static-api.nkstatic.com/…). */
+const asset = (v: unknown) => (typeof v === "string" && v.startsWith("https://static-api.nkstatic.com/") ? v : null);
 
 function dateRange(start: number, end: number): string {
   if (!start || !end) return "";
@@ -283,12 +301,12 @@ export function injectMeta(html: string, m: PageMeta, url: URL): string {
     prop("og:type", "website"),
     prop("og:title", m.title),
     prop("og:description", m.description),
-    prop("og:url", SITE + url.pathname + url.search),
-    ...(image ? [prop("og:image", image)] : []),
+    prop("og:url", SITE + canonicalPath(url)),
+    ...(image ? [prop("og:image", image), prop("og:image:alt", m.title)] : []),
     name("twitter:card", image && m.wide ? "summary_large_image" : "summary"),
     name("twitter:title", m.title),
     name("twitter:description", m.description),
-    ...(image ? [name("twitter:image", image)] : []),
+    ...(image ? [name("twitter:image", image), name("twitter:image:alt", m.title)] : []),
   ];
   let out = html.replace(/[ \t]*<meta\s+(?:property|name)="(?:og|twitter):[^"]*"[^>]*>\s*/gi, "");
   out = /<title>[\s\S]*?<\/title>/i.test(out)

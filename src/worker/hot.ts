@@ -255,7 +255,8 @@ export async function refreshHot(deps: Deps): Promise<HotResult> {
       next[key] = { f: e.fetchedAt, x, e: e.etag, ok: e.ok, d: e.ok ? derive(key, data) : undefined };
       bodyMemo.set(key, { f: e.fetchedAt, body: e.body });
       mem.set({ key, body: e.body, ok: e.ok, etag: e.etag, fetchedAt: e.fetchedAt, frozen: false, hot: true });
-    } catch {
+    } catch (err) {
+      console.warn("hot: key failed", key, String(err).slice(0, 120));
       result.failed.push(key);
       if (old) next[key] = old; // keep the last good copy
     }

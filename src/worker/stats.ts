@@ -109,16 +109,26 @@ export function shapeStats(res: GraphqlResponse, now: number): Stats {
 let memo: { at: number; json: string } | undefined;
 export const resetStatsMemo = () => {
   memo = undefined;
+  failedAt = undefined;
 };
 
 const HEADERS = { "X-Robots-Tag": "noindex, nofollow" };
 const fail = (status: number, error: string, extra: Record<string, unknown> = {}) =>
   jsonResponse(JSON.stringify({ success: false, error, ...extra }), status, "no-store", HEADERS);
 
+/** A failed lookup is remembered briefly, so a bad token doesn't send every hit to Cloudflare. */
+let failedAt: { at: number; res: { status: number; error: string } } | undefined;
+const FAIL_TTL_MS = 60_000;
+
 export async function handleStats(cfg: StatsConfig, fetchFn: typeof fetch, now: number): Promise<Response> {
   if (!cfg.token || !cfg.accountId) return fail(503, "not-configured");
   const cc = "public, max-age=900";
   if (memo && now - memo.at < STATS_TTL_MS) return jsonResponse(memo.json, 200, cc, HEADERS);
+  if (failedAt && now - failedAt.at < FAIL_TTL_MS) return fail(failedAt.res.status, failedAt.res.error);
+  const upstreamFail = (status: number, error: string) => {
+    failedAt = { at: now, res: { status, error } };
+    return fail(status, error);
+  };
   const iso = (ms: number) => new Date(ms).toISOString();
   const day0 = Math.floor(now / DAY_MS) * DAY_MS; // UTC midnight: the daily buckets are whole days
   const f30 = filterOf(STATS_HOSTS, iso(day0 - 29 * DAY_MS), iso(now));
@@ -131,20 +141,21 @@ export async function handleStats(cfg: StatsConfig, fetchFn: typeof fetch, now: 
       body: JSON.stringify({ query: statsQuery(cfg.accountId, f30) }),
     });
   } catch {
-    return fail(502, "Could not reach Cloudflare analytics");
+    return upstreamFail(502, "Could not reach Cloudflare analytics");
   }
   let body: GraphqlResponse;
   try {
     body = (await res.json()) as GraphqlResponse;
   } catch {
-    return fail(502, `Cloudflare analytics answered HTTP ${res.status}`);
+    return upstreamFail(502, `Cloudflare analytics answered HTTP ${res.status}`);
   }
   if (!res.ok || body.errors?.length) {
     const msg = (body.errors ?? []).map((e) => e.message).join("; ") || `HTTP ${res.status}`;
-    return fail(502, msg.split(cfg.token).join("***").slice(0, 300));
+    return upstreamFail(502, msg.split(cfg.token).join("***").slice(0, 300));
   }
   const json = JSON.stringify({ success: true, body: shapeStats(body, now) });
   memo = { at: now, json };
+  failedAt = undefined;
   return jsonResponse(json, 200, cc, HEADERS);
 }
 

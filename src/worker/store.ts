@@ -201,7 +201,7 @@ export interface HotMetaEntry {
   d?: { t?: [id: string, start: number, end: number, hash: number][]; ids?: string[]; p?: string[] };
 }
 
-/** `hot_state.meta`: the cron's index (a few KB); bodies live in `hot_entries`, one row per key. */
+/** `hot_state.meta`: the cron's index (tens of KB, not measured: up to 25 profile paths per page-1 board); bodies live in `hot_entries`, one row per key. */
 export interface HotMeta {
   v: 2;
   generatedAt: number;
