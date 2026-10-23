@@ -181,8 +181,11 @@ export const LIVE_LEADERBOARD: CachePolicy = { freshMs: ORIGIN_MAX_AGE_MS, stale
  * list endpoints, or the archive for events that have aged out of the lists); without it they fall back
  * to the class default, which is always safe.
  */
-export function policyFor(route: RouteDef, timing: EventTiming | undefined, now: number): CachePolicy {
+export function policyFor(route: RouteDef, timing: EventTiming | undefined, now: number, params?: Record<string, string>): CachePolicy {
   const base = BASE[route.cache];
+  // A daily over for a day or more: its win rate barely moves, so don't revalidate it every hour.
+  const day = route.name === "challenge" ? /^(?:rot|adv)\d+(\d{4})(\d{2})(\d{2})$/.exec(params?.challengeID ?? "") : null;
+  if (day && Date.UTC(+day[1], +day[2] - 1, +day[3]) + 2 * DAY < now) return { ...base, freshMs: DAY };
   if (!route.event || !timing) return base;
 
   if (route.cache === "event-doc") {

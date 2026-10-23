@@ -75,7 +75,7 @@ export async function resolveKey(
   const { route, params, cacheKey } = m;
   const now = deps.now();
   const timing = route.event ? await getTiming(deps, route.event.kind, params[route.event.idParam]) : undefined;
-  const policy = policyFor(route, timing, now);
+  const policy = policyFor(route, timing, now, params);
 
   // Upcoming event: the leaderboard is known to be empty until `start`; don't ask the origin.
   if (policy.notStartedUntil) {

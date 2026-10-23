@@ -191,6 +191,8 @@ history.scrollRestoration = "manual";
 const hrefOf = new WeakMap<Element, string>();
 const saveData = (navigator as any).connection?.saveData === true;
 const ROW_DWELL_MS = 250;
+// Challenge cards come 5 to a row: a longer dwell lets cards that are scrolled past go unfetched.
+const CARD_DWELL_MS = 600;
 // Challenge rows (up to 25 per list page) are each an upstream request too.
 const isRowLink = (h: string) => /^\/(player|team|challenge)\//.test(h);
 const canObserve = typeof IntersectionObserver !== "undefined";
@@ -227,7 +229,7 @@ const rowObserver = canObserve
             dwell.delete(it.target);
             const h = hrefOf.get(it.target);
             if (h) void store.want(needsForHref(h)); // rows landing together still share one batch
-          }, ROW_DWELL_MS),
+          }, hrefOf.get(it.target)?.startsWith("/challenge/") ? CARD_DWELL_MS : ROW_DWELL_MS),
         );
       }
     })

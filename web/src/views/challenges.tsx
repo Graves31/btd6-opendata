@@ -553,6 +553,7 @@ function ChallengeCard(props: { c: ChallengeSummary; kind: Kind | "player"; badg
   const mk = d && modeKey(d);
   const title = daily ? (d ? mapName(d.map) : null) : c.name;
   // The title link is stretched over the card (CSS); the creator link sits above it, so no <a> nests in another.
+  // The creator's profile loads on hover/tap only: a name on every card was one NK request per card.
   return (
     <li class={`chl-card k-${kind}`}>
       <Art d={d} size={200}>
@@ -568,7 +569,7 @@ function ChallengeCard(props: { c: ChallengeSummary; kind: Kind | "player"; badg
         {daily ? (
           <span class="chl-by">{author && <>by <b>{author}</b></>}</span>
         ) : creatorId ? (
-          <A href={href.player(creatorId)} class="chl-by link">
+          <A href={href.player(creatorId)} class="chl-by link" watch={false}>
             {creator ? (
               <>
                 by <b>{creator.displayName}</b>

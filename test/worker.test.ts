@@ -10,6 +10,7 @@ import { MAX_BATCH } from "../src/worker/proxy.ts";
 import { handleStats, resetStatsMemo, shapeStats } from "../src/worker/stats.ts";
 import { CAPTURED_AT, DAY, HOUR, MIN, get, makeEnv } from "./harness.ts";
 import { MAP_LIST } from "../web/src/data/names.ts";
+import { policyFor, ROUTES } from "../src/nk/routes.ts";
 
 /** Origin requests for hot-set keys (excludes the profile warmer's /users and /guild fetches). */
 const hotCalls = (t: { origin: { calls: string[] } }) => t.origin.calls.filter((c) => !/^\/btd6\/(users|guild)\//.test(c)).length;
@@ -1662,5 +1663,15 @@ describe("notifications (new boss / race → Discord)", () => {
     await run();
     assert.equal(rows().length, 0);
     assert.equal(discord.posts.length, 0);
+  });
+});
+
+describe("challenge cache policy", () => {
+  const route = ROUTES.find((r) => r.name === "challenge")!;
+  const now = Date.UTC(2026, 9, 23, 12);
+  it("keeps an ended daily fresh for a day, today's daily and player challenges for an hour", () => {
+    assert.equal(policyFor(route, undefined, now, { challengeID: "rot296620260924" }).freshMs, DAY);
+    assert.equal(policyFor(route, undefined, now, { challengeID: "adv298220261023" }).freshMs, HOUR);
+    assert.equal(policyFor(route, undefined, now, { challengeID: "ZFVHOWM" }).freshMs, HOUR);
   });
 });
