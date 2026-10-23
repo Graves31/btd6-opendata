@@ -178,7 +178,7 @@ export interface BloonInfo {
 }
 
 export const FLAG = { camo: 1, regrow: 2, fortified: 4 } as const;
-export const GAME_VERSION = "57.2";
+export const GAME_VERSION = "57.4";
 /** Which optional values the data provides. */
 export const ROUND_FIELDS = { rbe: true, rbeMoab: true, cash: false, perLayerHealth: true, modeIncomeRules: "partial" } as const;
 
