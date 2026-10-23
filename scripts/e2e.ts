@@ -28,6 +28,7 @@ const BASE = REMOTE ?? `http://127.0.0.1:${PORT}`;
 const STATE = PORT === 8787 ? ".wrangler/e2e-state" : `.wrangler/e2e-state-${PORT}`;
 const SHOTS = process.env.E2E_SHOTS ?? join(root, ".wrangler", PORT === 8787 ? "e2e-shots" : `e2e-shots-${PORT}`);
 const BROWSERS = [
+  ...(process.env.CHROME_PATH ? [process.env.CHROME_PATH] : []),
   "C:/Program Files/Google/Chrome/Application/chrome.exe",
   "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
   "/usr/bin/google-chrome",
@@ -140,7 +141,7 @@ function portBusy(port: number): Promise<boolean> {
 
 async function main() {
   const exe = BROWSERS.find((b) => existsSync(b));
-  if (!exe) throw new Error("no Chrome/Edge found");
+  if (!exe) throw new Error("no Chrome/Edge found (set CHROME_PATH to the browser executable)");
   mkdirSync(SHOTS, { recursive: true });
 
   if (!REMOTE) {
@@ -164,6 +165,10 @@ async function main() {
   try {
     const page = await browser.newPage();
     page.on("pageerror", (e) => problems.push(`page error: ${String(e)}`));
+    // The CSP in web/public/_headers: anything it blocks is a failure, not a silent missing image.
+    page.on("console", (m) => {
+      if (m.type() === "error" && /Content Security Policy/i.test(m.text())) problems.push(`CSP: ${m.text().slice(0, 200)}`);
+    });
     await page.setViewport({ width: 1280, height: 900 });
     const api = trackApi(page);
     // Every open request (not just /api): printed when a page load never goes network-idle.

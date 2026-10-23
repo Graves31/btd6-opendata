@@ -44,9 +44,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+from _common import BTD6_DIR, f32, find_bundle, relaunch_in_venv
+
 ROOT = Path(__file__).resolve().parent.parent
 OUT_DIR = ROOT / "web" / "src" / "data" / "rounds"
-BTD6_DIR = Path(os.environ.get("BTD6_DIR", r"C:\Program Files (x86)\Steam\steamapps\common\BloonsTD6"))
 DATA_DIR = BTD6_DIR / "BloonsTD6_Data"
 AA_DIR = DATA_DIR / "StreamingAssets" / "aa" / "StandaloneWindows64" / "Full"
 FORMAT_VERSION = 1
@@ -54,20 +55,8 @@ SERVER_CACHE = Path(os.environ.get("BTD6_CACHE", Path.home() / "AppData" / "Loca
                                    / "kvs" / "www-cache"))
 
 
-def _relaunch_in_venv() -> None:
-    for rel in ("Scripts/python.exe", "bin/python"):
-        venv_py = ROOT / ".venv-art" / rel
-        if venv_py.exists():
-            if Path(sys.prefix).resolve() != (ROOT / ".venv-art").resolve():
-                sys.exit(subprocess.call([str(venv_py), __file__, *sys.argv[1:]]))
-            return
-
-
 def _bundle(prefix: str) -> Path:
-    hits = sorted(glob.glob(str(AA_DIR / f"{prefix}_*.bundle")))
-    if not hits:
-        sys.exit(f"no {prefix}_*.bundle under {AA_DIR} (set BTD6_DIR)")
-    return Path(hits[-1])
+    return find_bundle(AA_DIR, prefix)
 
 
 # ─────────────────────────────────────────────────────────────── game data (MonoBehaviours)
@@ -431,16 +420,6 @@ def compute_rbe(bloons: dict, have_tags: set) -> None:
 
 
 # ─────────────────────────────────────────────────────────────── helpers
-
-
-def f32(x: float) -> float | int:
-    """Shortest decimal that round-trips to the same float32 (the game's own value), ints as ints."""
-    target = struct.pack("<f", x)
-    for p in range(1, 10):
-        v = float(f"{x:.{p}g}")
-        if struct.pack("<f", v) == target:
-            return int(v) if v == int(v) else v
-    return x
 
 
 def end_of(start: float, duration: float) -> float | int:
@@ -861,5 +840,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    _relaunch_in_venv()
+    relaunch_in_venv(__file__)
     main()

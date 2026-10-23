@@ -23,19 +23,10 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from _common import AA_DIR, BTD6_DIR, find_bundle, relaunch_in_venv
+
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "web" / "src" / "data" / "names.ts"
-BTD6_DIR = Path(os.environ.get("BTD6_DIR", r"C:\Program Files (x86)\Steam\steamapps\common\BloonsTD6"))
-AA_DIR = BTD6_DIR / "BloonsTD6_Data" / "StreamingAssets" / "aa" / "StandaloneWindows64" / "Full"
-
-
-def _relaunch_in_venv() -> None:
-    for rel in ("Scripts/python.exe", "bin/python"):
-        venv_py = ROOT / ".venv-art" / rel
-        if venv_py.exists():
-            if Path(sys.prefix).resolve() != (ROOT / ".venv-art").resolve():
-                sys.exit(subprocess.call([str(venv_py), __file__, *sys.argv[1:]]))
-            return
 
 
 # ─────────────────────────────────────────────────────────────── ability keys
@@ -123,10 +114,7 @@ ABILITY_SOURCES: dict = {
 
 
 def _bundle(prefix: str) -> Path:
-    hits = sorted(glob.glob(str(AA_DIR / f"{prefix}_*.bundle")))
-    if not hits:
-        sys.exit(f"no {prefix}_*.bundle under {AA_DIR} (set BTD6_DIR)")
-    return Path(hits[-1])
+    return find_bundle(AA_DIR, prefix)
 
 
 def load_english() -> list[tuple[str, str, str]]:
@@ -315,5 +303,5 @@ def main(relic_ids: list[str] | None = None) -> None:
 
 
 if __name__ == "__main__":
-    _relaunch_in_venv()
+    relaunch_in_venv(__file__)
     main()

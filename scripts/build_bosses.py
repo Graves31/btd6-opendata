@@ -162,16 +162,8 @@ OUT = ROOT / "web" / "src" / "data" / "bosses.json"
 FORMAT_VERSION = 1
 
 
-def _relaunch_in_venv() -> None:
-    for rel in ("Scripts/python.exe", "bin/python"):
-        venv_py = ROOT / ".venv-art" / rel
-        if venv_py.exists():
-            if Path(sys.prefix).resolve() != (ROOT / ".venv-art").resolve():
-                sys.exit(subprocess.call([str(venv_py), __file__, *sys.argv[1:]]))
-            return
-
-
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _common import relaunch_in_venv  # noqa: E402
 import build_names as bn  # noqa: E402
 import build_rounds as br  # noqa: E402
 
@@ -1482,5 +1474,5 @@ def main() -> dict:
 
 
 if __name__ == "__main__":
-    _relaunch_in_venv()
+    relaunch_in_venv(__file__)
     main()

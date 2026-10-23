@@ -36,20 +36,12 @@ import sys
 import subprocess
 from pathlib import Path
 
+from _common import AA_DIR, BTD6_DIR, find_bundle, relaunch_in_venv
+
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def _relaunch_in_venv() -> None:
-    """`npm run art` calls plain `python`; hop into .venv-art (pinned deps) when it exists and we're not in it."""
-    for rel in ("Scripts/python.exe", "bin/python"):
-        venv_py = ROOT / ".venv-art" / rel
-        if venv_py.exists():
-            if Path(sys.prefix).resolve() != (ROOT / ".venv-art").resolve():
-                sys.exit(subprocess.call([str(venv_py), __file__, *sys.argv[1:]]))
-            return
-
-
-_relaunch_in_venv()
+relaunch_in_venv(__file__)
 
 try:
     import UnityPy
@@ -86,8 +78,6 @@ _slice_bundle_nodes()
 ART_DIR = ROOT / "web" / "src" / "art"
 MAPS_DIR = ROOT / "web" / "public" / "art" / "maps"
 CACHE_DIR = ROOT / ".wrangler" / "art-cache"
-BTD6_DIR = Path(os.environ.get("BTD6_DIR", r"C:\Program Files (x86)\Steam\steamapps\common\BloonsTD6"))
-AA_DIR = BTD6_DIR / "BloonsTD6_Data" / "StreamingAssets" / "aa" / "StandaloneWindows64" / "Full"
 
 # Bump when the rendering below changes, so cached sprite PNGs are not reused across incompatible versions.
 PIPELINE_VERSION = 1
@@ -619,10 +609,7 @@ FAMILIES = {  # family -> (table, cell px, aliases)
 
 
 def _bundle(prefix: str) -> Path:
-    hits = sorted(glob.glob(str(AA_DIR / f"{prefix}_*.bundle")))
-    if not hits:
-        sys.exit(f"no {prefix}_*.bundle under {AA_DIR} (set BTD6_DIR)")
-    return Path(hits[-1])
+    return find_bundle(AA_DIR, prefix)
 
 
 class Source:

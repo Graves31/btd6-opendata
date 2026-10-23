@@ -1111,15 +1111,6 @@ button.fd-tile:hover {
   color: var(--ink-2);
   font-size: 13px;
 }
-.ev-col {
-  font-weight: 600;
-}
-.ev-col .kicker {
-  margin-bottom: 2px;
-}
-.ev-col.num .kicker {
-  text-align: right;
-}
 .ev-st {
   justify-self: end;
 }
@@ -1353,8 +1344,7 @@ button.fd-tile:hover {
 .ct-hist {
   max-width: 760px;
 }
-.board-wrap.narrow.play-stats,
-.play-stats ~ .meter {
+.board-wrap.narrow.play-stats {
   max-width: 520px; /* the win-rate bar spans the table above it */
 }
 .board {
@@ -1785,22 +1775,9 @@ button.fd-tile:hover {
     grid-column: 2 / -1;
   }
   /* Stats side by side under the title (CT: Players | Teams). */
-  .k-race .ev-row > .ev-col,
-  .k-ct .ev-row > .ev-col {
-    grid-column: auto;
-  }
   .k-race .ev-main,
   .k-ct .ev-main {
     padding: 10px 0 0;
-  }
-  .ev-col {
-    display: flex;
-    gap: 8px;
-    align-items: baseline;
-    font-size: 14px;
-  }
-  .ev-col.num {
-    justify-self: start;
   }
   .ev-st {
     justify-self: start;
@@ -2512,14 +2489,6 @@ button.fd-tile:hover {
     grid-template-columns: repeat(5, minmax(32px, 1fr));
   }
 }
-.ghost-o {
-  display: block;
-  flex: none;
-  width: 32px;
-  height: 32px;
-  border: 1.5px dashed var(--rule-2);
-  border-radius: 50%;
-}
 .modes {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
@@ -2737,14 +2706,8 @@ button.fd-tile:hover {
 }
 
 /* Phones: a shortcut to the rules, which sit below the leaderboard there. */
-.jump-rules,
-.m-only {
+.jump-rules {
   display: none;
-}
-@media (max-width: 860px) {
-  .m-only {
-    display: flex;
-  }
 }
 
 /* ── FE-A: event pages & leaderboards (batch 1–19) ─────────────────────────────── */
@@ -2758,23 +2721,6 @@ button.fd-tile:hover {
   margin: 6px 0 12px;
   font: 600 12px/1.3 var(--f-body);
   color: var(--ink-3);
-}
-.fresh .fresh-a {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--ink-2);
-}
-.fresh .fresh-a::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--ink-3);
-}
-.fresh.final .fresh-a::before {
-  border-radius: 1px;
-  background: var(--ended-fill);
 }
 .page-h .fresh,
 .ev-title-block .fresh {
@@ -2936,35 +2882,7 @@ button.fd-tile:hover {
   font-size: 13px;
 }
 
-/* Events list: scoring as icon + words; the CT winner line. */
-.sct {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.sct-l {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-.sct-n {
-  font-weight: 700;
-  color: var(--ink);
-}
-.sct-tag {
-  font: 700 10px/1 var(--f-body);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-3);
-}
-@media (max-width: 860px) {
-  .sct {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 4px 12px;
-  }
-}
+/* Events list: the CT winner line. */
 .ev-win {
   display: inline-flex;
   flex-wrap: wrap;
@@ -4009,21 +3927,6 @@ button.fd-tile:hover {
   text-transform: uppercase;
   letter-spacing: 0.01em;
   overflow-wrap: anywhere;
-}
-.rv-sum {
-  margin-top: 4px;
-  color: var(--ink-2);
-  font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-/* One-line intro under a tool title (wraps, unlike .rv-sum) */
-.rv-intro {
-  margin-top: 6px;
-  max-width: 60ch;
-  color: var(--ink-2);
-  font-size: 13px;
 }
 .rv-edit,
 .rv-focus,
@@ -5080,20 +4983,6 @@ button.fd-tile:hover {
     align-items: start;
     row-gap: 10px;
   }
-  .ev-row .ev-col {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-  .ev-row .ev-col .kicker {
-    margin: 0;
-    text-align: left;
-  }
-  .k-boss .ev-row .ev-col.num {
-    justify-self: end;
-    align-items: flex-end;
-  }
   .ev-main .mapline {
     row-gap: 2px;
   }
@@ -5244,12 +5133,6 @@ button.fd-tile:hover {
   background: var(--accent);
   color: var(--on-accent);
   line-height: 0.95;
-}
-.bh-no-name {
-  padding: 0;
-  font-size: 0.55em;
-  background: none;
-  color: var(--ink);
 }
 .bh-side .bugline {
   flex-basis: 100%;
@@ -7381,11 +7264,6 @@ a.hist-map:hover {
   display: inline-flex;
 }
 
-/* ── label on the stacked score part (item 20) */
-.m-sub-l {
-  font-weight: 500;
-  color: var(--ink-3);
-}
 
 /* ── Owner feedback batch: ended bug, map names, event-type icons, roomier home cards */
 

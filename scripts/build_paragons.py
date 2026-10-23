@@ -47,6 +47,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from _common import f32, relaunch_in_venv
+
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "web" / "src" / "data" / "paragons.json"
 FORMAT_VERSION = 1
@@ -67,15 +69,6 @@ SCALARS = [(n, c) for n, c in FIELDS if c]
 BLOCK = "<" + "".join(c for _, c in SCALARS)
 BLOCK_LEN = struct.calcsize(BLOCK)  # 76
 DEGREE_COUNT_AT = 4 * 6  # degreeCount follows the six leading floats
-
-
-def _relaunch_in_venv() -> None:
-    for rel in ("Scripts/python.exe", "bin/python"):
-        venv_py = ROOT / ".venv-art" / rel
-        if venv_py.exists():
-            if Path(sys.prefix).resolve() != (ROOT / ".venv-art").resolve():
-                sys.exit(subprocess.call([str(venv_py), __file__, *sys.argv[1:]]))
-            return
 
 
 def fail(msg: str) -> None:
@@ -241,16 +234,6 @@ def parse_upgrades(b: bytes) -> list:
 # ─────────────────────────────────────────────────────────────── helpers
 
 
-def f32(x: float) -> float | int:
-    """Shortest decimal that round-trips to the same float32 (the game's own value), ints as ints."""
-    target = struct.pack("<f", x)
-    for p in range(1, 10):
-        v = float(f"{x:.{p}g}")
-        if struct.pack("<f", v) == target:
-            return int(v) if v == int(v) else v
-    return x
-
-
 def tower_ids() -> set:
     src = (ROOT / "src" / "nk" / "types.ts").read_text(encoding="utf-8")
     m = re.search(r"export type TowerId = Open<(.*?)>;", src, re.S)
@@ -318,5 +301,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    _relaunch_in_venv()
+    relaunch_in_venv(__file__)
     main()
