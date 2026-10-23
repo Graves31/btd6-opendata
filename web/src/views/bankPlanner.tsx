@@ -24,6 +24,8 @@ import {
   income,
   capacity,
   step,
+  MAX_ROUND,
+  roundsToFill,
   type BankInput,
   type Ben,
   type Path,
@@ -491,9 +493,7 @@ function Deposit(p: {
   const ladder = all.filter((x) => !end || x.r <= end);
   if (!ladder.length) {
     // The bank fills by itself, or the last round comes first.
-    let b = b0;
-    let at = r.r - 1;
-    while (b < cap && at < r.r + 300) [b, at] = [step(b, P, cap).b, at + 1];
+    const at = r.r - 1 + roundsToFill(b0, P, cap);
     return (
       <section
         class="pg-panel bk-hot"
@@ -909,14 +909,14 @@ export function BankPlannerPage(p: { r: BankRoute }) {
                       value={r.r}
                       label={label}
                       onChange={(n) =>
-                        set({ r: Math.min(999, Math.max(1, n)) })
+                        set({ r: Math.min(MAX_ROUND, Math.max(1, n)) })
                       }
                     />
                     <button
                       type="button"
                       class="pg-step"
                       aria-label="Next round"
-                      disabled={r.r >= 999}
+                      disabled={r.r >= MAX_ROUND}
                       onClick={() => set({ r: r.r + 1 })}
                     >
                       +
@@ -1054,7 +1054,7 @@ export function BankPlannerPage(p: { r: BankRoute }) {
                   <NumField
                     value={r.end}
                     label="Last round you play"
-                    max={999}
+                    max={MAX_ROUND}
                     placeholder="—"
                     onChange={(n) => set({ end: n })}
                   />

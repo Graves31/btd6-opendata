@@ -10,16 +10,18 @@ import farm000 from "../art/tools/farm000.webp";
 import farm100 from "../art/tools/farm100.webp";
 import farm200 from "../art/tools/farm200.webp";
 import { ROUND_SET_BY_ID, type RoundSetData } from "../data/rounds/index.ts";
+import { BANK } from "../bank.ts";
 import { navigate, store } from "../nav.ts";
 import { spawnEnd } from "../rounds.ts";
 import { href } from "../routes.ts";
 import { A, ToolBack, ToolHero } from "../ui.tsx";
 import { TargetInput } from "./paragon.tsx";
 
+// Banana counts are the bank planner's (BANK.packets); cash per round is not in BANK (the bank's packets are worth more).
 const FARMS = [
-  { path: "0-0-0", art: farm000, bananas: 4, cash: 80 },
-  { path: "1-0-0", art: farm100, bananas: 6, cash: 120 },
-  { path: "2-0-0", art: farm200, bananas: 8, cash: 160 },
+  { path: "0-0-0", art: farm000, bananas: BANK.packets[0], cash: 80 },
+  { path: "1-0-0", art: farm100, bananas: BANK.packets[1], cash: 120 },
+  { path: "2-0-0", art: farm200, bananas: BANK.packets[2], cash: 160 },
 ];
 const secs = (s: number) => `${+s.toFixed(1)}s`;
 

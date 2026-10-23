@@ -57,6 +57,17 @@ export function fresh(k: number, P: number, cap: number): number {
   return b;
 }
 
+/** Highest round the planner takes. */
+export const MAX_ROUND = 999;
+
+/** Rounds until a bank holding `b0` is full (at most 300). */
+export function roundsToFill(b0: number, P: number, cap: number): number {
+  let b = b0;
+  let k = 0;
+  while (b < cap && k < 300) [b, k] = [step(b, P, cap).b, k + 1];
+  return k;
+}
+
 /** Best repeating cycle from an empty bank: the length k that earns the most per round. */
 export function bestCycle(P: number, cap: number) {
   let b = 0;

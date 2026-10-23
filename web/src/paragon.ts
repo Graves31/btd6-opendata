@@ -12,9 +12,12 @@ import data56 from "./data/paragons-56.json" with { type: "json" };
  * boostDegrees = Paragon Boost, degrees added to the game's first paragon after the power calculation
  * (Blooncyclopedia, Paragon_Boost page, v56.0).
  */
+/** Impoppable mode's cost multiplier (float32 of 10/9). */
+const IMPOPPABLE_MODE = 1.1111111640930176;
+
 export const REF = {
   totemPower: 2000,
-  costMods: { easy: [0.85], medium: [], hard: [1.08], impoppable: [1.08, 1.1111111640930176] } as Record<Difficulty, number[]>,
+  costMods: { easy: [0.85], medium: [], hard: [1.08], impoppable: [1.08, IMPOPPABLE_MODE] } as Record<Difficulty, number[]>,
   costRounding: 5,
   boostDegrees: 25,
 };
@@ -28,6 +31,9 @@ const DATA: Record<GameVer, VerData> = { "57": data57, "56": data56 };
 export type Difficulty = "easy" | "medium" | "hard" | "impoppable";
 /** Tower id of a paragon's base tower, as in paragons.json. */
 export type ParagonTower = keyof typeof data57.paragons;
+
+/** Highest paragon degree (both versions' data say 100). */
+export const MAX_DEGREE = data57.degreeData.degreeCount;
 
 /** Paragon tower ids of a version, in data order. */
 export const paragonTowers = (ver: GameVer) => Object.keys(DATA[ver].paragons) as ParagonTower[];
@@ -232,10 +238,18 @@ export function waysTo(i: ParagonInput, target: number, noTotems = false): Way[]
     };
     // Estimate in input units from the per-unit power, then adjust until the floored total just reaches the target.
     const one = rawPowers(apply(1))[key] - rawPowers(i)[key];
-    let add = Math.max(1, Math.floor((need - b.raw) / one));
-    while (evaluate(apply(add)).power < target && add < 1e12) add++;
-    while (add > 1 && evaluate(apply(add - 1)).power >= target) add--;
-    if (evaluate(apply(add)).power >= target) ways.push({ key, add });
+    // Power only grows with the amount, so gallop up to an amount that reaches it, then bisect to the minimum.
+    const ok = (a: number) => evaluate(apply(a)).power >= target;
+    let hi = Math.max(1, Math.floor((need - b.raw) / one));
+    let lo = 0;
+    while (!ok(hi) && hi < 1e12) [lo, hi] = [hi, hi * 2];
+    if (!ok(hi)) continue;
+    while (hi - lo > 1) {
+      const mid = Math.floor((lo + hi) / 2);
+      if (ok(mid)) hi = mid;
+      else lo = mid;
+    }
+    ways.push({ key, add: hi });
   }
   return ways;
 }

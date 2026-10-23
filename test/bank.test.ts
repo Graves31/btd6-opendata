@@ -1,7 +1,7 @@
 // Bank & IMF Loan planner maths: per-round rule, collect timing, deposit ladder, deposit clicks.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { capacity, collectPlan, depositClicks, depositLadder, depositRows, income, type BankInput } from "../web/src/bank.ts";
+import { BANK, MAX_ROUND, roundsToFill, step, capacity, collectPlan, depositClicks, depositLadder, depositRows, income, type BankInput } from "../web/src/bank.ts";
 
 const mk: BankInput = { tier: 3, path: 1, bb: true, mvb: true, ben: 0, city: false, oc: false, half: false };
 const near = (a: number, b: number, d = 0.01) => assert.ok(Math.abs(a - b) <= d, `${a} ≉ ${b}`);
@@ -67,5 +67,21 @@ describe("deposit clicks with plenty of cash", () => {
     assert.deepEqual(o.map((x) => x.deposit), [0, 6250, 9375, 10937, 11718]);
     near(o[0].perRound, bestCycle(P, 12500).avg);
     for (const x of o) assert.equal(x.r, 30 + x.rounds - 1);
+  });
+});
+
+describe("bank constants and helpers", () => {
+  it("packets per round are 4/6/8 (the farming page shows the same counts, at $20 per banana: 80/120/160)", () => {
+    assert.deepEqual(BANK.packets, [4, 6, 8]);
+    assert.deepEqual(BANK.packets.map((n) => n * 20), [80, 120, 160]);
+  });
+  it("roundsToFill counts the rounds to reach the cap, at most 300", () => {
+    assert.equal(roundsToFill(10000, 100, 10000), 0);
+    const k = roundsToFill(0, 225, 10000);
+    let b = 0;
+    for (let i = 0; i < k - 1; i++) b = step(b, 225, 10000).b;
+    assert.ok(b < 10000 && step(b, 225, 10000).b >= 10000);
+    assert.equal(roundsToFill(0, 0, 10000), 0 + 300);
+    assert.equal(MAX_ROUND, 999);
   });
 });

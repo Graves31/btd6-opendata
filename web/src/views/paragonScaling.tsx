@@ -7,19 +7,19 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import heroArt from "../art/tools/paragonScaling.webp";
 import { fmtInt } from "../format.ts";
 import { navigate } from "../nav.ts";
-import { cooldownCut, degreeData, gameVersion, paragonName, paragonTowers, powerForDegree, scaling } from "../paragon.ts";
+import { cooldownCut, degreeData, MAX_DEGREE, gameVersion, paragonName, paragonTowers, powerForDegree, scaling } from "../paragon.ts";
 import { href } from "../routes.ts";
 import { Spr } from "../sprite.tsx";
 import { A, ToolBack, ToolHero } from "../ui.tsx";
 import { paragonIcon, TargetInput } from "./paragon.tsx";
 
 const VER = "57" as const;
-const DEG = Array.from({ length: 100 }, (_, i) => i + 1);
+const DEG = Array.from({ length: MAX_DEGREE }, (_, i) => i + 1);
 const one = (n: number) => +n.toFixed(1);
 const times = (x: number) => `×${+x.toFixed(2)}`;
 const sc = (d: number) => scaling(d, VER);
 const pw = (d: number) => powerForDegree(d, false, VER);
-const clampD = (n: number) => Math.min(100, Math.max(1, n));
+const clampD = (n: number) => Math.min(MAX_DEGREE, Math.max(1, n));
 const compact = (n: number) => (n >= 1000 ? `${+(n / 1000).toFixed(1)}k` : `${+n.toFixed(1)}`);
 /** "+12.5%" / "0%" (never "−0%") */
 const pct = (n: number) => (one(n) === 0 ? "0%" : `+${one(n)}%`);
@@ -46,7 +46,7 @@ const ML = 46;
 const MR = 72;
 const MT = 12;
 const MB = 28;
-const TICKS = [1, 25, 50, 75, 100];
+const TICKS = [1, 25, 50, 75, MAX_DEGREE];
 
 const niceMax = (v: number) => {
   const p = 10 ** Math.floor(Math.log10(v));
@@ -73,22 +73,22 @@ function Chart(p: {
   const { H, ymin, ymax, x, y, paths, labels } = useMemo(() => {
     const H = p.series.length > 1 ? 230 : 200;
     const ymin = p.ymin ?? 0;
-    const ymax = niceMax(Math.max(...p.series.map((s) => s.v(100))));
+    const ymax = niceMax(Math.max(...p.series.map((s) => s.v(MAX_DEGREE))));
     const x = (d: number) => ML + ((d - 1) / 99) * (W - ML - MR);
     const y = (v: number) => MT + (1 - (v - ymin) / (ymax - ymin)) * (H - MT - MB);
     const f = (n: number) => n.toFixed(1);
     // steps jump halfway between two degrees, so the line ends on a horizontal tread at degree 100
     const path = (s: Series) => {
       let d = `M${f(x(1))},${f(y(s.v(1)))}`;
-      for (let i = 2; i <= 100; i++) {
+      for (let i = 2; i <= MAX_DEGREE; i++) {
         if (s.step) {
           if (s.v(i) !== s.v(i - 1)) d += `L${f(x(i - 0.5))},${f(y(s.v(i - 1)))}L${f(x(i - 0.5))},${f(y(s.v(i)))}`;
         } else d += `L${f(x(i))},${f(y(s.v(i)))}`;
       }
-      return d + (s.step ? `L${f(x(100))},${f(y(s.v(100)))}` : "");
+      return d + (s.step ? `L${f(x(MAX_DEGREE))},${f(y(s.v(MAX_DEGREE)))}` : "");
     };
     // end labels (split on spaces into lines) centred on the last value, nudged apart when the lines finish close together
-    const labels = p.series.map((s, i) => ({ i, y: y(s.v(100)) })).sort((a, b) => a.y - b.y);
+    const labels = p.series.map((s, i) => ({ i, y: y(s.v(MAX_DEGREE)) })).sort((a, b) => a.y - b.y);
     for (let k = 1; k < labels.length; k++) labels[k]!.y = Math.max(labels[k]!.y, labels[k - 1]!.y + 36);
     return { H, ymin, ymax, x, y, paths: p.series.map(path), labels };
   }, []);
@@ -157,7 +157,7 @@ function Chart(p: {
         {p.series
           .filter((s) => !s.main)
           .map((s) => (
-            <rect key={s.label} class="ps-end" x={x(100) - 3.5} y={y(s.v(100)) - 3.5} width={7} height={7} transform={`rotate(45 ${x(100)} ${y(s.v(100))})`} />
+            <rect key={s.label} class="ps-end" x={x(MAX_DEGREE) - 3.5} y={y(s.v(MAX_DEGREE)) - 3.5} width={7} height={7} transform={`rotate(45 ${x(MAX_DEGREE)} ${y(s.v(MAX_DEGREE))})`} />
           ))}
         {p.series.map((s) => (
           <circle key={s.label} class={s.main ? "ps-dot ps-main" : "ps-dot"} cx={x(p.d)} cy={y(s.v(p.d))} r={4} />
@@ -269,7 +269,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
   const bossStep = sc(D.bonusBossDamagePerDegrees).bossNormal - 1;
 
   const rows = DEG.filter(
-    (n) => n === 1 || n === 100 || n === d || n === p.to || sc(n).bossNormal !== sc(n - 1).bossNormal || sc(n).damageFlat !== sc(n - 1).damageFlat,
+    (n) => n === 1 || n === MAX_DEGREE || n === d || n === p.to || sc(n).bossNormal !== sc(n - 1).bossNormal || sc(n).damageFlat !== sc(n - 1).damageFlat,
   );
   // one degree's stats, or (with `base`) another degree's in the same places plus the change from `base`
   const fields = (s: Stats, base?: Stats) => (
@@ -318,12 +318,12 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
             −
           </button>
           <TargetInput value={d} onChange={setD} label="Degree" />
-          <button type="button" class="pg-step" aria-label="Next degree" disabled={d >= 100} onClick={() => setD(d + 1)}>
+          <button type="button" class="pg-step" aria-label="Next degree" disabled={d >= MAX_DEGREE} onClick={() => setD(d + 1)}>
             +
           </button>
         </div>
         <div class="pg-num">
-          <input type="range" class="pg-range" min={1} max={100} step={1} value={d} aria-label="Degree, 1 to 100" onInput={(e) => setD(+e.currentTarget.value)} />
+          <input type="range" class="pg-range" min={1} max={MAX_DEGREE} step={1} value={d} aria-label="Degree, 1 to 100" onInput={(e) => setD(+e.currentTarget.value)} />
         </div>
       </section>
       <section class="pg-panel ps-panel" aria-labelledby="ps-sum">
@@ -343,7 +343,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
           <span class="pg-hint">From the game data, v{gameVersion(VER)}. Unofficial.</span>
         </p>
         {p.to === undefined ? (
-          <button type="button" class="pg-copy ps-add" onClick={() => setTo(d < 100 ? Math.min(100, d + 10) : 90)}>
+          <button type="button" class="pg-copy ps-add" onClick={() => setTo(d < MAX_DEGREE ? Math.min(MAX_DEGREE, d + 10) : 90)}>
             Compare with…
           </button>
         ) : (
@@ -355,7 +355,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
                   −
                 </button>
                 <TargetInput value={p.to} onChange={setTo} label="Compare with degree" />
-                <button type="button" class="pg-step" aria-label="Higher compare degree" disabled={p.to >= 100} onClick={() => setTo(p.to! + 1)}>
+                <button type="button" class="pg-step" aria-label="Higher compare degree" disabled={p.to >= MAX_DEGREE} onClick={() => setTo(p.to! + 1)}>
                   +
                 </button>
               </div>
@@ -378,8 +378,8 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
           icon={ICON.damage()}
           take={
             same
-              ? `At degree 100 damage and pierce are both *${pct(sc(100).damagePct)}*: +${one(sc(2).damagePct)}% per degree, and degree 100 adds one extra step. The pierce % is rounded down to whole pierce, so real pierce climbs in whole steps (base pierce 10: +1 every 10 degrees).`
-              : `At degree 100 damage is *${pct(sc(100).damagePct)}* and pierce *${pct(sc(100).piercePct)}*, +${one(sc(2).damagePct)}% and +${one(sc(2).piercePct)}% per degree, and degree 100 adds one extra step.`
+              ? `At degree 100 damage and pierce are both *${pct(sc(MAX_DEGREE).damagePct)}*: +${one(sc(2).damagePct)}% per degree, and degree 100 adds one extra step. The pierce % is rounded down to whole pierce, so real pierce climbs in whole steps (base pierce 10: +1 every 10 degrees).`
+              : `At degree 100 damage is *${pct(sc(MAX_DEGREE).damagePct)}* and pierce *${pct(sc(MAX_DEGREE).piercePct)}*, +${one(sc(2).damagePct)}% and +${one(sc(2).piercePct)}% per degree, and degree 100 adds one extra step.`
           }
           series={same ? [{ label: "Damage & pierce", v: (n) => sc(n).damagePct, main: true }] : [{ label: "Damage", v: (n) => sc(n).damagePct, main: true }, { label: "Pierce", v: (n) => sc(n).piercePct }]}
           yFmt={(n) => `${+n.toFixed(0)}%`}
@@ -389,7 +389,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
           {...c}
           title="Flat bonuses"
           icon={ICON.flat()}
-          take={`Flat damage grows +${D.damageIncreasePerDegree} every ${D.damageIncreaseForDegrees} degrees, at 11, 21 … 91, and once more at 100 (*+${sc(100).damageFlat}*); flat pierce +${one(sc(2).pierceFlat)} every degree (*+${one(sc(100).pierceFlat)}* at 100).`}
+          take={`Flat damage grows +${D.damageIncreasePerDegree} every ${D.damageIncreaseForDegrees} degrees, at 11, 21 … 91, and once more at 100 (*+${sc(MAX_DEGREE).damageFlat}*); flat pierce +${one(sc(2).pierceFlat)} every degree (*+${one(sc(MAX_DEGREE).pierceFlat)}* at 100).`}
           series={[
             { label: "Flat damage", v: (n) => sc(n).damageFlat, step: true, main: true },
             { label: "Flat pierce", v: (n) => sc(n).pierceFlat },
@@ -400,7 +400,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
           {...c}
           title="Attack speed"
           icon={ICON.cooldown()}
-          take={`Attacks and abilities are *+${one(cd(100))}% faster* at degree 100 (cooldowns ${cutTxt(cd(100))}), but it levels off: degrees 1 to 21 give +${one(cd(21))}%, degrees 80 to 100 only ${one(cd(100) - cd(80))} points more.`}
+          take={`Attacks and abilities are *+${one(cd(MAX_DEGREE))}% faster* at degree 100 (cooldowns ${cutTxt(cd(MAX_DEGREE))}), but it levels off: degrees 1 to 21 give +${one(cd(21))}%, degrees 80 to 100 only ${one(cd(MAX_DEGREE) - cd(80))} points more.`}
           series={[{ label: "Attack speed", v: cd, main: true }]}
           yFmt={(n) => `${+n.toFixed(0)}%`}
           vFmt={(n) => `${one(n)}%`}
@@ -410,7 +410,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
           title="Boss damage"
           icon={ICON.boss()}
           ymin={1}
-          take={`Boss damage steps up ${times(bossStep)} every ${D.bonusBossDamagePerDegrees} degrees, to *${times(sc(100).bossNormal)}* on bosses and *${times(sc(100).bossElite)}* on elite bosses at degree 100.`}
+          take={`Boss damage steps up ${times(bossStep)} every ${D.bonusBossDamagePerDegrees} degrees, to *${times(sc(MAX_DEGREE).bossNormal)}* on bosses and *${times(sc(MAX_DEGREE).bossElite)}* on elite bosses at degree 100.`}
           series={[
             { label: "Elite boss", v: (n) => sc(n).bossElite, step: true, main: true },
             { label: "Boss", v: (n) => sc(n).bossNormal, step: true },
@@ -424,7 +424,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
           {...c}
           title="Power needed"
           icon={ICON.power()}
-          take={`Degree 100 needs *${fmtInt(pw(100))} total power*. The power for one degree keeps growing too: *${fmtInt(step)}* for degree 3, *${fmtInt(pw(100) - pw(99))}* for degree 100.`}
+          take={`Degree 100 needs *${fmtInt(pw(MAX_DEGREE))} total power*. The power for one degree keeps growing too: *${fmtInt(step)}* for degree 3, *${fmtInt(pw(MAX_DEGREE) - pw(99))}* for degree 100.`}
           series={[{ label: "Total power", v: pw, main: true }]}
           yFmt={compact}
         />

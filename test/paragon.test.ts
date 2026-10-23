@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { cooldownCut, evaluate, inputMax, paragonCost, paragonTowers, powerForDegree, REF, scaling, waysTo, type GameVer, type ParagonInput } from "../web/src/paragon.ts";
+import { MAX_DEGREE, cooldownCut, evaluate, inputMax, paragonCost, paragonTowers, powerForDegree, REF, scaling, waysTo, type GameVer, type ParagonInput } from "../web/src/paragon.ts";
 
 const json = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../web/src/data/paragons.json"), "utf8"));
 const D = json.degreeData;
@@ -162,5 +162,49 @@ describe("paragon maths", () => {
     assert.ok(waysTo(z, 5000).some((w) => w.key === "tiers"));
     assert.ok(!paragonTowers("56").includes("SniperMonkey" as never));
     assert.ok(paragonTowers("57").includes("SniperMonkey"));
+  });
+});
+
+describe("paragon constants and bounds", () => {
+  it("MAX_DEGREE matches the data in both versions", () => {
+    assert.equal(MAX_DEGREE, D.degreeCount);
+    assert.equal(reqs.length, MAX_DEGREE);
+  });
+  it("REF constants are pinned (not in the data: a change must be deliberate)", () => {
+    assert.deepEqual(REF, { totemPower: 2000, costMods: { easy: [0.85], medium: [], hard: [1.08], impoppable: [1.08, 1.1111111640930176] }, costRounding: 5, boostDegrees: 25 });
+  });
+  it("costs on every difficulty are 5-multiples, ordered easy < medium < hard < impoppable, near cost x mods", () => {
+    for (const ver of ["57", "56"] as GameVer[]) {
+      for (const t of paragonTowers(ver)) {
+        const c = (["easy", "medium", "hard", "impoppable"] as const).map((d) => paragonCost(t, d, ver));
+        for (const x of c) assert.equal(x % 5, 0);
+        assert.ok(c[0] < c[1] && c[1] < c[2] && c[2] < c[3], `${t} ${ver} ${c}`);
+        const base = c[1];
+        assert.ok(Math.abs(c[0] - base * 0.85) <= 5 && Math.abs(c[2] - base * 1.08) <= 5 && Math.abs(c[3] - base * 1.08 * (10 / 9)) <= 10, `${t} ${ver}`);
+      }
+    }
+  });
+  it("waysTo terminates and gives the minimum amount, also for a huge target", () => {
+    const ways = waysTo(zero, reqs[99] * 1000);
+    for (const w of ways) assert.ok(Number.isFinite(w.add) && w.add >= 1);
+    const small = waysTo(zero, reqs[9]);
+    for (const w of small) {
+      const f = { ...zero };
+      if (w.key === "cash") f.cash += w.add;
+      else if (w.key === "pops") f.pops += w.add;
+      else if (w.key === "tiers") f.tiers += w.add;
+      else if (w.key === "t5") f.extraT5 += w.add;
+      else f.totems += w.add;
+      assert.ok(evaluate(f).power >= reqs[9]);
+      if (w.add > 1) {
+        const g = { ...f };
+        if (w.key === "cash") g.cash -= 1;
+        else if (w.key === "pops") g.pops -= 1;
+        else if (w.key === "t5") g.extraT5 -= 1;
+        else if (w.key === "tiers") g.tiers -= 1;
+        else g.totems -= 1;
+        assert.ok(evaluate(g).power < reqs[9], w.key);
+      }
+    }
   });
 });

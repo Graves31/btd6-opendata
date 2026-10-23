@@ -9,7 +9,7 @@ import { ART } from "../art/index.ts";
 import heroArt from "../art/tools/paragon.webp";
 import { fmtInt, unitName } from "../format.ts";
 import { navigate } from "../nav.ts";
-import { degreeData, evaluate, gameVersion, inputMax, paragonCost, paragonName, paragonTowers, powerForDegree, REF, scaling, waysTo, type Bucket, type Difficulty, type GameVer, type ParagonInput, type ParagonResult, type ParagonTower, type Way } from "../paragon.ts";
+import { degreeData, evaluate, MAX_DEGREE, gameVersion, inputMax, paragonCost, paragonName, paragonTowers, powerForDegree, REF, scaling, waysTo, type Bucket, type Difficulty, type GameVer, type ParagonInput, type ParagonResult, type ParagonTower, type Way } from "../paragon.ts";
 import { href, PG_DIFFS, type ParagonRoute } from "../routes.ts";
 import { TOWER_GROUPS } from "../rules.tsx";
 import { Spr } from "../sprite.tsx";
@@ -236,7 +236,7 @@ export function ParagonPage(props: { r: ParagonRoute }) {
   const go = (patch: Patch) => navigate(href.paragon({ ...s, ...patch }, true), { replace: true, keepScroll: true });
   const input: ParagonInput = { tower: s.tower, diff: s.diff, ver: s.ver, cash: s.cash, slider: s.slider, pops: s.pops, income: s.income, tiers: s.tiers, extraT5: s.extraT5, totems: s.totems, boost: s.boost };
   const res = evaluate(input);
-  const defTarget = res.breakpoint?.degree ?? res.next?.degree ?? 100;
+  const defTarget = res.breakpoint?.degree ?? res.next?.degree ?? MAX_DEGREE;
   const target = s.target ?? defTarget;
   const [copied, setCopied] = useState(false);
   useEffect(() => {
@@ -388,11 +388,11 @@ function TargetPanel(p: { s: ParagonRoute; input: ParagonInput; res: ParagonResu
   const { res, target, go } = p;
   const explicit = p.s.target !== undefined;
   const need = powerForDegree(target, p.s.boost, p.s.ver);
-  const ways = res.degree < 100 && target > res.degree ? waysTo(p.input, need, p.s.noTotems) : [];
+  const ways = res.degree < MAX_DEGREE && target > res.degree ? waysTo(p.input, need, p.s.noTotems) : [];
   const [best, ...others] = ways;
-  const step = (n: number) => go({ target: Math.min(100, Math.max(2, n)) });
+  const step = (n: number) => go({ target: Math.min(MAX_DEGREE, Math.max(2, n)) });
   let answer: ComponentChildren;
-  if (res.degree >= 100) {
+  if (res.degree >= MAX_DEGREE) {
     answer = <p class="pg-ans-t">Degree 100: the highest there is.</p>;
   } else if (target <= res.degree) {
     answer = (
@@ -459,7 +459,7 @@ function TargetPanel(p: { s: ParagonRoute; input: ParagonInput; res: ParagonResu
             −
           </button>
           <TargetInput value={target} onChange={step} />
-          <button type="button" class="pg-step" aria-label="Higher target degree" disabled={target >= 100} onClick={() => step(target + 1)}>
+          <button type="button" class="pg-step" aria-label="Higher target degree" disabled={target >= MAX_DEGREE} onClick={() => step(target + 1)}>
             +
           </button>
         </div>
