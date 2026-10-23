@@ -160,7 +160,7 @@ export const ART: Record<Family, SpriteSheet | null> = {
   relic: { url: relicUrl, cols: 7, rows: 7, cell: 64, keys: { StartingStash: 0, ExtraEmpowered: 1, BoxOfChocolates: 2, BoxOfMonkey: 3, MarchingBoots: 4, HeroBoost: 5, BiggerBloonSabotage: 6, RoundingUp: 7, ManaBulwark: 8, Regeneration: 9, Restoration: 10, DurableShots: 11, AlchemistTouch: 12, DeepHeat: 13, Sharpsplosion: 14, RoyalTreatment: 15, HardBaked: 16, Fortifried: 17, MoabClash: 18, CamoFlogged: 19, BrokenHeart: 20, GoingTheDistance: 21, Heartless: 22, FlintTips: 23, Abilitized: 24, AirAndSea: 25, ElDorado: 26, MonkeyShield: 27, MonkeyShieldMark2: 28, MonkeyShieldMark3: 29, PsiVision: 30, OpenSeason: 31, CamoTrap: 32, Thrive: 33, SuperMonkeyStorm: 34, MonkeyBoost: 35, RoadSpikes: 36, MoabMine: 37, GlueTrap: 38, Techbot: 39, PrimaryPrimates: 40, MilitaryMonkeys: 41, MagicMonkeys: 42, SupportSimians: 43, MonkeyTycoon: 44 } },
   paragon: { url: paragonUrl, cols: 4, rows: 4, cell: 96, keys: { BombShooter: 0, BoomerangMonkey: 1, DartMonkey: 2, Druid: 3, EngineerMonkey: 4, IceMonkey: 5, MonkeyAce: 6, MonkeyBuccaneer: 7, MonkeySub: 8, NinjaMonkey: 9, SniperMonkey: 10, SpikeFactory: 11, TackShooter: 12, WizardMonkey: 13, ParagonPowerTotem: 14 } },
   season: { url: seasonUrl, cols: 3, rows: 3, cell: 96, keys: { SeasonTier1: 0, SeasonTier2: 1, SeasonTier3: 2, SeasonTier4: 3, SeasonUltimate1: 4, SeasonUltimate2: 5, SeasonUltimate3: 6, SeasonChampion: 7 } },
-  eventIcon: { url: eventIconUrl, cols: 3, rows: 2, cell: 96, keys: { boss: 0, race: 1, ct: 2, odyssey: 3, daily: 4, bossRush: 5 } },
+  eventIcon: { url: eventIconUrl, cols: 3, rows: 3, cell: 96, keys: { boss: 0, race: 1, ct: 2, odyssey: 3, daily: 4, bossRush: 5, maps: 6 } },
 };
 
 /** In-game boss health bar, read from the game's BossUi prefab (scripts/build_art.py boss_ui(); 1 unit = 1 px of
@@ -235,7 +235,7 @@ export const BOSS_BAR_RECT: Record<string, [number, number, number, number]> = {
   "tail": [104.1, -101.71, 905.31, 48.07],
 };
 /** The skull marker prefab: its size, and the strip (rect, hp-bar space) it is spread along. */
-export const BOSS_BAR_MARKER = {"group": [0, 0, 1660, 106.36], "h": 98.69, "w": 100} as const;
+export const BOSS_BAR_MARKER = {"w": 100, "h": 98.69, "group": [0, 0, 1660, 106.36]} as const;
 /** The boss icons on the bar at native size: "hud:<bossType>" / "hud:elite:<bossType>" -> { url, w, h }. */
 export const BOSS_HUD: Record<string, { url: string; w: number; h: number }> = {
   "hud:blastapopoulos": { url: bossBar_hud_blastapopoulos, w: 495, h: 495 },

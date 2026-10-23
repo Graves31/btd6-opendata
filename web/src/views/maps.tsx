@@ -9,7 +9,7 @@ import { DIFF_ICON, DIFF_LABEL, fmtAgo, mapCounts, mapEvents, mapMetaKeys, type 
 import { navigate, store } from "../nav.ts";
 import { historyKey, href, LIST_KEY, type MapSort, type MapsRoute } from "../routes.ts";
 import { MapArt, Spr } from "../sprite.tsx";
-import { A, body, EvIcon, peek, Skeleton, StatusBadge, ToolHero } from "../ui.tsx";
+import { A, body, EvIcon, peek, Skeleton, StatusBadge } from "../ui.tsx";
 import { NotFound } from "./errors.tsx";
 
 const SORTS: [MapSort, string][] = [
@@ -164,7 +164,13 @@ export function MapsPage(props: { r: MapsRoute }) {
   const flip = (key: "water" | "noBoss" | "noRace") => () => go({ [key]: !r[key] });
   return (
     <>
-      <ToolHero art={<Spr family="ui" k="MapBeginner" size={72} label />} eyebrow="Official maps · Bloons TD 6" title="Maps" sub={`All ${MAP_LIST.length} official maps: when each last had a boss event or a race, and how often.`} />
+      <header class="page-h">
+        <h1 class="title ti">
+          <EvIcon k="maps" size={64} />
+          Maps
+        </h1>
+        <p class="lede">All {MAP_LIST.length} official maps: when each last had a boss event or a race, and how often.</p>
+      </header>
       <div class="map-strip">
         <Stat art={<Spr family="ui" k="Trophy" size={40} label />} big={MAP_LIST.length} small="maps in the game" />
         <Stat art={<EvIcon k="boss" size={40} />} big={loading ? "–" : never} small="never had a boss event" />

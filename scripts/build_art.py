@@ -594,6 +594,7 @@ EVENT_ICONS = {
     "odyssey": "ref/OdysseyEventBtn",
     "daily": "MainMenuUiAtlas/DailyChallengeBtn",
     "bossRush": "ref/BushRushEventBtn",  # sic: NK's sprite name
+    "maps": "Ui/MapDiffUnlockIcon",  # not an event: the /maps page header (the game's map-cards icon)
 }
 
 FAMILIES = {  # family -> (table, cell px, aliases)
