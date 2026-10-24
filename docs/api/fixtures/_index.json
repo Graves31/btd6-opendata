@@ -926,7 +926,7 @@
       "status": 200,
       "ms": 213,
       "bytes": 546,
-      "note": "filter past the end \u2192 empty list",
+      "note": "filter past the end 2192 empty list",
       "headers": {
         "cache-control": "public, max-age=300",
         "etag": "W/\"222-4reDl7kGLfnteyqyHvIqeXbQyTw\"",
@@ -1315,6 +1315,16 @@
         "content-type": "text/html; charset=utf-8",
         "expires": "Thu, 24 Sep 2026 17:51:14 GMT",
         "last-modified": "Thu, 24 Sep 2026 17:37:58 GMT"
+      }
+    },
+    {
+      "path": "/btd6/save/oak_sample",
+      "file": "btd6__save__sample.json",
+      "status": 200,
+      "bytes": 339043,
+      "note": "owner's real v57.3 save, named monkeys removed (2026-10-24)",
+      "headers": {
+        "content-type": "application/json; charset=utf-8"
       }
     }
   ]

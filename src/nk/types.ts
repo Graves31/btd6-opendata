@@ -295,23 +295,40 @@ export interface Guild {
   CtBadges: Record<string, Badge>;
 }
 
+/** One map × difficulty × single/coop × mode cell of `UserSave.mapProgress`. */
+export interface MapModeProgress {
+  completed: boolean;
+  completedWithoutLoadingSave: boolean;
+  bestRound: number;
+  timesCompleted: number;
+}
+
+/** Keyed by game map id (same ids as the site's maps). Modes include Sandbox and SuperChimps (no medal). */
+export interface MapProgress {
+  complete: boolean;
+  difficulty: Record<"Easy" | "Medium" | "Hard", Record<"single" | "coop", Record<string, MapModeProgress>>>;
+}
+
 /**
- * PRIVATE (requires the player's OAK). UNVERIFIED — transcribed from the official docs only.
- * Never proxy or cache server-side.
+ * PRIVATE (requires the player's OAK). Checked against a real v57.3 save (2026-10-24, fixture btd6__save__sample).
+ * Never proxy or cache server-side. Map keys are game ids (towers: DartMonkey, MK: BiggerBanks, …).
  */
 export interface UserSave {
   latestGameVersion: string;
   towerXP: Record<string, number>;
-  acquiredUpgrades: Record<string, unknown>;
-  acquiredKnowledge: Record<string, unknown>;
-  unlockedTowers: Record<string, unknown>;
-  unlockedHeroes: Record<string, unknown>;
+  /** Upgrade name ("Quick Shots") → unlocked. */
+  acquiredUpgrades: Record<string, boolean>;
+  /** Monkey Knowledge id → owned. */
+  acquiredKnowledge: Record<string, boolean>;
+  unlockedTowers: Record<string, boolean>;
+  unlockedHeroes: Record<string, boolean>;
   /** @deprecated use unlockedHeroes */
-  unlockedHeros?: Record<string, unknown>;
-  unlockedSkins: Record<string, unknown>;
+  unlockedHeros?: Record<string, boolean>;
+  unlockedSkins: Record<string, boolean>;
   gamesPlayed: number;
-  powers: Record<string, unknown>;
-  powersPro: Record<string, unknown>;
+  powers: Record<string, { quantity: number; isNew: boolean }>;
+  powersPro: Record<string, { isSeen: number; xp: number; unlockedTier: number; seenUnlockPro: number; seenUnlockTier: number }>;
+  /** Tower → tiers ("032") → count. */
   instaTowers: Record<string, Record<string, number>>;
   monkeyMoney: number;
   xp: number;
@@ -323,7 +340,8 @@ export interface UserSave {
   lifetimeTeamTrophies: number;
   knowledgePoints: number;
   primaryHero: string;
-  achievementsClaimed: unknown[];
+  /** Achievement names ("First Win"). */
+  achievementsClaimed: string[];
   highestSeenRound: number;
   dailyRewardCount: number;
   totalDailyChallengesCompleted: number;
@@ -346,14 +364,17 @@ export interface UserSave {
   namedMonkeys: Record<string, Record<string, string>>;
   collectionEventCratesOpened: number;
   continuesUsed: number;
-  trophyStoreItems: Record<string, unknown>;
-  mapProgress: Record<string, unknown>;
-  rogueLegends: Record<string, unknown>;
-  frontierLegends: Record<string, unknown>;
-  rogueUnlockedStarterArtifacts: Record<string, unknown>;
-  rogueLegendsStats: unknown;
-  frontierLegendsStats: unknown;
-  quests: unknown[];
+  trophyStoreItems: Record<string, boolean>;
+  mapProgress: Record<string, MapProgress>;
+  /** Flat counters (tilesCaptured, bossesDefeated, totalArtifacts, …). */
+  rogueLegends: Record<string, number>;
+  frontierLegends: Record<string, number>;
+  /** "0", "1", … → artifact id. */
+  rogueUnlockedStarterArtifacts: Record<string, string>;
+  /** Mostly numeric counters plus a few nested objects/arrays (basicStats, winsByTileType, …). */
+  rogueLegendsStats: Record<string, unknown>;
+  frontierLegendsStats: Record<string, unknown>;
+  quests: { id: string; complete: boolean; parts: number; partsComplete: number }[];
 }
 
 // ─────────────────────────────── challenges & maps (player-made)

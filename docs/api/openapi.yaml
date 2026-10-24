@@ -951,8 +951,8 @@ components:
     UserSave:
       type: object
       description: |
-        UNVERIFIED — transcribed from the official docs (no OAK sample captured). Map/nestedmap fields are
-        typed loosely on purpose. Private: never proxy or cache server-side.
+        Checked against a real v57.3 save (fixture btd6__save__sample, named monkeys removed). Map/nestedmap
+        fields are typed loosely here; src/nk/types.ts has their shapes. Private: never proxy or cache server-side.
       properties:
         latestGameVersion: { type: string }
         towerXP: { type: object }
