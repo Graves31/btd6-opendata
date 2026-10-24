@@ -1,5 +1,6 @@
 // Maps explorer (/maps) and one map's page (/maps/<id>): the boss events and races played on each map.
 import type { ComponentChildren } from "preact";
+import type { UserSave } from "../../../src/nk/types.ts";
 import { useEffect, useState } from "preact/hooks";
 import { BOSS_HISTORY_SOURCE } from "../data/bossHistory.ts";
 import { RACE_HISTORY_SOURCE } from "../data/raceHistory.ts";
@@ -7,8 +8,10 @@ import { MAP_LIST } from "../data/names.ts";
 import { bossName, bossTitle, fmtDate, mapName, oldDates, plain } from "../format.ts";
 import { DIFF_ICON, DIFF_LABEL, fmtAgo, mapCounts, mapEvents, mapMetaKeys, type MapEvent } from "../maps.ts";
 import { navigate, store } from "../nav.ts";
+import { mapMedals } from "../oakSave.ts";
+import { useOak } from "../oak.ts";
 import { historyKey, href, LIST_KEY, type MapSort, type MapsRoute } from "../routes.ts";
-import { MapArt, Spr } from "../sprite.tsx";
+import { MapArt, MODE_NAME, Spr } from "../sprite.tsx";
 import { A, body, EvIcon, peek, Skeleton, StatusBadge } from "../ui.tsx";
 import { NotFound } from "./errors.tsx";
 
@@ -54,7 +57,7 @@ function Cell(p: { kind: "boss" | "race"; n: number; last?: number; loading: boo
   );
 }
 
-function Tile(p: { id: string; d: number; water: boolean; boss: number; race: number; lb?: number; lr?: number; fresh: boolean; loading: boolean; now: number }) {
+function Tile(p: { id: string; d: number; water: boolean; boss: number; race: number; lb?: number; lr?: number; mine?: string; fresh: boolean; loading: boolean; now: number }) {
   return (
     <li data-diff={p.d}>
       <A href={href.map(p.id)} class="map-tile">
@@ -69,6 +72,11 @@ function Tile(p: { id: string; d: number; water: boolean; boss: number; race: nu
             </span>
           )}
           {p.fresh && <span class="map-tile-new">Latest</span>}
+          {p.mine && (
+            <span class="map-tile-mine" title="Your solo medals on this map">
+              {p.mine}
+            </span>
+          )}
           <b class="map-tile-n">{mapName(p.id)}</b>
         </span>
         <span class="map-tile-f">
@@ -98,6 +106,11 @@ function Stat(p: { art: ComponentChildren; big: ComponentChildren; small: string
   );
 }
 
+const medalText = (save: UserSave, id: string) => {
+  const m = mapMedals(save, id);
+  return `${m.earned}/${m.total}`;
+};
+
 export function MapsPage(props: { r: MapsRoute }) {
   const r = props.r;
   const loading = useMapData();
@@ -105,6 +118,7 @@ export function MapsPage(props: { r: MapsRoute }) {
   const [open, setOpen] = useState(false);
   // Opened fresh at the top: let the browser skip the sections below the fold (.cv). Not when Back restores a
   // scroll position: that needs the real heights, not the estimates.
+  const { mine } = useOak();
   const [cv] = useState(() => !((history.state as { scrollY?: number } | null)?.scrollY ?? 0));
   useEffect(() => setQ((x) => (x.trim() === r.q ? x : r.q)), [r.q]);
   const go = (p: Partial<Omit<MapsRoute, "name">>) => navigate(href.maps({ ...r, ...p }), { replace: true, keepScroll: true });
@@ -144,6 +158,7 @@ export function MapsPage(props: { r: MapsRoute }) {
       race={n(counts.race, id)}
       lb={counts.last.boss.get(id)}
       lr={counts.last.race.get(id)}
+      mine={mine ? medalText(mine.save, id) : undefined}
       fresh={id === counts.latest.boss?.map || id === counts.latest.race?.map}
       loading={loading}
       now={now}
@@ -287,6 +302,43 @@ function Neighbour(p: { m?: (typeof MAP_LIST)[number]; dir: "prev" | "next" }) {
   );
 }
 
+function YourMedals(p: { id: string }) {
+  const { mine } = useOak();
+  if (!mine) {
+    return (
+      <p class="quiet mp-mine-none">
+        See your medals here: <A href="/me">add your key on My stats</A>
+      </p>
+    );
+  }
+  const m = mapMedals(mine.save, p.id);
+  const grid = (rows: typeof m.single, coop: boolean) => (
+    <div class="mp-mg">
+      <h3 class="cab-l">{coop ? "Co-op" : "Solo"}</h3>
+      {rows.map((r) => (
+        <ul key={r.diff} class="modes">
+          {r.cells.map((c) => (
+            <li key={c.key} class={c.earned ? "" : "mp-off"} title={`${MODE_NAME[c.key] ?? c.key}${c.earned ? `: best round ${c.bestRound}, completed ${c.times}x` : ": not earned"}`}>
+              <Spr family="modeMedal" k={`${coop ? "coop:" : ""}${c.key}`} size={32} label />
+              <span class="mode-n">{MODE_NAME[c.key] ?? c.key}</span>
+              {c.earned && <small class="num">R{c.bestRound} · {c.times}x</small>}
+            </li>
+          ))}
+        </ul>
+      ))}
+    </div>
+  );
+  return (
+    <section class="bs-plate map-ev">
+      <h2 class="kicker-h">
+        Your medals <span class="bs-count num">{m.earned}/{m.total}</span>
+      </h2>
+      {grid(m.single, false)}
+      {grid(m.coop, true)}
+    </section>
+  );
+}
+
 export function MapPage(props: { id: string }) {
   const id = props.id;
   const loading = useMapData();
@@ -339,6 +391,7 @@ export function MapPage(props: { id: string }) {
         <Neighbour m={MAP_LIST[i - 1]} dir="prev" />
         <Neighbour m={MAP_LIST[i + 1]} dir="next" />
       </nav>
+      <YourMedals id={id} />
       {section(
         "Boss events",
         bosses,

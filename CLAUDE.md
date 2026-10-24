@@ -21,7 +21,9 @@ architecture; this file is how to work on it.
   (paragon calculator; provisional constants in `REF`; `scaling()` = per-degree stats, checked against the v57
   game code), `views/paragonScaling.tsx` (paragon scaling charts), `views/farming.tsx` (banana timing), `bank.ts` + `views/bankPlanner.tsx` (bank collect timing and IMF
   deposits; v57.1 game code + wiki values in `BANK`),
-  `views/tools.tsx` (/tools hub), `ui.tsx` `ToolHero`/`ToolBack` (tool page header), `styles.css`.
+  `views/tools.tsx` (/tools hub), `ui.tsx` `ToolHero`/`ToolBack` (tool page header), `styles.css`,
+  `oak.ts` (the player's OAK + save: localStorage, browser → NK only) + `oakSave.ts` (pure readers: medals, instas,
+  bank MK) + `views/me.tsx` (/me "My stats"; map medals, bank MK defaults and "This is me" read the same save).
 - Generated from the owner's game install (`C:\Program Files (x86)\Steam\steamapps\common\BloonsTD6`) by
   `npm run art` (venv `.venv-art`): `web/src/art/*` sprite sheets, `web/public/art/maps`, `web/src/data/names.ts`
   (map/ability/relic names), `web/src/data/rounds/*` (85 round sets: the game's 54 + NK's event sets from the game's

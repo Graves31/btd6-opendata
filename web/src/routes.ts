@@ -39,6 +39,7 @@ export type Route =
   | { name: "pgscaling"; d?: number; to?: number }
   | { name: "stats" }
   | { name: "suggest" }
+  | { name: "me" }
   | MapsRoute
   | { name: "map"; id: string }
   | { name: "notfound" };
@@ -344,6 +345,7 @@ export function needs(r: Route): string[] {
       return []; // static pages: no NK data
     case "stats":
     case "suggest":
+    case "me": // the save is read in the browser from NK (oak.ts), not from the store
     case "notfound":
       return []; // /stats fetches its own data (hidden page, reached only by URL)
   }
@@ -395,6 +397,7 @@ export function parse(url: URL): Route {
   if (a === "challenge" && b) return { name: "challenge", id: b };
   if (a === "stats" && !b) return { name: "stats" };
   if (a === "suggest" && !b) return { name: "suggest" };
+  if (a === "me" && !b) return { name: "me" };
   if (a === "maps" && !b) {
     return { name: "maps", q: normMapQ(q.get("q") ?? ""), d: normMapDiff(list(q.get("d")).map(Number)), water: q.get("water") === "1", noBoss: q.get("noboss") === "1", noRace: q.get("norace") === "1", sort: oneOf(q.get("sort"), MAP_SORTS, "game") };
   }

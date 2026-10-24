@@ -11,7 +11,7 @@
 //   E2E_BASE=https://x.workers.dev node scripts/e2e.ts    (same scenario against a deployed site)
 
 import { spawn, execSync, type ChildProcess } from "node:child_process";
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { createConnection } from "node:net";
 import { fileURLToPath } from "node:url";
@@ -170,6 +170,28 @@ async function main() {
       if (m.type() === "error" && /Content Security Policy/i.test(m.text())) problems.push(`CSP: ${m.text().slice(0, 200)}`);
     });
     await page.setViewport({ width: 1280, height: 900 });
+    // /me talks to data.ninjakiwi.com straight from the browser (Open Access Key): never let it out. The browser's own
+    // requests to NK are answered here from the fixtures (save sample + one public profile), with CORS.
+    const nkSeen: string[] = [];
+    {
+      const fx = (f: string) => readFileSync(join(root, "docs/api/fixtures", f));
+      const cdp = await page.createCDPSession();
+      await cdp.send("Fetch.enable", { patterns: [{ urlPattern: "https://data.ninjakiwi.com/*" }] });
+      cdp.on("Fetch.requestPaused", (ev) => {
+        const path = new URL(ev.request.url).pathname;
+        nkSeen.push(path);
+        const file = path.startsWith("/btd6/save/") ? "btd6__save__sample.json" : path.startsWith("/btd6/users/") ? "btd6__users__9ce915df8b92f0ac18138b4e5976e77fca0d19b49b46dd6d.json" : "";
+        void cdp.send("Fetch.fulfillRequest", {
+          requestId: ev.requestId,
+          responseCode: file ? 200 : 404,
+          responseHeaders: [
+            { name: "Content-Type", value: "application/json" },
+            { name: "Access-Control-Allow-Origin", value: "*" },
+          ],
+          body: (file ? fx(file) : Buffer.from("{}")).toString("base64"),
+        });
+      });
+    }
     const api = trackApi(page);
     // Every open request (not just /api): printed when a page load never goes network-idle.
     const inflight = new Map<object, [number, string]>();
@@ -399,8 +421,36 @@ async function main() {
     pages["paragon-set"] = "/tools/paragon?p=dart&d=h&c=85000000&to=2&x=1&adv=1&b=1&po=4500000";
     await home();
 
-    await step("Now → Suggest", "header a.sug-btn", "suggest");
+    await step("Now → Suggest", 'header a[href="/suggest"]', "suggest");
     if (!(await has("form.sug-form textarea")) || !(await has("button.sug-send"))) problems.push("suggest: form didn't render");
+    await home();
+
+    // My stats: the key form, a wrong-looking key, the fake key → stats from the fixture save, Forget → the form again.
+    await step("Now → My stats", 'header .top-tools a[href="/me"]');
+    if (!(await has("form.my-form input#my-key[type=password][autocomplete=off]"))) problems.push("me: key form didn't render");
+    await shoot(page, "desktop-me-form");
+    await page.type("#my-key", "nope");
+    await page.click(".my-go");
+    if (!(await has(".my-msg.err"))) problems.push("me: a badly formed key gave no message");
+    const enterKey = async () => {
+      await page.focus("#my-key");
+      for (let i = 0; i < 30; i++) await page.keyboard.press("Backspace");
+      await page.type("#my-key", "oak_e2etest0000");
+      await page.click(".my-go");
+      await page.waitForSelector(".my-tiles .stat", { timeout: 8000 }).catch(() => problems.push("me: no stats after entering a key"));
+    };
+    await enterKey();
+    for (const [sel, what] of [[".my-medals li", "medal"], [".my-instas details", "insta"], [".my-xp li", "tower XP"], [".my-heroes li", "hero"], [".my-powers li", "power"]] as const) {
+      if (!(await has(sel))) problems.push(`me: no ${what} rows`);
+    }
+    if (nkSeen.length < 2 || nkSeen.some((p) => !/^\/btd6\/(save|users)\/oak_e2etest0000$/.test(p))) problems.push(`me: unexpected NK requests: ${nkSeen.join(", ")}`);
+    if (!(await page.evaluate(() => document.querySelector("main")?.textContent?.includes("Updated")))) problems.push("me: no 'Updated … ago' line");
+    await shoot(page, "desktop-me");
+    await page.evaluate(() => [...document.querySelectorAll<HTMLElement>(".my-bar button")].find((b) => /Forget/.test(b.textContent ?? ""))?.click());
+    await page.waitForSelector("form.my-form", { timeout: 3000 }).catch(() => problems.push("me: Forget didn't bring the key form back"));
+    if (await has(".my-tiles")) problems.push("me: stats still shown after Forget");
+    await enterKey(); // leave it saved: the mobile pass below reopens /me with stats
+    pages.me = "/me";
     await home();
 
     await step("Now → Challenges", 'header nav a[href="/challenges"]', "challenges");
@@ -608,7 +658,7 @@ async function main() {
       const dest = w === 390 ? "/maps" : "/tools";
       await step(`${tag}: More → ${dest}`, `#more-sheet a[href="${dest}"]`);
       if ((await here()) !== dest || (await sheetOpen())) problems.push(`${tag}: ${dest} didn't open with the sheet closed`);
-      await step(`${tag}: header → Suggest`, "header a.sug-btn");
+      await step(`${tag}: header → Suggest`, 'header a[href="/suggest"]');
       if (!(await has("form.sug-form textarea"))) problems.push(`${tag}: suggest form didn't render`);
     }
     await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });

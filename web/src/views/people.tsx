@@ -9,6 +9,7 @@ import { hasArt, MEDAL_NAME, MODE_NAME, Spr } from "../sprite.tsx";
 
 import { A, body, Emblem, Gate, Img, Section, Stat } from "../ui.tsx";
 import { backTo } from "../nav.ts";
+import { looksLikeMe, setPlayerId, useOak } from "../oak.ts";
 import { CTHistory, EventHead } from "./events.tsx";
 import { ErrorPanel } from "./errors.tsx";
 
@@ -249,6 +250,31 @@ function SeasonBadges(props: { badges: Record<string, { id: string; url: string;
   );
 }
 
+/** "Is this you?" for the key's owner: only when a key is saved and this public profile matches their own. */
+function ThisIsMe(p: { id: string; u: UserProfile }) {
+  const { mine, playerId } = useOak();
+  if (!mine) return null;
+  if (playerId === p.id) {
+    return (
+      <p class="me-note">
+        <A href="/me">You · My stats</A>
+        <button type="button" class="me-btn" onClick={() => setPlayerId(null)}>
+          Not me
+        </button>
+      </p>
+    );
+  }
+  if (!looksLikeMe(p.u, mine.profile)) return null;
+  return (
+    <p class="me-note">
+      Is this you?
+      <button type="button" class="me-btn" onClick={() => setPlayerId(p.id)}>
+        This is me
+      </button>
+    </p>
+  );
+}
+
 export function PlayerPage(props: { id: string }) {
   if (!isPublicId(props.id)) return <ErrorPanel code="private" what="player" />; // maybe an OAK: never requested
   const key = userKey(props.id);
@@ -297,6 +323,7 @@ export function PlayerPage(props: { id: string }) {
           </div>
         </div>
       </header>
+      <ThisIsMe id={props.id} u={u} />
 
       <dl class="stats grid">
         <Stat k="Games won" v={fmtInt(g.gamesWon)} note={won !== null ? `of ${fmtInt(g.gameCount)} · ${fmtPct(won)}` : undefined} />

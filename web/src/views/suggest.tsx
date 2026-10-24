@@ -21,6 +21,7 @@ const PAGES: [string, string][] = [
   ["Challenges", "Pages"],
   ["Maps", "Pages"],
   ["Players and teams", "Pages"],
+  ["My stats", "Pages"],
   ["Round visualizer", "Tools"],
   ["Paragon calculator", "Tools"],
   ["Paragon scaling", "Tools"],

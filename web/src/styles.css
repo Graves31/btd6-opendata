@@ -606,8 +606,9 @@ strong {
     background: rgb(255 255 255 / 0.16);
   }
 }
-/* A compact step so brand + 7 tabs + theme button fit from 701 px (the phone header starts at 700). */
-@media (min-width: 701px) and (max-width: 900px) {
+/* A compact step so brand + 8 tabs + My stats, Suggest and theme fit below 1280 px (the phone header starts at 700);
+   under 900 px the logo keeps only its BTD6 mark. */
+@media (min-width: 701px) and (max-width: 1279px) {
   .top {
     gap: 16px;
   }
@@ -617,6 +618,14 @@ strong {
   .top nav a {
     padding: 0 8px;
     font-size: 14px;
+  }
+}
+@media (min-width: 701px) and (max-width: 900px) {
+  .brand-t {
+    display: none;
+  }
+  .top nav a {
+    padding: 0 6px;
   }
 }
 
@@ -11033,5 +11042,338 @@ a.th-ic:focus-visible {
   .oy-cta-row .oy-cta {
     width: 100%;
     padding: 11px;
+  }
+}
+
+/* ── your-save bits (maps, bank, player) */
+.map-tile-mine {
+  position: absolute;
+  right: 6px;
+  bottom: 30px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+.mp-mine-none {
+  margin: 12px 0;
+  font-size: 14px;
+}
+.mp-mg + .mp-mg {
+  margin-top: 12px;
+}
+.mp-mg .modes {
+  margin-bottom: 4px;
+}
+.mp-off {
+  opacity: 0.35;
+}
+.mp-mg .modes small {
+  display: block;
+  font-size: 11px;
+}
+.me-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+  font-size: 14px;
+}
+.me-btn {
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ── /me page */
+.my-intro {
+  max-width: 62ch;
+  margin: 8px 0 0;
+  display: grid;
+  gap: 12px;
+}
+.my-intro a,
+.my-pub a {
+  text-decoration: underline;
+}
+.my-av {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.my-form {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--s1);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+}
+.my-form label {
+  font-weight: 700;
+}
+.my-keyrow {
+  display: flex;
+  gap: 8px;
+}
+.my-keyrow input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+}
+.my-btn {
+  min-height: 44px;
+  padding: 0 16px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--s1);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+  cursor: pointer;
+}
+.my-btn.my-go {
+  color: var(--on-accent);
+  background: var(--accent);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+.my-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.my-msg,
+.my-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.my-note {
+  margin-top: 12px;
+}
+.my-msg.err {
+  color: var(--accent-ink);
+  font-weight: 600;
+  font-size: 14px;
+}
+.my-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin-top: 4px;
+}
+.my-bar .my-msg {
+  flex-basis: 100%;
+}
+.my-when {
+  margin-right: auto;
+  color: var(--ink-2);
+  font-size: 14px;
+}
+.my-pub {
+  margin: 12px 0 0;
+  font-weight: 600;
+}
+.my-tiles {
+  margin-top: 16px;
+}
+.my-tiles .stat-v {
+  font-size: 32px;
+  overflow-wrap: anywhere;
+}
+.my-medals h3,
+.my-h3 {
+  margin: 16px 0 8px;
+  font: 700 12px/1.3 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-3);
+}
+.my-medals ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 8px;
+}
+.my-medals li {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 4px 6px;
+  padding: 8px 10px;
+  background: var(--s1);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+}
+.my-m.dim {
+  opacity: 0.4;
+}
+.my-mn {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  padding-left: 4px;
+}
+.my-instas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px;
+  align-items: start;
+}
+.my-instas details {
+  background: var(--s1);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+}
+.my-instas summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.my-in {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+.my-ic {
+  color: var(--ink-2);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.my-tiers {
+  list-style: none;
+  margin: 0;
+  padding: 4px 12px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.my-tiers li {
+  padding: 3px 8px;
+  font-size: 13px;
+  background: var(--s2);
+  border-radius: 6px;
+}
+.my-xp {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.my-xp li {
+  display: grid;
+  grid-template-columns: 32px minmax(90px, 160px) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+.my-xn {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.my-xb {
+  height: 10px;
+  background: var(--s2);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.my-xb i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+.my-xv {
+  min-width: 9ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.my-heroes,
+.my-powers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.my-heroes li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 6px;
+  background: var(--s1);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+  font-weight: 600;
+}
+.my-kv {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0 24px;
+  margin: 0;
+}
+.my-kv div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.my-kv dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 700px) {
+  .my-keyrow {
+    flex-wrap: wrap;
+  }
+  .my-keyrow input {
+    flex-basis: 100%;
+  }
+  .my-btn {
+    flex: 1;
+  }
+  .my-xp li {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+  }
+  .my-xb {
+    grid-column: 2 / -1;
+    grid-row: 2;
+  }
+}
+
+/* My stats sits beside Suggest: icon only until there's room for its label (the nav fills 1024–1279). */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .sug-btn.me-hdr {
+    width: 38px;
+    padding: 0;
+    justify-content: center;
+  }
+  .me-hdr .sug-t {
+    display: none;
   }
 }

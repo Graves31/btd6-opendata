@@ -23,6 +23,7 @@ import { FarmingPage } from "./views/farming.tsx";
 import { ToolsHub } from "./views/tools.tsx";
 import { StatsPage } from "./views/stats.tsx";
 import { SuggestPage } from "./views/suggest.tsx";
+import { MePage } from "./views/me.tsx";
 import { ThemeToggle } from "./theme.tsx";
 
 /** Site version from package.json (vite.config.ts `define`). */
@@ -70,6 +71,8 @@ function Page(props: { r: Route }) {
       return <StatsPage />;
     case "suggest":
       return <SuggestPage />;
+    case "me":
+      return <MePage />;
     case "maps":
       return <MapsPage r={r} />;
     case "map":
@@ -153,6 +156,8 @@ export function title(r: Route): string {
       return t("Site stats");
     case "suggest":
       return t("Suggest");
+    case "me":
+      return t("My stats");
     default:
       return t("Page not found");
   }
@@ -333,6 +338,13 @@ function App() {
           <span class="brand-t">Open Data</span>
         </A>
         <div class="top-tools">
+          <A href="/me" class={r.name === "me" ? "sug-btn me-hdr on" : "sug-btn me-hdr"} current={r.name === "me"} label="My stats" title="My stats">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" />
+            </svg>
+            <span class="sug-t">My stats</span>
+          </A>
           <A href="/suggest" class={r.name === "suggest" ? "sug-btn on" : "sug-btn"} current={r.name === "suggest"} label="Suggest an improvement" title="Suggest">
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />

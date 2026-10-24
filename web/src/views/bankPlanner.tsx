@@ -33,6 +33,8 @@ import {
   type Tier,
 } from "../bank.ts";
 import { navigate } from "../nav.ts";
+import { useOak } from "../oak.ts";
+import { bankKnowledge } from "../oakSave.ts";
 import { href, type BankRoute } from "../routes.ts";
 import { A, ToolBack, ToolHero } from "../ui.tsx";
 import { TargetInput } from "./paragon.tsx";
@@ -742,7 +744,10 @@ function Deposit(p: {
 }
 
 export function BankPlannerPage(p: { r: BankRoute }) {
-  const r = p.r;
+  const { mine } = useOak();
+  // No `mk` in the URL: the Monkey Knowledge defaults come from the player's save (the URL always wins).
+  const mk = bankKnowledge(mine?.save, new URLSearchParams(location.search).has("mk"), p.r);
+  const r = { ...p.r, bb: mk.bb, mvb: mk.mvb };
   const go = (o: Partial<BankRoute>) =>
     navigate(href.bankPlanner({ ...r, ...o }), {
       replace: true,
@@ -982,6 +987,12 @@ export function BankPlannerPage(p: { r: BankRoute }) {
               <p class="pg-hint bk-gap">
                 Off in CHIMPS: the game ignores Monkey Knowledge there.
               </p>
+              {mine && (
+                <p class="pg-hint bk-gap">
+                  From your save (unless the link sets it):{" "}
+                  <A href="/me">My stats</A>
+                </p>
+              )}
             </div>
 
             <div class="bk-field">

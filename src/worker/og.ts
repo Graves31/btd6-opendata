@@ -33,7 +33,7 @@ export const CSP = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://static-api.nkstatic.com",
   "font-src 'self' data:",
-  "connect-src 'self' blob: https://cloudflareinsights.com",
+  "connect-src 'self' blob: https://cloudflareinsights.com https://data.ninjakiwi.com",
   "worker-src 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",
