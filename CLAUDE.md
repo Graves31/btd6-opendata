@@ -30,7 +30,8 @@ architecture; this file is how to work on it.
   cached server settings, so launch the game once before `npm run art`), `web/src/data/paragons.json` (`build_paragons.py`; v56.3 frozen in
   `paragons-56.json` for the old/new toggle). `scripts/build_og.py` → `web/public/og.jpg`; `scripts/build_icons.py` → site icon (favicon.svg/.ico, apple-touch-icon.png). `node scripts/boss_history.ts` → `web/src/data/bossHistory.ts`
   (boss events before the archive: bloonswiki.com exact times over the old Fandom list, which still fills gaps; numbering checked against archived NK ids); `node scripts/race_history.ts`
-  → `web/src/data/raceHistory.ts` (bloonswiki.com races, Dec 2018 – Dec 2025; no public list after that).
+  → `web/src/data/raceHistory.ts` (bloonswiki.com races, Dec 2018 – Dec 2025). Both fill newer events from a community list whose URL is only in
+  the `EVENT_LIST_BASE` env var (unset = keep the rows already there); never name that site in the repo or commits.
   New maps: rerun `npm run art`, then add their `/maps/<id>` lines to `web/public/sitemap.xml` (a test checks it).
   New pages/tools: add them to `web/public/sitemap.xml` and to the "Which page" dropdown (`PAGES` in `views/suggest.tsx`).
 
