@@ -253,6 +253,15 @@ UI = {
     # "Bloonjamins". (MonkeyKnowledgeUi/MoMonkeyMoneyIcon is the purple "More Monkey Money" MK perk, not this.)
     "MonkeyMoney": "Ui/BloonjaminsIcon",
     "Trophy": "Ui/TrophyIcon",
+    # /me completion page (no sprite for Quest, GamesPlayed, Skin: only blank panels / per-hero portraits)
+    "KnowledgePoints": "Ui/KnowledgeIcon",
+    "Achievement": "ref/AchievementsIcon",
+    "DailyChallenge": "MainMenuUiAtlas/DailyChallengeBtn",
+    "Crate": "UiEmoteIcons/Crate",
+    "Xp": "ref/PlayerXPIcon",
+    "Hero": "Ui/HeroIcon",
+    "Upgrade": "IngameUi/UpgradeIcon",
+    "Medal": "MapMedals/MedalGold",
     "CtTickets": "Ui/CtTicketsIcon",
     "Powers": "Ui/PowersIcon",
     "Coop1": "IngameUi/CoopPlayer1Icon",
@@ -1524,6 +1533,9 @@ def main() -> None:
     import build_names  # game text -> web/src/data/names.ts (same install, same determinism rules)
 
     build_names.main(relic_ids=RELIC_IDS)
+    import build_progress  # completion totals for /me -> web/src/data/progress.json
+
+    build_progress.main()
     for stale in ART_DIR.glob("*.webp"):
         if stale.stem not in FAMILIES:
             stale.unlink()

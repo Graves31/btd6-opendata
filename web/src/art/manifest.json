@@ -195,11 +195,12 @@
   "ui": {
    "cell": 48,
    "cols": 10,
-   "rows": 9,
-   "bytes": 82014,
+   "rows": 10,
+   "bytes": 89426,
    "keys": [
     "AbilityCooldownDecrease",
     "AbilityCooldownIncrease",
+    "Achievement",
     "AllCamo",
     "AllRegen",
     "BloonBoost",
@@ -215,16 +216,20 @@
     "Coop2",
     "Coop3",
     "Coop4",
+    "Crate",
     "CtPoints",
     "CtTickets",
     "CustomRounds",
+    "DailyChallenge",
     "EndRound",
     "FastTrackDisabled",
     "FasterBloons",
     "FasterBoss",
     "FasterMoab",
     "GameTime",
+    "Hero",
     "Income",
+    "KnowledgePoints",
     "LeastCash",
     "LeastCashRule",
     "LeastTiers",
@@ -234,6 +239,7 @@
     "MapExpert",
     "MapIntermediate",
     "MaxTowers",
+    "Medal",
     "MoabBoost",
     "MoabDecreaseHP",
     "MonkeyMoney",
@@ -266,7 +272,9 @@
     "StartingLives",
     "Tier5",
     "Trophy",
+    "Upgrade",
     "Water",
+    "Xp",
     "mode:AlternateBloonsRounds",
     "mode:Apopalypse",
     "mode:Clicks",
@@ -621,33 +629,24 @@
    "missingOptional": []
   }
  },
- "totalSheetBytes": 802094,
+ "totalSheetBytes": 809506,
  "bossBar": {
   "parts": {
    "armour:diamondback:edge": {
+    "h": 160,
+    "mode": "simple",
     "rect": [
      1454.91,
      -28.86,
      36,
      160
     ],
-    "mode": "simple",
     "w": 36,
-    "h": 160,
     "file": "armour-diamondback-edge.webp",
     "source": "PhayzeHealthbarEnd",
     "bytes": 760
    },
    "armour:diamondback:fill": {
-    "rect": [
-     -21.54,
-     -28.87,
-     1550.3,
-     160
-    ],
-    "mode": "tiled",
-    "w": 512,
-    "h": 160,
     "clip": [
      -21.54,
      -5.12,
@@ -655,55 +654,55 @@
      112.5
     ],
     "fill": "horizontal",
+    "h": 160,
+    "mode": "tiled",
+    "rect": [
+     -21.54,
+     -28.87,
+     1550.3,
+     160
+    ],
+    "w": 512,
     "file": "armour-diamondback-fill.webp",
     "source": "DiamondBackHealthBarTile",
     "bytes": 10340
    },
    "armour:diamondback:frame": {
+    "center": false,
+    "h": 128,
+    "mode": "sliced",
     "rect": [
      -15,
      -15,
      1530,
      136.36
     ],
-    "mode": "sliced",
-    "w": 128,
-    "h": 128,
     "slice": [
      42,
      42,
      42,
      42
     ],
-    "center": false,
+    "w": 128,
     "file": "armour-diamondback-frame.webp",
     "source": "BossFrame",
     "bytes": 1520
    },
    "armour:dreadbloon:edge": {
+    "h": 160,
+    "mode": "simple",
     "rect": [
      1467.61,
      -26.82,
      64,
      160
     ],
-    "mode": "simple",
     "w": 64,
-    "h": 160,
     "file": "armour-dreadbloon-edge.webp",
     "source": "DreadbloonHealthbarEdge",
     "bytes": 2242
    },
    "armour:dreadbloon:fill": {
-    "rect": [
-     -21.54,
-     -36.82,
-     1550.3,
-     180
-    ],
-    "mode": "simple",
-    "w": 1500,
-    "h": 180,
     "clip": [
      -21.54,
      -49.32,
@@ -711,40 +710,40 @@
      205
     ],
     "fill": "horizontal",
+    "h": 180,
+    "mode": "simple",
+    "rect": [
+     -21.54,
+     -36.82,
+     1550.3,
+     180
+    ],
+    "w": 1500,
     "file": "armour-dreadbloon-fill.webp",
     "source": "DreadbloonHealthbarLarge",
     "bytes": 31902
    },
    "armour:lych:edge": {
+    "h": 160,
+    "mode": "sliced",
     "rect": [
      1494.38,
      -26.82,
      36,
      160
     ],
-    "mode": "sliced",
-    "w": 36,
-    "h": 160,
     "slice": [
      36,
      0,
      36,
      0
     ],
+    "w": 36,
     "file": "armour-lych-edge.webp",
     "source": "LychHealthbarEnd",
     "bytes": 682
    },
    "armour:lych:fill": {
-    "rect": [
-     -21.54,
-     -26.82,
-     1550.3,
-     160
-    ],
-    "mode": "tiled",
-    "w": 512,
-    "h": 160,
     "clip": [
      -21.54,
      -26.82,
@@ -752,34 +751,34 @@
      160
     ],
     "fill": "horizontal",
+    "h": 160,
+    "mode": "tiled",
+    "rect": [
+     -21.54,
+     -26.82,
+     1550.3,
+     160
+    ],
+    "w": 512,
     "file": "armour-lych-fill.webp",
     "source": "LychHealthBarTile",
     "bytes": 7330
    },
    "armour:phayze:edge": {
+    "h": 160,
+    "mode": "simple",
     "rect": [
      1494.38,
      -26.82,
      36,
      160
     ],
-    "mode": "simple",
     "w": 36,
-    "h": 160,
     "file": "armour-phayze-edge.webp",
     "source": "PhayzeHealthbarEnd",
     "bytes": 760
    },
    "armour:phayze:fill": {
-    "rect": [
-     -21.54,
-     -26.82,
-     1550.3,
-     160
-    ],
-    "mode": "tiled",
-    "w": 512,
-    "h": 160,
     "clip": [
      -21.54,
      -26.82,
@@ -787,68 +786,76 @@
      160
     ],
     "fill": "horizontal",
+    "h": 160,
+    "mode": "tiled",
+    "rect": [
+     -21.54,
+     -26.82,
+     1550.3,
+     160
+    ],
+    "w": 512,
     "file": "armour-phayze-fill.webp",
     "source": "PhayzeHealthBarTile",
     "bytes": 2666
    },
    "bar:heatGauge": {
     "art": "bar:heatGauge",
+    "h": 106,
+    "mode": "simple",
     "rect": [
      1040.41,
      -130.68,
      106,
      106
     ],
-    "w": 106,
-    "h": 106,
-    "mode": "simple"
+    "w": 106
    },
    "bar:heatNeedle": {
     "art": "bar:heatNeedle",
+    "h": 106,
+    "mode": "simple",
     "rect": [
      1044.21,
      -128.28,
      106,
      106
     ],
-    "w": 106,
-    "h": 106,
-    "mode": "simple"
+    "w": 106
    },
    "bar:tailOff": {
     "art": "bar:tailOff",
+    "h": 106,
+    "mode": "simple",
     "rect": [
      -29.34,
      -151.22,
      106,
      106
     ],
-    "w": 106,
-    "h": 106,
-    "mode": "simple"
+    "w": 106
    },
    "bar:tailOn": {
     "art": "bar:tailOn",
+    "h": 106,
+    "mode": "simple",
     "rect": [
      -29.34,
      -151.22,
      106,
      106
     ],
-    "w": 106,
-    "h": 106,
-    "mode": "simple"
+    "w": 106
    },
    "heat:bg": {
+    "h": 128,
+    "mode": "sliced",
     "rect": [
      102.86,
      -103.78,
      910.23,
      53.04
     ],
-    "mode": "sliced",
-    "w": 128,
-    "h": 128,
     "slice": [
      22,
      22,
@@ -856,76 +863,76 @@
      22
     ],
     "tint": "#0000003f",
+    "w": 128,
     "file": "heat-bg.webp",
     "source": "SmallSquareWhite",
     "bytes": 360
    },
    "heat:fill": {
+    "fill": "horizontal",
+    "h": 8,
+    "mode": "filled",
     "rect": [
      102.86,
      -103.78,
      908.22,
      53.04
     ],
-    "mode": "filled",
     "w": 512,
-    "h": 8,
-    "fill": "horizontal",
     "file": "heat-fill.webp",
     "source": "HeatGuageBarGradient",
     "bytes": 268
    },
    "heat:frame": {
+    "center": false,
+    "h": 88,
+    "mode": "sliced",
     "rect": [
      89.1,
      -116.71,
      935.31,
      78.07
     ],
-    "mode": "sliced",
-    "w": 88,
-    "h": 88,
     "slice": [
      40,
      40,
      40,
      40
     ],
-    "center": false,
+    "w": 88,
     "file": "heat-frame.webp",
     "source": "HeatGuageFrame",
     "bytes": 1548
    },
    "heat:highlight": {
+    "mode": "color",
     "rect": [
      90.84,
      -100.78,
      932.28,
      53.54
     ],
-    "mode": "color",
     "tint": "#ffffff3f"
    },
    "heat:shade": {
+    "mode": "color",
     "rect": [
      90.84,
      -100.78,
      932.28,
      53.54
     ],
-    "mode": "color",
     "tint": "#2a145918"
    },
    "hp:bg": {
+    "h": 128,
+    "mode": "sliced",
     "rect": [
      0,
      0,
      1500,
      106.36
     ],
-    "mode": "sliced",
-    "w": 128,
-    "h": 128,
     "slice": [
      22,
      22,
@@ -933,133 +940,133 @@
      22
     ],
     "tint": "#0000003f",
+    "w": 128,
     "file": "hp-bg.webp",
     "source": "SmallSquareWhite",
     "bytes": 360
    },
    "hp:fill": {
+    "fill": "horizontal",
+    "h": 8,
+    "mode": "filled",
     "rect": [
      5,
      0,
      1493,
      106.36
     ],
-    "mode": "filled",
     "w": 512,
-    "h": 8,
-    "fill": "horizontal",
     "file": "hp-fill.webp",
     "source": "BossBarGradient",
     "bytes": 222
    },
    "hp:frame": {
+    "center": false,
+    "h": 128,
+    "mode": "sliced",
     "rect": [
      -15,
      -15,
      1530,
      136.36
     ],
-    "mode": "sliced",
-    "w": 128,
-    "h": 128,
     "slice": [
      42,
      42,
      42,
      42
     ],
-    "center": false,
+    "w": 128,
     "file": "hp-frame.webp",
     "source": "BossFrame",
     "bytes": 1520
    },
    "hp:highlight": {
+    "mode": "color",
     "rect": [
      -7.03,
      82.5,
      1517.06,
      27.36
     ],
-    "mode": "color",
     "tint": "#ffffff3f"
    },
    "hp:shade": {
+    "mode": "color",
     "rect": [
      -7.03,
      3,
      1517.06,
      27.36
     ],
-    "mode": "color",
     "tint": "#2a145918"
    },
    "hud": {
+    "art": "hud:<boss>",
+    "mode": "simple",
     "rect": [
      -275.77,
      -94.82,
      300,
      300
-    ],
-    "mode": "simple",
-    "art": "hud:<boss>"
+    ]
    },
    "marker:firel": {
+    "art": "bar:skullFire",
+    "h": 64,
+    "mode": "simple",
     "rect": [
      21.1,
      6.9,
      32,
      64
     ],
-    "mode": "simple",
-    "w": 32,
-    "h": 64,
-    "art": "bar:skullFire"
+    "w": 32
    },
    "marker:firer": {
+    "art": "bar:skullFire",
+    "h": 64,
+    "mode": "simple",
     "rect": [
      57.9,
      13.9,
      32,
      64
     ],
-    "mode": "simple",
-    "w": 32,
-    "h": 64,
-    "art": "bar:skullFire"
+    "w": 32
    },
    "marker:line": {
+    "mode": "color",
     "rect": [
      44,
      0,
      12,
      98.69
     ],
-    "mode": "color",
     "tint": "#0000003c"
    },
    "marker:skull": {
+    "art": "skull",
+    "artOff": "skull:off",
+    "h": 112,
+    "mode": "simple",
     "rect": [
      -6,
      -38,
      112,
      112
     ],
-    "mode": "simple",
-    "w": 112,
-    "h": 112,
-    "art": "skull",
-    "artOff": "skull:off"
+    "w": 112
    },
    "tail:bg": {
+    "h": 128,
+    "mode": "sliced",
     "rect": [
      102.86,
      -103.78,
      910.23,
      53.04
     ],
-    "mode": "sliced",
-    "w": 128,
-    "h": 128,
     "slice": [
      22,
      22,
@@ -1067,32 +1074,22 @@
      22
     ],
     "tint": "#0000003f",
+    "w": 128,
     "file": "tail-bg.webp",
     "source": "SmallSquareWhite",
     "bytes": 360
    },
    "tail:color": {
+    "mode": "color",
     "rect": [
      102.86,
      -103.78,
      908.22,
      53.04
     ],
-    "mode": "color",
     "tint": "#60ffd6ff"
    },
    "tail:fill": {
-    "rect": [
-     102.86,
-     -103.78,
-     908.22,
-     53.04
-    ],
-    "mode": "tiled",
-    "w": 160,
-    "h": 100,
-    "ppum": 2,
-    "tint": "#ffffff00",
     "clip": [
      102.86,
      -103.78,
@@ -1100,39 +1097,50 @@
      53.04
     ],
     "fill": "horizontal",
+    "h": 100,
+    "mode": "tiled",
+    "ppum": 2,
+    "rect": [
+     102.86,
+     -103.78,
+     908.22,
+     53.04
+    ],
+    "tint": "#ffffff00",
+    "w": 160,
     "file": "tail-fill.webp",
     "source": "DiamondbackTailTile",
     "bytes": 602
    },
    "tail:frame": {
+    "center": false,
+    "h": 88,
+    "mode": "sliced",
     "rect": [
      89.1,
      -116.71,
      935.31,
      78.07
     ],
-    "mode": "sliced",
-    "w": 88,
-    "h": 88,
     "slice": [
      40,
      40,
      40,
      40
     ],
-    "center": false,
+    "w": 88,
     "file": "tail-frame.webp",
     "source": "HeatGuageFrame",
     "bytes": 1548
    },
    "tail:highlight": {
+    "mode": "color",
     "rect": [
      90.84,
      -100.78,
      932.28,
      53.54
     ],
-    "mode": "color",
     "tint": "#ffffff3f"
    }
   },
@@ -1181,14 +1189,14 @@
    ]
   },
   "marker": {
-   "w": 100,
-   "h": 98.69,
    "group": [
     0,
     0,
     1660,
     106.36
-   ]
+   ],
+   "h": 98.69,
+   "w": 100
   },
   "hud": {
    "hud:blastapopoulos": {
