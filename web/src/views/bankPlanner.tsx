@@ -103,8 +103,15 @@ function Strip(p: {
   hit: number;
   dep?: number;
   legend?: boolean;
+  /** Balance before the first round: drawn as a "Now" bar (with the deposit on it) ahead of the rows. */
+  now?: number;
 }) {
-  const { rows, cap, hit, dep } = p;
+  const { cap, dep } = p;
+  const start = p.rows[0].r;
+  // The Now bar shifts every index by one; hit −1 (collect now) lands on it.
+  const rows: Row[] = p.now === undefined ? p.rows : [{ r: start - 1, b: p.now + (dep ?? 0), raw: p.now + (dep ?? 0), add: 0 }, ...p.rows];
+  const off = p.now === undefined ? 0 : 1;
+  const hit = p.hit + off;
   const [pick, setPick] = useState<number | undefined>(undefined);
   const top = Math.max(cap, ...rows.map((x) => x.raw)) * 1.04;
   const every = rows.length > 24 ? 3 : rows.length > 14 ? 2 : 1;
@@ -117,11 +124,17 @@ function Strip(p: {
   return (
     <>
       <p class="bk-read" aria-live="polite">
-        <b>Before round {s.r + 1}</b>: {money(s.b)} in the bank
-        {dep !== undefined && si === 0 && (
-          <> (your {money(dep)} deposit included)</>
+        {off && si === 0 ? (
+          <>
+            <b>Now, round {start}</b>: {money(p.now ?? 0)} in the bank
+            {dep ? <> + deposit {money(dep)} = {money(s.b)}</> : ""}
+          </>
+        ) : (
+          <>
+            <b>Before round {s.r + 1}</b>: {money(s.b)} in the bank
+            {dep !== undefined && si === off && <> (your {money(dep)} deposit included)</>}, +{money(s.add)} during round {s.r}
+          </>
         )}
-        , +{money(s.add)} during round {s.r}
         {lost(s) > 0 && (
           <span class="loss">, {money(lost(s))} lost to the cap</span>
         )}
@@ -149,7 +162,7 @@ function Strip(p: {
             type="button"
             class={`bk-bc${i === si ? " sel" : ""}`}
             key={x.r}
-            aria-label={`Round ${x.r}: ${money(x.b)}`}
+            aria-label={off && i === 0 ? `Now, round ${start}: ${money(x.b)}` : `Round ${x.r}: ${money(x.b)}`}
             aria-pressed={i === si}
             onClick={() => setPick(i)}
           >
@@ -194,7 +207,9 @@ function Strip(p: {
       <div class="bk-xs" aria-hidden="true">
         {rows.map((x, i) => (
           <span key={x.r} class={i === hit ? "on" : ""}>
-            {i === hit ||
+            {off && i === 0
+              ? "Now"
+              : i === hit ||
             (i % every === 0 && (every === 1 || Math.abs(i - hit) > 1))
               ? x.r + 1
               : ""}
@@ -320,7 +335,9 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
           <div class="bk-big">
             <span class="k">Collect before round</span>
             <span class="v">{h.r + 1}</span>
-            <span class="c">{money(h.b)}</span>
+            <span class="c">
+              {money(h.b)} · end of round {h.r}
+            </span>
           </div>
           <div class="bk-ans-t">
             <p>
@@ -412,10 +429,10 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
             Bank balance before each round
           </h2>
           <span class="pg-hint">
-            rounds {rows[0].r + 1}–{rows[rows.length - 1].r + 1}
+            rounds {rows[0].r}–{rows[rows.length - 1].r + 1}
           </span>
         </div>
-        <Strip rows={rows} cap={cap} hit={pl.hit} />
+        <Strip rows={rows} cap={cap} hit={pl.hit} now={b0} />
         <details class="bk-tbl">
           <summary>Round by round</summary>
           <div class="bk-tw">
@@ -516,7 +533,7 @@ function Deposit(p: {
                 <span class="k">Over by</span>
                 <span class="v">{money(of.over)}</span>
                 <span class="c">
-                  Collect before round {at + 1} · {money(cap)}
+                  Full at the end of round {at} · collect before round {at + 1}
                 </span>
               </div>
               <div class="bk-ans-t">
@@ -540,10 +557,10 @@ function Deposit(p: {
                 Bank balance before each round
               </h2>
               <span class="pg-hint">
-                rounds {rows[0].r + 1}–{rows[rows.length - 1].r + 1}
+                rounds {rows[0].r}–{rows[rows.length - 1].r + 1}
               </span>
             </div>
-            <Strip rows={rows} cap={cap} hit={of.k - 1} />
+            <Strip rows={rows} cap={cap} hit={of.k - 1} now={b0} />
           </section>
         </>
       );
@@ -577,6 +594,7 @@ function Deposit(p: {
   const k = Math.min(r.k, ladder.length);
   const sel = ladder[k - 1];
   const first = depositRows(r.r, b0, sel.deposit, P, cap, 1)[0];
+  const none = overfill(b0, P, cap);
   const best = ladder.reduce(
     (m, x) => (x.perRound > m.perRound ? x : m),
     ladder[0],
@@ -622,21 +640,25 @@ function Deposit(p: {
         </div>
         <div class="bk-ans">
           <div class="bk-big">
-            <span class="k">Deposit up to</span>
+            <span class="k">Deposit at most</span>
             <span class="v">{money(sel.deposit)}</span>
             <span class="c">
-              Collect before round {sel.r + 1} · {money(sel.out)}
+              Full at the end of round {sel.r}
             </span>
           </div>
           <div class="bk-ans-t">
             <p>
-              Deposit before round <strong>{r.r}</strong> and collect before
-              round <strong>{sel.r + 1}</strong>: {k + 1} rounds. During round{" "}
-              {r.r} the deposit earns no interest yet (only the bananas
-              {b0 > 0 ? " and the balance" : ""} do), so the bank has{" "}
-              <strong>{money(first.b)}</strong> before round {r.r + 1}. From
-              then on it compounds and reaches the cap. A bigger deposit only
-              goes over the cap.
+              During round <strong>{r.r}</strong>, deposit at most <strong>{money(sel.deposit)}</strong>: the bank is
+              full at the end of round <strong>{sel.r}</strong>, so collect before round {sel.r + 1}. Any more goes
+              over the cap.
+            </p>
+            <p>
+              Without a deposit it fills at the end of round {r.r - 1 + none.k}
+              {none.lost >= 1 ? <>, with <span class="bk-loss">{money(none.lost)} over the cap</span></> : ""}.
+            </p>
+            <p>
+              The deposit earns no interest during round {r.r} (only the bananas{b0 > 0 ? " and the balance" : ""} do),
+              so the bank has <strong>{money(first.b)}</strong> at the end of it; from then on it compounds.
             </p>
             <p>In game: {clicks}</p>
           </div>
@@ -750,10 +772,10 @@ function Deposit(p: {
             Bank balance before each round
           </h2>
           <span class="pg-hint">
-            rounds {rows[0].r + 1}–{rows[rows.length - 1].r + 1}
+            rounds {rows[0].r}–{rows[rows.length - 1].r + 1}
           </span>
         </div>
-        <Strip rows={rows} cap={cap} hit={k} dep={sel.deposit} />
+        <Strip rows={rows} cap={cap} hit={k} dep={sel.deposit} now={b0} />
       </section>
 
       {again && (
@@ -821,7 +843,7 @@ export function BankPlannerPage(p: { r: BankRoute }) {
   const cap = capacity(input);
   const cash = r.b !== undefined || r.dep;
   const label =
-    !r.dep && r.b === undefined ? "Bought before round" : "Next round to play";
+    !r.dep && r.b === undefined ? "Bought before round" : "Round you're on";
   return (
     <div class="pg bk">
       <ToolBack />
@@ -983,11 +1005,11 @@ export function BankPlannerPage(p: { r: BankRoute }) {
                 {cash && (
                   <div>
                     <span class="bk-lab" id="bk-bal-lab">
-                      Balance now
+                      In the bank now
                     </span>
                     <NumField
                       value={r.b ?? 0}
-                      label="Balance now"
+                      label="In the bank now"
                       max={cap}
                       onChange={(n) => set({ b: n ?? 0 })}
                     />
@@ -996,7 +1018,7 @@ export function BankPlannerPage(p: { r: BankRoute }) {
               </div>
               <p class="pg-hint bk-gap">
                 {r.dep
-                  ? "0 = just bought or just collected."
+                  ? `Between rounds ${r.r - 1} and ${r.r}, or during round ${r.r}: enter ${r.r}. In the bank = what it holds before you deposit (0 = just bought or collected).`
                   : r.b === undefined
                     ? `Placed before you press Play on round ${r.r}, so it gets all of that round's bananas.`
                     : `The round counter shows ${r.r}: you haven't pressed Play yet.`}
