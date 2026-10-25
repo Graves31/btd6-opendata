@@ -31,8 +31,8 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
   shortcuts, filters shown in the tab title, "Up next" = next matches when a filter is on, Edit-panel state in
   the URL, link previews for /tools pages with the set name, heaviest-rounds labels.
 
-- **History holes**: races 1 Jan – 30 Jul 2026 and boss events 7 Apr – 31 Jul 2026 (incl. Diamondback #1–6) are on no public list;
-  rerun `node scripts/boss_history.ts` and `node scripts/race_history.ts` once bloonswiki has its 2026 pages (both pick new years up by themselves).
+- **History: race mode/difficulty after Dec 2025**: the 2026 races came from the community list (`EVENT_LIST_BASE`
+  env, never named in the repo), which has no mode/difficulty; rerun both history scripts once bloonswiki has 2026 pages.
 
 - **IndexNow pings for new events never reach Bing** (2026-10-21). Every Worker ping to api.indexnow.org got 429 and
   was given up after 5 tries (`notifications` rows `index-*`), while the same ping from home got 200. First check
@@ -49,7 +49,10 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
   (what each extra degree buys for its cost) and a short explanation of the power sources on the scaling page.
 - **Tools hub title card**: the /tools hub has no ToolHero (it isn't a tool); add one if the hub should match.
 
-- **Feature gaps vs other BTD6 sites** (2026-10-09, competitor research: btd6portal.com, BTD6 API Explorer). Each needs
+- **Useful / community links page** (2026-10-25, owner: later). One page listing community resources (wikis, tools,
+  other fan sites). Until then no other fan site is named anywhere on the site, in the repo or in commit messages.
+
+- **Feature gaps vs other BTD6 sites** (2026-10-09, competitor research). Each needs
   its own go:
   2. **Challenge / map code lookup**: type a code → rules, map, creator, plays/wins (`/btd6/challenges/challenge/{id}`,
      `/btd6/maps/map/{id}`); reuses the rules panel.
