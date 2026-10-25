@@ -24,6 +24,9 @@ const FARMS = [
   { path: "2-0-0", art: farm200, bananas: BANK.packets[2], cash: 160 },
 ];
 const secs = (s: number) => `${+s.toFixed(1)}s`;
+/** Banana i of n as a fraction of the spawn window: the game spaces them duration / (n - 1) apart, first at round
+ *  start, last at the final spawn (EmissionsPerRoundFilter.Process, v57). */
+const dropAt = (i: number, n: number) => (n > 1 ? i / (n - 1) : 0.5);
 
 function SpawnChart(p: { r?: number }) {
   const set = ROUND_SET_BY_ID.default!;
@@ -83,9 +86,9 @@ function SpawnChart(p: { r?: number }) {
                 <span class="fm-n">{f.bananas} bananas</span>
               </span>
             </span>
-            <span class="fm-track" role="img" aria-label={len === undefined ? `${f.bananas} bananas spread evenly over the round` : `bananas at ${Array.from({ length: f.bananas }, (_, i) => secs(((i + 0.5) / f.bananas) * len)).join(", ")}`}>
+            <span class="fm-track" role="img" aria-label={len === undefined ? `${f.bananas} bananas spread evenly over the round` : `bananas at ${Array.from({ length: f.bananas }, (_, i) => secs(dropAt(i, f.bananas) * len)).join(", ")}`}>
               {Array.from({ length: f.bananas }, (_, i) => {
-                const at = (i + 0.5) / f.bananas;
+                const at = dropAt(i, f.bananas);
                 return (
                   <span key={i} class="fm-b" style={{ left: `${at * 100}%` }}>
                     <img src={bananaArt} alt="" decoding="async" />
@@ -109,7 +112,7 @@ function SpawnChart(p: { r?: number }) {
           Round end{len !== undefined && <i>{secs(len)}</i>}
         </span>
       </div>
-      <p class="pg-hint fm-note">Bananas drop at even gaps: the first half a gap after the round starts, the last half a gap before it ends.</p>
+      <p class="pg-hint fm-note">Bananas drop at even gaps from the moment the round starts until its last bloon spawns. Times are game time at normal speed: divide by 2 or 3 on fast forward.</p>
     </section>
   );
 }

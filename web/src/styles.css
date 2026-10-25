@@ -8786,6 +8786,22 @@ footer p {
   width: max-content;
   transform: translate(-50%, -50%);
 }
+/* First / last banana sit on the round's edges: anchor them inside the track like the axis end ticks. */
+.fm-b:first-child {
+  transform: translate(0, -50%);
+}
+.fm-b:last-child {
+  transform: translate(-100%, -50%);
+}
+.fm-b:first-child i {
+  left: 0;
+  transform: none;
+}
+.fm-b:last-child i {
+  left: auto;
+  right: 0;
+  transform: none;
+}
 .fm-b img {
   display: block;
   width: 24px;
