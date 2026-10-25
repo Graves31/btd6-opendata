@@ -70,6 +70,18 @@ describe("deposit clicks with plenty of cash", () => {
   });
 });
 
+describe("overdeposit", () => {
+  it("b0 − over fills the bank exactly, in the same number of rounds", async () => {
+    const { overfill } = await import("../web/src/bank.ts");
+    const P = income({ ...mk, tier: 4, path: 2 });
+    for (const b0 of [7000, 9000, 12000]) {
+      const o = overfill(b0, P, 12500);
+      assert.ok(o.over > 0 && o.lost > o.over);
+      near(depositRows(30, b0 - o.over, 0, P, 12500, o.k)[o.k - 1].raw, 12500);
+    }
+  });
+});
+
 describe("bank constants and helpers", () => {
   it("packets per round are 4/6/8 (the farming page shows the same counts, at $20 per banana: 80/120/160)", () => {
     assert.deepEqual(BANK.packets, [4, 6, 8]);

@@ -68,6 +68,18 @@ export function roundsToFill(b0: number, P: number, cap: number): number {
   return k;
 }
 
+/**
+ * A bank holding `b0` that fills by itself after k rounds: `lost` = what goes over the cap that round, `over` =
+ * how much of b0 is too much (b0 − over fills it exactly). The balance grows uncapped until then, so lost = over × 1.15^k.
+ */
+export function overfill(b0: number, P: number, cap: number) {
+  const k = roundsToFill(b0, P, cap);
+  let raw = b0;
+  for (let i = 0; i < k; i++) raw = step(raw, P, Infinity).raw;
+  const lost = Math.max(0, raw - cap);
+  return { k, lost, over: lost / G ** k };
+}
+
 /** Best repeating cycle from an empty bank: the length k that earns the most per round. */
 export function bestCycle(P: number, cap: number) {
   let b = 0;

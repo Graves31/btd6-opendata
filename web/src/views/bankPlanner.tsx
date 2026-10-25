@@ -21,6 +21,7 @@ import {
   depositClicks,
   depositLadder,
   depositRows,
+  overfill,
   income,
   capacity,
   step,
@@ -496,6 +497,57 @@ function Deposit(p: {
   if (!ladder.length) {
     // The bank fills by itself, or the last round comes first.
     const at = r.r - 1 + roundsToFill(b0, P, cap);
+    const of = overfill(b0, P, cap);
+    if (!all.length && of.k > 0 && of.lost >= 1) {
+      const rows = depositRows(r.r, b0, 0, P, cap, of.k + 2);
+      return (
+        <>
+          <section class="pg-panel bk-hot" aria-labelledby="bk-ans" aria-live="polite">
+            <div class="pg-ph">
+              <h2 class="eyebrow" id="bk-ans">
+                How much to deposit
+              </h2>
+              <span class="pg-hint">
+                {r.path}-{r.tier}-0 · {money(P)} a round · cap {money(cap)}
+              </span>
+            </div>
+            <div class="bk-ans">
+              <div class="bk-big">
+                <span class="k">Over by</span>
+                <span class="v">{money(of.over)}</span>
+                <span class="c">
+                  Collect before round {at + 1} · {money(cap)}
+                </span>
+              </div>
+              <div class="bk-ans-t">
+                <p>
+                  No deposit needed: with {money(b0)} the bank fills on its own after round <strong>{at}</strong>, and{" "}
+                  <strong>{money(of.lost)}</strong> of interest and bananas goes over the cap that round.
+                </p>
+                <p>
+                  {money(b0 - of.over)} would have filled it exactly in the same {of.k} round{of.k > 1 ? "s" : ""}: next time, deposit about{" "}
+                  <strong>{money(of.over)}</strong> less.
+                </p>
+              </div>
+            </div>
+            <button type="button" class="bk-chip" onClick={() => go({ dep: false })}>
+              Switch to Collect timing
+            </button>
+          </section>
+          <section class="pg-panel" aria-labelledby="bk-rr">
+            <div class="pg-ph">
+              <h2 class="eyebrow" id="bk-rr">
+                Bank balance before each round
+              </h2>
+              <span class="pg-hint">
+                rounds {rows[0].r + 1}–{rows[rows.length - 1].r + 1}
+              </span>
+            </div>
+            <Strip rows={rows} cap={cap} hit={of.k - 1} />
+          </section>
+        </>
+      );
+    }
     return (
       <section
         class="pg-panel bk-hot"
