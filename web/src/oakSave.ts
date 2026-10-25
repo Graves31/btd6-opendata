@@ -1,5 +1,6 @@
 // Pure readers of the player's own save (see oak.ts): map medals and Monkey Knowledge. No fetching here.
 import type { UserSave } from "../../src/nk/types.ts";
+import { MAP_LIST } from "./data/names.ts";
 
 /** Difficulty → [medal key, save mode] in the game's order. "Standard" is the difficulty's own medal; Clicks = CHIMPS. */
 export const MEDAL_GRID: [diff: "Easy" | "Medium" | "Hard", modes: [key: string, mode: string][]][] = [
@@ -47,19 +48,28 @@ export interface MedalRow {
   /** Maps completed in this difficulty / mode, solo and co-op. */
   solo: number;
   coop: number;
+  /** Built-in maps in the game (every one has every medal). */
+  total: number;
+  /** Map ids still missing this medal, in the game's map order. */
+  soloMissing: string[];
+  coopMissing: string[];
 }
 
 /**
- * Maps completed per medal of MEDAL_GRID (/me summary); medals nobody earned are left out. The save also holds
+ * Maps completed per medal of MEDAL_GRID (/me summary), with the maps still missing. The save also holds
  * modes outside the grid (Sandbox, SuperChimps, odd ones like Easy Reverse): no medal, not counted.
  */
 export function medalCounts(save: UserSave): MedalRow[] {
-  const maps = Object.values(save.mapProgress ?? {});
-  const done = (d: MedalRow["difficulty"], s: "single" | "coop", mode: string) =>
-    maps.filter((mp) => mp.difficulty?.[d]?.[s]?.[mode]?.completed).length;
+  const maps = MAP_LIST.map(([id]) => id);
+  const missing = (d: MedalRow["difficulty"], s: "single" | "coop", mode: string) =>
+    maps.filter((id) => !save.mapProgress?.[id]?.difficulty?.[d]?.[s]?.[mode]?.completed);
   return MEDAL_GRID.flatMap(([difficulty, modes]) =>
-    modes.map(([medal, mode]) => ({ difficulty, mode, medal, solo: done(difficulty, "single", mode), coop: done(difficulty, "coop", mode) })),
-  ).filter((r) => r.solo + r.coop > 0);
+    modes.map(([medal, mode]) => {
+      const soloMissing = missing(difficulty, "single", mode);
+      const coopMissing = missing(difficulty, "coop", mode);
+      return { difficulty, mode, medal, total: maps.length, soloMissing, coopMissing, solo: maps.length - soloMissing.length, coop: maps.length - coopMissing.length };
+    }),
+  );
 }
 
 export interface InstaRow {
@@ -84,6 +94,106 @@ export function instaSummary(save: UserSave): InstaRow[] {
     })
     .filter((r) => r.sets > 0)
     .sort((a, b) => b.total - a.total || (a.tower < b.tower ? -1 : 1));
+}
+
+/** Every tier set an Insta Monkey can come in, "000".."520": paths 0–5, at most two upgraded, at most one above 2. */
+export function instaPossible(): string[] {
+  const out: string[] = [];
+  for (let a = 0; a <= 5; a++)
+    for (let b = 0; b <= 5; b++)
+      for (let c = 0; c <= 5; c++) {
+        const t = [a, b, c];
+        if (t.filter((x) => x > 0).length <= 2 && t.filter((x) => x > 2).length <= 1) out.push(`${a}${b}${c}`);
+      }
+  return out;
+}
+
+/** What the game has (web/src/data/progress.json, from the install). Upgrades per tower, or flat under "_". */
+export interface Progress {
+  towers: string[];
+  heroes: string[];
+  upgrades: Record<string, string[]>;
+  knowledge: { id: string; tree: string }[];
+  skins?: string[];
+  /** Pro power upgrades per power id. */
+  powerUpgrades?: Record<string, string[]>;
+}
+
+export interface Part {
+  owned: number;
+  total: number;
+  /** Ids not owned, in the game's order. */
+  missing: string[];
+}
+const part = (all: string[], has: (id: string) => boolean): Part => {
+  const missing = all.filter((id) => !has(id));
+  return { owned: all.length - missing.length, total: all.length, missing };
+};
+
+export const heroParts = (s: UserSave, p: Progress) => part(p.heroes, (h) => !!s.unlockedHeroes?.[h]);
+export const towerParts = (s: UserSave, p: Progress) => part(p.towers, (t) => !!s.unlockedTowers?.[t]);
+/** Skins only when the game list is known. */
+export const skinParts = (s: UserSave, p: Progress) => (p.skins ? part(p.skins, (k) => !!s.unlockedSkins?.[k]) : null);
+
+/** Monkey Knowledge per tree, in the game's order. */
+export function knowledgeParts(s: UserSave, p: Progress): (Part & { tree: string })[] {
+  const trees = [...new Set(p.knowledge.map((k) => k.tree))];
+  return trees.map((tree) => ({ tree, ...part(p.knowledge.filter((k) => k.tree === tree).map((k) => k.id), (id) => !!s.acquiredKnowledge?.[id]) }));
+}
+
+/** Upgrades overall; `by` lists only towers (or "_" when flat) with something missing. */
+export function upgradeParts(s: UserSave, p: Progress) {
+  const by = Object.entries(p.upgrades).map(([tower, ids]) => ({ tower, ...part(ids, (u) => !!s.acquiredUpgrades?.[u]) }));
+  const sum = (f: (x: Part) => number) => by.reduce((n, x) => n + f(x), 0);
+  return { owned: sum((x) => x.owned), total: sum((x) => x.total), by: by.filter((x) => x.missing.length) };
+}
+
+/** Pro power upgrades; null when the game list is unknown. Same shape as upgradeParts. */
+export function powerUpgradeParts(s: UserSave, p: Progress) {
+  if (!p.powerUpgrades) return null;
+  const by = Object.entries(p.powerUpgrades).map(([power, ids]) => ({ power, ...part(ids, (u) => !!s.acquiredUpgrades?.[u]) }));
+  const sum = (f: (x: Part) => number) => by.reduce((n, x) => n + f(x), 0);
+  return { owned: sum((x) => x.owned), total: sum((x) => x.total), by: by.filter((x) => x.missing.length) };
+}
+
+export interface InstaPart extends Part {
+  tower: string;
+}
+/** Tier sets owned out of all possible, per tower of the game ("0-3-2" labels in `missing`). */
+export function instaParts(s: UserSave, p: Progress): InstaPart[] {
+  const all = instaPossible();
+  return p.towers.map((tower) => {
+    const r = part(all, (k) => (s.instaTowers?.[tower]?.[k] ?? 0) > 0);
+    return { tower, ...r, missing: r.missing.map((k) => k.split("").join("-")) };
+  });
+}
+
+export interface Ring {
+  id: string;
+  label: string;
+  owned: number;
+  total: number;
+}
+/** The completion summary rings; `overall` = mean of their percentages. */
+export function completion(s: UserSave, p: Progress) {
+  const med = medalCounts(s);
+  const sk = skinParts(s, p);
+  const ins = instaParts(s, p);
+  const sum = (xs: { owned: number; total: number }[]) => ({ owned: xs.reduce((n, x) => n + x.owned, 0), total: xs.reduce((n, x) => n + x.total, 0) });
+  const rings: Ring[] = [
+    { id: "medals", label: "Medals", ...sum(med.map((r) => ({ owned: r.solo, total: r.total }))) },
+    { id: "heroes", label: "Heroes", ...heroParts(s, p) },
+    { id: "towers", label: "Towers", ...towerParts(s, p) },
+    { id: "mk", label: "Knowledge", ...sum(knowledgeParts(s, p)) },
+    { id: "upgrades", label: "Upgrades", ...upgradeParts(s, p) },
+    { id: "instas", label: "Instas", ...sum(ins) },
+  ];
+  const pw = powerUpgradeParts(s, p);
+  if (pw) rings.push({ id: "powerups", label: "Pro powers", owned: pw.owned, total: pw.total });
+  if (sk) rings.push({ id: "skins", label: "Skins", owned: sk.owned, total: sk.total });
+  const live = rings.filter((r) => r.total > 0);
+  const overall = live.length ? live.reduce((n, r) => n + r.owned / r.total, 0) / live.length : 0;
+  return { rings, overall };
 }
 
 /** Bank planner Monkey Knowledge defaults from the save; a toggle the URL sets (`mk` present) is left alone. */
