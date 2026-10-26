@@ -238,7 +238,7 @@ const MoreIcon = () => (
     <path d="M4 7h16M4 12h16M4 17h16" />
   </svg>
 );
-// Maps: the game's map-select compass.
+// Maps: the game's map editor map.
 const MapIcon = () => <img src={mapsArt} width={24} height={24} alt="" decoding="async" />;
 // Tools: the game's wrench (Overclock upgrade icon).
 const ToolsIcon = () => <img src={toolsArt} width={24} height={24} alt="" decoding="async" />;

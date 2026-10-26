@@ -575,8 +575,8 @@ TOOL_ICONS = {
     "monkeyCity": "ref/MonkeyCityUpgradeIcon",
     "overclock": "ref/OverclockUpgradeIcon",
     "halfCash": "ref/HalfCashIcon",
-    # header / phone bar icons (main.tsx, tools hub, /maps title): Tools = the wrench above, Maps = the map-select compass
-    "maps": "scene/MapIconSmall",
+    # header / phone bar icons (main.tsx, tools hub, /maps title): Tools = the wrench above, Maps = the map editor map
+    "maps": "ref/EditMapIcon",
 }
 TOOL_PX = 192
 # The round visualizer's title card shows the set's icon (web/src/rounds.ts setIcon) at 96 px: the sheets' 48/96 px
