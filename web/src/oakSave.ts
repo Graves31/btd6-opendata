@@ -115,6 +115,7 @@ export interface Progress {
   upgrades: Record<string, string[]>;
   knowledge: { id: string; tree: string }[];
   skins?: string[];
+  achievements?: string[];
   /** Pro power upgrades per power id. */
   powerUpgrades?: Record<string, string[]>;
 }
@@ -134,6 +135,11 @@ export const heroParts = (s: UserSave, p: Progress) => part(p.heroes, (h) => !!s
 export const towerParts = (s: UserSave, p: Progress) => part(p.towers, (t) => !!s.unlockedTowers?.[t]);
 /** Skins only when the game list is known. */
 export const skinParts = (s: UserSave, p: Progress) => (p.skins ? part(p.skins, (k) => !!s.unlockedSkins?.[k]) : null);
+/** Achievements only when the game list is known. */
+export const achievementParts = (s: UserSave, p: Progress) => {
+  const got = new Set(s.achievementsClaimed);
+  return p.achievements ? part(p.achievements, (a) => got.has(a)) : null;
+};
 
 /** Monkey Knowledge per tree, in the game's order. */
 export function knowledgeParts(s: UserSave, p: Progress): (Part & { tree: string })[] {
@@ -178,6 +184,7 @@ export interface Ring {
 export function completion(s: UserSave, p: Progress) {
   const med = medalCounts(s);
   const sk = skinParts(s, p);
+  const ac = achievementParts(s, p);
   const ins = instaParts(s, p);
   const sum = (xs: { owned: number; total: number }[]) => ({ owned: xs.reduce((n, x) => n + x.owned, 0), total: xs.reduce((n, x) => n + x.total, 0) });
   const rings: Ring[] = [
@@ -191,6 +198,7 @@ export function completion(s: UserSave, p: Progress) {
   const pw = powerUpgradeParts(s, p);
   if (pw) rings.push({ id: "powerups", label: "Pro powers", owned: pw.owned, total: pw.total });
   if (sk) rings.push({ id: "skins", label: "Skins", owned: sk.owned, total: sk.total });
+  if (ac) rings.push({ id: "achievements", label: "Achievements", owned: ac.owned, total: ac.total });
   const live = rings.filter((r) => r.total > 0);
   const overall = live.length ? live.reduce((n, r) => n + r.owned / r.total, 0) / live.length : 0;
   return { rings, overall };

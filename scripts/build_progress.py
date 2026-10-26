@@ -13,7 +13,13 @@ Sources (all read-only), all in the binary GameModel TextAsset "sim_model" (see 
                          [int32 position][int32 tree][int32 row][int32 cost][int32 id][int32 id2]; tree 0..5 is the
                          MK tab order Primary, Military, Magic, Support, Heroes, Powers (checked on anchor ids).
   HeroDetailsModel_<Id>  one per selectable hero.
-Not emitted: skins (not in sim_model; ids in the save are inconsistent). Output is deterministic (sorted keys).
+Skins and achievements are MonoBehaviours in the "game_data_assets_all" bundle; the asset name (m_Name) is exactly the
+save's key / string, however odd ("Biker Bones", "BenJammin", "You've Got the Power"):
+  skins          assets with baseTowerName + isDefaultTowerSkin: the non-default, not isHiddenWhenLocked ones (the
+                 default skin of each hero is the hero itself, already counted under heroes).
+  achievements   the assets listed by the "Achievements" list asset, hidden ones included (hidden = shown as "???"
+                 until earned, still earnable). The game has no legacy flag; the save may hold older names not here.
+Output is deterministic (sorted keys).
 
 Run: python scripts/build_progress.py   (re-launches itself inside .venv-art)
 """
@@ -134,6 +140,26 @@ def power_upgrades(sim: bytes) -> dict:
     return out
 
 
+def skins_achievements(rounds) -> tuple[list, list]:
+    import UnityPy
+
+    env = UnityPy.load(str(rounds._bundle("game_data_assets_all")))
+    ach, listed, skins = {}, None, []
+    for obj in env.objects:
+        if obj.type.name != "MonoBehaviour":
+            continue
+        tt = obj.read_typetree()
+        if "achievementId" in tt:
+            ach[obj.path_id] = tt["m_Name"]
+        elif tt.get("m_Name") == "Achievements" and "achievements" in tt:
+            listed = [a["m_PathID"] for a in tt["achievements"]]
+        elif "baseTowerName" in tt and "isDefaultTowerSkin" in tt and not tt["isDefaultTowerSkin"]                 and not tt["isHiddenWhenLocked"]:
+            skins.append(tt["m_Name"])
+    if not listed or not skins or any(p not in ach for p in listed):
+        fail(f"skins/achievements not found in game_data ({len(skins)} skins, {len(listed or [])} listed)")
+    return sorted(set(skins)), sorted({ach[p] for p in listed})
+
+
 def main() -> None:
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     import build_paragons
@@ -156,8 +182,9 @@ def main() -> None:
     if len(set(names)) != len(names):
         fail("duplicate upgrade names across towers; the save keys upgrades by name only")
     kn = knowledge(sim, build_paragons)
+    skins, achievements = skins_achievements(build_rounds)
     data = {"gameVersion": build_rounds.load_game_version(), "towers": sorted(towers), "heroes": sorted(hs),
-            "upgrades": ups, "knowledge": kn,
+            "upgrades": ups, "knowledge": kn, "skins": skins, "achievements": achievements,
             "powerUpgrades": power_upgrades(sim)}
     if data["gameVersion"] == "unknown":
         fail("game version not read")
@@ -165,6 +192,7 @@ def main() -> None:
     if not OUT.exists() or OUT.read_bytes() != raw:
         OUT.write_bytes(raw)
     print(f"  progress   {len(towers)} towers, {len(hs)} heroes, {len(names)} upgrades, {len(kn)} knowledge, "
+          f"{len(skins)} skins, {len(achievements)} achievements, "
           f"game {data['gameVersion']} -> {OUT.relative_to(ROOT)}")
 
 

@@ -8,7 +8,7 @@ import { cap, fmtInt, human, unitName } from "../format.ts";
 import { forgetOak, OAK_FORMAT, refreshOak, setOak, useOak, type OakError } from "../oak.ts";
 import { MAP_LIST, MAP_NAMES } from "../data/names.ts";
 import progressData from "../data/progress.json" with { type: "json" };
-import { completion, heroParts, instaParts, instaSummary, knowledgeParts, medalCounts, powerUpgradeParts, skinParts, towerParts, upgradeParts, type MedalRow, type Part, type Progress as GameProgress } from "../oakSave.ts";
+import { achievementParts, completion, heroParts, instaParts, instaSummary, knowledgeParts, medalCounts, powerUpgradeParts, skinParts, towerParts, upgradeParts, type MedalRow, type Part, type Progress as GameProgress } from "../oakSave.ts";
 import { href } from "../routes.ts";
 import { CATEGORY } from "../rules.tsx";
 import { artName, MODE_NAME, Spr } from "../sprite.tsx";
@@ -457,15 +457,17 @@ function Collection(p: { s: UserSave }) {
 function Progress(p: { s: UserSave }) {
   const s = p.s;
   const q = s.quests ?? [];
+  const ac = achievementParts(s, PROGRESS);
   const powers = Object.entries(s.powers ?? {})
     .filter(([, v]) => v.quantity > 0)
     .sort((a, b) => b[1].quantity - a[1].quantity);
   return (
     <Section title={<Lbl k="Powers">Powers, achievements and quests</Lbl>}>
       <dl class="stats grid my-tiles">
-        <Stat k={<Lbl k="Achievement">Achievements claimed</Lbl>} v={fmtInt(s.achievementsClaimed?.length ?? 0)} />
+        <Stat k={<Lbl k="Achievement">Achievements claimed</Lbl>} v={ac ? `${fmtInt(ac.owned)} / ${fmtInt(ac.total)}` : fmtInt(s.achievementsClaimed?.length ?? 0)} />
         <Stat k={<Lbl k="Quest">Quests complete</Lbl>} v={fmtInt(q.filter((x) => x.complete).length)} note={`of ${fmtInt(q.length)}`} />
       </dl>
+      {ac && <Miss name={<span class="my-in">Achievements not claimed yet</span>} part={ac} label={human} />}
       {powers.length > 0 && (
         <>
           <h3 class="my-h3">Powers in stock</h3>
@@ -543,7 +545,9 @@ export function MePage() {
             <Towers s={mine.save} />
           </Anchor>
           <Collection s={mine.save} />
-          <Progress s={mine.save} />
+          <Anchor id="achievements">
+            <Progress s={mine.save} />
+          </Anchor>
           <Legends title="Rogue Legends" data={mine.save.rogueLegends} />
           <Legends title="Frontier Legends" data={mine.save.frontierLegends} />
         </>
