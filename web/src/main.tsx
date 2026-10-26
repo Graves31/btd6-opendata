@@ -20,7 +20,7 @@ import { RoundsPage, roundsTitle, roundsBoss } from "./views/rounds.tsx";
 import { ParagonScalingPage } from "./views/paragonScaling.tsx";
 import { BankPlannerPage } from "./views/bankPlanner.tsx";
 import { FarmingPage } from "./views/farming.tsx";
-import { ToolsHub } from "./views/tools.tsx";
+import { TOOLS, ToolsHub } from "./views/tools.tsx";
 import { StatsPage } from "./views/stats.tsx";
 import { SuggestPage } from "./views/suggest.tsx";
 import { MePage } from "./views/me.tsx";
@@ -219,9 +219,10 @@ const NAV: [string, string, string][] = [
   [href.maps(), "Maps", "maps"],
   ["/tools", "Tools", "tools"],
 ];
-/** Phone bottom bar: four tabs + "More" (the rest, in the sheet). [href, label, section, eventIcon key]. */
-const BAR = [NAV[0], NAV[1], NAV[2], NAV[3]];
-const SHEET = [NAV[4], NAV[5], NAV[6], NAV[7]];
+/** Phone bottom bar: Live, Bosses, Races, the Tools menu and "More" (the rest, in the sheet). */
+const BAR = [NAV[0], NAV[1], NAV[2]];
+const SHEET = [NAV[3], NAV[4], NAV[5], NAV[6]];
+type Menu = "" | "more" | "tools";
 const ICON: Record<string, string> = { boss: "boss", race: "race", ct: "ct", odyssey: "odyssey", challenges: "daily" };
 const svg = { width: 24, height: 24, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": true } as const;
 const LiveIcon = () => (
@@ -245,6 +246,19 @@ const ToolsIcon = () => (
     <path d="M14.7 6.3a4 4 0 0 0 5 5L21 17l-4 4-5.7-1.3a4 4 0 0 0-5-5L3 8.5l4-4z" />
   </svg>
 );
+/** The Tools menu (header dropdown on desktop, bottom sheet on phones): the hub, then every tool with its art. */
+const toolLinks = (r: Route) => [
+  <A key="/tools" href="/tools" class={r.name === "tools" ? "on" : undefined} current={r.name === "tools"}>
+    <ToolsIcon />
+    All tools
+  </A>,
+  ...TOOLS.map((t) => (
+    <A key={t.to} href={t.to} class={location.pathname === t.to.split("?")[0] ? "on" : undefined}>
+      <img src={t.art} width={28} height={28} alt="" decoding="async" />
+      {t.title}
+    </A>
+  )),
+];
 const sectionIcon = (sec: string) =>
   sec === "home" ? <LiveIcon /> : sec === "maps" ? <MapIcon /> : sec === "tools" ? <ToolsIcon /> : <EvIcon k={ICON[sec]} size={24} />;
 function section(r: Route): string {
@@ -292,10 +306,10 @@ function App() {
   const [r, setR] = useState<Route>(initialRoute);
   const live = useRef<HTMLParagraphElement>(null); // polite live region: the new page's name after an in-site navigation
   const first = useRef(true);
-  const [more, setMore] = useState(false); // phones: the "More" sheet
+  const [more, setMore] = useState<Menu>(""); // the open menu: phones' "More" sheet, or Tools (both widths)
   const at = useRef(location.pathname);
-  const sheet = useRef<HTMLDivElement>(null);
-  const moreBtn = useRef<HTMLButtonElement>(null);
+  // Each menu has a desktop and a phone element; the one laid out at this width is the one in use.
+  const shown = (sel: string) => [...document.querySelectorAll<HTMLElement>(sel)].find((e) => e.getClientRects().length);
   useEffect(() => store.subscribe(() => bump(0)), []);
   useEffect(() => onRoute(setR), []);
   useLayoutEffect(() => {
@@ -303,19 +317,24 @@ function App() {
     routeCommitted();
     if (first.current) first.current = false;
     else if (live.current) live.current.textContent = backLabel(r); // no re-render for a status line
-    if (at.current !== location.pathname) setMore(false); // the sheet closes when the page changes
+    if (at.current !== location.pathname) setMore(""); // the menu closes when the page changes
     at.current = location.pathname;
   }, [r]);
   useEffect(() => {
     if (!more) return;
-    sheet.current?.querySelector("a")?.focus();
+    shown(`[data-menu="${more}"]`)?.querySelector("a")?.focus();
     const esc = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      setMore(false);
-      moreBtn.current?.focus();
+      shown(`[data-menu-btn="${more}"]`)?.focus();
+      setMore("");
+    };
+    // Desktop has no scrim: a press anywhere outside the menu and its button closes it.
+    const away = (e: PointerEvent) => {
+      if (!(e.target as Element).closest?.("[data-menu], [data-menu-btn]")) setMore("");
     };
     addEventListener("keydown", esc);
-    return () => removeEventListener("keydown", esc);
+    addEventListener("pointerdown", away);
+    return () => (removeEventListener("keydown", esc), removeEventListener("pointerdown", away));
   }, [more]);
   // Every render: the title gets the real name (player, boss…) as soon as that data lands.
   useLayoutEffect(() => {
@@ -358,6 +377,27 @@ function App() {
         <nav aria-label="Sections">
           {NAV.map(([h, label, sec]) => {
             const on = section(r) === sec;
+            if (sec === "tools")
+              return (
+                <span key={h} class="nav-dd">
+                  <button
+                    type="button"
+                    class={on ? "on" : undefined}
+                    data-menu-btn="tools"
+                    aria-expanded={more === "tools"}
+                    aria-controls="tools-dd"
+                    onClick={() => setMore(more === "tools" ? "" : "tools")}
+                  >
+                    {label}
+                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  <div class="dd" id="tools-dd" role="group" aria-label="Tools" data-menu="tools" data-open={more === "tools" ? "" : undefined}>
+                    {toolLinks(r)}
+                  </div>
+                </span>
+              );
             // aria-current="page" only on the page itself; a detail page (a boss, a player) just keeps the tab lit.
             return (
               <A key={h} href={h} class={on ? "on" : undefined} current={on && location.pathname === h}>
@@ -379,18 +419,32 @@ function App() {
         })}
         <button
           type="button"
-          ref={moreBtn}
-          class={more || SHEET.some((n) => n[2] === section(r)) ? "on" : undefined}
-          aria-expanded={more}
+          class={more === "tools" || section(r) === "tools" ? "on" : undefined}
+          data-menu-btn="tools"
+          aria-expanded={more === "tools"}
+          aria-controls="tools-sheet"
+          onClick={() => setMore(more === "tools" ? "" : "tools")}
+        >
+          <ToolsIcon />
+          Tools
+        </button>
+        <button
+          type="button"
+          class={more === "more" || SHEET.some((n) => n[2] === section(r)) ? "on" : undefined}
+          data-menu-btn="more"
+          aria-expanded={more === "more"}
           aria-controls="more-sheet"
-          onClick={() => setMore(!more)}
+          onClick={() => setMore(more === "more" ? "" : "more")}
         >
           <MoreIcon />
           More
         </button>
       </nav>
-      <div class="scrim" hidden={!more} onClick={() => (setMore(false), moreBtn.current?.focus())} />
-      <div class="sheet" id="more-sheet" role="group" aria-label="More sections" ref={sheet} data-open={more ? "" : undefined}>
+      <div class="scrim" hidden={!more} onClick={() => (shown(`[data-menu-btn="${more}"]`)?.focus(), setMore(""))} />
+      <div class="sheet" id="tools-sheet" role="group" aria-label="Tools" data-menu="tools" data-open={more === "tools" ? "" : undefined}>
+        {toolLinks(r)}
+      </div>
+      <div class="sheet" id="more-sheet" role="group" aria-label="More sections" data-menu="more" data-open={more === "more" ? "" : undefined}>
         {SHEET.map(([h, label, sec]) => (
           <A key={h} href={h} class={section(r) === sec ? "on" : undefined} current={section(r) === sec && location.pathname === h}>
             {sectionIcon(sec)}
@@ -399,11 +453,11 @@ function App() {
         ))}
       </div>
       <p class="vh" role="status" aria-live="polite" ref={live} />
-      <main id="main" tabIndex={-1} inert={more}>
+      <main id="main" tabIndex={-1} inert={!!more}>
         <BackLink r={r} />
         <Page r={r} />
       </main>
-      <footer inert={more}>
+      <footer inert={!!more}>
         <div class="ft-top">
           <p class="ft-brand">
             <A href="/">btd6data.com</A>

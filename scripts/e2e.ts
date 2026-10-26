@@ -336,7 +336,14 @@ async function main() {
     }
     await home();
 
-    await step("Now → Tools", 'header nav a[href="/tools"]', "tools");
+    // Tools is a fold-out menu in the header: the hub ("All tools") first, then each tool.
+    const toolsMenu = async () => {
+      await page.click("header .nav-dd > button");
+      await page.waitForSelector("#tools-dd[data-open]", { timeout: 2000 }).catch(() => problems.push("desktop: Tools didn't open its menu"));
+    };
+    await toolsMenu();
+    await shoot(page, "tools-menu");
+    await step("Now → Tools", '#tools-dd a[href="/tools"]', "tools");
     if ((await page.evaluate(() => document.querySelectorAll(".tools-tiles a.tile").length)) !== 5) problems.push("tools hub: want 5 tool cards");
     await step("Tools → Round visualizer", ".tools-tiles a.tile[href^='/tools/rounds']", "rounds-tool");
     if (!(await has("ol.rv-list li.rv-row"))) problems.push("tools: no round rows");
@@ -372,8 +379,8 @@ async function main() {
     if ((await here()).includes("view=round")) problems.push("‹ List: still on the round view");
 
     // Tools → Farming resources: the banana spawn chart (4 + 6 + 8 bananas).
-    await step("→ Tools hub", 'header nav a[href="/tools"]');
-    await step("Tools → Farming resources", ".tools-tiles a.tile[href='/tools/farming']", "farming");
+    await toolsMenu();
+    await step("Tools menu → Farming resources", "#tools-dd a[href='/tools/farming']", "farming");
     if ((await page.evaluate(() => document.querySelectorAll(".fm-b img").length)) !== 18) problems.push("farming: want 18 bananas on the spawn chart");
     // Picking a round puts its seconds on the chart (the default round set is prefetched with the page).
     await page.click(".fm-any");
@@ -382,8 +389,8 @@ async function main() {
     await shoot(page, "desktop-farming-round");
 
     // Tools → Bank & IMF Loan planner: default 1-3-0 bought before round 30 with full MK collects before round 42 (after round 41, test/bank.test.ts).
-    await step("→ Tools hub", 'header nav a[href="/tools"]');
-    await step("Tools → Bank & IMF Loan planner", ".tools-tiles a.tile[href='/tools/bank-planner']", "bank-planner");
+    await toolsMenu();
+    await step("Tools menu → Bank & IMF Loan planner", "#tools-dd a[href='/tools/bank-planner']", "bank-planner");
     const bankAns = await page.$eval(".bk-big .v", (el) => el.textContent).catch(() => "");
     if (bankAns !== "42") problems.push(`bank planner: default answer reads "${bankAns}", want round 42`);
     await page.click(".bk-mode .tab:last-child");
@@ -392,7 +399,8 @@ async function main() {
     await shoot(page, "desktop-bank-planner-deposit");
 
     // Tools → Paragon calculator: the URL is the state; changing an input rewrites it in place (no new history entry).
-    await step("→ Tools hub", 'header nav a[href="/tools"]');
+    await toolsMenu();
+    await step("→ Tools hub", '#tools-dd a[href="/tools"]');
     await step("Tools → Paragon calculator", ".tools-tiles a.tile[href^='/tools/paragon']", "paragon");
     if (!(await has(".pg-picker button[aria-pressed='true']")) || !(await has(".pg-res .pg-buckets li"))) problems.push("paragon: picker / result missing");
     const hist = await page.evaluate(() => history.length);
@@ -644,19 +652,21 @@ async function main() {
       if (!(await page.evaluate(() => { const b = document.querySelector(".bar")?.getBoundingClientRect(); return !!b && b.width > 0 && Math.round(b.bottom) === innerHeight; }))) problems.push(`${tag}: bottom bar not visible at the bottom`);
       if ((await page.$$eval("nav[aria-label=Sections]", (n) => n.filter((e) => (e as HTMLElement).offsetParent !== null || getComputedStyle(e).position === "fixed").length)) !== 1) problems.push(`${tag}: not exactly one visible Sections landmark`);
       if (!(await has('.bar a[href="/races"][aria-current="page"]'))) problems.push(`${tag}: Races has no aria-current on /races`);
-      const openMore = async () => {
-        await page.tap(".bar button");
-        await page.waitForSelector('.bar button[aria-expanded="true"]', { timeout: 5000 }).catch(() => problems.push(`${tag}: More didn't open the sheet`));
-        await page.waitForFunction(() => document.activeElement?.closest("#more-sheet"), { timeout: 2000 }).catch(() => problems.push(`${tag}: opening the sheet didn't focus its first link`));
+      // Two sheets: "More" (the other sections) and Tools (the hub and every tool).
+      const openSheet = async (id: string) => {
+        await page.tap(`.bar button[aria-controls="${id}"]`);
+        await page.waitForSelector(`.bar button[aria-controls="${id}"][aria-expanded="true"]`, { timeout: 5000 }).catch(() => problems.push(`${tag}: ${id} didn't open`));
+        await page.waitForFunction((id) => document.activeElement?.closest(`#${id}`), { timeout: 2000 }, id).catch(() => problems.push(`${tag}: opening ${id} didn't focus its first link`));
       };
       const sheetOpen = () => has('.bar button[aria-expanded="true"]');
-      await openMore();
+      await openSheet("more-sheet");
       await page.keyboard.press("Escape");
       if (await sheetOpen()) problems.push(`${tag}: Escape didn't close the sheet`);
-      await openMore();
       // 360 px goes to Tools: the Maps grid paints in ~55 ms there (a page cost, not the nav's), over the 50 ms bar.
-      const dest = w === 390 ? "/maps" : "/tools";
-      await step(`${tag}: More → ${dest}`, `#more-sheet a[href="${dest}"]`);
+      const [sheetId, dest] = w === 390 ? ["more-sheet", "/maps"] : ["tools-sheet", "/tools"];
+      await openSheet(sheetId);
+      await shoot(page, `phone-${w}-${sheetId}`);
+      await step(`${tag}: ${sheetId} → ${dest}`, `#${sheetId} a[href="${dest}"]`);
       if ((await here()) !== dest || (await sheetOpen())) problems.push(`${tag}: ${dest} didn't open with the sheet closed`);
       await step(`${tag}: header → Suggest`, 'header a[href="/suggest"]');
       if (!(await has("form.sug-form textarea"))) problems.push(`${tag}: suggest form didn't render`);

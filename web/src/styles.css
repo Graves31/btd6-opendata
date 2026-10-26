@@ -457,6 +457,79 @@ strong {
   color: var(--hdr-ink);
   border-bottom-color: var(--accent);
 }
+/* Tools: a button that folds out the tools (the hub first) under the header. */
+.nav-dd {
+  position: relative;
+  display: flex;
+}
+.nav-dd > button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px;
+  font: 600 15px/1 var(--f-body);
+  color: var(--hdr-ink-2);
+  background: none;
+  border: 0;
+  border-bottom: 4px solid transparent;
+  border-top: 4px solid transparent;
+  cursor: pointer;
+}
+.nav-dd > button:hover,
+.nav-dd > button[aria-expanded="true"] {
+  color: var(--hdr-ink);
+}
+.nav-dd > button.on {
+  color: var(--hdr-ink);
+  border-bottom-color: var(--accent);
+}
+.nav-dd > button[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+.dd {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  display: grid;
+  gap: 4px;
+  min-width: 280px;
+  padding: 8px;
+  background: rgb(9 13 23); /* --hdr-bg, opaque: a blur can't nest in the header's */
+  border: 1px solid var(--hdr-line);
+  border-radius: var(--r);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.35);
+  visibility: hidden; /* mounted, like the phone sheet, so its links are prefetched before it opens */
+}
+.dd[data-open] {
+  visibility: visible;
+}
+.top nav .dd a {
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--r);
+  color: var(--hdr-ink);
+}
+.top nav .dd a:hover,
+.top nav .dd a.on {
+  background: rgb(255 255 255 / 0.08);
+}
+.top nav .dd a:first-child {
+  color: var(--hdr-ink-2);
+}
+.dd img,
+.sheet img {
+  flex: none;
+  width: 28px;
+  height: 28px;
+}
+.dd a > svg {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 2px; /* the line icon at its usual 24 px, in the art's 28 px column */
+}
 /* Light / dark toggle, far right (phones: top-right corner, beside the logo). It comes before the nav in the DOM
    (phone tab order = visual order), so on desktop `order` puts it after it. */
 /* Phone bottom bar + "More" sheet (shown at <= 700 px, see the phone media block). */
@@ -615,7 +688,8 @@ strong {
   .top nav {
     gap: 0;
   }
-  .top nav a {
+  .top nav a,
+  .nav-dd > button {
     padding: 0 8px;
     font-size: 14px;
   }
@@ -624,7 +698,8 @@ strong {
   .brand-t {
     display: none;
   }
-  .top nav a {
+  .top nav a,
+  .nav-dd > button {
     padding: 0 6px;
   }
 }

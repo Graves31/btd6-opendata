@@ -28,6 +28,40 @@ function ToolTile(p: { to: string; art: ComponentChildren; title: string; childr
   );
 }
 
+/** Every tool: the hub's cards and the header's Tools menu. */
+export const TOOLS = [
+  {
+    to: href.rounds({}),
+    title: "Round visualizer",
+    art: roundsArt,
+    sub: "Every round of every round set, from the game's own data: the bloons, RBE and spawn timeline.",
+  },
+  {
+    to: href.paragon(),
+    title: "Paragon calculator",
+    art: paragonArt,
+    sub: "What degree your sacrifices make, and the quickest way to reach the next boss breakpoint.",
+  },
+  {
+    to: href.paragonScaling(),
+    title: "Paragon scaling",
+    art: paragonScalingArt,
+    sub: "What each paragon degree from 1 to 100 adds: power needed, damage, pierce, attack speed and boss damage, charted.",
+  },
+  {
+    to: href.farming(),
+    title: "Farming resources",
+    art: farmingArt,
+    sub: "Banana farm reference charts: when a 0-0-0, 1-0-0 and 2-0-0 farm drops its bananas during a round.",
+  },
+  {
+    to: href.bankPlanner(),
+    title: "Bank & IMF Loan planner",
+    art: bankArt,
+    sub: "When to collect a Monkey Bank so the cap never eats your cash, and how much to deposit in an IMF Loan.",
+  },
+];
+
 export function ToolsHub() {
   return (
     <div class="tools">
@@ -38,21 +72,11 @@ export function ToolsHub() {
         </div>
       </header>
       <div class="tiles tools-tiles">
-        <ToolTile to={href.rounds({})} title="Round visualizer" art={art(roundsArt)}>
-          Every round of every round set, from the game's own data: the bloons, RBE and spawn timeline.
-        </ToolTile>
-        <ToolTile to={href.paragon()} title="Paragon calculator" art={art(paragonArt)}>
-          What degree your sacrifices make, and the quickest way to reach the next boss breakpoint.
-        </ToolTile>
-        <ToolTile to={href.paragonScaling()} title="Paragon scaling" art={art(paragonScalingArt)}>
-          What each paragon degree from 1 to 100 adds: power needed, damage, pierce, attack speed and boss damage, charted.
-        </ToolTile>
-        <ToolTile to={href.farming()} title="Farming resources" art={art(farmingArt)}>
-          Banana farm reference charts: when a 0-0-0, 1-0-0 and 2-0-0 farm drops its bananas during a round.
-        </ToolTile>
-        <ToolTile to={href.bankPlanner()} title="Bank & IMF Loan planner" art={art(bankArt)}>
-          When to collect a Monkey Bank so the cap never eats your cash, and how much to deposit in an IMF Loan.
-        </ToolTile>
+        {TOOLS.map((t) => (
+          <ToolTile key={t.to} to={t.to} title={t.title} art={art(t.art)}>
+            {t.sub}
+          </ToolTile>
+        ))}
       </div>
     </div>
   );
