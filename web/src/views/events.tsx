@@ -503,7 +503,7 @@ function RaceTile(props: { race: Race; prev?: Race }) {
       </span>
       <span class="tile-body">
         <span class="eyebrow ti">
-          <EvIcon k="race" size={24} />
+          <EvIcon k="race" size={36} />
           Race
         </span>
         <h2 class="tile-title">{r.name}</h2>
@@ -548,7 +548,7 @@ function CTTile(props: { ct: CT; prev?: CT }) {
       </span>
       <span class="tile-body">
         <span class="eyebrow ti">
-          <EvIcon k="ct" size={24} />
+          <EvIcon k="ct" size={36} />
           Team event
         </span>
         <h2 class="tile-title">Contested Territory</h2>
@@ -587,9 +587,12 @@ function OdysseyTile(props: { ody: Odyssey }) {
   const maps = body<ChallengeDocument[]>(odyMapsKey(o.id, "easy"));
   return (
     <A href={href.odyssey(o.id)} class="tile tile-ody">
+      <span class="tile-art">
+        <IslandRow maps={maps} size={52} max={4} />
+      </span>
       <span class="tile-body">
         <span class="eyebrow ti">
-          <EvIcon k="odyssey" size={24} />
+          <EvIcon k="odyssey" size={36} />
           Odyssey
         </span>
         <h2 class="tile-title">{o.name}</h2>
@@ -600,7 +603,6 @@ function OdysseyTile(props: { ody: Odyssey }) {
           {maps ? `${maps.length} islands on Easy` : ""}
         </span>
       </span>
-      <IslandRow maps={maps} size={72} />
     </A>
   );
 }
@@ -663,7 +665,7 @@ export function DailyTile(props: { id: string; name: string; icon?: string; eyeb
       </span>
       <span class="tile-body">
         <span class="eyebrow ti">
-          <EvIcon k={props.icon ?? "daily"} size={24} />
+          <EvIcon k={props.icon ?? "daily"} size={36} />
           {props.eyebrow ?? "Daily challenge"}
         </span>
         <h2 class="tile-title">
@@ -715,7 +717,7 @@ function MiniGrid(props: { p: ReturnType<typeof homePicks> }) {
   ) => (
     <A href={to} class={map === undefined ? "mini" : "mini has-map"}>
       <span class="eyebrow ti">
-        <EvIcon k={icon} size={24} />
+        <EvIcon k={icon} size={30} />
         {eyebrow}
       </span>
       <span class="mini-t">{title}</span>

@@ -959,11 +959,12 @@ button.fd-tile:hover {
   align-self: center;
   margin: 14px 0 14px 14px;
 }
-.tile-ody {
-  flex-direction: column;
-}
+/* Odyssey: its islands in a 2-wide block where the other cards have their map. */
 .tile-ody .mf-row {
-  margin: 0 16px 16px;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  justify-content: space-between;
+  width: 128px; /* the race card's framed map, so both cards' text lines up */
 }
 .tile-body {
   display: flex;
@@ -7652,10 +7653,15 @@ h1.title.ti .ev-icon {
   }
 }
 
-/* Home sub-cards: more air between kicker, title and meta. */
+/* Home sub-cards: more air between kicker, title and meta; the kicker (icon + kind) reads at a glance. */
 .tile-body {
   gap: 12px;
   padding: 18px 20px 20px;
+}
+.tile-body .eyebrow,
+.mini .eyebrow {
+  font-size: 14px;
+  color: var(--ink);
 }
 .tile-meta {
   line-height: 1.65;
