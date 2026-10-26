@@ -524,12 +524,6 @@ strong {
   width: 28px;
   height: 28px;
 }
-.dd a > svg {
-  flex: none;
-  width: 28px;
-  height: 28px;
-  padding: 2px; /* the line icon at its usual 24 px, in the art's 28 px column */
-}
 /* Light / dark toggle, far right (phones: top-right corner, beside the logo). It comes before the nav in the DOM
    (phone tab order = visual order), so on desktop `order` puts it after it. */
 /* Phone bottom bar + "More" sheet (shown at <= 700 px, see the phone media block). */

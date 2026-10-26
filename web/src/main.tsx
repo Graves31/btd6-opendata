@@ -21,6 +21,8 @@ import { ParagonScalingPage } from "./views/paragonScaling.tsx";
 import { BankPlannerPage } from "./views/bankPlanner.tsx";
 import { FarmingPage } from "./views/farming.tsx";
 import { TOOLS, ToolsHub } from "./views/tools.tsx";
+import toolsArt from "./art/tools/overclock.webp";
+import mapsArt from "./art/tools/maps.webp";
 import { StatsPage } from "./views/stats.tsx";
 import { SuggestPage } from "./views/suggest.tsx";
 import { MePage } from "./views/me.tsx";
@@ -236,16 +238,10 @@ const MoreIcon = () => (
     <path d="M4 7h16M4 12h16M4 17h16" />
   </svg>
 );
-const MapIcon = () => (
-  <svg {...svg}>
-    <path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2zM9 4v14M15 6v14" />
-  </svg>
-);
-const ToolsIcon = () => (
-  <svg {...svg}>
-    <path d="M14.7 6.3a4 4 0 0 0 5 5L21 17l-4 4-5.7-1.3a4 4 0 0 0-5-5L3 8.5l4-4z" />
-  </svg>
-);
+// Maps: the game's map-select compass.
+const MapIcon = () => <img src={mapsArt} width={24} height={24} alt="" decoding="async" />;
+// Tools: the game's wrench (Overclock upgrade icon).
+const ToolsIcon = () => <img src={toolsArt} width={24} height={24} alt="" decoding="async" />;
 /** The Tools menu (header dropdown on desktop, bottom sheet on phones): the hub, then every tool with its art. */
 const toolLinks = (r: Route) => [
   <A key="/tools" href="/tools" class={r.name === "tools" ? "on" : undefined} current={r.name === "tools"}>
