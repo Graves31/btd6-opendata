@@ -575,7 +575,7 @@ TOOL_ICONS = {
     "monkeyCity": "ref/MonkeyCityUpgradeIcon",
     "overclock": "ref/OverclockUpgradeIcon",
     "halfCash": "ref/HalfCashIcon",
-    # header / phone bar icons (main.tsx): Tools = the wrench above, Maps = the map-select compass
+    # header / phone bar icons (main.tsx, tools hub, /maps title): Tools = the wrench above, Maps = the map-select compass
     "maps": "scene/MapIconSmall",
 }
 TOOL_PX = 192
@@ -595,7 +595,6 @@ EVENT_ICONS = {
     "odyssey": "ref/OdysseyEventBtn",
     "daily": "MainMenuUiAtlas/DailyChallengeBtn",
     "bossRush": "ref/BushRushEventBtn",  # sic: NK's sprite name
-    "maps": "Ui/MapDiffUnlockIcon",  # not an event: the /maps page header (the game's map-cards icon)
 }
 
 FAMILIES = {  # family -> (table, cell px, aliases)

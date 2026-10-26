@@ -7370,12 +7370,21 @@ a.hist-map:hover {
 h1.title.ti {
   gap: 14px;
 }
-h1.title.ti .ev-icon {
+h1.title.ti .ev-icon,
+h1.title.ti > img {
   margin-block: -12px;
+}
+h1.title.ti > img {
+  flex: none;
 }
 @media (max-width: 700px) {
   h1.title.ti .ev-icon {
     --s: 52px;
+    margin-block: -8px;
+  }
+  h1.title.ti > img {
+    width: 52px;
+    height: 52px;
     margin-block: -8px;
   }
 }

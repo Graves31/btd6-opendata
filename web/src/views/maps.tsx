@@ -14,6 +14,7 @@ import { historyKey, href, LIST_KEY, type MapSort, type MapsRoute } from "../rou
 import { MapArt, MODE_NAME, Spr } from "../sprite.tsx";
 import { A, body, EvIcon, peek, Skeleton, StatusBadge } from "../ui.tsx";
 import { NotFound } from "./errors.tsx";
+import mapsArt from "../art/tools/maps.webp";
 
 const SORTS: [MapSort, string][] = [
   ["game", "Game order"],
@@ -180,7 +181,7 @@ export function MapsPage(props: { r: MapsRoute }) {
     <>
       <header class="page-h">
         <h1 class="title ti">
-          <EvIcon k="maps" size={64} />
+          <img src={mapsArt} width={64} height={64} alt="" decoding="async" />
           Maps
         </h1>
         <p class="lede">All {MAP_LIST.length} official maps: when each last had a boss event or a race, and how often.</p>
