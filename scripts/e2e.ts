@@ -448,12 +448,27 @@ async function main() {
       await page.waitForSelector(".my-tiles .stat", { timeout: 8000 }).catch(() => problems.push("me: no stats after entering a key"));
     };
     await enterKey();
-    for (const [sel, what] of [[".my-medals li", "medal"], [".my-instas details", "insta"], [".my-xp li", "tower XP"], [".my-heroes li", "hero"], [".my-powers li", "power"]] as const) {
+    for (const [sel, what] of [[".my-medals li", "medal"], [".my-instas > li", "insta"], [".my-xp li", "tower XP"], [".my-heroes li", "hero"], [".my-powers li", "power"]] as const) {
       if (!(await has(sel))) problems.push(`me: no ${what} rows`);
     }
     if (nkSeen.length < 2 || nkSeen.some((p) => !/^\/btd6\/(save|users)\/oak_e2etest0000$/.test(p))) problems.push(`me: unexpected NK requests: ${nkSeen.join(", ")}`);
     if (!(await page.evaluate(() => document.querySelector("main")?.textContent?.includes("Updated")))) problems.push("me: no 'Updated … ago' line");
     await shoot(page, "desktop-me");
+    // Missing lists open one shared panel under the picked card's row: a medal's missing maps, a tower's crosspath grid.
+    await page.click(".my-medals button.my-miss");
+    if (!(await has("#my-medal-panel .my-maps a[href^='/maps/']"))) problems.push("me: medal panel shows no missing maps");
+    await page.click(".my-instas button.my-miss");
+    if ((await page.$$eval("#my-insta-panel .my-tgrid li", (l) => l.length)) !== 64) problems.push("me: insta panel isn't the 64-crosspath grid");
+    await shoot(page, "desktop-me-panels");
+    await page.setViewport({ width: 390, height: 844 }); // width only: changing isMobile reloads the page
+    await shoot(page, "mobile-me-panels");
+    const wide = await page.evaluate(() => {
+      if (document.documentElement.scrollWidth <= innerWidth) return "";
+      const el = [...document.querySelectorAll<HTMLElement>("main *")].find((e) => e.getBoundingClientRect().right > innerWidth + 1);
+      return el ? `${el.tagName.toLowerCase()}.${el.className} (${Math.round(el.getBoundingClientRect().right)} px)` : "?";
+    });
+    if (wide) problems.push(`me panels at 390 px: page scrolls sideways, first wide element ${wide}`);
+    await page.setViewport({ width: 1280, height: 900 });
     await page.evaluate(() => [...document.querySelectorAll<HTMLElement>(".my-bar button")].find((b) => /Forget/.test(b.textContent ?? ""))?.click());
     await page.waitForSelector("form.my-form", { timeout: 3000 }).catch(() => problems.push("me: Forget didn't bring the key form back"));
     if (await has(".my-tiles")) problems.push("me: stats still shown after Forget");

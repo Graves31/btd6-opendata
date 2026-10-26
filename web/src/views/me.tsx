@@ -8,10 +8,11 @@ import { cap, fmtInt, human, unitName } from "../format.ts";
 import { forgetOak, OAK_FORMAT, refreshOak, setOak, useOak, type OakError } from "../oak.ts";
 import { MAP_LIST, MAP_NAMES } from "../data/names.ts";
 import progressData from "../data/progress.json" with { type: "json" };
-import { achievementParts, completion, heroParts, instaParts, instaSummary, knowledgeParts, medalCounts, powerUpgradeParts, skinParts, towerParts, upgradeParts, type MedalRow, type Part, type Progress as GameProgress } from "../oakSave.ts";
+import { achievementParts, completion, heroParts, instaParts, instaPossible, instaSummary, knowledgeParts, medalCounts, powerUpgradeParts, skinParts, towerParts, upgradeParts, type MedalRow, type Part, type Progress as GameProgress } from "../oakSave.ts";
+import { DIFF_LABEL } from "../maps.ts";
 import { href } from "../routes.ts";
 import { CATEGORY } from "../rules.tsx";
-import { artName, MODE_NAME, Spr } from "../sprite.tsx";
+import { artName, MapArt, MODE_NAME, Spr } from "../sprite.tsx";
 import { A, Img, Section, Stat, ToolHero, useTick } from "../ui.tsx";
 
 const PROGRESS = progressData as unknown as GameProgress;
@@ -226,30 +227,106 @@ function Overview(p: { s: UserSave }) {
   );
 }
 
+/** A "x / n" card that opens the shared panel (Pick) instead of growing; a plain card when nothing is missing. */
+function Pick(p: { name: ComponentChildren; part: Part; unit?: string; on: boolean; panel: string; onPick: () => void; class?: string }) {
+  const { owned, total, missing } = p.part;
+  const head = (
+    <>
+      {p.name}
+      <span class="my-ic">
+        {fmtInt(owned)} / {fmtInt(total)}
+        {p.unit}
+      </span>
+      <Meter o={owned} t={total} />
+    </>
+  );
+  const cls = `my-miss${missing.length ? "" : " done"}${p.on ? " on" : ""}${p.class ? ` ${p.class}` : ""}`;
+  return missing.length ? (
+    <button type="button" class={cls} aria-expanded={p.on} aria-controls={p.on ? p.panel : undefined} onClick={p.onPick}>
+      <span class="my-sum">{head}</span>
+    </button>
+  ) : (
+    <div class={cls}>
+      <div class="my-sum">{head}</div>
+    </div>
+  );
+}
+
+/**
+ * The one open "what's missing" panel of a card grid: a full-width row placed right after the picked card. The grid
+ * packs densely, so the rest of that card's row moves back up beside it and the panel sits under the row.
+ */
+function Panel(p: { id: string; title: ComponentChildren; art?: ComponentChildren; note: ComponentChildren; onClose: () => void; children: ComponentChildren }) {
+  return (
+    <li class="my-panel" id={p.id}>
+      <div class="my-ph">
+        {p.art}
+        <div class="my-pt">
+          <h4>{p.title}</h4>
+          <span class="my-ic">{p.note}</span>
+        </div>
+        <button type="button" class="my-x" onClick={p.onClose} aria-label="Close">
+          ×
+        </button>
+      </div>
+      {p.children}
+    </li>
+  );
+}
+
 function Medals(p: { s: UserSave }) {
   const rows = medalCounts(p.s);
+  const [sel, setSel] = useState<string | null>(null); // "<difficulty>:<mode>:solo" / ":coop": one open panel
+  const medalName = (r: MedalRow, co: boolean) => `${r.mode === "Standard" ? r.difficulty : (MODE_NAME[r.mode] ?? r.mode)} ${co ? "co-op" : "solo"}`;
+  const medal = (r: MedalRow, co: boolean, size: number) => <Spr family="modeMedal" k={co ? `coop:${r.medal}` : r.medal} size={size} name={medalName(r, co)} label />;
   const side = (r: MedalRow, co: boolean) => {
     const n = co ? r.coop : r.solo;
-    const nm = `${r.mode === "Standard" ? r.difficulty : (MODE_NAME[r.mode] ?? r.mode)} ${co ? "co-op" : "solo"}`;
-    const part = { owned: n, total: r.total, missing: co ? r.coopMissing : r.soloMissing };
+    const key = `${r.difficulty}:${r.mode}:${co ? "coop" : "solo"}`;
     const name = (
       <>
-        <span class={n ? "my-m" : "my-m dim"}>
-          <Spr family="modeMedal" k={co ? `coop:${r.medal}` : r.medal} size={40} name={nm} label />
-        </span>
+        <span class={n ? "my-m" : "my-m dim"}>{medal(r, co, 40)}</span>
         <span class="my-in">{co ? "Co-op" : "Solo"}</span>
       </>
     );
+    const part = { owned: n, total: r.total, missing: co ? r.coopMissing : r.soloMissing };
+    return <Pick name={name} part={part} on={sel === key} panel="my-medal-panel" onPick={() => setSel(sel === key ? null : key)} class={n ? undefined : "dim"} />;
+  };
+  const panel = (r: MedalRow) => {
+    const co = sel === `${r.difficulty}:${r.mode}:coop`;
+    if (!co && sel !== `${r.difficulty}:${r.mode}:solo`) return null;
+    const missing = new Set(co ? r.coopMissing : r.soloMissing);
     return (
-      <Miss name={name} part={part} class={n ? undefined : "dim"}>
-        <ul class="my-tiers">
-          {part.missing.map((id) => (
-            <li key={id}>
-              <A href={href.map(id)}>{MAP_NAMES[id] ?? human(id)}</A>
-            </li>
-          ))}
-        </ul>
-      </Miss>
+      <Panel
+        key={`${r.mode}-panel`}
+        id="my-medal-panel"
+        art={medal(r, co, 48)}
+        title={`${r.difficulty} · ${MODE_NAME[r.mode] ?? human(r.mode)} · ${co ? "Co-op" : "Solo"}`}
+        note={`${fmtInt(missing.size)} ${missing.size === 1 ? "map" : "maps"} still missing this medal`}
+        onClose={() => setSel(null)}
+      >
+        {DIFF_LABEL.map((label, d) => {
+          const maps = MAP_LIST.filter(([id, md]) => md === d && missing.has(id));
+          return (
+            maps.length > 0 && (
+              <div key={label}>
+                <h5 class="my-h3">
+                  {label} <span>{maps.length}</span>
+                </h5>
+                <ul class="my-maps">
+                  {maps.map(([id]) => (
+                    <li key={id}>
+                      <A href={href.map(id)}>
+                        <MapArt map={id} size={112} framed alt="" />
+                        <span>{MAP_NAMES[id] ?? human(id)}</span>
+                      </A>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          );
+        })}
+      </Panel>
     );
   };
   return (
@@ -257,16 +334,17 @@ function Medals(p: { s: UserSave }) {
       {(["Easy", "Medium", "Hard"] as const).map((d) => (
         <div key={d} class="my-medals">
           <h3>{d}</h3>
-          <ul>
+          <ul class="my-dense">
             {rows
               .filter((r) => r.difficulty === d)
-              .map((r) => (
+              .flatMap((r) => [
                 <li key={r.mode}>
                   <span class="my-mn">{MODE_NAME[r.mode] ?? human(r.mode)}</span>
                   {side(r, false)}
                   {side(r, true)}
-                </li>
-              ))}
+                </li>,
+                panel(r),
+              ])}
           </ul>
         </div>
       ))}
@@ -276,50 +354,63 @@ function Medals(p: { s: UserSave }) {
 }
 
 function Instas(p: { s: UserSave }) {
+  const [sel, setSel] = useState<string | null>(null);
   const owned = new Map(instaSummary(p.s).map((r) => [r.tower, r]));
   if (!owned.size) return null;
   const parts = instaParts(p.s, PROGRESS).sort((a, b) => (owned.get(b.tower)?.total ?? 0) - (owned.get(a.tower)?.total ?? 0));
   const sets = parts.reduce((n, r) => n + r.owned, 0);
   const possible = parts.reduce((n, r) => n + r.total, 0);
   const all = [...owned.values()].reduce((n, r) => n + r.total, 0);
+  // Every crosspath an insta can have, in the same order for every tower.
+  const tiers = instaPossible().map((k) => k.split("").join("-"));
   return (
     <Section title={<Lbl k="Tier5">Insta Monkeys</Lbl>} aside={`${fmtInt(sets)} / ${fmtInt(possible)} sets · ${fmtInt(all)} in total`}>
-      <div class="my-instas">
-        {parts.map((r) => {
+      <ul class="my-instas my-dense">
+        {parts.flatMap((r) => {
           const o = owned.get(r.tower);
-          return (
-            <Lazy
-              key={r.tower}
-              head={
-                <>
-                  <Spr family="tower" k={r.tower} size={36} label />
-                  <span class="my-in">{unitName(r.tower)}</span>
-                  <span class="my-ic">
-                    {fmtInt(r.owned)} / {fmtInt(r.total)} sets · {fmtInt(o?.total ?? 0)}
-                  </span>
-                  <Meter o={r.owned} t={r.total} />
-                </>
-              }
-            >
-              {o && (
-                <ul class="my-tiers">
-                  {o.tiers.map(([t, n]) => (
-                    <li key={t}>
-                      {t} <b>×{n}</b>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {r.missing.length > 0 && (
-                <>
-                  <h3 class="my-h3 my-mh">Missing</h3>
-                  <Chips ids={r.missing} />
-                </>
-              )}
-            </Lazy>
-          );
+          const on = sel === r.tower;
+          const have = new Map(o?.tiers);
+          return [
+            <li key={r.tower}>
+              <Pick
+                name={
+                  <>
+                    <Spr family="tower" k={r.tower} size={36} label />
+                    <span class="my-in">{unitName(r.tower)}</span>
+                  </>
+                }
+                part={r}
+                unit={` sets · ${fmtInt(o?.total ?? 0)}`}
+                on={on}
+                panel="my-insta-panel"
+                onPick={() => setSel(on ? null : r.tower)}
+              />
+            </li>,
+            on && (
+              <Panel
+                key={`${r.tower}-panel`}
+                id="my-insta-panel"
+                art={<Spr family="tower" k={r.tower} size={48} label />}
+                title={unitName(r.tower)}
+                note={`${fmtInt(r.owned)} of ${fmtInt(r.total)} crosspaths owned · ${fmtInt(o?.total ?? 0)} instas · dimmed = missing`}
+                onClose={() => setSel(null)}
+              >
+                <ol class="my-tgrid">
+                  {tiers.map((t) => {
+                    const n = have.get(t) ?? 0;
+                    return (
+                      <li key={t} class={n ? undefined : "no"}>
+                        <b>{t}</b>
+                        <span>{n ? `×${fmtInt(n)}` : "–"}</span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </Panel>
+            ),
+          ];
         })}
-      </div>
+      </ul>
     </Section>
   );
 }

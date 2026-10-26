@@ -11305,7 +11305,7 @@ a.th-ic:focus-visible {
   letter-spacing: 0.12em;
   color: var(--ink-3);
 }
-.my-medals ul {
+.my-medals > ul {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -11313,7 +11313,7 @@ a.th-ic:focus-visible {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
   gap: 8px;
 }
-.my-medals li {
+.my-medals > ul > li:not(.my-panel) {
   display: grid;
   gap: 4px;
   padding: 8px 10px;
@@ -11325,7 +11325,8 @@ a.th-ic:focus-visible {
   display: inline-flex;
 }
 .my-m.dim,
-.my-miss.dim > summary {
+.my-miss.dim > summary,
+.my-miss.dim > .my-sum {
   opacity: 0.45;
 }
 .my-mn {
@@ -11341,8 +11342,7 @@ a.th-ic:focus-visible {
 }
 /* a "x / n" row with a thin meter; expands into what is missing */
 .my-miss > summary,
-.my-miss > .my-sum,
-.my-instas summary {
+.my-miss > .my-sum {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -11350,9 +11350,131 @@ a.th-ic:focus-visible {
   min-height: 44px;
   padding: 4px 10px;
 }
-.my-miss > summary,
-.my-instas summary {
+.my-miss > summary {
   cursor: pointer;
+}
+/* A card that opens the shared panel (me.tsx Pick / Panel); the grid packs densely so the panel sits under its row. */
+button.my-miss {
+  display: block;
+  width: 100%;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+button.my-miss:hover {
+  background: var(--hover);
+}
+.my-miss.on {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.my-dense {
+  grid-auto-flow: row dense;
+}
+.my-panel {
+  grid-column: 1 / -1;
+  min-width: 0;
+  padding: 12px 14px 16px;
+  background: var(--s1);
+  border: 1px solid var(--accent);
+  border-radius: var(--r);
+}
+.my-ph {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.my-pt {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.my-pt .my-ic {
+  white-space: normal;
+}
+.my-pt h4 {
+  margin: 0;
+  font: 800 22px/1.05 var(--f-display);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+.my-x {
+  flex: none;
+  align-self: flex-start;
+  width: 36px;
+  height: 36px;
+  font: 400 24px/1 var(--f-body);
+  color: var(--ink-2);
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+  cursor: pointer;
+}
+.my-x:hover {
+  color: var(--ink);
+  border-color: var(--ink-2);
+}
+.my-panel .my-h3 span {
+  color: var(--ink-2);
+  margin-left: 4px;
+}
+.my-maps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 120px); /* a framed 112 px map */
+  gap: 12px 10px;
+}
+.my-maps a {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: inherit;
+  text-decoration: none;
+}
+.my-maps a:hover span {
+  text-decoration: underline;
+}
+.my-maps .mf,
+.my-maps .map-art {
+  max-width: 100%;
+}
+.my-tgrid {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
+  gap: 4px;
+}
+.my-tgrid li {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  padding: 6px 2px;
+  background: var(--s2);
+  border-radius: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.my-tgrid b {
+  font-size: 13px;
+}
+.my-tgrid span {
+  color: var(--ink-2);
+  font-size: 11px;
+}
+.my-tgrid li.no {
+  background: none;
+  outline: 1px dashed var(--rule);
+  outline-offset: -1px;
+  opacity: 0.5;
 }
 .my-miss {
   background: var(--s1);
@@ -11459,18 +11581,13 @@ a.th-ic:focus-visible {
   font-variant-numeric: tabular-nums;
 }
 .my-instas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 8px;
   align-items: start;
-}
-.my-instas details {
-  background: var(--s1);
-  border: 1px solid var(--rule);
-  border-radius: var(--r);
-}
-.my-instas details > .my-tiers + .my-mh {
-  margin-top: 4px;
 }
 .my-in {
   flex: 1;
