@@ -66,7 +66,7 @@ export function homeExtraKeys(get: Get, p: HomePicks): string[] {
   if (p.race) keys.push(raceMetaKey(p.race.id));
   if (p.racePrev) keys.push(raceBoardKey(p.racePrev.id));
   const ct = p.ctPrev ?? p.ct;
-  if (ct) keys.push(ctKey(ct.id, "teams"));
+  if (ct) keys.push(ctKey(ct.id, "teams"), ctKey(ct.id, "map"));
   const leader = ctLeader(get, ct);
   if (leader) keys.push(guildKey(idFromUrl(leader.profile)));
   if (p.ody) keys.push(odyMapsKey(p.ody.id, "easy"));

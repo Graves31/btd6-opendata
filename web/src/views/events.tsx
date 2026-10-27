@@ -12,6 +12,7 @@ import type {
   ChallengeDocument,
   CT,
   CTTeamEntry,
+  CTTile,
   NKEvent,
   Odyssey,
   OdysseyMetadata,
@@ -123,6 +124,8 @@ import {
   useTick,
   When,
 } from "../ui.tsx";
+import { TeamEmblem } from "./ctOverview.tsx";
+import { HexThumb } from "./ctMap.tsx";
 import { errorKind, NotFound } from "./errors.tsx";
 
 type AnyEvent = (Boss | Race | CT | Odyssey) & { archived?: boolean };
@@ -529,15 +532,17 @@ function RaceTile(props: { race: Race; prev?: Race }) {
 function CTTile(props: { ct: CT; prev?: CT }) {
   const c = props.ct;
   const leader = ctLeader(body, props.prev ?? c);
+  const tiles = body<{ tiles: CTTile[] }>(ctKey((props.prev ?? c).id, "map"))?.tiles ?? [];
+  const st = status(c.start, c.end).s;
   const leadLabel = props.prev
     ? "Previous CT winner"
-    : status(c.start, c.end).s === "ended"
+    : st === "ended"
       ? "Winning team"
       : "Leading team";
   return (
-    <A href={href.ct(c.id)} class="tile">
+    <A href={href.ct(c.id)} class={`tile tile-ct${st === "upcoming" ? " soon" : st === "ended" ? " ended" : ""}`}>
       <span class="tile-art">
-        <NoMapFrame size={120} />
+        {tiles.length > 0 ? <HexThumb tiles={tiles} size={120} /> : <NoMapFrame size={120} />}
       </span>
       <span class="tile-body">
         <span class="eyebrow ti">
@@ -551,9 +556,12 @@ function CTTile(props: { ct: CT; prev?: CT }) {
           <br />
           {leader ? (
             <>
-              {leadLabel}: <strong>{leader.displayName}</strong> ·{" "}
-              <span class="nowrap">{fmtInt(leader.score)} pts</span>
-              <br />
+              {leadLabel}:
+              <span class="tile-lead">
+                <TeamEmblem id={idFromUrl(leader.profile)} size={28} />
+                <strong>{leader.displayName}</strong> ·{" "}
+                <span class="nowrap">{fmtInt(leader.score)} pts</span>
+              </span>
             </>
           ) : ended(c) ? (
             <>

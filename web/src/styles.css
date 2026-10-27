@@ -1058,6 +1058,25 @@ button.fd-tile:hover {
 .tile-meta strong {
   color: var(--ink);
 }
+/* Contested Territory: the /ct "Now" card's warm gradient and accent edge. */
+.tile-ct {
+  background: linear-gradient(90deg, rgb(var(--tint) / 0.18), rgb(var(--tint) / 0) 60%), var(--s1);
+  border-left: 5px solid var(--live-fill);
+}
+/* The left edge follows the event's status, like the /ct cards */
+.tile-ct.soon {
+  border-left-color: var(--soon-fill);
+}
+.tile-ct.ended {
+  border-left-color: var(--ended-fill);
+}
+.tile-lead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 2px 0;
+}
 
 /* ─────────────────────────────── sections */
 
