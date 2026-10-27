@@ -38,9 +38,6 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
 - **History: race mode/difficulty after Dec 2025**: the 2026 races came from the community list (`EVENT_LIST_BASE`
   env, never named in the repo), which has no mode/difficulty; rerun both history scripts once bloonswiki has 2026 pages.
 
-- **IndexNow pings for new events never reach Bing** (2026-10-21). Every Worker ping to api.indexnow.org got 429 and
-  was given up after 5 tries (`notifications` rows `index-*`), while the same ping from home got 200. First check
-  the rows after the next new event; if still 429, ping `https://www.bing.com/indexnow` instead (notify.ts).
 - **Drop the old workers.dev host from /stats** (after 2026-11-07, when its 30 days have rolled off; `STATS_HOSTS`
   in src/worker/stats.ts).
 

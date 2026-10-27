@@ -41,7 +41,7 @@ type Deliver = (deps: Deps, payload: NewEventPayload) => Promise<SendResult>;
 function indexNowDeliver(key: string): Deliver {
   return async (deps, p) => {
     try {
-      const res = await deps.fetch("https://api.indexnow.org/indexnow", {
+      const res = await deps.fetch("https://www.bing.com/indexnow", {
         method: "POST",
         headers: { "content-type": "application/json; charset=utf-8" },
         body: JSON.stringify({
