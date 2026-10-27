@@ -60,13 +60,23 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
   const mk = heroKnowledge(mine?.save, new URLSearchParams(location.search).has("mk"), p.r);
   const r = { ...p.r, ...mk };
   const go = (o: Partial<HeroXpRoute>) => navigate(href.heroXp({ ...r, ...o }), { replace: true, keepScroll: true });
-  /** A setup change; the timeline goes back to the plan's own placement round. */
-  const set = (o: Partial<HeroXpRoute>) => go({ at: undefined, ...o });
+  const placed = r.mode === "placed";
+  /** A setup change; in goal mode the timeline goes back to the plan's own placement round. */
+  const set = (o: Partial<HeroXpRoute>) => go(placed ? o : { at: undefined, ...o });
 
-  const base: Omit<XpInput, "hero" | "place"> = { map: r.map as MapDiff, edu: r.edu, taught: r.taught, mts: r.mts, empowered: r.emp, boost: r.boost, energizer: r.en, heroes: r.n };
+  const base: Omit<XpInput, "hero" | "place"> = {
+    map: r.map as MapDiff,
+    edu: r.edu,
+    taught: r.taught,
+    mts: r.mts,
+    empowered: r.emp,
+    boost: r.boost,
+    energizer: r.en,
+    heroes: r.n,
+  };
   const input: XpInput = { ...base, hero: r.hero, place: r.first };
   const pl = useMemo(() => plan(input, r.level, r.round, r.first), [r.hero, r.level, r.round, r.map, r.edu, r.taught, r.mts, r.emp, r.boost, r.en, r.n, r.first]);
-  const place = Math.max(r.first, Math.min(MAX_ROUND, r.at ?? pl.latest ?? r.first));
+  const place = placed ? Math.min(MAX_ROUND, r.at ?? r.first) : Math.max(r.first, Math.min(MAX_ROUND, r.at ?? pl.latest ?? r.first));
   const tl = timeline({ ...input, place }, MAX_ROUND);
   const hero = artName("hero", r.hero);
   const lvAt = (pw: number) => pl.window.find((w) => w.place === pw)?.at;
@@ -85,11 +95,7 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
   return (
     <div class="pg bk hx">
       <ToolBack />
-      <ToolHero
-        art={<img src={heroArt} width={96} height={96} alt="" />}
-        title="Hero XP planner"
-        sub="When to place a hero so it reaches a level by a round, such as a boss tier."
-      >
+      <ToolHero art={<img src={heroArt} width={96} height={96} alt="" />} title="Hero XP planner" sub="When to place a hero so it reaches a level by a round, such as a boss tier.">
         {[
           { art: mkEducation, alt: "Monkey Education" },
           { art: mkTaught, alt: "Self Taught Heroes" },
@@ -122,31 +128,41 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
             </div>
           </section>
 
-          <section class="pg-panel" aria-labelledby="hx-goal">
-            <div class="pg-ph">
-              <h2 class="eyebrow" id="hx-goal">
+          <section class="pg-panel" aria-label={placed ? "Placement" : "Goal"}>
+            <div class="bk-seg hx-mode" role="group" aria-label="Mode">
+              <button type="button" class="bk-chip" aria-pressed={!placed} onClick={() => go({ mode: "goal", at: undefined })}>
                 Goal
-              </h2>
-              <span class="pg-hint">Game v{GAME_VERSION}</span>
+              </button>
+              <button type="button" class="bk-chip" aria-pressed={placed} onClick={() => go({ mode: "placed", at: place })}>
+                Placed on round
+              </button>
             </div>
-            <div class="bk-row2">
-              <div>
-                <span class="bk-lab">Level</span>
-                <Num value={r.level} label="Target level" min={2} max={MAX_LEVEL} set={(n) => set({ level: n })} />
+            {placed ? (
+              <div class="bk-field">
+                <span class="bk-lab">Placed on round</span>
+                <Num value={place} label="Placement round" min={1} max={MAX_ROUND} set={(n) => go({ at: n })} />
               </div>
-              <div>
-                <span class="bk-lab">at the start of round</span>
-                <Num value={r.round} label="Target round" min={1} max={MAX_ROUND} set={(n) => set({ round: n })} />
-              </div>
-            </div>
-            <div class="bk-seg hx-tiers" role="group" aria-label="Boss tier">
-              {TIERS.map((t, i) => (
-                <button key={t} type="button" class="bk-chip" aria-pressed={r.round === t} onClick={() => set({ round: t })}>
-                  T{i + 1} · {t}
-                </button>
-              ))}
-            </div>
-            <p class="pg-hint bk-gap">Boss tiers: tier 1 on round 40, then every 20 rounds to tier 5 on round 120.</p>
+            ) : (
+              <>
+                <div class="bk-row2">
+                  <div>
+                    <span class="bk-lab">Level</span>
+                    <Num value={r.level} label="Target level" min={2} max={MAX_LEVEL} set={(n) => set({ level: n })} />
+                  </div>
+                  <div>
+                    <span class="bk-lab">at the start of round</span>
+                    <Num value={r.round} label="Target round" min={1} max={MAX_ROUND} set={(n) => set({ round: n })} />
+                  </div>
+                </div>
+                <div class="bk-seg hx-tiers" role="group" aria-label="Boss tier">
+                  {TIERS.map((t, i) => (
+                    <button key={t} type="button" class="bk-chip" aria-pressed={r.round === t} title={`Boss tier ${i + 1}`} onClick={() => set({ round: t })}>
+                      T{i + 1} · {t}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
 
             <div class="bk-field">
               <span class="bk-lab">Map difficulty</span>
@@ -173,7 +189,6 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
                   </option>
                 ))}
               </select>
-              <p class="pg-hint bk-gap">XP per round is ×{XP.map[r.map]} on this difficulty.</p>
             </div>
 
             <div class="bk-field">
@@ -184,46 +199,42 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
                 <Check on={r.mts} set={(v) => set({ mts: v })} art={mkTogether} name="Monkeys Together Strong" sub={`+${pct(XP.mk.monkeysTogetherStrong)} XP per hero placed`} />
                 <Check on={r.emp} set={(v) => set({ emp: v })} art={mkEmpowered} name="Empowered Heroes" sub={`placed at level ${1 + XP.mk.empoweredHeroesLevels}`} />
               </div>
-              <p class="pg-hint bk-gap">Off in CHIMPS and events that disable Monkey Knowledge.</p>
               {mine && (
                 <p class="pg-hint bk-gap">
-                  From your save (unless the link sets it): <A href="/me">My stats</A>
+                  From your save: <A href="/me">My stats</A>
                 </p>
               )}
             </div>
 
-            <div class="bk-field">
-              <span class="bk-lab" id="hx-en">
-                Energizer from round
-              </span>
+            <details class="bk-more hx-more" open={r.en > 0 || r.n > 1 || (!placed && r.first > 1) || r.boost > 0 || undefined}>
+              <summary>Energizer, co-op, event start, Hero Boost</summary>
+              <span class="bk-lab">Energizer from round</span>
               <div class="hx-en">
                 <img src={energizerArt} width={32} height={32} alt="" decoding="async" />
                 <Num value={r.en} label="Energizer from round" min={0} max={MAX_ROUND} set={(n) => set({ en: n })} />
-                <span class="pg-hint">0 = no Energizer</span>
+                <span class="pg-hint">0 = none</span>
               </div>
-            </div>
 
-            <div class="bk-row2">
-              <div>
-                <span class="bk-lab">Heroes on the map</span>
-                <div class="bk-seg" role="group" aria-label="Heroes on the map">
-                  {[1, 2, 3, 4].map((n) => (
-                    <button key={n} type="button" class="bk-chip" aria-pressed={r.n === n} onClick={() => set({ n })}>
-                      {n}
-                    </button>
-                  ))}
+              <div class="bk-row2 bk-gap">
+                <div>
+                  <span class="bk-lab">Heroes on the map</span>
+                  <div class="bk-seg" role="group" aria-label="Heroes on the map">
+                    {[1, 2, 3, 4].map((n) => (
+                      <button key={n} type="button" class="bk-chip" aria-pressed={r.n === n} onClick={() => set({ n })}>
+                        {n}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+                {!placed && (
+                  <div>
+                    <span class="bk-lab">Event starts on round</span>
+                    <Num value={r.first} label="First placement round" min={1} max={MAX_ROUND} set={(n) => set({ first: n })} />
+                  </div>
+                )}
               </div>
-              <div>
-                <span class="bk-lab">First round you can place</span>
-                <Num value={r.first} label="First placement round" min={1} max={MAX_ROUND} set={(n) => set({ first: n })} />
-              </div>
-            </div>
-            <p class="pg-hint bk-gap">Events can start later than round 1: enter the event's start round.</p>
 
-            <details class="bk-more hx-more" open={r.boost > 0 || undefined}>
-              <summary>More</summary>
-              <span class="bk-lab">Hero Boost (Contested Territory relic)</span>
+              <span class="bk-lab bk-gap">Hero Boost (Contested Territory relic)</span>
               <div class="bk-seg" role="group" aria-label="Hero Boost">
                 {[0, 1, 2].map((n) => (
                   <button key={n} type="button" class="bk-chip" aria-pressed={r.boost === n} onClick={() => set({ boost: n as 0 | 1 | 2 })}>
@@ -232,86 +243,85 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
                   </button>
                 ))}
               </div>
-              <p class="pg-hint bk-gap">The relic only exists in Contested Territory: each one gives +{pct(XP.heroBoost)} hero XP.</p>
             </details>
           </section>
         </div>
 
         <div class="bk-col">
-          <section class="pg-panel bk-hot" aria-labelledby="hx-ans">
-            <div class="pg-ph">
+          {!placed && (
+            <section class="pg-panel bk-hot" aria-labelledby="hx-ans">
               <h2 class="eyebrow" id="hx-ans">
                 Answer
               </h2>
-              <span class="pg-hint">
-                Level {r.level} · round {r.round}
-              </span>
-            </div>
-            {pl.latest !== undefined ? (
-              <div class="bk-ans">
-                <div class="bk-big">
-                  <span class="k">Place on round</span>
-                  <span class="v">{pl.latest}</span>
+              {pl.latest !== undefined ? (
+                <div class="bk-ans">
+                  <div class="bk-big">
+                    <span class="k">Place on round</span>
+                    <span class="v">{pl.latest}</span>
+                  </div>
+                  <div class="bk-ans-t">
+                    <p>
+                      Place <strong>{hero}</strong> on round <strong>{pl.latest}</strong>
+                      {from !== undefined && from < pl.latest && (
+                        <>
+                          {" "}
+                          (or earlier: rounds{" "}
+                          <strong>
+                            {from}–{pl.latest}
+                          </strong>{" "}
+                          all land on round {landing})
+                        </>
+                      )}{" "}
+                      and reach <strong>level {r.level}</strong> at the start of round <strong>{landing}</strong>.
+                    </p>
+                    {pl.buy && (
+                      <p>
+                        Or place on round <strong>{pl.buy.place}</strong> and buy the rest for <strong>{money(pl.buy.cash)}</strong>.
+                      </p>
+                    )}
+                  </div>
                 </div>
+              ) : (
                 <div class="bk-ans-t">
-                  <p>
-                    Place <strong>{hero}</strong> on round <strong>{pl.latest}</strong>
-                    {from !== undefined && from < pl.latest && (
-                      <>
-                        {" "}
-                        (or earlier: rounds <strong>{from}–{pl.latest}</strong> all land on round {landing})
-                      </>
-                    )}{" "}
-                    and reach <strong>level {r.level}</strong> at the start of round <strong>{landing}</strong>.
+                  <p class="bk-loss">
+                    {hero} can't reach level {r.level} by round {r.round} when placed from round {r.first}.
                   </p>
                   {pl.buy && (
                     <p>
-                      Or place on round <strong>{pl.buy.place}</strong> and buy the rest for <strong>{money(pl.buy.cash)}</strong>.
+                      Placed on round <strong>{pl.buy.place}</strong>, buying the rest at the start of round {r.round} costs <strong>{money(pl.buy.cash)}</strong>.
                     </p>
                   )}
                 </div>
-              </div>
-            ) : (
-              <div class="bk-ans-t">
-                <p class="bk-loss">
-                  {hero} can't reach level {r.level} by round {r.round} when placed from round {r.first}.
-                </p>
-                {pl.buy && (
-                  <p>
-                    Placed on round <strong>{pl.buy.place}</strong>, buying the rest at the start of round {r.round} costs <strong>{money(pl.buy.cash)}</strong>.
-                  </p>
-                )}
-              </div>
-            )}
-            <table class="hx-win">
-              <caption class="bk-lab">Placement round to first round at level {r.level}</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Place on round</th>
-                  <th scope="col">Level {r.level} from round</th>
-                  <th scope="col">Target {r.round}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pl.window.map((w) => {
-                  const d = w.at === undefined ? undefined : w.at - r.round;
-                  return (
-                    <tr key={w.place} class={`hx-r${d === 0 ? " hit" : ""}${w.place === place ? " sel" : ""}`}>
-                      <td>
-                        <button type="button" class="hx-pl" aria-pressed={w.place === place} onClick={() => go({ at: w.place })}>
-                          {w.place}
-                        </button>
-                      </td>
-                      <td>{w.at ?? "not reached"}</td>
-                      <td class={d !== undefined && d > 0 ? "hx-late" : undefined}>
-                        {d === undefined ? "too late" : d === 0 ? "on target" : d < 0 ? `${-d} early` : `${d} late`}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </section>
+              )}
+              <table class="hx-win">
+                <thead>
+                  <tr>
+                    <th scope="col">Place on round</th>
+                    <th scope="col">Level {r.level} from round</th>
+                    <th scope="col">Target {r.round}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pl.window.map((w) => {
+                    const d = w.at === undefined ? undefined : w.at - r.round;
+                    return (
+                      <tr key={w.place} class={`hx-r${d === 0 ? " hit" : ""}${w.place === place ? " sel" : ""}`}>
+                        <td>
+                          <button type="button" class="hx-pl" aria-pressed={w.place === place} onClick={() => go({ at: w.place })}>
+                            {w.place}
+                          </button>
+                        </td>
+                        <td>{w.at ?? "not reached"}</td>
+                        <td class={d !== undefined && d > 0 ? "hx-late" : undefined}>
+                          {d === undefined ? "too late" : d === 0 ? "on target" : d < 0 ? `${-d} early` : `${d} late`}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </section>
+          )}
 
           <section class="pg-panel" aria-labelledby="hx-tl">
             <div class="pg-ph">
@@ -326,7 +336,11 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
               {Array.from({ length: MAX_LEVEL }, (_, i) => i + 1).map((l) => {
                 const at = tl.levels[l];
                 return (
-                  <li key={l} class={`hx-lv${l === r.level ? " goal" : ""}${at !== undefined && at <= r.round ? " ok" : ""}`} aria-current={l === r.level ? "true" : undefined}>
+                  <li
+                    key={l}
+                    class={`hx-lv${!placed && l === r.level ? " goal" : ""}${at !== undefined && (placed || at <= r.round) ? " ok" : ""}`}
+                    aria-current={!placed && l === r.level ? "true" : undefined}
+                  >
                     <b class="hx-n">{l}</b>
                     <span class="hx-at">{at === undefined ? "not reached" : l === 1 || at === place ? `round ${at} (placed)` : `round ${at}`}</span>
                     <span class="hx-xp">{l === 1 ? "" : `${HEROES[r.hero].xp[l - 2].toLocaleString("en-US")} XP`}</span>
@@ -337,31 +351,31 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
             </ol>
           </section>
 
-          <section class="pg-panel" aria-labelledby="hx-cmp">
-            <div class="pg-ph">
-              <h2 class="eyebrow" id="hx-cmp">
-                Every hero
-              </h2>
-              <span class="pg-hint">
-                Level {r.level} by round {r.round}: latest placement
-              </span>
-            </div>
-            <div class="hx-cmp">
-              {compare.map((c) => (
-                <button key={c.h} type="button" class="hx-c" aria-pressed={c.h === r.hero} onClick={() => set({ hero: c.h })}>
-                  <Spr family="hero" k={c.h} size={40} label />
-                  <span class="n">{artName("hero", c.h)}</span>
-                  <span class="v">{c.latest !== undefined ? `round ${c.latest}` : c.buy ? `buy ${money(c.buy.cash)}` : "–"}</span>
-                </button>
-              ))}
-            </div>
-            <p class="pg-hint bk-gap">"Buy" = the hero can't make it on XP alone from round {r.first}; the cash buys the missing XP.</p>
-          </section>
+          {!placed && (
+            <section class="pg-panel" aria-labelledby="hx-cmp">
+              <div class="pg-ph">
+                <h2 class="eyebrow" id="hx-cmp">
+                  Every hero
+                </h2>
+                <span class="pg-hint">
+                  Level {r.level} by round {r.round}: latest placement
+                </span>
+              </div>
+              <div class="hx-cmp">
+                {compare.map((c) => (
+                  <button key={c.h} type="button" class="hx-c" aria-pressed={c.h === r.hero} onClick={() => set({ hero: c.h })}>
+                    <Spr family="hero" k={c.h} size={40} label />
+                    <span class="n">{artName("hero", c.h)}</span>
+                    <span class="v">{c.latest !== undefined ? `round ${c.latest}` : c.buy ? `buy ${money(c.buy.cash)}` : "–"}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
 
           <p class="pg-hint hx-note">
-            Game v{GAME_VERSION}. XP per round, the map scale, hero level costs and Monkey Knowledge come from the game's code and data; Energizer (+{pct(XP.energizer)}) and Hero Boost
-            (+{pct(XP.heroBoost)}) are from bloonswiki. XP is earned at the end of each round, including the round the hero is placed in. Energizer counts when the hero is in range at
-            the end of the round. With several heroes on the map the round's XP is split between them. Buying a level costs $1 per missing XP.
+            Game v{GAME_VERSION} code and data; Energizer (+{pct(XP.energizer)}) and Hero Boost (+{pct(XP.heroBoost)}) from bloonswiki. XP comes at the end of each round (the
+            placement round too), split between heroes on the map. A level costs $1 per missing XP.
           </p>
         </div>
       </div>

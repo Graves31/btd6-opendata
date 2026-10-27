@@ -12582,7 +12582,7 @@ button.my-miss:hover {
 }
 .hx-pick {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
   gap: 6px;
 }
 .hx-h {
@@ -12597,14 +12597,13 @@ button.my-miss:hover {
   border-radius: var(--r);
   cursor: pointer;
 }
+/* Portraits only; the picked hero's name is in the panel header, names stay for screen readers and the title. */
 .hx-hn {
-  max-width: 100%;
-  overflow: hidden;
-  font: 700 11px/1.1 var(--f-body);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
 }
-/* Phones: a compact 6-wide portrait grid so the answer is closer; names stay for screen readers and the title. */
 @media (max-width: 600px) {
   .hx-pick {
     grid-template-columns: repeat(6, 1fr);
@@ -12613,12 +12612,13 @@ button.my-miss:hover {
   .hx-h {
     padding: 3px 0;
   }
-  .hx-hn {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    clip-path: inset(50%);
-  }
+}
+.hx-mode {
+  margin-bottom: 14px;
+}
+.hx-mode .bk-chip {
+  flex: 1;
+  justify-content: center;
 }
 .hx-h[aria-pressed="true"],
 .hx-c[aria-pressed="true"] {
@@ -12627,7 +12627,7 @@ button.my-miss:hover {
   background: color-mix(in srgb, var(--accent) 12%, var(--sub));
 }
 .hx-tiers {
-  margin-top: 10px;
+  margin: 10px 0 16px;
 }
 .hx-sel {
   width: 100%;

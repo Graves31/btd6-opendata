@@ -101,6 +101,8 @@ function parseBank(q: URLSearchParams): BankRoute {
 /** Hero XP planner (/tools/hero-xp). Defaults (Geraldo, level 20 by round 100, Beginner, all four MK, no boost/Energizer, solo, from round 1) stay out of the URL. */
 export interface HeroXpRoute {
   name: "heroXp";
+  /** goal = when to place for a level by a round; placed = the timeline from round `at` */
+  mode: "goal" | "placed";
   hero: string;
   /** goal: this level at the start of round `round` */
   level: number;
@@ -118,10 +120,10 @@ export interface HeroXpRoute {
   n: number;
   /** first round the hero can be placed */
   first: number;
-  /** placement round the timeline shows (undefined = the plan's latest) */
+  /** placement round the timeline shows (undefined = the plan's latest, or `first` when placed) */
   at?: number;
 }
-export const HERO_XP_DEFAULT = { hero: "Geraldo", level: 20, round: 100, map: 0, edu: true, taught: true, mts: true, emp: true, boost: 0, en: 0, n: 1, first: 1 } as const;
+export const HERO_XP_DEFAULT = { mode: "goal", hero: "Geraldo", level: 20, round: 100, map: 0, edu: true, taught: true, mts: true, emp: true, boost: 0, en: 0, n: 1, first: 1 } as const;
 const HERO_MK = ["edu", "taught", "mts", "emp"] as const;
 
 function parseHeroXp(q: URLSearchParams): HeroXpRoute {
@@ -130,6 +132,7 @@ function parseHeroXp(q: URLSearchParams): HeroXpRoute {
   const hero = q.get("h") ?? "";
   return {
     name: "heroXp",
+    mode: q.get("mode") === "placed" ? "placed" : "goal",
     hero: hero in HEROES ? hero : HERO_XP_DEFAULT.hero,
     level: int(q.get("lv"), 20, 2, 20),
     round: int(q.get("r"), 100, 1, 200),
@@ -675,6 +678,7 @@ export const href = {
     const d = { ...HERO_XP_DEFAULT, ...p };
     const on = HERO_MK.filter((k) => d[k]);
     return `/tools/hero-xp${qs({
+      mode: d.mode !== "goal" ? d.mode : undefined,
       h: d.hero !== HERO_XP_DEFAULT.hero ? d.hero : undefined,
       lv: d.level !== 20 ? d.level : undefined,
       r: d.round !== 100 ? d.round : undefined,

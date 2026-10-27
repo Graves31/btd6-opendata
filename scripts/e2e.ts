@@ -429,7 +429,11 @@ async function main() {
     if (!/^\d+$/.test(await page.$eval(".bk-big .v", (el) => el.textContent ?? "").catch(() => ""))) problems.push("hero xp: default answer is not a placement round");
     if ((await page.$$(".hx-lv")).length !== 20 || !(await has(".hx-win tbody tr"))) problems.push("hero xp: timeline / window rows missing");
     await page.click(".hx-tiers .bk-chip");
-    await page.waitForFunction(() => location.search.includes("r=40"), { timeout: 3000 }).catch(() => problems.push(`hero xp: tier chip didn't update the URL (${location.search})`));
+    await page.waitForFunction(() => location.search.includes("r=40"), { timeout: 3000 }).catch(() => problems.push(`hero xp: tier chip didn't update the URL (${page.url()})`));
+    // "Placed on round" mode: only the timeline, from the round the goal mode was showing.
+    await page.click(".hx-mode .bk-chip:last-child");
+    await page.waitForFunction(() => location.search.includes("mode=placed") && !document.querySelector(".hx-win"), { timeout: 3000 }).catch(() => problems.push(`hero xp: placed mode didn't switch (${page.url()})`));
+    if ((await page.$$(".hx-lv")).length !== 20) problems.push("hero xp: placed mode has no timeline");
 
     // Tools → Paragon calculator: the URL is the state; changing an input rewrites it in place (no new history entry).
     await toolsMenu();
