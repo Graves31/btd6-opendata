@@ -12,11 +12,13 @@
 //  - NK: a key is re-requested once NK's own CDN copy has expired (max-age − Age), and no sooner than its
 //    class's floor (MIN_REFETCH_MS): rules, maps and challenge documents don't change during an event, so
 //    they're asked hourly (daily challenge: every 15 min, for its win rate) instead of every few minutes.
+//  - CT cut-offs (ct.ts): one extra NK page per run at most, ~20 D1 rows/day while a CT is live.
 //  - D1 (100k row writes/day): 1 index row per run that contacted NK + 1 row per changed body.
 //  - KV (1k writes/day): published at most every PUBLISH_MIN_INTERVAL_MS when something changed
 //    (≤ 720/day), plus a heartbeat every HEARTBEAT_MS so the proxy can tell the cron is alive.
 
 import { LEADERBOARD_FREEZE_GRACE_MS, matchRoute, ORIGIN_MAX_AGE_MS, type CacheClass, type EventKind } from "../nk/routes.ts";
+import { ctCutoffTick, resetCtState } from "./ct.ts";
 import type { Deps } from "./deps.ts";
 import { dropPulledStmt, eventKeys, LIST_PATH, upsertEventStmts, type ListItem } from "./events.ts";
 import { buildHotText, HOT_KEY, mem, setHotMemo, type HotMeta, type HotMetaEntry } from "./store.ts";
@@ -146,6 +148,7 @@ export function resetHotState(): void {
   unsavedBodies.clear();
   unsavedNotes.clear();
   resetNotifyState();
+  resetCtState();
 }
 
 /** null = state unknown (D1 unreadable and nothing in memory). */
@@ -268,6 +271,7 @@ export async function refreshHot(deps: Deps): Promise<HotResult> {
   // 2. Remember every event ever seen (NK drops old ones); pick the featured event per kind.
   const stmts = [];
   const hot: { key: string; floor: number }[] = [];
+  let liveCt: { id: string; live: boolean; end: number } | null = null;
   const watched = watchedKinds(deps);
   const fresh: Partial<Record<EventKind, ListItem[]>> = {};
   for (const kind of KINDS) {
@@ -287,6 +291,7 @@ export async function refreshHot(deps: Deps): Promise<HotResult> {
     const f = pickFeatured(t.map(([id, start, end]) => ({ id, start, end })), now);
     result.featured[kind] = f?.id ?? null;
     if (!f) continue;
+    if (kind === "ct") liveCt = f;
     // An ended event's boards are final once fetched after its end + NK's CDN period: hourly from then on.
     for (const key of featuredKeys(kind, f.id, f.live)) {
       const final = !f.live && (prev[key]?.f ?? 0) >= f.end + ORIGIN_MAX_AGE_MS;
@@ -310,6 +315,9 @@ export async function refreshHot(deps: Deps): Promise<HotResult> {
 
   // 4. Featured event data.
   await mapLimit(plan(hot), 6, pull);
+
+  // 4b. CT cut-off snapshot: at most one extra NK page per run (ct.ts).
+  if (liveCt) result.fetched += await ctCutoffTick(deps, liveCt, now);
 
   // 5. A few leaderboard profiles, so the most-viewed ones are cached before anyone asks (warm.ts). Once
   //    all are warm, nothing is due until the oldest goes stale: skip the D1 lookup until then. Only on

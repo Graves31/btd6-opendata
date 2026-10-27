@@ -7,6 +7,8 @@
 //   GET /api/now                       hot bundle: lists + featured events, one request for the home page
 //   GET /api/history/:kind[?before=ms&limit=n]  every race|boss|ct|odyssey ever seen, newest first
 //   GET /api/history/team/:guildId     a team's CT results (rank, score, group) from archived data only
+//   GET /api/ct/:id/cutoffs            CT cut-off scores per day (hot cron snapshots, D1 only)
+//   GET /api/ct/relics                 relic tiles of every archived CT (D1 only)
 //   GET /api/health                    cache status
 //   POST /api/suggest                  suggestions box: stored in D1 + posted to a private Discord channel (suggest.ts)
 //   GET /boss/:id, /player/:id, …      the SPA shell with link-preview tags (og.ts)
@@ -17,6 +19,7 @@
 import type { EventKind } from "../nk/routes.ts";
 import { NK_BASE, type D1Like, type Deps, type KVLike } from "./deps.ts";
 import { runArchive } from "./archive.ts";
+import { ctApi } from "./ct.ts";
 import { listHistoryJson } from "./events.ts";
 import { refreshHot } from "./hot.ts";
 import { clientBuckets, clientKey, isolateBucket, MAX_ORIGIN_PER_REQUEST, OriginGate, type RateLimiterLike } from "./limit.ts";
@@ -149,6 +152,12 @@ async function route(deps: Deps, request: Request): Promise<Response> {
     const cc = "public, max-age=60, stale-while-revalidate=86400";
     if (request.headers.get("If-None-Match") === etag) return new Response(null, { status: 304, headers: { ETag: etag, "Cache-Control": cc } });
     return jsonResponse(text, 200, cc, { ETag: etag });
+  }
+
+  const ct = await ctApi(deps, path);
+  if (ct) {
+    if (ct.status !== 200) return error(503, "unavailable", "no-store", { "Retry-After": "60" });
+    return jsonResponse(ct.body, 200, `public, max-age=${ct.maxAgeS}, stale-while-revalidate=86400`);
   }
 
   const team = /^\/api\/history\/team\/([^/]+)$/.exec(path);

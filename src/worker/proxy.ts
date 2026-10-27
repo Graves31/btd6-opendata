@@ -21,6 +21,7 @@ import {
 } from "../nk/routes.ts";
 import type { Deps } from "./deps.ts";
 import { errorBody } from "./errors.ts";
+import { CT_API, ctApi } from "./ct.ts";
 import { getTiming } from "./events.ts";
 import { OriginGate, originCooldownS, RateLimited } from "./limit.ts";
 import { d1FreezeStmt, d1Get, d1PutStmt, getHot, hotEntry, mem } from "./store.ts";
@@ -172,10 +173,17 @@ async function teamHistoryLine(deps: Deps, guildId: string): Promise<Resolved> {
   }
 }
 
+async function ctLine(deps: Deps, path: string): Promise<Resolved> {
+  const r = (await ctApi(deps, path))!;
+  if (r.status !== 200) return { ...plain(503, errorBody("unavailable"), 60, "ERROR"), cacheControl: "no-store" };
+  return { ...plain(200, r.body, r.maxAgeS, "D1"), entry: { fetchedAt: deps.now() } as Entry };
+}
+
 export async function handleBatch(deps: Deps, gate: OriginGate, keys: string[]): Promise<Response> {
   const items = keys.map((k) => {
     const team = TEAM_HISTORY.exec(k);
     if (team) return { k, bad: false as const, team: team[1], path: k, search: "", image: false, key: null };
+    if (CT_API.test(k)) return { k, bad: false as const, ct: true, path: k, search: "", image: false, key: null };
     if (k.length > MAX_KEY_LENGTH || !k.startsWith("/btd6/")) return { k, bad: true as const };
     const q = k.indexOf("?");
     const path = q < 0 ? k : k.slice(0, q);
@@ -195,7 +203,9 @@ export async function handleBatch(deps: Deps, gate: OriginGate, keys: string[]):
     try {
       r = it.bad
         ? plain(400, errorBody("bad_request"), 3600, "REJECTED") // not a /btd6/ path of ≤ MAX_KEY_LENGTH chars
-        : "team" in it && it.team
+        : "ct" in it && it.ct
+          ? await ctLine(deps, it.path)
+          : "team" in it && it.team
           ? await teamHistoryLine(deps, it.team)
           : it.image
           ? plain(400, errorBody("bad_request"), 3600, "REJECTED") // images aren't batchable
