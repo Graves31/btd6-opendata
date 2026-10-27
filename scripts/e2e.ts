@@ -540,7 +540,7 @@ async function main() {
 
     // A CT group NK no longer publishes (placeholder id): a designed "not available" page, not an empty board.
     if (!REMOTE) {
-      await page.goto(`${BASE}/ct/mtv62zza/group/c7fa4bd7`, { waitUntil: "networkidle0" });
+      await page.goto(`${BASE}/ct/mtv62zza/group/c7fa4bd7`, { waitUntil: "load" });
       await page.waitForSelector("main > *");
       await api.quiet();
       const txt = await page.evaluate(() => document.querySelector("main")?.textContent ?? "");
