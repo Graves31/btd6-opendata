@@ -103,7 +103,16 @@ function trackApi(page: Page) {
           })),
         "prefetch to settle",
         30_000,
-      ),
+      ).catch(async (e) => {
+        // Say what never settled: open /api requests and the store's queued / in-flight keys.
+        const st = await page
+          .evaluate(() => {
+            const s = (window as any).__debug?.store() as any;
+            return s ? { pending: [...s.pending.keys()], inflight: [...s.inflight.keys()] } : undefined;
+          })
+          .catch(() => undefined);
+        throw new Error(`${e.message} on ${page.url()}: open ${JSON.stringify([...open.values()])}, store ${JSON.stringify(st)}`);
+      }),
   };
 }
 
