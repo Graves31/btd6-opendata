@@ -190,7 +190,7 @@ function Summary(p: { s: UserSave }) {
       <ul>
         {rings.map((r) => (
           <li key={r.id}>
-            <a href={`#my-${r.id}`} onClick={go(r.id)} style={{ "--p": pct(r.owned, r.total) }}>
+            <a href={`#my-${r.id}`} onClick={go(r.id)} class={pct(r.owned, r.total) === 100 ? "done" : undefined} style={{ "--p": pct(r.owned, r.total) }}>
               <span class="my-ring">
                 <b>{pct(r.owned, r.total)}%</b>
               </span>
@@ -206,23 +206,36 @@ function Summary(p: { s: UserSave }) {
   );
 }
 
+/** Overview tile: label on top, the game icon in front of the number. */
+const Tile = (p: { k: string; ico: string; v: number | undefined; note?: string }) => (
+  <Stat
+    k={p.k}
+    v={
+      <>
+        <Ico k={p.ico} size={32} />
+        {fmtInt(p.v)}
+      </>
+    }
+    note={p.note}
+  />
+);
+
 function Overview(p: { s: UserSave }) {
   const s = p.s;
   return (
     <dl class="stats grid my-tiles">
-      <Stat k={<Lbl k="GamesPlayed">Games played</Lbl>} v={fmtInt(s.gamesPlayed)} />
-      <Stat k="Highest round seen" v={fmtInt(s.highestSeenRound)} />
-      <Stat k={<Lbl k="MonkeyMoney">Monkey money</Lbl>} v={fmtInt(s.monkeyMoney)} />
-      <Stat k={<Lbl k="Trophy">Trophies</Lbl>} v={fmtInt(s.trophies)} note={`${fmtInt(s.lifetimeTrophies)} lifetime`} />
-      <Stat k={<Lbl k="KnowledgePoints">Knowledge points</Lbl>} v={fmtInt(s.knowledgePoints)} />
-      <Stat k={<Lbl k="Race">Races entered</Lbl>} v={fmtInt(s.totalRacesEntered)} />
-      <Stat k="Continues used" v={fmtInt(s.continuesUsed)} />
-      <Stat k="Challenges played" v={fmtInt(s.challengesPlayed)} note={`${fmtInt(s.challengesShared)} shared`} />
-      <Stat k={<Lbl k="DailyChallenge">Dailies completed</Lbl>} v={fmtInt(s.totalDailyChallengesCompleted)} note={`streak ${fmtInt(s.consecutiveDailyChallengesCompleted)}`} />
-      <Stat k={<Lbl k="Odyssey">Odysseys completed</Lbl>} v={fmtInt(s.totalCompletedOdysseys)} />
-      <Stat k={<Lbl k="Crate">Crates opened</Lbl>} v={fmtInt(s.collectionEventCratesOpened)} />
-      <Stat k="Daily rewards" v={fmtInt(s.dailyRewardCount)} />
-      <Stat k="Game version" v={s.latestGameVersion} />
+      <Tile k="Games played" ico="GamesPlayed" v={s.gamesPlayed} />
+      <Tile k="Highest round seen" ico="HighestRound" v={s.highestSeenRound} />
+      <Tile k="Monkey money" ico="MonkeyMoney" v={s.monkeyMoney} />
+      <Tile k="Trophies" ico="Trophy" v={s.trophies} note={`${fmtInt(s.lifetimeTrophies)} lifetime`} />
+      <Tile k="Knowledge points" ico="KnowledgePoints" v={s.knowledgePoints} />
+      <Tile k="Races entered" ico="Race" v={s.totalRacesEntered} />
+      <Tile k="Continues used" ico="Continue" v={s.continuesUsed} />
+      <Tile k="Challenges played" ico="ChallengesPlayed" v={s.challengesPlayed} note={`${fmtInt(s.challengesShared)} shared`} />
+      <Tile k="Dailies completed" ico="DailyChallenge" v={s.totalDailyChallengesCompleted} note={`streak ${fmtInt(s.consecutiveDailyChallengesCompleted)}`} />
+      <Tile k="Odysseys completed" ico="Odyssey" v={s.totalCompletedOdysseys} />
+      <Tile k="Crates opened" ico="Crate" v={s.collectionEventCratesOpened} />
+      <Tile k="Daily rewards" ico="DailyReward" v={s.dailyRewardCount} />
     </dl>
   );
 }
@@ -454,6 +467,34 @@ function Units(p: { family: "tower" | "hero"; all: string[]; missing: string[] }
   );
 }
 
+/** Every skin under its hero, with its portrait; the ones not owned greyed out. */
+function Skins(p: { missing: string[] }) {
+  const lock = new Set(p.missing);
+  const skins = Object.entries(PROGRESS.skins ?? {});
+  return (
+    <div class="my-skins">
+      {PROGRESS.heroes.map((h) => {
+        const mine = skins.filter(([, v]) => v.hero === h);
+        return (
+          mine.length > 0 && (
+            <div key={h} class="my-skg">
+              <Spr family="hero" k={h} size={48} />
+              <ul class="my-heroes">
+                {mine.map(([k, v]) => (
+                  <li key={k} class={lock.has(k) ? "locked" : undefined}>
+                    <Spr family="skin" k={k} size={48} name={v.name} label />
+                    <span>{v.name}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        );
+      })}
+    </div>
+  );
+}
+
 function Heroes(p: { s: UserSave }) {
   const h = heroParts(p.s, PROGRESS);
   return (
@@ -466,7 +507,7 @@ function Heroes(p: { s: UserSave }) {
 function Towers(p: { s: UserSave }) {
   const t = towerParts(p.s, PROGRESS);
   return (
-    <Section title="Towers" aside={`${t.owned} / ${t.total} unlocked`}>
+    <Section title={<Lbl k="Towers">Towers</Lbl>} aside={`${t.owned} / ${t.total} unlocked`}>
       {t.missing.length ? <Units family="tower" all={t.missing} missing={t.missing} /> : <p class="my-note">Every tower is unlocked.</p>}
     </Section>
   );
@@ -538,7 +579,7 @@ function Collection(p: { s: UserSave }) {
       )}
       <Anchor id="skins">
         <Section title={<Lbl k="Skin">Skins</Lbl>} aside={sk ? `${sk.owned} / ${sk.total} owned` : `${owned(p.s.unlockedSkins)} owned`}>
-          {sk ? <Miss name={<span class="my-in">Not owned yet</span>} part={sk} label={human} /> : <p class="my-note">{owned(p.s.unlockedSkins)} skins owned.</p>}
+          {sk ? <Skins missing={sk.missing} /> : <p class="my-note">{owned(p.s.unlockedSkins)} skins owned.</p>}
         </Section>
       </Anchor>
     </>

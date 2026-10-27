@@ -161,7 +161,7 @@ const PAGE_FAMILIES: Record<string, AnyFamily[]> = {
   paragon: ["paragon", "tower", "ui"],
 };
 /** Sheets only their own pages load (never warmed on idle elsewhere). */
-const PAGE_ONLY = new Set<AnyFamily>(["bloonVariant"]);
+const PAGE_ONLY = new Set<AnyFamily>(["bloonVariant", "skin"]);
 
 /** Start decoding the sheets a page will use. Fire and forget. */
 export function warmFor(page: string): void {

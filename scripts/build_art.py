@@ -254,7 +254,15 @@ UI = {
     # "Bloonjamins". (MonkeyKnowledgeUi/MoMonkeyMoneyIcon is the purple "More Monkey Money" MK perk, not this.)
     "MonkeyMoney": "Ui/BloonjaminsIcon",
     "Trophy": "Ui/TrophyIcon",
-    # /me completion page (no sprite for Quest, GamesPlayed, Skin: only blank panels / per-hero portraits)
+    # /me completion page
+    "Quest": "ref/QuestIcon",
+    "Skin": "ref/HeroSkinIcon",
+    "Continue": "IngameUi/ContinueIcon",
+    "DailyReward": "ref/DailyChestIcon",
+    "GamesPlayed": "MainMenuUiAtlas/HomePlayBtn",
+    "HighestRound": "ChallengeRulesIcons/EndRoundIcon",
+    "ChallengesPlayed": "ref/GoalIconChallenges",
+    "Towers": "MainMenuUiAtlas/HomeMonkeysBtn",
     "KnowledgePoints": "Ui/KnowledgeIcon",
     "Achievement": "ref/AchievementsIcon",
     "DailyChallenge": "MainMenuUiAtlas/DailyChallengeBtn",
@@ -462,6 +470,24 @@ def paragon_icons() -> dict:
     return table
 
 
+def skin_icons() -> dict:
+    """Hero skin portraits keyed by the save's skin name ("skin" family): each skin asset's icon guid -> catalog file
+    name (HeroIcon<...>.png) -> that sprite in asset_references. Molten Obyn's file is HeroIconMountainObyn."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import build_progress
+    import build_rounds
+
+    skins, _ = build_progress.skins_achievements(build_rounds)
+    names = catalog_file_names([v["icon"] for v in skins.values()])
+    table = {}
+    for k, v in sorted(skins.items()):
+        file = names[v["icon"]]
+        if not file.endswith(".png"):
+            sys.exit(f"skin icon of {k!r} is not a .png: {file!r}")
+        table[k] = "ref/" + file[: -len(".png")]
+    return table
+
+
 BLOONS = {  # canonical bloon keys -> plain base sprites (no damage states, no event skins)
     "red": "Bloons/Red",
     "blue": "Bloons/Blue",
@@ -621,6 +647,7 @@ FAMILIES = {  # family -> (table, cell px, aliases)
     "container": (CONTAINERS, 112, {}),
     "relic": (RELICS, 64, {}),
     "paragon": ({}, 96, {}),  # filled by main() from paragon_icons()
+    "skin": ({}, 96, {}),  # filled by main() from skin_icons()
     "season": (SEASON_BADGES, 96, {}),
     "eventIcon": (EVENT_ICONS, 96, {}),
 }
@@ -1317,6 +1344,9 @@ export type Family =
   /** Paragon upgrade icons keyed by TowerId (the keys of src/data/paragons.json: DartMonkey, BoomerangMonkey, …
    *  EngineerMonkey), plus ParagonPowerTotem (the Paragon Power Totem tower's portrait). */
   | "paragon"
+  /** Hero skin portraits keyed by the save's skin name (the keys of progress.json "skins": "Cyber Quincy",
+   *  KaijuPat, MoltenObyn, …). */
+  | "skin"
   /** Social Season badges keyed by UserProfile.seasonBadges ids: SeasonTier1–4, SeasonUltimate1–3 (one per
    *  season: 1 Dr. Monkey, 2 Striker's Vacation, 3 Quincy's Roadtrip), SeasonChampion. */
   | "season";
@@ -1526,6 +1556,7 @@ def main() -> None:
            "hud": build_boss_hud(src, ui)}
     FAMILIES["bloonVariant"] = (bloon_variants(), 64, {})
     FAMILIES["paragon"] = (paragon_icons(), 96, {})
+    FAMILIES["skin"] = (skin_icons(), 96, {})
     fams = {f: build_family(src, f, t, c, a) for f, (t, c, a) in FAMILIES.items()}
     print(f"  sheets total {sum(i['bytes'] for i in fams.values()) / 1024:.1f} KB")
     for key, spec in TOOL_ICONS.items():

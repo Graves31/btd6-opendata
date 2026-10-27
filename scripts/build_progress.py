@@ -15,8 +15,9 @@ Sources (all read-only), all in the binary GameModel TextAsset "sim_model" (see 
   HeroDetailsModel_<Id>  one per selectable hero.
 Skins and achievements are MonoBehaviours in the "game_data_assets_all" bundle; the asset name (m_Name) is exactly the
 save's key / string, however odd ("Biker Bones", "BenJammin", "You've Got the Power"):
-  skins          assets with baseTowerName + isDefaultTowerSkin: the non-default, not isHiddenWhenLocked ones (the
-                 default skin of each hero is the hero itself, already counted under heroes).
+  skins          skin -> {hero: baseTowerName, name: English skinName minus " Skin"}, from assets with
+                 baseTowerName + isDefaultTowerSkin: the non-default, not isHiddenWhenLocked ones (the default
+                 skin of each hero is the hero itself, already counted under heroes).
   achievements   the assets listed by the "Achievements" list asset, hidden ones included (hidden = shown as "???"
                  until earned, still earnable). The game has no legacy flag; the save may hold older names not here.
 Output is deterministic (sorted keys).
@@ -140,11 +141,12 @@ def power_upgrades(sim: bytes) -> dict:
     return out
 
 
-def skins_achievements(rounds) -> tuple[list, list]:
+def skins_achievements(rounds) -> tuple[dict, list]:
+    """skin -> {"hero": baseTowerName, "name": skinName text id, "icon": portrait Addressables guid}; achievements."""
     import UnityPy
 
     env = UnityPy.load(str(rounds._bundle("game_data_assets_all")))
-    ach, listed, skins = {}, None, []
+    ach, listed, skins = {}, None, {}
     for obj in env.objects:
         if obj.type.name != "MonoBehaviour":
             continue
@@ -154,10 +156,11 @@ def skins_achievements(rounds) -> tuple[list, list]:
         elif tt.get("m_Name") == "Achievements" and "achievements" in tt:
             listed = [a["m_PathID"] for a in tt["achievements"]]
         elif "baseTowerName" in tt and "isDefaultTowerSkin" in tt and not tt["isDefaultTowerSkin"]                 and not tt["isHiddenWhenLocked"]:
-            skins.append(tt["m_Name"])
+            skins[tt["m_Name"]] = {"hero": tt["baseTowerName"], "name": tt["skinName"],
+                                  "icon": tt["icon"]["guidRef"]}
     if not listed or not skins or any(p not in ach for p in listed):
         fail(f"skins/achievements not found in game_data ({len(skins)} skins, {len(listed or [])} listed)")
-    return sorted(set(skins)), sorted({ach[p] for p in listed})
+    return skins, sorted({ach[p] for p in listed})
 
 
 def main() -> None:
@@ -183,8 +186,13 @@ def main() -> None:
         fail("duplicate upgrade names across towers; the save keys upgrades by name only")
     kn = knowledge(sim, build_paragons)
     skins, achievements = skins_achievements(build_rounds)
+    import build_names
+
+    english = {i: build_names.clean(t) for _sec, i, t in build_names.load_english()}
+    if missing := [k for k, v in skins.items() if v["name"] not in english]:
+        fail(f"skins without an English name: {missing}")
     data = {"gameVersion": build_rounds.load_game_version(), "towers": sorted(towers), "heroes": sorted(hs),
-            "upgrades": ups, "knowledge": kn, "skins": skins, "achievements": achievements,
+            "upgrades": ups, "knowledge": kn, "skins": {k: {"hero": v["hero"], "name": english[v["name"]].removesuffix(" Skin")} for k, v in skins.items()}, "achievements": achievements,
             "powerUpgrades": power_upgrades(sim)}
     if data["gameVersion"] == "unknown":
         fail("game version not read")

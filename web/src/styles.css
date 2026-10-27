@@ -11313,8 +11313,14 @@ a.th-ic:focus-visible {
   margin-top: 16px;
 }
 .my-tiles .stat-v {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 32px;
   overflow-wrap: anywhere;
+}
+.my-tiles .stat-v .spr {
+  flex: none;
 }
 .my-medals h3,
 .my-h3 {
@@ -11578,6 +11584,9 @@ button.my-miss:hover {
   background: conic-gradient(var(--soon-fill) calc(var(--p) * 1%), var(--rule) 0);
   position: relative;
 }
+.my-sumry .done .my-ring {
+  background: var(--live-fill);
+}
 .my-ring::before {
   content: "";
   position: absolute;
@@ -11698,6 +11707,18 @@ button.my-miss:hover {
   border: 1px solid var(--rule);
   border-radius: var(--r);
   font-weight: 600;
+}
+.my-skins {
+  display: grid;
+  gap: 12px;
+}
+.my-skg {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.my-skg > .spr {
+  flex: none;
 }
 .my-heroes li.locked {
   opacity: 0.45;

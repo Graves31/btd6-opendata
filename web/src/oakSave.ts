@@ -114,7 +114,8 @@ export interface Progress {
   heroes: string[];
   upgrades: Record<string, string[]>;
   knowledge: { id: string; tree: string }[];
-  skins?: string[];
+  /** Skin (the save's key) -> its hero and in-game name. */
+  skins?: Record<string, { hero: string; name: string }>;
   achievements?: string[];
   /** Pro power upgrades per power id. */
   powerUpgrades?: Record<string, string[]>;
@@ -134,7 +135,7 @@ const part = (all: string[], has: (id: string) => boolean): Part => {
 export const heroParts = (s: UserSave, p: Progress) => part(p.heroes, (h) => !!s.unlockedHeroes?.[h]);
 export const towerParts = (s: UserSave, p: Progress) => part(p.towers, (t) => !!s.unlockedTowers?.[t]);
 /** Skins only when the game list is known. */
-export const skinParts = (s: UserSave, p: Progress) => (p.skins ? part(p.skins, (k) => !!s.unlockedSkins?.[k]) : null);
+export const skinParts = (s: UserSave, p: Progress) => (p.skins ? part(Object.keys(p.skins),(k) => !!s.unlockedSkins?.[k]) : null);
 /** Achievements only when the game list is known. */
 export const achievementParts = (s: UserSave, p: Progress) => {
   const got = new Set(s.achievementsClaimed);
