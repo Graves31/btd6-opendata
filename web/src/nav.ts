@@ -5,7 +5,7 @@ import { mapMetaKeys } from "./maps.ts";
 import { homeExtraKeys, homePicks } from "./picks.ts";
 import { ROUND_SETS } from "./data/rounds/index.ts";
 import BOSS_STATS_URL from "./data/bosses.json?url";
-import { needs, needsForHref, parse, setBossStatsUrl, setHomeExtras, setMapExtras, setRoundKeys, type Route } from "./routes.ts";
+import { ctExtraKeys, needs, needsForHref, parse, setBossStatsUrl, setCtExtras, setHomeExtras, setMapExtras, setRoundKeys, type Route } from "./routes.ts";
 import { roundSetKeys } from "./rounds.ts";
 import { mapSrc, warmFor } from "./sprite.tsx";
 import { Store, type ClientEntry, type Persist } from "./store.ts";
@@ -53,6 +53,7 @@ const peekBody = <T,>(k: string): T | undefined => {
 };
 setHomeExtras(() => homeExtraKeys(peekBody, homePicks(peekBody, store.featured)));
 setMapExtras(() => mapMetaKeys(peekBody));
+setCtExtras((r) => ctExtraKeys(peekBody, r));
 // Tools → Rounds: the set file (a static asset). Every link to it, including the always-visible Tools tab
 // (the default set), prefetches it like any other page's data.
 setRoundKeys(roundSetKeys);

@@ -11,11 +11,14 @@ import {
   fmtInt,
 } from "../format.ts";
 import { ordinal } from "../boards.ts";
+import { placings, type TeamHistoryEntry } from "../myTeam.ts";
+import { TeamEmblem } from "./ctOverview.tsx";
 import { Freshness } from "../fresh.tsx";
 import { backTo, store } from "../nav.ts";
 import {
   CT_GROUP_PLACEHOLDER,
   ctGroupKey,
+  guildKey,
   href,
   idFromUrl,
   teamHistoryKey,
@@ -66,6 +69,10 @@ export function CTGroupPage(props: { id: string; gid: string }) {
       />
     );
   const rows = body<CTTeamEntry[]>(key);
+  const ids = (rows ?? []).map((r) => idFromUrl(r.profile));
+  const wantKeys = [...ids.map(teamHistoryKey), ...ids.slice(0, 1).map(guildKey)].join("|");
+  useEffect(() => void (wantKeys && store.want(wantKeys.split("|"))), [wantKeys]);
+  const leader = rows?.[0];
   const lm = lbMeta(
     (rows ?? []).map((_, i) => ({ rank: i + 1 })),
     "ctGroup",
@@ -82,9 +89,19 @@ export function CTGroupPage(props: { id: string; gid: string }) {
             </A>
           )}
         </p>
-        <h1 class="title">Team group</h1>
+        <h1 class="title ti">
+          {leader && <TeamEmblem id={idFromUrl(leader.profile)} size={64} />}
+          Team group
+        </h1>
         <p class="lede">
           Teams in the same CT group compete for the same tiles.
+          {leader && (
+            <>
+              {" "}
+              <A href={href.team(idFromUrl(leader.profile))}>{leader.displayName}</A> leads with{" "}
+              <b class="num">{fmtInt(leader.score)}</b> points.
+            </>
+          )}
         </p>
         <Freshness k={key} ended={ended(ev)} />
       </header>
@@ -111,9 +128,15 @@ export function CTGroupPage(props: { id: string; gid: string }) {
                     <A href={href.team(idFromUrl(r.profile))}>
                       {r.displayName}
                     </A>
+                    <PastPlacings id={idFromUrl(r.profile)} skip={props.id} />
                   </td>
                   <td class="num lead hero">
                     {fmtInt(r.score)}
+                    {rows[0].score > 0 && (
+                      <span class="grp-bar" aria-hidden="true">
+                        <i style={{ width: `${Math.max(2, Math.round((r.score / rows[0].score) * 100))}%` }} />
+                      </span>
+                    )}
                     {/* In a group, the place (and its reward) is what counts: the gap to the group's first. */}
                     {i > 0 && rows[0].score > r.score && (
                       <span class="gap" title="Behind the group's first">
@@ -137,7 +160,27 @@ export function CTGroupPage(props: { id: string; gid: string }) {
           </table>
         </div>
       )}
+      {rows && (
+        <p class="grp-note quiet">
+          The line under a medal row is the cut-off: the last place that still earns that group medal. A team
+          marked (disbanded) no longer exists; its points are still listed. Bars show points against the group's first.
+        </p>
+      )}
     </>
+  );
+}
+
+/** Small "best / last" under a team's name, from its archived CT results (other CTs only). */
+function PastPlacings(props: { id: string; skip: string }) {
+  const e = peek(teamHistoryKey(props.id));
+  const entries = e?.ok ? ((e.data as unknown as { entries?: TeamHistoryEntry[] }).entries ?? []) : [];
+  const p = placings(entries, props.skip);
+  if (!p) return null;
+  return (
+    <span class="grp-past">
+      Earlier CTs: best {ordinal(p.best)}
+      {p.last !== p.best ? ` · last ${ordinal(p.last)}` : ""}
+    </span>
   );
 }
 

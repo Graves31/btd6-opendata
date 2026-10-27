@@ -12,6 +12,7 @@ import { A, body, EvIcon } from "./ui.tsx";
 import { BossPage, bossTitleFor, CardOnly, bossTypeFor, EventList, Home, OdysseyPage, RacePage } from "./views/events.tsx";
 import { CTPage } from "./views/ct.tsx";
 import { CTGroupPage } from "./views/ctGroup.tsx";
+import { CTOverview } from "./views/ctOverview.tsx";
 import { MapPage, MapsPage } from "./views/maps.tsx";
 import { ChallengesPage } from "./views/challenges.tsx";
 import { NotFound } from "./views/errors.tsx";
@@ -40,7 +41,7 @@ function Page(props: { r: Route }) {
     case "home":
       return <Home />;
     case "events":
-      return <EventList kind={r.kind} />;
+      return r.kind === "ct" ? <CTOverview /> : <EventList kind={r.kind} />;
     case "boss":
       return <BossPage id={r.id} d={r.d} n={r.n} p={r.p} />;
     case "bossstats":
@@ -128,7 +129,7 @@ export function title(r: Route): string {
     case "ctgroup": {
       const e = findEvent<CTEvent>("ct", r.id);
       const when = e ? `CT ${fmtDay(e.start)}` : "Contested Territory";
-      return t(r.name === "ctgroup" ? `${when} · Group` : r.tab === "teams" ? `${when} · Teams` : r.tab === "tiles" ? `${when} · Tiles` : when);
+      return t(r.name === "ctgroup" ? `${when} · Group` : r.tab === "teams" ? `${when} · Teams` : r.tab === "map" ? `${when} · Map` : when);
     }
     case "odyssey": {
       const o = findEvent<Odyssey>("odyssey", r.id);

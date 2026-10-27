@@ -5,6 +5,10 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
 
 ## Later (agreed)
 
+- **CT: archive groups while the CT is live** (2026-10-27, owner: not yet). A group is stored only when someone opens
+  it after the end, and NK drops groups 2–3 days later. Cheap version: store any group page opened during the CT.
+  Storing every group would cost hundreds of NK requests: don't.
+
 - **Maps explorer follow-ups** (2026-10-12, owner: later if needed). (1) `/api/maps`: one cached D1 read of the
   archived boss/race/odyssey metadata maps, so map pages list every archived event (today: the wiki's bosses plus
   the events in the lists, ~11 bosses and ~11 races; odysseys not shown yet). (2) Product/UI/end-user review of

@@ -182,7 +182,7 @@ describe("routes (items 1, 14)", () => {
   it("CT opens on Teams; explicit tabs stay explicit", () => {
     const r = at("/ct/mtv62zza");
     assert.deepEqual(r, { name: "ct", id: "mtv62zza", tab: "teams", p: 1 });
-    assert.deepEqual(needs(r), ["/btd6/ct", ctKey("mtv62zza", "teams")]);
+    for (const k of ["/btd6/ct", ctKey("mtv62zza", "teams"), ctKey("mtv62zza", "map")]) assert.ok(needs(r).includes(k), k);
     assert.equal(href.ct("mtv62zza"), "/ct/mtv62zza");
     assert.equal(href.ct("mtv62zza", "teams"), "/ct/mtv62zza?tab=teams");
     assert.equal(href.ct("mtv62zza", "players", 2), "/ct/mtv62zza?tab=players&p=2");

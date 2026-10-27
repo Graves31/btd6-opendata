@@ -3,6 +3,7 @@
 
 import type { Ben, Path, Tier } from "./bank.ts";
 import { MAP_LIST } from "./data/names.ts";
+import { myTeam } from "./myTeam.ts";
 import { paragonTowers, type Difficulty, type GameVer, type ParagonTower } from "./paragon.ts";
 
 const MAP_IDS = new Set(MAP_LIST.map((m) => m[0]));
@@ -10,7 +11,8 @@ const MAP_IDS = new Set(MAP_LIST.map((m) => m[0]));
 export type EventKind = "boss" | "race" | "ct" | "odyssey";
 export type BossDiff = "standard" | "elite";
 export type OdyDiff = "easy" | "medium" | "hard";
-export type CTTab = "players" | "teams" | "tiles";
+/** `tiles` is the old name of `map`: parse() never returns it, it only keeps old callers compiling. */
+export type CTTab = "players" | "teams" | "map";
 export const CHALLENGE_FILTERS = ["daily", "newest", "trending"] as const;
 export type ChallengeFilter = (typeof CHALLENGE_FILTERS)[number];
 export const CHALLENGE_LABEL: Record<ChallengeFilter, string> = { daily: "Daily", newest: "Newest", trending: "Trending" };
@@ -256,7 +258,10 @@ export const bossMetaKey = (id: string, d: BossDiff) => `/btd6/bosses/${id}/meta
 export const raceBoardKey = (id: string, p = 1) => `/btd6/races/${id}/leaderboard${page(p)}`;
 export const raceMetaKey = (id: string) => `/btd6/races/${id}/metadata`;
 export const ctKey = (id: string, tab: CTTab, p = 1) =>
-  tab === "tiles" ? `/btd6/ct/${id}/tiles` : `/btd6/ct/${id}/leaderboard/${tab === "players" ? "player" : "team"}${page(p)}`;
+  tab === "map" ? `/btd6/ct/${id}/tiles` : `/btd6/ct/${id}/leaderboard/${tab === "players" ? "player" : "team"}${page(p)}`;
+/** Medal cut-off scores per day (Worker, D1 only) and the relics of every archived CT. */
+export const ctCutoffsKey = (id: string) => `/api/ct/${id}/cutoffs`;
+export const CT_RELICS_KEY = "/api/ct/relics";
 export const ctGroupKey = (id: string, gid: string) => `/btd6/ct/${id}/leaderboard/group/${gid}`;
 export const odyMetaKey = (id: string, d: OdyDiff) => `/btd6/odyssey/${id}/${d}`;
 export const odyMapsKey = (id: string, d: OdyDiff) => `/btd6/odyssey/${id}/${d}/maps`;
@@ -302,13 +307,45 @@ export function setMapExtras(fn: () => string[]): void {
   mapExtras = fn;
 }
 
+/**
+ * CT pages also read data that depends on boards already in memory (the top teams' emblems, each group member's
+ * history, every listed CT's tiles). Like the home extras, the browser registers a resolver over its store (nav.ts).
+ */
+let ctExtras: (r: Route) => string[] = () => [];
+export function setCtExtras(fn: (r: Route) => string[]): void {
+  ctExtras = fn;
+}
+
+/** What `needs()` adds for CT routes, given a way to read a loaded key's body. Pure: nav.ts passes the store. */
+export function ctExtraKeys(peek: <T>(k: string) => T | undefined, r: Route): string[] {
+  const guild = (rows?: { profile: string }[], n = 3) => (rows ?? []).slice(0, n).map((x) => guildKey(idFromUrl(x.profile)));
+  if (r.name === "ct") return guild(peek<{ profile: string }[]>(ctKey(r.id, "teams")));
+  if (r.name === "ctgroup") {
+    const rows = peek<{ profile: string }[]>(ctGroupKey(r.id, r.gid));
+    return [...(rows ?? []).map((x) => teamHistoryKey(idFromUrl(x.profile))), ...guild(rows, 1)];
+  }
+  if (r.name === "events" && r.kind === "ct") {
+    // /ct: every listed CT's mini map and board, its winner's emblem (top 3 for the live one), and the followed
+    // team's emblem + the live cut-off trend for its My team card.
+    const now = Date.now();
+    const list = peek<{ id: string; start: number; end: number }[]>(LIST_KEY.ct) ?? [];
+    const live = list.find((c) => c.start <= now && now < c.end);
+    const my = myTeam();
+    return [
+      ...list.flatMap((c) => [ctKey(c.id, "map"), ctKey(c.id, "teams"), ...guild(peek(ctKey(c.id, "teams")), c === live ? 3 : 1)]),
+      ...(my ? [guildKey(my.id), ...(live ? [ctCutoffsKey(live.id)] : [])] : []),
+    ];
+  }
+  return [];
+}
+
 /** The data a route renders. Links prefetch exactly this. */
 export function needs(r: Route): string[] {
   switch (r.name) {
     case "home":
       return [...new Set([...HOME_LISTS, ...homeExtras()])];
     case "events":
-      return [LIST_KEY[r.kind], historyKey(r.kind)];
+      return [LIST_KEY[r.kind], historyKey(r.kind), ...(r.kind === "ct" ? [CT_RELICS_KEY, ...(myTeam() ? [teamHistoryKey(myTeam()!.id)] : []), ...ctExtras(r)] : [])];
     case "boss":
       return [LIST_KEY.boss, bossMetaKey(r.id, r.d), bossBoardKey(r.id, r.d, r.n, r.p)];
     case "bossstats":
@@ -317,9 +354,10 @@ export function needs(r: Route): string[] {
     case "race":
       return [LIST_KEY.race, raceMetaKey(r.id), raceBoardKey(r.id, r.p)];
     case "ct":
-      return [LIST_KEY.ct, ctKey(r.id, r.tab, r.p)];
+      // Every tab reads the tiles (header, hero map), the relic history and the cut-off trend; ctExtras adds the top teams' emblems.
+      return [...new Set([LIST_KEY.ct, historyKey("ct"), ctKey(r.id, r.tab, r.p), ctKey(r.id, "map"), ctKey(r.id, "teams"), CT_RELICS_KEY, ctCutoffsKey(r.id), ...ctExtras(r)])];
     case "ctgroup":
-      return [LIST_KEY.ct, ctGroupKey(r.id, r.gid)];
+      return [LIST_KEY.ct, ctGroupKey(r.id, r.gid), ...ctExtras(r)];
     case "odyssey":
       return [LIST_KEY.odyssey, odyMetaKey(r.id, r.d), odyMapsKey(r.id, r.d)];
     case "player":
@@ -388,7 +426,7 @@ export function parse(url: URL): Route {
   }
   if (a === "race" && b && !c) return { name: "race", id: b, p: int(q.get("p"), 1, 1, 20) };
   if (a === "ct" && b && !c) {
-    return { name: "ct", id: b, tab: oneOf(q.get("tab"), ["players", "teams", "tiles"] as const, "teams"), p: int(q.get("p"), 1, 1, 40) };
+    return { name: "ct", id: b, tab: q.get("tab") === "tiles" ? "map" : oneOf(q.get("tab"), ["players", "teams", "map"] as const, "teams"), p: int(q.get("p"), 1, 1, 40) };
   }
   if (a === "ct" && b && c === "group" && d && CT_GROUP_ID.test(d)) return { name: "ctgroup", id: b, gid: d };
   if (a === "odyssey" && b && !c) return { name: "odyssey", id: b, d: oneOf(q.get("d"), ["easy", "medium", "hard"] as const, "easy") };

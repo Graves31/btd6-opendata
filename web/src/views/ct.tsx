@@ -1,11 +1,13 @@
+import { useEffect, useRef, useState } from "preact/hooks";
 import type {
   CT,
   CTPlayerEntry,
   CTTeamEntry,
+  CTTile,
   CTTiles,
+  Guild,
 } from "../../../src/nk/types.ts";
 import {
-  cap,
   fmtDay,
   fmtInt,
   fmtWhen,
@@ -13,6 +15,15 @@ import {
   status,
 } from "../format.ts";
 import { ordinal } from "../boards.ts";
+import {
+  cutoffTrend,
+  gameMix,
+  relicHistory,
+  relicOf,
+  tileStats,
+  type CTCutoffs,
+  type RelicCT,
+} from "../ctStats.ts";
 import { RELIC_INFO } from "../data/names.ts";
 import { Freshness } from "../fresh.tsx";
 import {
@@ -20,10 +31,14 @@ import {
   PAGE_SIZE,
   type Board,
 } from "../medals.ts";
+import { store } from "../nav.ts";
 import {
   CT_GROUP_PLACEHOLDER,
+  CT_RELICS_KEY,
+  ctCutoffsKey,
   ctGroupKey,
   ctKey,
+  guildKey,
   href,
   idFromUrl,
   type CTTab,
@@ -33,25 +48,55 @@ import {
   LinkRow,
   A,
   body,
+  Emblem,
   Gate,
   Pager,
   peek,
   Rank,
   Section,
   Stat,
-  Tabs,
 } from "../ui.tsx";
 import { NotFound } from "./errors.tsx";
 import { boardGone, CutRow, CutoffStrip, ended, EventHead, findEvent, isMissing, lbMeta, Medal, RankTh, useFits } from "./events.tsx";
+import { HexMap, HexThumb, HexTilePanel } from "./ctMap.tsx";
 // ─────────────────────────────── CT
 
-const CT_TABS = ["teams", "players", "tiles"] as const;
+const CT_TABS = ["teams", "players", "map"] as const;
+const TAB_LABEL = { teams: "Teams", players: "Players", map: "Map" } as const;
+
+/** Loads keys into the store once the page is up (batched; what the route already holds is not refetched). */
+function useWant(keys: string[]): void {
+  const k = keys.join("|");
+  useEffect(() => void (k && store.want(k.split("|"))), [k]);
+}
+
+/** "+12,340 since yesterday" for one medal rank, from the last two daily snapshots. */
+function trendText(t: { delta: number; since: number; at: number }): string {
+  const day = t.at - t.since <= 36 * 3_600_000 ? "yesterday" : fmtDay(t.since);
+  return t.delta === 0 ? `no change since ${day}` : `${t.delta > 0 ? "+" : ""}${fmtInt(t.delta)} since ${day}`;
+}
+
+/** A team's emblem from its guild when that is in memory, else an empty frame. */
+function TeamEmblem(p: { r: CTTeamEntry; size: number }) {
+  const g = body<Guild>(guildKey(idFromUrl(p.r.profile)));
+  return g ? <Emblem frame={g.frameURL} icon={g.iconURL} size={p.size} /> : <span class="emblem" style={{ width: `${p.size}px`, height: `${p.size}px` }} />;
+}
 
 export function CTPage(props: { id: string; tab: CTTab; p: number }) {
-  const { id, tab, p } = props;
+  const { id, p } = props;
   const asideRef = useFits<HTMLElement>();
   const ev = findEvent<CT>("ct", id);
+  const upcoming = !!ev && status(ev.start, ev.end).s === "upcoming";
+  const done = ended(ev);
+  const live = !!ev && !upcoming && !done;
+  // Before the start only the map exists (the tiles are published early); an old ?tab=tiles link opens it too.
+  const tab: "teams" | "players" | "map" = upcoming || props.tab === "map" ? "map" : props.tab;
   const key = ctKey(id, tab, p);
+  const tilesKey = ctKey(id, "map");
+  const tiles = body<CTTiles>(tilesKey)?.tiles;
+  const top = upcoming ? undefined : body<CTTeamEntry[]>(ctKey(id, "teams"));
+  const winner = top?.[0];
+  useWant([tilesKey, CT_RELICS_KEY, ctCutoffsKey(id), ...(top ?? []).slice(0, 3).map((r) => guildKey(idFromUrl(r.profile)))]);
   if (!ev && isMissing(key)) {
     return (
       <NotFound
@@ -62,10 +107,8 @@ export function CTPage(props: { id: string; tab: CTTab; p: number }) {
   }
   const entry = peek(key);
   const maxPages = entry?.data?.maxPages ?? 1;
-  const upcoming = ev && status(ev.start, ev.end).s === "upcoming";
-  const done = ended(ev);
   // Old CTs: NK stops serving their boards (totals reset to 0, empty or failing leaderboards).
-  const gone = !!ev && done && tab !== "tiles" && !!entry && boardGone(entry);
+  const gone = !!ev && done && tab !== "map" && !!entry && boardGone(entry);
   const total =
     tab === "players"
       ? ev?.totalScores_player
@@ -79,7 +122,17 @@ export function CTPage(props: { id: string; tab: CTTab; p: number }) {
     )?.[(rank - 1) % PAGE_SIZE[board]];
     return r && `${fmtInt(r.score)} pts`;
   };
+  const snaps = live ? (peek(ctCutoffsKey(id))?.data as unknown as CTCutoffs | undefined) : undefined;
+  const trendAt = snaps
+    ? (rank: number) => {
+        const t = cutoffTrend(board === "ctPlayer" ? snaps.player : snaps.team, rank);
+        return t && trendText(t);
+      }
+    : undefined;
   const rows = body<(CTPlayerEntry | CTTeamEntry)[]>(key);
+  const ts = tiles && tileStats(tiles);
+  const n = (v: number) => (gone || !v ? "–" : fmtInt(v));
+  const wg = winner && done && !gone ? body<Guild>(guildKey(idFromUrl(winner.profile))) : undefined;
   return (
     <>
       <EventHead
@@ -89,38 +142,66 @@ export function CTPage(props: { id: string; tab: CTTab; p: number }) {
           ev ? `${fmtDay(ev.start)} – ${fmtDay(ev.end)}` : "Contested Territory"
         }
         ev={ev}
+        backdrop={tiles && <HexThumb tiles={tiles} size={420} />}
         stats={
-          ev && (
+          ev &&
+          (upcoming ? (
+            ts && (
+              <>
+                <Stat k="Tiles" v={fmtInt(ts.tiles)} />
+                <Stat k="Relics" v={fmtInt(ts.relics)} />
+                <Stat k="Banners" v={fmtInt(ts.banners)} />
+                <Stat k="Team starts" v={fmtInt(ts.starts)} />
+              </>
+            )
+          ) : (
             <>
-              <Stat
-                k="Teams"
-                v={
-                  gone || !ev.totalScores_team
-                    ? "–"
-                    : fmtInt(ev.totalScores_team)
-                }
-              />
-              <Stat
-                k="Players"
-                v={
-                  gone || !ev.totalScores_player
-                    ? "–"
-                    : fmtInt(ev.totalScores_player)
-                }
-              />
+              {winner && done && !gone && (
+                <div class="stat ct-winner">
+                  <dt>Winner</dt>
+                  <dd>
+                    <A href={href.team(idFromUrl(winner.profile))} class="ct-win">
+                      {wg && <Emblem frame={wg.frameURL} icon={wg.iconURL} size={56} eager />}
+                      <span class="ct-win-t">
+                        <strong>{winner.displayName}</strong>
+                        <span>{fmtInt(winner.score)} pts</span>
+                      </span>
+                    </A>
+                  </dd>
+                </div>
+              )}
+              <Stat k="Teams" v={n(ev.totalScores_team)} />
+              <Stat k="Players" v={n(ev.totalScores_player)} />
+              {live && <Stat k="Top score" v={winner ? fmtInt(winner.score) : "–"} />}
             </>
-          )
+          ))
         }
       />
-      <div class="controls">
-        <Tabs
-          label="Leaderboard"
-          items={CT_TABS.map((t) => ({
-            href: href.ct(id, t),
-            label: cap(t),
-            current: t === tab,
-          }))}
-        />
+      <div class="controls ct-tabs">
+        <nav class="tabs" aria-label="Contested Territory">
+          {CT_TABS.map((t) =>
+            upcoming && t !== "map" ? (
+              <span key={t} class="tab dis" aria-disabled="true">
+                {TAB_LABEL[t]}
+              </span>
+            ) : (
+              <A
+                key={t}
+                href={href.ct(id, t)}
+                class={t === tab ? "tab on" : "tab"}
+                current={t === tab}
+                keepScroll
+              >
+                {TAB_LABEL[t]}
+              </A>
+            ),
+          )}
+        </nav>
+        {upcoming && ev && (
+          <p class="quiet small ct-soon">
+            Teams and Players open when the CT starts, {fmtWhen(ev.start)}.
+          </p>
+        )}
       </div>
       {gone ? (
         <div class="empty ct-gone">
@@ -136,27 +217,14 @@ export function CTPage(props: { id: string; tab: CTTab; p: number }) {
         </div>
       ) : (
         <>
-          {tab === "tiles" && (
+          {tab === "map" && (
             <>
               <Freshness k={key} ended={done} />
-              <Gate
-                k={key}
-                rows={25}
-                empty={
-                  upcoming && ev ? (
-                    <p>
-                      This CT starts {fmtWhen(ev.start)}. The map appears once
-                      it has started.
-                    </p>
-                  ) : (
-                    <p>No tile data yet.</p>
-                  )
-                }
-              />
-              <CTTilesView tiles={body<CTTiles>(key)} />
+              <Gate k={key} rows={25} empty={<p>No tile data yet.</p>} />
+              <CTMapTab id={id} tiles={tiles} />
             </>
           )}
-          {tab !== "tiles" && (
+          {tab !== "map" && (
             <div class="split ct-split">
               <section class="board-sec" aria-labelledby="lb-h">
                 <h2 class="vh" id="lb-h">
@@ -170,28 +238,19 @@ export function CTPage(props: { id: string; tab: CTTab; p: number }) {
                     total={total}
                   />
                 </div>
+                {tab === "teams" && p === 1 && rows && rows.length > 0 && (
+                  <Podium rows={rows as CTTeamEntry[]} />
+                )}
                 {rows && rows.length > 0 && (
                   <CutoffStrip
                     variant="fold"
                     board={board}
                     total={total}
                     scoreAt={scoreAt}
+                    trendAt={trendAt}
                   />
                 )}
-                <Gate
-                  k={key}
-                  rows={25}
-                  empty={
-                    upcoming && ev ? (
-                      <p>
-                        This CT starts {fmtWhen(ev.start)}. Scores appear once
-                        teams capture tiles.
-                      </p>
-                    ) : (
-                      <p>No scores yet.</p>
-                    )
-                  }
-                />
+                <Gate k={key} rows={25} empty={<p>No scores yet.</p>} />
                 {tab === "players" && (
                   <CTPlayers
                     rows={body<CTPlayerEntry[]>(key)}
@@ -220,6 +279,7 @@ export function CTPage(props: { id: string; tab: CTTab; p: number }) {
                     board={board}
                     total={total}
                     scoreAt={scoreAt}
+                    trendAt={trendAt}
                   />
                 )}
               </aside>
@@ -228,6 +288,30 @@ export function CTPage(props: { id: string; tab: CTTab; p: number }) {
         </>
       )}
     </>
+  );
+}
+
+/** The top three teams, large: 2nd | 1st | 3rd. */
+function Podium(props: { rows: CTTeamEntry[] }) {
+  const top = props.rows.slice(0, 3);
+  if (!top.length) return null;
+  return (
+    <ol class="ctpod-list" aria-label="Top three teams">
+      {[1, 0, 2].map((i) => {
+        const r = top[i];
+        if (!r) return null;
+        return (
+          <li key={r.profile} class={`ctpod ctpod-${i + 1}`}>
+            <A href={href.team(idFromUrl(r.profile))} class="ctpod-a">
+              <span class="ctpod-rank">{i + 1}</span>
+              <TeamEmblem r={r} size={i === 0 ? 104 : 76} />
+              <span class="ctpod-n">{r.displayName}</span>
+              <span class="ctpod-s">{fmtInt(r.score)} pts</span>
+            </A>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 
@@ -438,123 +522,121 @@ const GAME_ICON: Record<string, string> = {
   Race: "GameTime",
   Boss: "BossTier",
 };
+/** The four game types a relic tile can have (filter chips). */
+const FILTERS = ["LeastCash", "LeastTiers", "Race", "Boss"] as const;
 
 /** Relic name + effect from the game's data (names.ts), else the humanised id. */
 const relicInfo = (id: string) =>
   RELIC_INFO[id] ?? { name: human(id), description: "" };
 
-function CTTilesView(props: { tiles?: CTTiles }) {
-  if (!props.tiles) return null;
-  const tiles = props.tiles.tiles;
-  const byType = new Map<string, number>();
-  const relics: { id: string; relic: string; game: string }[] = [];
-  let banners = 0;
-  for (const t of tiles) {
-    byType.set(t.gameType, (byType.get(t.gameType) ?? 0) + 1);
-    if (t.type.startsWith("Relic - "))
-      relics.push({ id: t.id, relic: t.type.slice(8), game: t.gameType });
-    if (t.type === "Banner") banners++;
-  }
-  const max = Math.max(...byType.values());
+const GameBadge = (p: { g: string; size: number }) => (
+  <span class="ifact">
+    {GAME_ICON[p.g] && <Spr family="ui" k={GAME_ICON[p.g]} size={p.size} label optional />}
+    <span>{GAME_TYPE[p.g] ?? human(p.g)}</span>
+  </span>
+);
+
+/** The map tab: game-type filter, the hex map with the selected tile's details, the game mix and the relic grid. */
+function CTMapTab(props: { id: string; tiles?: CTTile[] }) {
+  const [sel, setSel] = useState<string>();
+  const [game, setGame] = useState<string>();
+  const mapRef = useRef<HTMLDivElement>(null);
+  const { tiles, id } = props;
+  if (!tiles) return null;
+  const ts = tileStats(tiles);
+  const cts = (peek(CT_RELICS_KEY)?.data as unknown as { cts?: RelicCT[] } | undefined)?.cts;
+  const mix = gameMix(id, ts.games, cts);
+  const relics = tiles.filter((t) => relicOf(t) && (!game || t.gameType === game));
+  const pick = (tile: string) => {
+    setSel(tile);
+    mapRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  };
+  const kinds = Object.entries(ts.games).sort((a, b) => b[1] - a[1]);
   return (
-    <div class="split even">
-      <Section
-        title="Tiles by game type"
-        aside={`${tiles.length} tiles · ${banners} banners`}
-      >
-        <ol class="bars">
-          {[...byType]
-            .sort((a, b) => b[1] - a[1])
-            .map(([k, v]) => (
-              <li
-                key={k}
-                class="has-i"
-                style={{ "--w": `${(v / max) * 100}%` }}
-              >
-                {GAME_ICON[k] ? (
-                  <Spr family="ui" k={GAME_ICON[k]} size={32} label />
-                ) : (
-                  <span class="spr-gap" />
-                )}
-                <span>{GAME_TYPE[k] ?? human(k)}</span>
-                <span class="num">{v}</span>
-              </li>
-            ))}
-        </ol>
-      </Section>
-      <Section title="Relics" aside={`${relics.length} on the map`}>
-        <div class="board-wrap">
-          <table class="board compact relics">
-            <thead>
-              <tr>
-                <th>Relic</th>
-                <th>Tile</th>
-                <th>Game</th>
-              </tr>
-            </thead>
-            <tbody>
-              {relics.map((r) => {
-                const info = relicInfo(r.relic);
-                return (
-                  <tr key={r.id}>
-                    <td>
-                      <span
-                        class="relic"
-                        title={
-                          info.description
-                            ? `${info.name}: ${info.description}`
-                            : info.name
-                        }
-                      >
-                        {hasArt("relic", r.relic) ? (
-                          <Spr
-                            family="relic"
-                            k={r.relic}
-                            size={36}
-                            name={info.name}
-                            label
-                          />
-                        ) : (
-                          <Spr
-                            family="ui"
-                            k="Relic"
-                            size={36}
-                            name={info.name}
-                            label
-                            optional
-                          />
-                        )}
-                        <span class="relic-t">
-                          <span class="relic-n">{info.name}</span>
-                          {info.description && (
-                            <span class="relic-d">{info.description}</span>
-                          )}
-                        </span>
-                      </span>
-                    </td>
-                    <td class="mono">{r.id}</td>
-                    <td>
-                      <span class="ifact">
-                        {GAME_ICON[r.game] && (
-                          <Spr
-                            family="ui"
-                            k={GAME_ICON[r.game]}
-                            size={24}
-                            label
-                            optional
-                          />
-                        )}
-                        <span class="m-hide">
-                          {GAME_TYPE[r.game] ?? human(r.game)}
-                        </span>
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+    <div class="ctv">
+      <div class="ctv-chips" role="group" aria-label="Filter by game type">
+        <button type="button" aria-pressed={!game} onClick={() => setGame(undefined)}>
+          All <span class="num">{ts.tiles}</span>
+        </button>
+        {FILTERS.filter((g) => ts.games[g]).map((g) => (
+          <button key={g} type="button" aria-pressed={game === g} onClick={() => setGame(game === g ? undefined : g)}>
+            <GameBadge g={g} size={20} /> <span class="num">{ts.games[g]}</span>
+          </button>
+        ))}
+      </div>
+      <div class="ctv-main" ref={mapRef}>
+        <div class="ctv-map">
+          <HexMap tiles={tiles} sel={sel} onSel={setSel} filter={game ? (t) => t.gameType === game : undefined} />
         </div>
+        <aside class="ctv-side" aria-label="Selected tile">
+          <HexTilePanel tile={tiles.find((t) => t.id === sel)} />
+        </aside>
+      </div>
+      <Section title="Tiles by game type" aside={`${ts.tiles} tiles · ${ts.banners} banners`}>
+        <ol class="ctv-bar" aria-hidden="true">
+          {kinds.map(([k, v]) => (
+            <li key={k} class={`g-${k}`} style={{ flex: v }} title={`${GAME_TYPE[k] ?? human(k)}: ${v}`}>
+              {v}
+            </li>
+          ))}
+        </ol>
+        <ul class="ctv-leg">
+          {kinds.map(([k, v]) => (
+            <li key={k} class={`g-${k}`}>
+              <i class="sw" aria-hidden="true" />
+              <GameBadge g={k} size={24} />
+              <b class="num">{v}</b>
+              {mix?.by[k] && <span class="quiet small">usually {mix.by[k].avg}</span>}
+            </li>
+          ))}
+        </ul>
+        {mix && <p class="quiet small">"Usually" is the average of the last {mix.of} CTs.</p>}
+      </Section>
+      <Section title="Relics" aside={`${relics.length}${game ? ` ${GAME_TYPE[game]}` : ""} on the map`}>
+        {relics.length === 0 ? (
+          <p class="quiet">No relics in this CT.</p>
+        ) : (
+          <ul class="relic-grid">
+            {relics.map((t) => {
+              const relic = relicOf(t)!;
+              const info = relicInfo(relic);
+              const h = cts ? relicHistory(id, relic, cts) : undefined;
+              const hist =
+                h && h.of > 0
+                  ? h.seen === 0
+                    ? "New"
+                    : `In ${h.seen} of the last ${h.of} CTs · last ${fmtDay(h.last!)}`
+                  : undefined;
+              return (
+                <li key={t.id}>
+                  <button
+                    type="button"
+                    class={sel === t.id ? "rc on" : "rc"}
+                    aria-pressed={sel === t.id}
+                    onClick={() => pick(t.id)}
+                    title={info.description ? `${info.name}: ${info.description}` : info.name}
+                  >
+                    <Spr
+                      family={hasArt("relic", relic) ? "relic" : "ui"}
+                      k={hasArt("relic", relic) ? relic : "Relic"}
+                      size={56}
+                      name={info.name}
+                      label
+                      optional
+                    />
+                    <span class="rc-n">{info.name}</span>
+                    <span class="rc-g">
+                      <GameBadge g={t.gameType} size={20} />
+                      <span class="mono">{t.id}</span>
+                    </span>
+                    {hist && <span class={h!.seen === 0 ? "rc-h new" : "rc-h"}>{hist}</span>}
+                    {info.description && <span class="rc-tip">{info.description}</span>}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </Section>
     </div>
   );

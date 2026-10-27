@@ -319,13 +319,27 @@ async function main() {
     await home();
 
     const ct = await step("Now → CT", ".tile[href^='/ct/']");
-    await boardOrEmpty(ct);
-    const teams = await step("CT → Teams tab", "nav.tabs a.tab[href*='tab=teams']");
-    if (!(await boardOrEmpty(teams))) {
+    // An upcoming CT opens on the map with Teams/Players disabled; a started one on Teams.
+    const upcomingCt = await has("main .ctv");
+    if (upcomingCt) {
+      if (await has("nav.tabs a.tab[href*='tab=teams']")) problems.push("upcoming CT: the Teams tab is a link");
+    } else await boardOrEmpty(ct);
+    const teams = upcomingCt ? undefined : await step("CT → Teams tab", "nav.tabs a.tab[href*='tab=teams']");
+    if (!teams || !(await boardOrEmpty(teams))) {
       // The featured CT hasn't started: use the latest one that has, from the CT list.
       await step("→ CT list", 'header nav a[href="/ct"]');
-      await step("CT list → latest started CT", "ul.events a.st-live, ul.events a.st-ended");
-      await boardOrEmpty(await step("CT → Teams tab", "nav.tabs a.tab[href*='tab=teams']"));
+      await step("CT list → latest started CT", "ul.events a.st-live, ul.events a.st-ended, a.ctp");
+      // (the list's winner link may already open the Teams tab)
+      if (await has("nav.tabs a.tab.on[href*='tab=teams']")) {
+        await boardOrEmpty(results.at(-1)!);
+        pages["ct-teams"] = await here();
+        await shoot(page, "desktop-ct-teams");
+        await api.quiet();
+      } else await boardOrEmpty(await step("CT → Teams tab", "nav.tabs a.tab[href*='tab=teams']", "ct-teams"));
+    } else {
+      pages["ct-teams"] = await here();
+      await shoot(page, "desktop-ct-teams");
+      await api.quiet();
     }
     if (await has("table.board tbody tr a[href^='/team/']")) {
       await step("Teams → a team", "table.board tbody tr:first-child a[href^='/team/']", "team");
@@ -333,6 +347,16 @@ async function main() {
       await step("Team → back link", "a.backlink");
       const at = await page.evaluate(() => location.pathname);
       if (!at.startsWith("/ct/")) problems.push(`back link went to ${at}, not the CT board`);
+    }
+    // CT map tab (hex map, tile panel, relic grid, filter) and a group page, from the started CT's Teams tab.
+    if (await has("nav.tabs a.tab[href*='tab=map']")) {
+      await step("CT → Map tab", "nav.tabs a.tab[href*='tab=map']", "ct-map");
+      if (!(await has(".ctv-main svg"))) problems.push("CT map: no hex map");
+      if (!(await has(".relic-grid .rc"))) problems.push("CT map: no relic grid");
+      await page.evaluate(() => (document.querySelector(".relic-grid .rc") as HTMLElement | null)?.click());
+      await page.waitForSelector(".relic-grid .rc.on", { timeout: 2000 }).catch(() => problems.push("CT map: clicking a relic didn't select it"));
+      await page.evaluate(() => (document.querySelector(".ctv-chips button:nth-child(2)") as HTMLElement | null)?.click());
+      await step("Map → Teams tab", "nav.tabs a.tab[href*='tab=teams']");
     }
     await home();
 
@@ -490,6 +514,20 @@ async function main() {
     await step("Races → CT list", 'header nav a[href="/ct"]', "ctlist");
     await step("CT list → Odysseys", 'header nav a[href="/odyssey"]', "odysseys");
     await home();
+
+    // The fixture CT with boards (offline only): its Teams tab (podium), then one of its groups.
+    if (!REMOTE) {
+      await load("/ct/mtv62zza?tab=teams");
+      await page.waitForSelector("main table.board tbody tr", { timeout: 8000 }).catch(() => problems.push("CT fixture: no team board"));
+      await api.quiet();
+      pages["ct-fixture-teams"] = await here();
+      await shoot(page, "desktop-ct-fixture-teams");
+      await api.quiet();
+      if (!(await has("ol.ctpod-list li"))) problems.push("CT fixture: no podium on the Teams tab");
+      if (await has("a.small-link[href*='/group/']")) await step("CT fixture: Teams → group", "a.small-link[href*='/group/']", "ct-group");
+      else problems.push("CT fixture: no team links to a group");
+      await home();
+    }
 
     // A CT group NK no longer publishes (placeholder id): a designed "not available" page, not an empty board.
     if (!REMOTE) {

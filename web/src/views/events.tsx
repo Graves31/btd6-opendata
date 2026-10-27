@@ -1839,10 +1839,17 @@ export function EventHead(props: {
   ev?: { start: number; end: number };
   stats?: ComponentChildren;
   children?: ComponentChildren;
+  /** Decorative art behind the title (dimmed, not interactive). */
+  backdrop?: ComponentChildren;
 }) {
   const { map, ev } = props;
   return (
-    <header class="ev-hero">
+    <header class={props.backdrop ? "ev-hero has-bd" : "ev-hero"}>
+      {props.backdrop && (
+        <div class="ev-backdrop" aria-hidden="true">
+          {props.backdrop}
+        </div>
+      )}
       <div class="ev-head">
         {props.showMap && (
           <figure class="ev-map">
@@ -1918,6 +1925,8 @@ export function CutoffStrip(props: {
   full?: boolean;
   variant: "side" | "fold";
   coop?: boolean;
+  /** Change at a medal's rank since the previous daily snapshot ("+12,340 since yesterday"), live CTs only. */
+  trendAt?: (rank: number) => string | undefined;
 }) {
   const cuts = cutoffs(props.board, props.total);
   if (!cuts.length) return null;
@@ -1984,6 +1993,7 @@ export function CutoffStrip(props: {
                 <span class="co-l">{c.label}</span>
                 {pct && <span class="co-r">to #{fmtInt(c.rank)}</span>}
                 {score && <span class="co-s">{score}</span>}
+                {score && props.trendAt?.(c.rank) && <span class="co-trend">{props.trendAt(c.rank)}</span>}
               </span>
             </li>
           );

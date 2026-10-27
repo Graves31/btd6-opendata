@@ -21,7 +21,9 @@ architecture; this file is how to work on it.
   (paragon calculator; provisional constants in `REF`; `scaling()` = per-degree stats, checked against the v57
   game code), `views/paragonScaling.tsx` (paragon scaling charts), `views/farming.tsx` (banana timing), `bank.ts` + `views/bankPlanner.tsx` (bank collect timing and IMF
   deposits; v57.1 game code + wiki values in `BANK`),
-  `views/tools.tsx` (/tools hub), `ui.tsx` `ToolHero`/`ToolBack` (tool page header), `styles.css`,
+  `views/ct.tsx` / `ctOverview.tsx` / `ctGroup.tsx` (CT event page, /ct cards + My team, group page), `ctMap.ts` +
+  `views/ctMap.tsx` (CT hex map; tile code → hex = the game's CtMapGenerator table, pinned in test/ctMap.test.ts),
+  `myTeam.ts` (followed CT team, localStorage), `views/tools.tsx` (/tools hub), `ui.tsx` `ToolHero`/`ToolBack` (tool page header), `styles.css`,
   `oak.ts` (the player's OAK + save: localStorage, browser → NK only) + `oakSave.ts` (pure readers: medals, instas,
   bank MK) + `views/me.tsx` (/me "My stats"; map medals, bank MK defaults and "This is me" read the same save).
 - Generated from the owner's game install (`C:\Program Files (x86)\Steam\steamapps\common\BloonsTD6`) by

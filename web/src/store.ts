@@ -159,7 +159,7 @@ export class Store {
     this.pending.clear();
     // NK keys (and team CT history) go through /api/batch; other /api/ keys and static files (round sets under
     // /assets/, content-hashed and immutable) are fetched directly.
-    const batchable = (k: string) => k.startsWith("/btd6/") || k.startsWith("/api/history/team/");
+    const batchable = (k: string) => k.startsWith("/btd6/") || k.startsWith("/api/history/team/") || k.startsWith("/api/ct/");
     const raw = keys.filter((k) => !batchable(k));
     const nk = keys.filter(batchable);
     for (const k of raw) void this.fetchRaw(k);

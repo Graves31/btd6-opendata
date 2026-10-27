@@ -1,3 +1,4 @@
+import { useEffect, useState } from "preact/hooks";
 import type { ChallengeDocument, ChallengeSummary, Guild, UserProfile } from "../../../src/nk/types.ts";
 import { dailyIsOut, dailyStart, fmtWhen, abilityName, cap, dailyAuthor, dailyInfo, dailyTitle, fmtCompact, fmtDate, fmtInt, fmtPct, human, unitName } from "../format.ts";
 import { dailyNeighbours } from "../challenges.ts";
@@ -11,6 +12,7 @@ import { A, body, Emblem, Gate, Img, Section, Stat } from "../ui.tsx";
 import { backTo } from "../nav.ts";
 import { looksLikeMe, setPlayerId, useOak } from "../oak.ts";
 import { CTHistory } from "./ctGroup.tsx";
+import { followTeam, myTeam, onMyTeam } from "../myTeam.ts";
 import { EventHead } from "./events.tsx";
 import { ErrorPanel } from "./errors.tsx";
 
@@ -474,6 +476,29 @@ const longWord = (s: string) => (s.split(/\s+/).some((w) => w.length > 12) ? " n
 
 const TEAM_STATUS: Record<string, string> = { OPEN: "Open to join", FILTERED: "Join by request", CLOSED: "Closed", DISBANDED: "Disbanded" };
 
+/** "Set as my team": the browser remembers one CT team (shown on /ct). */
+function FollowTeam(props: { id: string; name: string }) {
+  const [mine, set] = useState(() => myTeam()?.id === props.id);
+  useEffect(() => {
+    set(myTeam()?.id === props.id);
+    return onMyTeam(() => set(myTeam()?.id === props.id));
+  }, [props.id]);
+  return mine ? (
+    <p class="follow on">
+      <span class="follow-k">Your team</span>
+      <button type="button" class="share-btn" onClick={() => followTeam(null)}>
+        Unfollow
+      </button>
+    </p>
+  ) : (
+    <p class="follow">
+      <button type="button" class="share-btn" onClick={() => followTeam({ id: props.id, name: props.name })}>
+        Set as my team
+      </button>
+    </p>
+  );
+}
+
 export function TeamPage(props: { id: string }) {
   if (!isPublicId(props.id)) return <ErrorPanel code="private" what="team" />;
   const key = guildKey(props.id);
@@ -503,6 +528,7 @@ export function TeamPage(props: { id: string }) {
             <p class="fresh-line">
               <Freshness k={key} />
             </p>
+            <FollowTeam id={props.id} name={t.name} />
           </div>
         </div>
       </header>
