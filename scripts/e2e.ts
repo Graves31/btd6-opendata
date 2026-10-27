@@ -228,6 +228,17 @@ async function main() {
       // shifts, dwell timers and the periodic /api/now top-up can also start prefetches: let them land.
       await el!.evaluate((e) => e.scrollIntoView({ block: "center" }));
       await new Promise((r) => setTimeout(r, 400));
+      // A smooth scroll the page started earlier (CT map: picking a relic scrolls the map into view) may still
+      // be moving the link; clicking at the old spot misses it. Wait until it holds still.
+      await el!.evaluate(async (e) => {
+        let last = NaN, still = 0;
+        for (let i = 0; i < 100 && still < 5; i++) {
+          await new Promise((r) => requestAnimationFrame(() => r(0)));
+          const y = e.getBoundingClientRect().top;
+          still = y === last ? still + 1 : 0;
+          last = y;
+        }
+      });
       await api.quiet(300);
       // Diagnostics: keys the target needs that weren't in memory at click time (empty when instant).
       const target = await el!.evaluate((a) => a.getAttribute("href") ?? "");
