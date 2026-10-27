@@ -1217,7 +1217,7 @@ describe("link previews (og tags on page navigations)", () => {
     const stats = await page(t, "/stats");
     assert.equal(stats.r.status, 200);
     assert.match(stats.html, /<title>Site stats · BTD6 Open Data<\/title>/);
-    assert.match((await page(t, "/ct")).html, /<title>BTD6 Contested Territory \(CT\) Leaderboards · /);
+    assert.match((await page(t, "/ct")).html, /<title>BTD6 Contested Territory \(CT\): Map, Relics &amp; Leaderboards · /);
   });
 });
 

@@ -94,6 +94,8 @@ export async function handlePage(deps: Deps, assets: AssetsLike, request: Reques
   headers.set("Cache-Control", "no-cache");
   // Hidden pages: the app also adds a robots meta, but crawlers that skip scripts only see this.
   if (/^\/(stats|suggest)\/?$/.test(url.pathname)) headers.set("X-Robots-Tag", "noindex, nofollow");
+  // CT group pages vanish 2–3 days after the CT (NK drops the groups): keep them out of search results.
+  else if (/^\/ct\/[^/]+\/group\//.test(url.pathname)) headers.set("X-Robots-Tag", "noindex");
   for (const [k, v] of Object.entries(SECURITY_HEADERS)) headers.set(k, v);
   // Paths the app has no page for are real 404s (the app still shows its not-found page), not "soft 404s".
   return new Response(request.method === "HEAD" ? null : html, { status: routeName(url) === "notfound" ? 404 : 200, headers });
@@ -127,7 +129,7 @@ const page = (title: string, description: string, image: string | null = null, w
 const LISTS: Record<string, [string, string]> = {
   bosses: ["BTD6 Boss Event Leaderboards", "Every Bloons TD 6 boss event: leaderboards, rules and top scores, with full history."],
   races: ["BTD6 Race Leaderboards", "Every Bloons TD 6 race: leaderboards and rules, with full history."],
-  ct: ["BTD6 Contested Territory (CT) Leaderboards", "Every Bloons TD 6 Contested Territory (CT) event: player and team leaderboards and tiles."],
+  ct: ["BTD6 Contested Territory (CT): Map, Relics & Leaderboards", "Every Bloons TD 6 Contested Territory (CT) event: the hex tile map, relics, team and player leaderboards, medal cut-offs and team history."],
   odyssey: ["Odysseys", "Every Bloons TD 6 odyssey: islands, rules and rewards."],
   events: ["Events", "Bloons TD 6 events: bosses, races, Contested Territory and odysseys."],
 };
@@ -197,7 +199,10 @@ export async function describe(deps: Deps, pathname: string): Promise<PageMeta> 
     }
     if (kind === "ct") {
       const group = c === "group" && d ? " group" : "";
-      return page(`Contested Territory${group}`, `Contested Territory${dates}. Player and team leaderboards, tiles and relics.`);
+      const title = `Contested Territory${group}${dates ? ` · ${dates.slice(2)}` : ""}`;
+      return group
+        ? page(title, `Contested Territory group${dates}: the teams in one group and the points between them.`)
+        : page(title, `Contested Territory${dates}: the hex tile map with every relic and banner, team and player leaderboards and medal cut-offs.`);
     }
     const desc = str(ev.description);
     const blurb = clip(desc, 160);
