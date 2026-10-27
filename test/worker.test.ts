@@ -355,7 +355,8 @@ describe("event sitemap", () => {
     for (const kind of ["boss", "race", "ct", "odyssey"]) ins.run(kind, `old&<${kind}> x`, now - 3 * DAY, now - DAY, JSON.stringify({ id: `old&<${kind}> x`, start: now - 3 * DAY, end: now - DAY }));
     ins.run("boss", "live", now - DAY, now + DAY, JSON.stringify({ id: "live", start: now - DAY, end: now + DAY }));
     ins.run("boss", "future", now + DAY, now + 2 * DAY, JSON.stringify({ id: "future", start: now + DAY, end: now + 2 * DAY }));
-    const r = await handleApi(t.deps, get("/sitemap-events.xml"));
+    // through the site entry (with static assets), as in production: the path must reach the Worker's route
+    const r = await handleRequest(t.deps, { ASSETS: { fetch: async () => new Response("<!doctype html>", { status: 404 }) } }, get("/sitemap-events.xml"));
     assert.equal(r.status, 200);
     assert.match(r.headers.get("Content-Type")!, /^application\/xml/);
     assert.equal(r.headers.get("Cache-Control"), "public, max-age=3600");

@@ -87,7 +87,7 @@ export function makeDeps(env: Env, ctx: Ctx): Deps {
  */
 export async function handleRequest(deps: Deps, env: Pick<Env, "ASSETS">, request: Request): Promise<Response> {
   const { pathname, search, hostname } = new URL(request.url);
-  if (pathname === "/api" || pathname.startsWith("/api/") || !env.ASSETS) return handleApi(deps, request);
+  if (pathname === "/api" || pathname.startsWith("/api/") || pathname === "/sitemap-events.xml" || !env.ASSETS) return handleApi(deps, request);
   // Pages on the old workers.dev address and on www move to the one public address. /api/* stays answered on
   // every host, so tabs still open on the old address keep working.
   if (hostname.endsWith(".workers.dev") || hostname.startsWith("www.")) return Response.redirect(SITE + pathname + search, 301);
