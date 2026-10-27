@@ -2020,8 +2020,8 @@ export function CutoffStrip(props: {
       <summary>
         <span class="kicker">Medal cut-offs</span>
         <span class="co-more" aria-hidden="true">
-          <span class="co-show">Show ▾</span>
-          <span class="co-hide">Hide ▴</span>
+          <span class="co-show">Show</span>
+          <span class="co-hide">Hide</span>
         </span>
         {glimpse.length > 0 && (
           <span class="co-peek">
@@ -2118,7 +2118,6 @@ export function CutRow(props: {
             name={`${medalName(props.board, cut.tier)} medal`}
           />
           <span class="cut-l">
-            <span aria-hidden="true">▲ </span>
             <span class="vh">Medal bracket ends: </span>
             {cut.label}
           </span>

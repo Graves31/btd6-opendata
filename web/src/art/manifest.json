@@ -196,7 +196,7 @@
    "cell": 48,
    "cols": 10,
    "rows": 10,
-   "bytes": 89426,
+   "bytes": 90388,
    "keys": [
     "AbilityCooldownDecrease",
     "AbilityCooldownIncrease",
@@ -217,6 +217,7 @@
     "Coop3",
     "Coop4",
     "Crate",
+    "CtBanner",
     "CtPoints",
     "CtTickets",
     "CustomRounds",
@@ -629,7 +630,7 @@
    "missingOptional": []
   }
  },
- "totalSheetBytes": 809506,
+ "totalSheetBytes": 809942,
  "bossBar": {
   "parts": {
    "armour:diamondback:edge": {

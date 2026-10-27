@@ -43,13 +43,13 @@ export const hexXY = (h: Hex): [number, number] => [1.5 * h.q, Math.sqrt(3) * (h
 /** Relic id of a relic tile ("Relic - ManaBulwark" → "ManaBulwark"). */
 export const tileRelic = (t: CTTile) => (t.type.startsWith("Relic - ") ? t.type.slice(8) : undefined);
 
-/** CT game types: label, leaderboard icon (ui sheet) and map colour (CSS var). */
-export const CT_GAME: Record<string, { label: string; icon?: string; color: string }> = {
-  LeastCash: { label: "Least Cash", icon: "LeastCash", color: "var(--d0)" },
-  LeastTiers: { label: "Least Tiers", icon: "LeastTiers", color: "var(--d1)" },
-  Race: { label: "Race", icon: "GameTime", color: "var(--d2)" },
-  Boss: { label: "Boss", icon: "BossTier", color: "var(--d3)" },
-  TeamStart: { label: "Team start", color: "var(--ink-3)" },
+/** CT game types: label and leaderboard icon (ui sheet). Map colours: CSS .g-<gameType> (styles.css CT-MAP). */
+export const CT_GAME: Record<string, { label: string; icon?: string }> = {
+  LeastCash: { label: "Least Cash", icon: "LeastCash" },
+  LeastTiers: { label: "Least Tiers", icon: "LeastTiers" },
+  Race: { label: "Race", icon: "GameTime" },
+  Boss: { label: "Boss", icon: "BossTier" },
+  TeamStart: { label: "Team start" },
 };
 
 /** Tile type label ("TeamFirstCapture" → "Team first capture", relics → "Relic"). */

@@ -12044,8 +12044,10 @@ button.my-miss:hover {
   }
 }
 
-/* ── CT-MAP: hex map (views/ctMap.tsx). Tile colour = game type (--c), mixed into the surface so codes read in
-   both themes; codes hide when the map is too narrow for them (the tile panel carries the detail). */
+/* ── CT-MAP: hex map (views/ctMap.tsx), tiles drawn like the game's 3D CT tiles. Per game type the game's team
+   tile colours, sampled from its TileTeam<Colour> textures: --tf face, --tl light inner edge, --tm lit bevel,
+   --td shaded bevel (Least Cash = green, Least Tiers = blue, Race = yellow, Boss = red, Team start = the grey
+   TileTeamNone; anything else = the plain grass tile, TileTextureGrass). Fixed colours: game art, both themes. */
 .hexm {
   container-type: inline-size;
   max-width: 600px;
@@ -12056,59 +12058,64 @@ button.my-miss:hover {
   width: 100%;
   height: auto;
 }
+:where(.hexm-t, .hexm-key, .hexm-thumb path) {
+  --tf: #b9e545;
+  --tl: #c8ef5a;
+  --tm: #4c9b33;
+  --td: #336f36;
+}
 .hexm-t {
   cursor: pointer;
   outline: none;
 }
-.hexm-t > polygon:first-of-type {
-  fill: color-mix(in srgb, var(--c) 52%, var(--s1));
-  stroke: var(--bg);
-  stroke-width: 0.06;
+.tb {
+  fill: var(--td);
 }
-.hexm-t:hover > polygon:first-of-type {
-  fill: color-mix(in srgb, var(--c) 72%, var(--s1));
+.tm {
+  fill: var(--tm);
 }
-.hexm-t:focus-visible > polygon:first-of-type {
+.tl {
+  fill: var(--tl);
+}
+.tf {
+  fill: var(--tf);
+}
+.hexm-t:hover {
+  filter: brightness(1.12);
+}
+.hexm-t:focus-visible .tb {
   stroke: var(--focus);
   stroke-width: 0.16;
 }
 .hexm-t.dim {
-  opacity: 0.22;
-}
-.hexm-start {
-  fill: none;
-  stroke: var(--ink);
-  stroke-width: 0.12;
-}
-.hexm-flag {
-  fill: var(--accent);
-  stroke: var(--on-accent);
-  stroke-width: 0.06;
-  stroke-linejoin: round;
-}
-.hexm-relic-dot {
-  fill: var(--ink);
+  opacity: 0.2;
 }
 .hexm-code {
-  font: 700 0.46px var(--f-body);
+  font: 800 0.44px var(--f-body);
   text-anchor: middle;
-  fill: var(--ink);
+  fill: #fff;
+  stroke: rgba(0, 0, 0, 0.6);
+  stroke-width: 0.1;
+  stroke-linejoin: round;
+  paint-order: stroke;
   pointer-events: none;
 }
-.hexm-sel {
+/* selection: white rim with the cyan of the game's HexGlow */
+.hexm-sel polygon {
   fill: none;
-  stroke: var(--accent);
-  stroke-width: 0.18;
+  stroke: #fff;
+  stroke-width: 0.12;
   pointer-events: none;
 }
-@container (max-width: 520px) {
-  .hexm-code {
-    display: none;
-  }
+.hexm-sel .glow {
+  stroke: #36d6ff;
+  stroke-width: 0.34;
+  stroke-opacity: 0.75;
 }
 .hexm-legend {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 6px 16px;
   margin: 12px 0 0;
   padding: 0;
@@ -12125,22 +12132,71 @@ button.my-miss:hover {
   color: var(--ink);
   font-weight: 700;
 }
-.hexm-sw {
-  width: 14px;
-  height: 14px;
-  flex: none;
-  clip-path: polygon(25% 7%, 75% 7%, 100% 50%, 75% 93%, 25% 93%, 0 50%);
-  background: color-mix(in srgb, var(--c) 52%, var(--s1));
+.hexm-tgl {
+  margin-left: auto;
 }
-.hexm-li {
-  width: 16px;
-  height: 16px;
+.hexm-tgl button {
+  min-height: 32px;
+  padding: 4px 12px;
+  font: 600 13px/1 var(--f-body);
+  color: var(--ink-2);
+  background: var(--s1);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+  cursor: pointer;
+}
+.hexm-tgl button:hover {
+  color: var(--ink);
+  background: var(--s2);
+}
+.hexm-tgl button[aria-pressed="true"] {
+  color: var(--on-accent);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.hexm-key {
+  width: 18px;
+  height: 18px;
+  flex: none;
 }
 .hexm-thumb {
   display: block;
 }
 .hexm-thumb path {
-  fill: color-mix(in srgb, var(--c) 60%, var(--s1));
+  fill: var(--tf);
+  stroke: var(--td);
+  stroke-width: 0.12;
+  stroke-linejoin: round;
+}
+.g-LeastCash {
+  --tf: #00dd6b;
+  --tl: #00ed7b;
+  --tm: #0ca263;
+  --td: #00673c;
+}
+.g-LeastTiers {
+  --tf: #04a6f3;
+  --tl: #2bb1f1;
+  --tm: #007ee1;
+  --td: #0051b2;
+}
+.g-Race {
+  --tf: #f7d302;
+  --tl: #ffe102;
+  --tm: #f7b600;
+  --td: #dc8700;
+}
+.g-Boss {
+  --tf: #f4403f;
+  --tl: #ff5757;
+  --tm: #c02f2e;
+  --td: #a01010;
+}
+.g-TeamStart {
+  --tf: #7b7a7b;
+  --tl: #8e8e8e;
+  --tm: #707070;
+  --td: #5a595a;
 }
 .hexm-panel {
   display: flex;
@@ -12164,6 +12220,9 @@ button.my-miss:hover {
   color: var(--ink);
 }
 .hexm-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--ink-2);
 }
 
@@ -12364,26 +12423,11 @@ button.my-miss:hover {
   padding: 0;
   height: 36px;
 }
-.g-LeastCash {
-  --g: var(--d0);
-}
-.g-LeastTiers {
-  --g: var(--d1);
-}
-.g-Race {
-  --g: var(--d2);
-}
-.g-Boss {
-  --g: var(--d3);
-}
-.g-TeamStart {
-  --g: var(--ink-3);
-}
 .ctv-bar li {
   min-width: 0;
   display: grid;
   place-items: center;
-  background: var(--g, var(--rule-2));
+  background: var(--tf, var(--rule-2));
   color: var(--on-accent);
   font: 800 16px/1 var(--f-display);
   overflow: hidden;
@@ -12400,11 +12444,6 @@ button.my-miss:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-.ctv-leg .sw {
-  width: 12px;
-  height: 12px;
-  background: var(--g, var(--rule-2));
 }
 .ctv-leg .num {
   font-size: 18px;

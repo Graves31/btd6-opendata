@@ -58,7 +58,7 @@ import {
 } from "../ui.tsx";
 import { NotFound } from "./errors.tsx";
 import { boardGone, CutRow, CutoffStrip, ended, EventHead, findEvent, isMissing, lbMeta, Medal, RankTh, useFits } from "./events.tsx";
-import { HexMap, HexThumb, HexTilePanel } from "./ctMap.tsx";
+import { HexMap, HexThumb, HexTilePanel, TileKey } from "./ctMap.tsx";
 // ─────────────────────────────── CT
 
 const CT_TABS = ["teams", "players", "map"] as const;
@@ -583,7 +583,7 @@ function CTMapTab(props: { id: string; tiles?: CTTile[] }) {
         <ul class="ctv-leg">
           {kinds.map(([k, v]) => (
             <li key={k} class={`g-${k}`}>
-              <i class="sw" aria-hidden="true" />
+              <TileKey g={k} />
               <GameBadge g={k} size={24} />
               <b class="num">{v}</b>
               {mix?.by[k] && <span class="quiet small">usually {mix.by[k].avg}</span>}

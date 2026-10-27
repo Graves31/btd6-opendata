@@ -282,6 +282,8 @@ UI = {
     "ContestedTerritory": "ref/ContestedTerritoryEventBtn",
     "CtPoints": "Ui/CtPointsIcon",
     "Relic": "ref/DefaultRelicIcon",
+    # the CT banner tile: the game's 2D art of the banner model planted on banner tiles (texture CTBannerTile)
+    "CtBanner": "ref/CTPointsBanner",
     "MaxTowers": "Ui/MaxMonkeysIcon",
     "CustomRounds": "ChallengeRulesIcons/CustomRoundIcon",
     # paragon calculator fields (StartingCash and LeastTiersRule above are reused there too)
