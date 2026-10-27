@@ -12582,17 +12582,31 @@ button.my-miss:hover {
   display: grid;
   gap: 16px;
 }
+.hx-heroes {
+  margin-bottom: 16px;
+}
+/* Heroes in XP-curve groups, side by side on a wide screen */
 .hx-pick {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+}
+.hx-gl {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--ink-3);
+  font: 700 12px/1.2 var(--f-body);
+  font-variant-numeric: tabular-nums;
+}
+.hx-gr {
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
 }
 .hx-h {
   display: grid;
   justify-items: center;
-  gap: 2px;
-  min-width: 0;
-  padding: 6px 2px 4px;
+  padding: 3px;
   background: var(--sub);
   color: var(--ink);
   border: 1px solid var(--rule-2);
@@ -12606,13 +12620,19 @@ button.my-miss:hover {
   height: 1px;
   clip-path: inset(50%);
 }
+/* Phones: smaller portraits so the 7-hero group fits on one line */
 @media (max-width: 600px) {
   .hx-pick {
-    grid-template-columns: repeat(6, 1fr);
+    gap: 8px 16px;
+  }
+  .hx-gr {
     gap: 4px;
   }
   .hx-h {
-    padding: 3px 0;
+    padding: 2px;
+  }
+  .hx-h .spr {
+    --s: 36px;
   }
 }
 .hx-mode {
@@ -12787,12 +12807,6 @@ button.my-miss:hover {
   .hx-setup {
     order: 1;
   }
-  .hx-every {
-    order: 2;
-  }
-  .hx-note {
-    order: 3;
-  }
 }
 .hx-tl {
   display: grid;
@@ -12874,6 +12888,9 @@ button.my-miss:hover {
   margin: 0;
   padding: 0;
 }
+.hx-cg + .hx-cg {
+  margin-top: 12px;
+}
 .hx-note {
-  margin: 0;
+  margin: 16px 0 0;
 }

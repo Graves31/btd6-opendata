@@ -27,6 +27,10 @@ const MAPS = ["Beginner", "Intermediate", "Advanced", "Expert"];
 const TIERS = [40, 60, 80, 100, 120];
 const HERO_IDS = HERO_ORDER.filter((h) => HEROES[h]);
 const LEVELS = Array.from({ length: MAX_LEVEL }, (_, i) => i + 1);
+/** Heroes by XP curve: total level XP over Quincy's (×1, ×1.425, ×1.5, ×1.71 in v57), cheapest first. */
+const total = (h: string) => HEROES[h].xp.reduce((a, b) => a + b, 0);
+const mult = (h: string) => Math.round((total(h) / total("Quincy")) * 1000) / 1000;
+const GROUPS = [...new Set(HERO_IDS.map(mult))].sort((a, b) => a - b).map((m) => ({ mult: m, ids: HERO_IDS.filter((h) => mult(h) === m) }));
 
 function Check(p: { on: boolean; set: (v: boolean) => void; art: string; name: string; sub: string }) {
   return (
@@ -101,10 +105,12 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
 
   const compare = useMemo(
     () =>
-      HERO_IDS.map((h) => {
-        const q = plan({ ...input, hero: h }, r.level, r.round, r.first);
-        return { h, latest: q.latest, buy: q.buy };
-      }),
+      Object.fromEntries(
+        HERO_IDS.map((h) => {
+          const q = plan({ ...input, hero: h }, r.level, r.round, r.first);
+          return [h, { latest: q.latest, buy: q.buy }];
+        }),
+      ),
     [r.level, r.round, r.map, r.edu, r.taught, r.mts, r.emp, r.boost, r.en, r.n, r.first],
   );
 
@@ -125,25 +131,32 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
         ))}
       </ToolHero>
 
+      <section class="pg-panel hx-heroes" aria-labelledby="hx-hero">
+        <div class="pg-ph">
+          <h2 class="eyebrow" id="hx-hero">
+            Hero
+          </h2>
+          <span class="pg-hint">{hero}</span>
+        </div>
+        <div class="hx-pick">
+          {GROUPS.map((g) => (
+            <div key={g.mult} class="hx-g" role="group" aria-label={`Hero XP ×${g.mult}`}>
+              <span class="hx-gl">XP ×{g.mult}</span>
+              <div class="hx-gr">
+                {g.ids.map((h) => (
+                  <button key={h} type="button" class="hx-h" aria-pressed={r.hero === h} title={artName("hero", h)} onClick={() => set({ hero: h })}>
+                    <Spr family="hero" k={h} size={48} label />
+                    <span class="hx-hn">{artName("hero", h)}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <div class="bk-grid">
         <div class="bk-side">
-          <section class="pg-panel" aria-labelledby="hx-hero">
-            <div class="pg-ph">
-              <h2 class="eyebrow" id="hx-hero">
-                Hero
-              </h2>
-              <span class="pg-hint">{hero}</span>
-            </div>
-            <div class="hx-pick" role="group" aria-label="Hero">
-              {HERO_IDS.map((h) => (
-                <button key={h} type="button" class="hx-h" aria-pressed={r.hero === h} title={artName("hero", h)} onClick={() => set({ hero: h })}>
-                  <Spr family="hero" k={h} size={48} label />
-                  <span class="hx-hn">{artName("hero", h)}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-
           <section class="pg-panel" aria-label={placed ? "Placement" : "Goal"}>
             <div class="bk-seg hx-mode" role="group" aria-label="Mode">
               <button type="button" class="bk-chip" aria-pressed={!placed} onClick={() => go({ mode: "goal", at: undefined })}>
@@ -398,35 +411,43 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
               </ol>
             </details>
           </section>
-
-          {!placed && (
-            <section class="pg-panel hx-every" aria-labelledby="hx-cmp">
-              <div class="pg-ph">
-                <h2 class="eyebrow" id="hx-cmp">
-                  Every hero
-                </h2>
-                <span class="pg-hint">
-                  Level {r.level} by round {r.round}: latest placement
-                </span>
-              </div>
-              <div class="hx-cmp">
-                {compare.map((c) => (
-                  <button key={c.h} type="button" class="hx-c" aria-pressed={c.h === r.hero} onClick={() => set({ hero: c.h })}>
-                    <Spr family="hero" k={c.h} size={40} label />
-                    <span class="n">{artName("hero", c.h)}</span>
-                    <span class="v">{c.latest !== undefined ? `round ${c.latest}` : c.buy ? `buy ${money(c.buy.cash)}` : "–"}</span>
-                  </button>
-                ))}
-              </div>
-            </section>
-          )}
-
-          <p class="pg-hint hx-note">
-            Game v{GAME_VERSION} code and data; Energizer (+{pct(XP.energizer)}) and Hero Boost (+{pct(XP.heroBoost)}) from bloonswiki. XP comes at the end of each round (the
-            placement round too), split between heroes on the map. A level costs $1 per missing XP.
-          </p>
         </div>
       </div>
+
+      {!placed && (
+        <section class="pg-panel" aria-labelledby="hx-cmp">
+          <div class="pg-ph">
+            <h2 class="eyebrow" id="hx-cmp">
+              Every hero
+            </h2>
+            <span class="pg-hint">
+              Level {r.level} by round {r.round}: latest placement
+            </span>
+          </div>
+          {GROUPS.map((g) => (
+            <div key={g.mult} class="hx-cg" role="group" aria-label={`Hero XP ×${g.mult}`}>
+              <span class="hx-gl">XP ×{g.mult}</span>
+              <div class="hx-cmp">
+                {g.ids.map((h) => {
+                  const c = compare[h];
+                  return (
+                    <button key={h} type="button" class="hx-c" aria-pressed={h === r.hero} onClick={() => set({ hero: h })}>
+                      <Spr family="hero" k={h} size={40} label />
+                      <span class="n">{artName("hero", h)}</span>
+                      <span class="v">{c.latest !== undefined ? `round ${c.latest}` : c.buy ? `buy ${money(c.buy.cash)}` : "–"}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
+
+      <p class="pg-hint hx-note">
+        Game v{GAME_VERSION} code and data; Energizer (+{pct(XP.energizer)}) and Hero Boost (+{pct(XP.heroBoost)}) from bloonswiki. XP comes at the end of each round (the placement
+        round too), split between heroes on the map. A level costs $1 per missing XP. Heroes are grouped by how much XP their levels cost (×1 = Quincy).
+      </p>
     </div>
   );
 }
