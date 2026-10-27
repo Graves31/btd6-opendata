@@ -1,7 +1,7 @@
 // Tools → Hero XP planner (/tools/hero-xp): when to place a hero so it plays a round at a level. All maths lives in
 // ../heroXp.ts; this is the view. The URL is the state (routes.ts HeroXpRoute).
 
-import { useMemo } from "preact/hooks";
+import { useMemo, useState } from "preact/hooks";
 import energizerArt from "../art/tools/energizer.webp";
 import heroArt from "../art/tools/heroXp.webp";
 import mkEducation from "../art/tools/mkMonkeyEducation.webp";
@@ -26,6 +26,7 @@ const MAPS = ["Beginner", "Intermediate", "Advanced", "Expert"];
 /** Boss Bloon Event tiers (bloonswiki): tier 1 on round 40, then every 20 rounds. */
 const TIERS = [40, 60, 80, 100, 120];
 const HERO_IDS = HERO_ORDER.filter((h) => HEROES[h]);
+const LEVELS = Array.from({ length: MAX_LEVEL }, (_, i) => i + 1);
 
 function Check(p: { on: boolean; set: (v: boolean) => void; art: string; name: string; sub: string }) {
   return (
@@ -78,6 +79,21 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
   const pl = useMemo(() => plan(input, r.level, r.round, r.first), [r.hero, r.level, r.round, r.map, r.edu, r.taught, r.mts, r.emp, r.boost, r.en, r.n, r.first]);
   const place = placed ? Math.min(MAX_ROUND, r.at ?? r.first) : Math.max(r.first, Math.min(MAX_ROUND, r.at ?? pl.latest ?? r.first));
   const tl = timeline({ ...input, place }, MAX_ROUND);
+  /** "from round 40": the first round played at that level. */
+  const when = (l: number) => {
+    const at = tl.levels[l];
+    return at === undefined ? `not reached by round ${MAX_ROUND}` : at === place ? `placed on round ${at}` : `from round ${at}`;
+  };
+  // Boss tier badges: the level the hero has at the start of each tier round ("T3–5" when several share one).
+  const tierAt: Record<number, string> = {};
+  const tiers: Record<number, number[]> = {};
+  TIERS.forEach((t, i) => {
+    const l = t < place ? 0 : LEVELS.findLast((l) => (tl.levels[l] ?? Infinity) <= t);
+    if (l) (tiers[l] ??= []).push(i + 1);
+  });
+  for (const [l, ix] of Object.entries(tiers)) tierAt[+l] = ix.length === 1 ? `T${ix[0]}` : `T${ix[0]}–${ix.at(-1)}`;
+  const [pick, setPick] = useState<number>();
+  const shown = pick ?? (placed ? MAX_LEVEL : r.level);
   const hero = artName("hero", r.hero);
   const lvAt = (pw: number) => pl.window.find((w) => w.place === pw)?.at;
   const landing = pl.latest !== undefined ? lvAt(pl.latest) : undefined;
@@ -163,7 +179,9 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
                 </div>
               </>
             )}
+          </section>
 
+          <section class="pg-panel hx-setup" aria-label="Map and Monkey Knowledge">
             <div class="bk-field">
               <span class="bk-lab">Map difficulty</span>
               <div class="bk-seg" role="group" aria-label="Map difficulty">
@@ -332,27 +350,57 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
                 {hero} placed on round {place}
               </span>
             </div>
-            <ol class="hx-tl">
-              {Array.from({ length: MAX_LEVEL }, (_, i) => i + 1).map((l) => {
+            <ol class="hx-track">
+              {LEVELS.map((l) => {
                 const at = tl.levels[l];
+                const t = tierAt[l];
                 return (
-                  <li
-                    key={l}
-                    class={`hx-lv${!placed && l === r.level ? " goal" : ""}${at !== undefined && (placed || at <= r.round) ? " ok" : ""}`}
-                    aria-current={!placed && l === r.level ? "true" : undefined}
-                  >
-                    <b class="hx-n">{l}</b>
-                    <span class="hx-at">{at === undefined ? "not reached" : l === 1 || at === place ? `round ${at} (placed)` : `round ${at}`}</span>
-                    <span class="hx-xp">{l === 1 ? "" : `${HEROES[r.hero].xp[l - 2].toLocaleString("en-US")} XP`}</span>
-                    <span class="hx-tx">{HEROES[r.hero].text[l - 1]}</span>
+                  <li key={l}>
+                    <button
+                      type="button"
+                      class={`hx-t${!placed && l === r.level ? " goal" : ""}${at === undefined ? " no" : at === place ? " pl" : ""}${!placed && at !== undefined && at > r.round ? " late" : ""}`}
+                      aria-pressed={l === shown}
+                      aria-label={`Level ${l}, ${when(l)}${t ? `, boss ${t}` : ""}`}
+                      onClick={() => setPick(l)}
+                    >
+                      <b>{l}</b>
+                      <span>{at === undefined ? "–" : at === place ? "placed" : `from r${at}`}</span>
+                      {t && <i class="hx-tier">{t}</i>}
+                    </button>
                   </li>
                 );
               })}
             </ol>
+            <p class="hx-pick-tx" aria-live="polite">
+              <b>
+                Level {shown} · {when(shown)}
+              </b>{" "}
+              {HEROES[r.hero].text[shown - 1]}
+            </p>
+            <details class="bk-more hx-det">
+              <summary>Hero level details</summary>
+              <ol class="hx-tl">
+                {LEVELS.map((l) => {
+                  const at = tl.levels[l];
+                  return (
+                    <li
+                      key={l}
+                      class={`hx-lv${!placed && l === r.level ? " goal" : ""}${at !== undefined && (placed || at <= r.round) ? " ok" : ""}`}
+                      aria-current={!placed && l === r.level ? "true" : undefined}
+                    >
+                      <b class="hx-n">{l}</b>
+                      <span class="hx-at">{when(l)}</span>
+                      <span class="hx-xp">{l === 1 ? "" : `${HEROES[r.hero].xp[l - 2].toLocaleString("en-US")} XP`}</span>
+                      <span class="hx-tx">{HEROES[r.hero].text[l - 1]}</span>
+                    </li>
+                  );
+                })}
+              </ol>
+            </details>
           </section>
 
           {!placed && (
-            <section class="pg-panel" aria-labelledby="hx-cmp">
+            <section class="pg-panel hx-every" aria-labelledby="hx-cmp">
               <div class="pg-ph">
                 <h2 class="eyebrow" id="hx-cmp">
                   Every hero

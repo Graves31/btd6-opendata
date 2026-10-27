@@ -12579,6 +12579,8 @@ button.my-miss:hover {
 /* Hero XP planner (/tools/hero-xp); reuses the bank planner's bk- panels, chips and checks */
 .hx .bk-side {
   position: static; /* the setup is taller than a screen */
+  display: grid;
+  gap: 16px;
 }
 .hx-pick {
   display: grid;
@@ -12696,6 +12698,101 @@ button.my-miss:hover {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--on-accent);
+}
+/* Level track: 20 tiles (level + first round), 2 rows of 10, 4 rows of 5 on phones */
+.hx-track {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media (max-width: 600px) {
+  .hx-track {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+.hx-t {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 2px 6px;
+  background: var(--sub);
+  color: var(--ink);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+  cursor: pointer;
+}
+.hx-t b {
+  font: 900 24px/1 var(--f-display);
+}
+.hx-t span {
+  color: var(--ink-2);
+  font: 700 12px/1.1 var(--f-body);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.hx-t.pl,
+.hx-t.no {
+  opacity: 0.55;
+}
+.hx-t.late {
+  border-color: var(--ban);
+}
+.hx-t.late span {
+  color: var(--ban);
+}
+.hx-t.goal {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.hx-t[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--accent) 16%, var(--sub));
+}
+.hx-tier {
+  position: absolute;
+  top: -7px;
+  right: -4px;
+  padding: 1px 4px;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: 4px;
+  font: 800 10px/1.2 var(--f-body);
+  font-style: normal;
+}
+.hx-pick-tx {
+  min-height: 2.6em;
+  margin: 12px 0 0;
+  color: var(--ink-2);
+  font-size: 14px;
+}
+.hx-pick-tx b {
+  color: var(--ink);
+}
+.hx-det {
+  margin-top: 12px;
+}
+.hx-det .hx-tl {
+  margin-top: 8px;
+}
+/* Phones: the result comes right after the goal; map, Monkey Knowledge and the rest follow it. */
+@media (max-width: 899px) {
+  .hx .bk-side,
+  .hx .bk-col {
+    display: contents;
+  }
+  .hx-setup {
+    order: 1;
+  }
+  .hx-every {
+    order: 2;
+  }
+  .hx-note {
+    order: 3;
+  }
 }
 .hx-tl {
   display: grid;
