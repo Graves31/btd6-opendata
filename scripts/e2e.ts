@@ -356,7 +356,8 @@ async function main() {
       await page.evaluate(() => (document.querySelector(".relic-grid .rc") as HTMLElement | null)?.click());
       await page.waitForSelector(".relic-grid .rc.on", { timeout: 2000 }).catch(() => problems.push("CT map: clicking a relic didn't select it"));
       await page.evaluate(() => (document.querySelector(".ctv-chips button:nth-child(2)") as HTMLElement | null)?.click());
-      await step("Map → Teams tab", "nav.tabs a.tab[href*='tab=teams']");
+      // an upcoming CT opens on Map with Teams disabled (no link)
+      if (await has("nav.tabs a.tab[href*='tab=teams']")) await step("Map → Teams tab", "nav.tabs a.tab[href*='tab=teams']");
     }
     await home();
 
