@@ -10,7 +10,8 @@ import { hasArt, MEDAL_NAME, MODE_NAME, Spr } from "../sprite.tsx";
 import { A, body, Emblem, Gate, Img, Section, Stat } from "../ui.tsx";
 import { backTo } from "../nav.ts";
 import { looksLikeMe, setPlayerId, useOak } from "../oak.ts";
-import { CTHistory, EventHead } from "./events.tsx";
+import { CTHistory } from "./ctGroup.tsx";
+import { EventHead } from "./events.tsx";
 import { ErrorPanel } from "./errors.tsx";
 
 /** Event medal tiers, best first (the game's order). Position encodes the tier. */

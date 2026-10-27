@@ -11,9 +11,7 @@ import type {
   BossLeaderboardEntry,
   ChallengeDocument,
   CT,
-  CTPlayerEntry,
   CTTeamEntry,
-  CTTiles,
   NKEvent,
   Odyssey,
   OdysseyMetadata,
@@ -47,9 +45,8 @@ import {
   scoringShort,
   status,
 } from "../format.ts";
-import { ordinal, rankBossRows, SUBMITTED } from "../boards.ts";
+import { rankBossRows, SUBMITTED } from "../boards.ts";
 import { BOSS_HISTORY_FANDOM, BOSS_HISTORY_SOURCE } from "../data/bossHistory.ts";
-import { RELIC_INFO } from "../data/names.ts";
 import { RACE_HISTORY_SOURCE } from "../data/raceHistory.ts";
 import { Freshness } from "../fresh.tsx";
 import {
@@ -63,16 +60,14 @@ import {
   type Cutoff,
 } from "../medals.ts";
 import { eventGap, eventHistory, mapMetaKeys, type HistEvent } from "../maps.ts";
-import { backTo, onRoute, store } from "../nav.ts";
+import { onRoute, store } from "../nav.ts";
 import type { Envelope } from "../store.ts";
 import { ctLeader, homePicks } from "../picks.ts";
 import {
   bossBoardKey,
-  CT_GROUP_PLACEHOLDER,
   BOSS_TYPES,
   bossMetaKey,
   challengeKey,
-  ctGroupKey,
   ctKey,
   EVENTS_KEY,
   historyKey,
@@ -83,9 +78,7 @@ import {
   odyMetaKey,
   raceBoardKey,
   raceMetaKey,
-  teamHistoryKey,
   type BossDiff,
-  type CTTab,
   type EventKind,
   type OdyDiff,
   type Route,
@@ -122,7 +115,6 @@ import {
   peek,
   Rank,
   Section,
-  Skeleton,
   Stat,
   Submitted,
   Tabs,
@@ -169,7 +161,7 @@ const KIND_BLURB: Partial<Record<EventKind, string>> = {
 };
 
 /** Event from NK's live list, else from our archive (events NK no longer lists). */
-function findEvent<T extends AnyEvent>(
+export function findEvent<T extends AnyEvent>(
   kind: EventKind,
   id: string,
 ): T | undefined {
@@ -219,7 +211,7 @@ export const bossTitleFor = (id: string): string | undefined => {
 };
 
 /** True when a key answered "no such id" (unknown event / group): the page shows NotFound instead of a shell. */
-function isMissing(...keys: string[]): boolean {
+export function isMissing(...keys: string[]): boolean {
   return keys.some((k) => {
     const e = peek(k);
     if (!e || e.ok) return false;
@@ -231,10 +223,10 @@ function isMissing(...keys: string[]): boolean {
   });
 }
 
-const ended = (e?: { end: number }) => !!e && e.end <= Date.now();
+export const ended = (e?: { end: number }) => !!e && e.end <= Date.now();
 
 /** A medal sprite for a board's placement (nothing outside the brackets). */
-function Medal(p: {
+export function Medal(p: {
   board: Board;
   rank: number;
   total?: number;
@@ -1638,7 +1630,7 @@ function ctGone(c: CT): boolean {
 }
 
 /** A loaded board that is empty, "No Scores Available" or "no such id" (not a transient error / rate limit). */
-function boardGone(e: { ok: boolean; data?: Envelope }): boolean {
+export function boardGone(e: { ok: boolean; data?: Envelope }): boolean {
   if (e.ok) return !(e.data?.body as unknown[] | undefined)?.length;
   const msg = String(e.data?.error ?? "");
   return (
@@ -1648,7 +1640,7 @@ function boardGone(e: { ok: boolean; data?: Envelope }): boolean {
 }
 
 /** Column header for the rank column: "#" for eyes, "Rank" for screen readers. */
-const RankTh = () => (
+export const RankTh = () => (
   <th class="rank">
     <span aria-hidden="true">#</span>
     <span class="vh">Rank</span>
@@ -1659,7 +1651,7 @@ const RankTh = () => (
  * True while the element (the sticky side column) fits in the viewport below the header: only then does it stick;
  * a taller one scrolls with the page instead of hiding its lower half. Class `fits`.
  */
-function useFits<T extends HTMLElement>() {
+export function useFits<T extends HTMLElement>() {
   const ref = useRef<T>(null);
   useLayoutEffect(() => {
     const el = ref.current;
@@ -1919,7 +1911,7 @@ let cutoffsOpen = false;
  * Two placements, so the leaderboard starts right under the tabs: `side` goes in the right-hand column (desktop
  * only), `fold` above the board as a bar that opens in place (phones only). CSS shows one or the other.
  */
-function CutoffStrip(props: {
+export function CutoffStrip(props: {
   board: Board;
   total?: number;
   scoreAt: (rank: number) => string | undefined;
@@ -2055,7 +2047,7 @@ function CutoffStrip(props: {
  * reads as one block. A divider goes after the last row of the rank a bracket ends at (from Top 50 down: the
  * top 3 are their own brackets and already stand out); percentage brackets need the entry count.
  */
-function lbMeta(
+export function lbMeta(
   rows: { rank: number | null; approx?: boolean }[],
   board: Board,
   total?: number,
@@ -2098,7 +2090,7 @@ function lbMeta(
 }
 
 /** A medal bracket's end, as a row across the table: "▲ Top 50 · cut-off 7:01.116". */
-function CutRow(props: {
+export function CutRow(props: {
   board: Board;
   cut: Cutoff;
   cols: number;
@@ -2702,735 +2694,6 @@ export function RacePage(props: { id: string; p: number }) {
         </aside>
       </div>
     </>
-  );
-}
-
-// ─────────────────────────────── CT
-
-const CT_TABS = ["teams", "players", "tiles"] as const;
-
-export function CTPage(props: { id: string; tab: CTTab; p: number }) {
-  const { id, tab, p } = props;
-  const asideRef = useFits<HTMLElement>();
-  const ev = findEvent<CT>("ct", id);
-  const key = ctKey(id, tab, p);
-  if (!ev && isMissing(key)) {
-    return (
-      <NotFound
-        what="Contested Territory event"
-        back={{ href: href.events("ct"), label: "All CT events" }}
-      />
-    );
-  }
-  const entry = peek(key);
-  const maxPages = entry?.data?.maxPages ?? 1;
-  const upcoming = ev && status(ev.start, ev.end).s === "upcoming";
-  const done = ended(ev);
-  // Old CTs: NK stops serving their boards (totals reset to 0, empty or failing leaderboards).
-  const gone = !!ev && done && tab !== "tiles" && !!entry && boardGone(entry);
-  const total =
-    tab === "players"
-      ? ev?.totalScores_player
-      : tab === "teams"
-        ? ev?.totalScores_team
-        : undefined;
-  const board: Board = tab === "players" ? "ctPlayer" : "ctTeam";
-  const scoreAt = (rank: number) => {
-    const r = body<CTTeamEntry[]>(
-      ctKey(id, tab, Math.ceil(rank / PAGE_SIZE[board])),
-    )?.[(rank - 1) % PAGE_SIZE[board]];
-    return r && `${fmtInt(r.score)} pts`;
-  };
-  const rows = body<(CTPlayerEntry | CTTeamEntry)[]>(key);
-  return (
-    <>
-      <EventHead
-        eyebrow="Contested Territory"
-        icon="ct"
-        title={
-          ev ? `${fmtDay(ev.start)} – ${fmtDay(ev.end)}` : "Contested Territory"
-        }
-        ev={ev}
-        stats={
-          ev && (
-            <>
-              <Stat
-                k="Teams"
-                v={
-                  gone || !ev.totalScores_team
-                    ? "–"
-                    : fmtInt(ev.totalScores_team)
-                }
-              />
-              <Stat
-                k="Players"
-                v={
-                  gone || !ev.totalScores_player
-                    ? "–"
-                    : fmtInt(ev.totalScores_player)
-                }
-              />
-            </>
-          )
-        }
-      />
-      <div class="controls">
-        <Tabs
-          label="Leaderboard"
-          items={CT_TABS.map((t) => ({
-            href: href.ct(id, t),
-            label: cap(t),
-            current: t === tab,
-          }))}
-        />
-      </div>
-      {gone ? (
-        <div class="empty ct-gone">
-          <p class="empty-t">Leaderboard no longer published</p>
-          <p>
-            Ninja Kiwi removes older Contested Territory leaderboards from its
-            Open Data API, so this CT's {tab === "players" ? "player" : "team"}{" "}
-            ranking can't be shown.{" "}
-            {tab === "teams" && ev
-              ? "Team pages may still list the placement if this site archived it."
-              : ""}
-          </p>
-        </div>
-      ) : (
-        <>
-          {tab === "tiles" && (
-            <>
-              <Freshness k={key} ended={done} />
-              <Gate
-                k={key}
-                rows={25}
-                empty={
-                  upcoming && ev ? (
-                    <p>
-                      This CT starts {fmtWhen(ev.start)}. The map appears once
-                      it has started.
-                    </p>
-                  ) : (
-                    <p>No tile data yet.</p>
-                  )
-                }
-              />
-              <CTTilesView tiles={body<CTTiles>(key)} />
-            </>
-          )}
-          {tab !== "tiles" && (
-            <div class="split ct-split">
-              <section class="board-sec" aria-labelledby="lb-h">
-                <h2 class="vh" id="lb-h">
-                  {tab === "players" ? "Player" : "Team"} leaderboard
-                </h2>
-                <div class="lb-bar">
-                  <Freshness
-                    k={key}
-                    ended={done}
-                    shown={total ? Math.min(total, BOARD_CAP) : undefined}
-                    total={total}
-                  />
-                </div>
-                {rows && rows.length > 0 && (
-                  <CutoffStrip
-                    variant="fold"
-                    board={board}
-                    total={total}
-                    scoreAt={scoreAt}
-                  />
-                )}
-                <Gate
-                  k={key}
-                  rows={25}
-                  empty={
-                    upcoming && ev ? (
-                      <p>
-                        This CT starts {fmtWhen(ev.start)}. Scores appear once
-                        teams capture tiles.
-                      </p>
-                    ) : (
-                      <p>No scores yet.</p>
-                    )
-                  }
-                />
-                {tab === "players" && (
-                  <CTPlayers
-                    rows={body<CTPlayerEntry[]>(key)}
-                    p={p}
-                    total={total}
-                  />
-                )}
-                {tab === "teams" && (
-                  <CTTeams
-                    id={id}
-                    rows={body<CTTeamEntry[]>(key)}
-                    p={p}
-                    total={total}
-                  />
-                )}
-                <Pager
-                  page={p}
-                  maxPages={maxPages}
-                  to={(x) => href.ct(id, tab, x)}
-                />
-              </section>
-              <aside class="co-aside" ref={asideRef}>
-                {rows && rows.length > 0 && (
-                  <CutoffStrip
-                    variant="side"
-                    board={board}
-                    total={total}
-                    scoreAt={scoreAt}
-                  />
-                )}
-              </aside>
-            </div>
-          )}
-        </>
-      )}
-    </>
-  );
-}
-
-function CTPlayers(props: {
-  rows?: CTPlayerEntry[];
-  p: number;
-  total?: number;
-}) {
-  if (!props.rows) return null;
-  const size = PAGE_SIZE.ctPlayer;
-  const lm = lbMeta(
-    props.rows.map((_, i) => ({ rank: (props.p - 1) * size + i + 1 })),
-    "ctPlayer",
-    props.total,
-  );
-  return (
-    <div class="board-wrap narrow">
-      <table class="board lb" aria-label="Player leaderboard">
-        <thead>
-          <tr>
-            <RankTh />
-            <th>Player</th>
-            <th class="num">Points</th>
-          </tr>
-        </thead>
-        <tbody>
-          {props.rows.map((r, i) => [
-            <LinkRow
-              key={`${r.profile}-${i}`}
-              href={href.player(idFromUrl(r.profile))}
-              class={lm[i].cls || undefined}
-            >
-              <Rank
-                n={(props.p - 1) * size + i + 1}
-                board="ctPlayer"
-                total={props.total}
-                medal={lm[i].medal}
-              />
-              <td class="pl">
-                <A href={href.player(idFromUrl(r.profile))}>{r.displayName}</A>
-              </td>
-              <td class="num lead hero">{fmtInt(r.score)}</td>
-            </LinkRow>,
-            lm[i].cut && (
-              <CutRow
-                key={`cut-${i}`}
-                board="ctPlayer"
-                cut={lm[i].cut!}
-                cols={3}
-                score={`${fmtInt(r.score)} pts`}
-              />
-            ),
-          ])}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-/**
- * Whether a team row's group link leads anywhere. Once NK drops a CT's groups (2–3 days after the end) every team
- * links to one placeholder group whose page answers "No Group Available": no link then (and so no prefetch).
- * `shared`: how many rows on this page link the same group — more than a group can hold means a placeholder.
- */
-function hasGroup(ctId: string, gid: string, shared: number): boolean {
-  if (!gid || gid === CT_GROUP_PLACEHOLDER || shared > 4) return false;
-  const e = peek(ctGroupKey(ctId, gid));
-  return !(e && !e.ok && String(e.data?.error ?? "") === "No Group Available");
-}
-
-/** A team's place in its CT group ("1st of 4"), once that group's board is in memory (its link prefetches it). */
-function groupPlace(
-  ctId: string,
-  groupUrl: string,
-  teamUrl: string,
-): { rank: number; of: number } | undefined {
-  const grp = body<CTTeamEntry[]>(ctGroupKey(ctId, idFromUrl(groupUrl)));
-  const i =
-    grp?.findIndex((x) => idFromUrl(x.profile) === idFromUrl(teamUrl)) ?? -1;
-  return grp && i >= 0 ? { rank: i + 1, of: grp.length } : undefined;
-}
-
-function CTTeams(props: {
-  id: string;
-  rows?: CTTeamEntry[];
-  p: number;
-  total?: number;
-}) {
-  if (!props.rows) return null;
-  const uses = new Map<string, number>();
-  for (const r of props.rows) {
-    const gid = idFromUrl(r.group);
-    uses.set(gid, (uses.get(gid) ?? 0) + 1);
-  }
-  const size = PAGE_SIZE.ctTeam;
-  const lm = lbMeta(
-    props.rows.map((_, i) => ({ rank: (props.p - 1) * size + i + 1 })),
-    "ctTeam",
-    props.total,
-  );
-  let noGroups = false;
-  const table = (
-    <div class="board-wrap narrow">
-      <table class="board lb" aria-label="Team leaderboard">
-        <thead>
-          <tr>
-            <RankTh />
-            <th>Team</th>
-            <th class="num">Points</th>
-            <th class="num">Group</th>
-          </tr>
-        </thead>
-        <tbody>
-          {props.rows.map((r, i) => {
-            const gid = idFromUrl(r.group);
-            const linked = hasGroup(props.id, gid, uses.get(gid) ?? 0);
-            const g = linked
-              ? groupPlace(props.id, r.group, r.profile)
-              : undefined;
-            if (!linked) noGroups = true;
-            return [
-              <LinkRow
-                key={`${r.profile}-${i}`}
-                href={href.team(idFromUrl(r.profile))}
-                class={lm[i].cls || undefined}
-              >
-                <Rank
-                  n={(props.p - 1) * size + i + 1}
-                  board="ctTeam"
-                  total={props.total}
-                  medal={lm[i].medal}
-                />
-                <td class="pl">
-                  <A href={href.team(idFromUrl(r.profile))}>{r.displayName}</A>
-                </td>
-                <td class="num lead hero">{fmtInt(r.score)}</td>
-                <td class="num grp">
-                  {!linked ? (
-                    <span
-                      class="nil"
-                      title="Ninja Kiwi no longer publishes this CT's groups"
-                    >
-                      n/a
-                    </span>
-                  ) : (
-                    <A
-                      href={href.ctgroup(props.id, gid)}
-                      class="small-link"
-                      label={
-                        g
-                          ? `${r.displayName}: ${ordinal(g.rank)} of ${g.of} in its group`
-                          : `${r.displayName}'s group`
-                      }
-                    >
-                      {g ? (
-                        <span class="grp-in">
-                          <Medal board="ctGroup" rank={g.rank} size={20} />
-                          <span>
-                            {ordinal(g.rank)}{" "}
-                            <span class="grp-of">of {g.of}</span>
-                          </span>
-                        </span>
-                      ) : (
-                        "Group"
-                      )}
-                    </A>
-                  )}
-                </td>
-              </LinkRow>,
-              lm[i].cut && (
-                <CutRow
-                  key={`cut-${i}`}
-                  board="ctTeam"
-                  cut={lm[i].cut!}
-                  cols={4}
-                  score={`${fmtInt(r.score)} pts`}
-                />
-              ),
-            ];
-          })}
-        </tbody>
-      </table>
-    </div>
-  );
-  return noGroups ? (
-    <>
-      {table}
-      <p class="quiet small tbl-note">
-        n/a: Ninja Kiwi no longer publishes this CT's groups.
-      </p>
-    </>
-  ) : (
-    table
-  );
-}
-
-const GAME_TYPE: Record<string, string> = {
-  LeastCash: "Least Cash",
-  LeastTiers: "Least Tiers",
-  Race: "Race",
-  Boss: "Boss",
-  TeamStart: "Team start",
-};
-/** CT game type → ui icon. */
-const GAME_ICON: Record<string, string> = {
-  LeastCash: "LeastCash",
-  LeastTiers: "LeastTiers",
-  Race: "GameTime",
-  Boss: "BossTier",
-};
-
-/** Relic name + effect from the game's data (names.ts), else the humanised id. */
-const relicInfo = (id: string) =>
-  RELIC_INFO[id] ?? { name: human(id), description: "" };
-
-function CTTilesView(props: { tiles?: CTTiles }) {
-  if (!props.tiles) return null;
-  const tiles = props.tiles.tiles;
-  const byType = new Map<string, number>();
-  const relics: { id: string; relic: string; game: string }[] = [];
-  let banners = 0;
-  for (const t of tiles) {
-    byType.set(t.gameType, (byType.get(t.gameType) ?? 0) + 1);
-    if (t.type.startsWith("Relic - "))
-      relics.push({ id: t.id, relic: t.type.slice(8), game: t.gameType });
-    if (t.type === "Banner") banners++;
-  }
-  const max = Math.max(...byType.values());
-  return (
-    <div class="split even">
-      <Section
-        title="Tiles by game type"
-        aside={`${tiles.length} tiles · ${banners} banners`}
-      >
-        <ol class="bars">
-          {[...byType]
-            .sort((a, b) => b[1] - a[1])
-            .map(([k, v]) => (
-              <li
-                key={k}
-                class="has-i"
-                style={{ "--w": `${(v / max) * 100}%` }}
-              >
-                {GAME_ICON[k] ? (
-                  <Spr family="ui" k={GAME_ICON[k]} size={32} label />
-                ) : (
-                  <span class="spr-gap" />
-                )}
-                <span>{GAME_TYPE[k] ?? human(k)}</span>
-                <span class="num">{v}</span>
-              </li>
-            ))}
-        </ol>
-      </Section>
-      <Section title="Relics" aside={`${relics.length} on the map`}>
-        <div class="board-wrap">
-          <table class="board compact relics">
-            <thead>
-              <tr>
-                <th>Relic</th>
-                <th>Tile</th>
-                <th>Game</th>
-              </tr>
-            </thead>
-            <tbody>
-              {relics.map((r) => {
-                const info = relicInfo(r.relic);
-                return (
-                  <tr key={r.id}>
-                    <td>
-                      <span
-                        class="relic"
-                        title={
-                          info.description
-                            ? `${info.name}: ${info.description}`
-                            : info.name
-                        }
-                      >
-                        {hasArt("relic", r.relic) ? (
-                          <Spr
-                            family="relic"
-                            k={r.relic}
-                            size={36}
-                            name={info.name}
-                            label
-                          />
-                        ) : (
-                          <Spr
-                            family="ui"
-                            k="Relic"
-                            size={36}
-                            name={info.name}
-                            label
-                            optional
-                          />
-                        )}
-                        <span class="relic-t">
-                          <span class="relic-n">{info.name}</span>
-                          {info.description && (
-                            <span class="relic-d">{info.description}</span>
-                          )}
-                        </span>
-                      </span>
-                    </td>
-                    <td class="mono">{r.id}</td>
-                    <td>
-                      <span class="ifact">
-                        {GAME_ICON[r.game] && (
-                          <Spr
-                            family="ui"
-                            k={GAME_ICON[r.game]}
-                            size={24}
-                            label
-                            optional
-                          />
-                        )}
-                        <span class="m-hide">
-                          {GAME_TYPE[r.game] ?? human(r.game)}
-                        </span>
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </Section>
-    </div>
-  );
-}
-
-export function CTGroupPage(props: { id: string; gid: string }) {
-  const key = ctGroupKey(props.id, props.gid);
-  const ev = findEvent<CT>("ct", props.id);
-  const err = peek(key);
-  if (
-    props.gid === CT_GROUP_PLACEHOLDER ||
-    (err && !err.ok && String(err.data?.error ?? "") === "No Group Available")
-  ) {
-    return (
-      <NotFound
-        what="CT group"
-        back={{
-          href: href.ct(props.id, "teams"),
-          label: "CT team leaderboard",
-        }}
-      >
-        <p>
-          Ninja Kiwi stops publishing Contested Territory groups a few days
-          after a CT ends, so this group can't be shown any more.
-        </p>
-      </NotFound>
-    );
-  }
-  if (isMissing(key))
-    return (
-      <NotFound
-        what="CT group"
-        back={{
-          href: href.ct(props.id, "teams"),
-          label: "CT team leaderboard",
-        }}
-      />
-    );
-  const rows = body<CTTeamEntry[]>(key);
-  const lm = lbMeta(
-    (rows ?? []).map((_, i) => ({ rank: i + 1 })),
-    "ctGroup",
-  );
-  return (
-    <>
-      <header class="page-h">
-        <p class="eyebrow">
-          {backTo() ? (
-            <>Contested Territory{ev ? ` · ${fmtDay(ev.start)}` : ""}</>
-          ) : (
-            <A href={href.ct(props.id, "teams")}>
-              ‹ Contested Territory{ev ? ` · ${fmtDay(ev.start)}` : ""}
-            </A>
-          )}
-        </p>
-        <h1 class="title">Team group</h1>
-        <p class="lede">
-          Teams in the same CT group compete for the same tiles.
-        </p>
-        <Freshness k={key} ended={ended(ev)} />
-      </header>
-      <Gate k={key} />
-      {rows && (
-        <div class="board-wrap narrow">
-          <table class="board lb" aria-label="Group leaderboard">
-            <thead>
-              <tr>
-                <RankTh />
-                <th>Team</th>
-                <th class="num">Points</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r, i) => [
-                <LinkRow
-                  key={r.profile}
-                  href={href.team(idFromUrl(r.profile))}
-                  class={lm[i].cls || undefined}
-                >
-                  <Rank n={i + 1} board="ctGroup" medal={lm[i].medal} />
-                  <td class="pl">
-                    <A href={href.team(idFromUrl(r.profile))}>
-                      {r.displayName}
-                    </A>
-                  </td>
-                  <td class="num lead hero">
-                    {fmtInt(r.score)}
-                    {/* In a group, the place (and its reward) is what counts: the gap to the group's first. */}
-                    {i > 0 && rows[0].score > r.score && (
-                      <span class="gap" title="Behind the group's first">
-                        <span class="vh">behind the group's first by </span>−
-                        {fmtInt(rows[0].score - r.score)}
-                      </span>
-                    )}
-                  </td>
-                </LinkRow>,
-                lm[i].cut && (
-                  <CutRow
-                    key={`cut-${i}`}
-                    board="ctGroup"
-                    cut={lm[i].cut!}
-                    cols={3}
-                    score={`${fmtInt(r.score)} pts`}
-                  />
-                ),
-              ])}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </>
-  );
-}
-
-// ─────────────────────────────── team CT history (mounted on the Team page)
-
-interface TeamHistory {
-  team: string;
-  entries: {
-    ct: string;
-    start: number;
-    end: number;
-    rank: number | null;
-    total: number | null;
-    score: number | null;
-    group: { rank: number | null; of: number | null } | null;
-  }[];
-}
-
-/**
- * A team's past CT placements, from the server's archive (GET /api/history/team/:guildId; no NK requests).
- * The key is in the team route's needs, so it is normally in memory already; if the endpoint fails or is missing
- * (older Worker) the section says so instead of loading forever.
- */
-export function CTHistory(props: { guildId: string }) {
-  const key = teamHistoryKey(props.guildId);
-  const e = peek(key);
-  const [settled, setSettled] = useState(false);
-  useEffect(() => {
-    let live = true;
-    setSettled(false);
-    void store.want([key]).then(() => live && setSettled(true));
-    return () => {
-      live = false;
-    };
-  }, [key]);
-  const h = e?.ok ? (e.data as unknown as TeamHistory) : undefined; // the Worker answers with the bare TeamHistory
-  const entries = Array.isArray(h?.entries) ? h.entries : undefined;
-  const aside = entries?.length
-    ? `${entries.length} CT${entries.length === 1 ? "" : "s"} archived`
-    : undefined;
-  // Nothing to list (empty archive or endpoint unavailable): one muted line, no empty section.
-  if (entries ? !entries.length : settled || e?.ok === false) {
-    return (
-      <p class="quiet ct-hist-none">
-        {entries
-          ? "No archived CT placements for this team yet."
-          : "CT history isn't available right now."}
-      </p>
-    );
-  }
-  return (
-    <Section title="Contested Territory history" aside={aside} class="ct-hist">
-      {!entries ? (
-        <Skeleton rows={3} />
-      ) : (
-        <div class="board-wrap narrow">
-          <table class="board compact">
-            <thead>
-              <tr>
-                <th>CT</th>
-                <th class="rank">Global</th>
-                <th class="num">Points</th>
-                <th class="num">Group</th>
-              </tr>
-            </thead>
-            <tbody>
-              {entries.map((x) => (
-                <LinkRow key={x.ct} href={href.ct(x.ct, "teams")}>
-                  <td class="pl">
-                    <A href={href.ct(x.ct, "teams")}>
-                      {fmtDay(x.start)} – {fmtDay(x.end)}
-                    </A>
-                  </td>
-                  <Rank
-                    n={x.rank}
-                    board="ctTeam"
-                    total={x.total ?? undefined}
-                  />
-                  <td class="num lead">
-                    {x.score !== null ? fmtInt(x.score) : "–"}
-                  </td>
-                  <td class="num">
-                    {x.group?.rank ? (
-                      <span class="grp-in">
-                        <Medal board="ctGroup" rank={x.group.rank} size={20} />
-                        <span>
-                          {ordinal(x.group.rank)}
-                          {x.group.of ? (
-                            <span class="grp-of"> of {x.group.of}</span>
-                          ) : null}
-                        </span>
-                      </span>
-                    ) : (
-                      "–"
-                    )}
-                  </td>
-                </LinkRow>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </Section>
   );
 }
 
