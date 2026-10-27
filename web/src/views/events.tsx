@@ -46,6 +46,7 @@ import {
   status,
 } from "../format.ts";
 import { rankBossRows, SUBMITTED } from "../boards.ts";
+import { MAP_LIST } from "../data/names.ts";
 import { BOSS_HISTORY_FANDOM, BOSS_HISTORY_SOURCE } from "../data/bossHistory.ts";
 import { RACE_HISTORY_SOURCE } from "../data/raceHistory.ts";
 import { Freshness } from "../fresh.tsx";
@@ -1771,6 +1772,16 @@ function BossMapRow(props: {
               {MODE_NAME[m.mode] ?? m.mode}
             </span>
             <span>Rounds {fmtRounds(m.startRound, m.endRound)}</span>
+            <A
+              class="pg-rlink hx-plan"
+              href={href.heroXp({
+                map: MAP_LIST.find((x) => x[0] === m.map)?.[1] ?? 0,
+                first: m.startRound,
+                ...(m.disableMK ? { edu: false, taught: false, mts: false, emp: false } : {}),
+              })}
+            >
+              Plan hero XP <span aria-hidden="true">→</span>
+            </A>
           </span>
         </span>
       )}

@@ -3,6 +3,7 @@
 import type { ComponentChildren } from "preact";
 import bankArt from "../art/tools/bank.webp";
 import farmingArt from "../art/tools/farming.webp";
+import heroXpArt from "../art/tools/heroXp.webp";
 import paragonArt from "../art/tools/paragon.webp";
 import paragonScalingArt from "../art/tools/paragonScaling.webp";
 import roundsArt from "../art/tools/rounds.webp";
@@ -60,6 +61,12 @@ export const TOOLS = [
     title: "Bank & IMF Loan planner",
     art: bankArt,
     sub: "When to collect a Monkey Bank so the cap never eats your cash, and how much to deposit in an IMF Loan.",
+  },
+  {
+    to: href.heroXp(),
+    title: "Hero XP planner",
+    art: heroXpArt,
+    sub: "When to place a hero so it reaches a level by a round (a boss tier, say), with map, Monkey Knowledge and Energizer.",
   },
 ];
 

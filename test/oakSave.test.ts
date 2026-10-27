@@ -4,7 +4,7 @@ import { describe, it } from "node:test";
 import type { UserSave } from "../src/nk/types.ts";
 import { MAP_LIST } from "../web/src/data/names.ts";
 import progress from "../web/src/data/progress.json" with { type: "json" };
-import { bankKnowledge, completion, heroParts, instaParts, instaPossible, knowledgeParts, mapMedals, medalCounts, powerUpgradeParts, skinParts, towerParts, upgradeParts, type Progress } from "../web/src/oakSave.ts";
+import { bankKnowledge, heroKnowledge, completion, heroParts, instaParts, instaPossible, knowledgeParts, mapMedals, medalCounts, powerUpgradeParts, skinParts, towerParts, upgradeParts, type Progress } from "../web/src/oakSave.ts";
 
 const save = JSON.parse(readFileSync(new URL("../docs/api/fixtures/btd6__save__sample.json", import.meta.url), "utf8")).body as UserSave;
 
@@ -31,6 +31,16 @@ describe("bank Monkey Knowledge from the save", () => {
     assert.deepEqual(bankKnowledge(s, false, { bb: true, mvb: true }), { bb: false, mvb: true, deposits: true });
     assert.deepEqual(bankKnowledge(s, true, { bb: true, mvb: false }), { bb: true, mvb: false, deposits: true });
     assert.deepEqual(bankKnowledge(undefined, false, { bb: true, mvb: true }), { bb: true, mvb: true, deposits: undefined });
+  });
+});
+
+describe("hero Monkey Knowledge from the save", () => {
+  const s = { acquiredKnowledge: { MonkeyEducation: true, SelfTaughtHeroes: false, EmpoweredHeroes: true } } as unknown as UserSave;
+  const all = { edu: true, taught: true, mts: true, emp: true };
+  it("save sets the default (missing = not owned), URL wins, no save keeps the route", () => {
+    assert.deepEqual(heroKnowledge(s, false, all), { edu: true, taught: false, mts: false, emp: true });
+    assert.deepEqual(heroKnowledge(s, true, all), all);
+    assert.deepEqual(heroKnowledge(undefined, false, all), all);
   });
 });
 

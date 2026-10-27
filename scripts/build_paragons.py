@@ -222,7 +222,7 @@ def parse_upgrades(b: bytes) -> list:
             if not re.fullmatch(r"[0-9a-f]{32}|", icon) or not -1 <= path <= 2 or not 0 <= tier <= 30 \
                     or locked not in (0, 1) or cost < 0 or xp < 0:
                 raise ValueError(f"implausible record for {name!r}: cost {cost} path {path} tier {tier} icon {icon!r}")
-            ups.append({"name": name, "cost": cost, "path": path, "tier": tier, "confirmation": conf, "icon": icon})
+            ups.append({"name": name, "cost": cost, "xp": xp, "path": path, "tier": tier, "confirmation": conf, "icon": icon})
     except (ValueError, UnicodeDecodeError, struct.error, IndexError) as e:
         fail(f"UpgradeModel data records no longer decode ({e})")
     if sum(1 for u in ups if u["tier"] == 0 and u["path"] in (0, 1, 2)) < 60:

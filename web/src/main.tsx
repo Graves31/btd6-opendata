@@ -22,6 +22,7 @@ import { ParagonPage } from "./views/paragon.tsx";
 import { RoundsPage, roundsTitle, roundsBoss } from "./views/rounds.tsx";
 import { ParagonScalingPage } from "./views/paragonScaling.tsx";
 import { BankPlannerPage } from "./views/bankPlanner.tsx";
+import { HeroXpPage } from "./views/heroXp.tsx";
 import { FarmingPage } from "./views/farming.tsx";
 import { TOOLS, ToolsHub } from "./views/tools.tsx";
 import toolsArt from "./art/tools/overclock.webp";
@@ -70,6 +71,8 @@ function Page(props: { r: Route }) {
       return <FarmingPage r={r.r} />;
     case "bankPlanner":
       return <BankPlannerPage r={r} />;
+    case "heroXp":
+      return <HeroXpPage r={r} />;
     case "pgscaling":
       return <ParagonScalingPage d={r.d} to={r.to} />;
     case "stats":
@@ -155,6 +158,8 @@ export function title(r: Route): string {
       return t("Farming resources");
     case "bankPlanner":
       return t("Bank & IMF Loan planner");
+    case "heroXp":
+      return t("Hero XP planner");
     case "pgscaling":
       return t("Paragon scaling");
     case "stats":
@@ -266,7 +271,7 @@ function section(r: Route): string {
   if (r.name === "ctgroup") return "ct";
   if (r.name === "challenge") return "challenges";
   if (r.name === "map") return "maps";
-  if (r.name === "rounds" || r.name === "paragon" || r.name === "farming" || r.name === "bankPlanner" || r.name === "pgscaling") return "tools";
+  if (r.name === "rounds" || r.name === "paragon" || r.name === "farming" || r.name === "bankPlanner" || r.name === "heroXp" || r.name === "pgscaling") return "tools";
   if (r.name === "bossstats") return "boss";
   return n;
 }

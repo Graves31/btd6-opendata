@@ -204,6 +204,18 @@ export function completion(s: UserSave, p: Progress) {
   return { rings, overall };
 }
 
+/** Hero XP planner Monkey Knowledge defaults from the save; a toggle set (`mk` in the URL) is left alone. */
+export function heroKnowledge(save: UserSave | undefined, urlSetsMk: boolean, route: { edu: boolean; taught: boolean; mts: boolean; emp: boolean }) {
+  const k = save?.acquiredKnowledge;
+  const pick = (id: string, cur: boolean) => (!urlSetsMk && k ? !!k[id] : cur);
+  return {
+    edu: pick("MonkeyEducation", route.edu),
+    taught: pick("SelfTaughtHeroes", route.taught),
+    mts: pick("MonkeysTogetherStrong", route.mts),
+    emp: pick("EmpoweredHeroes", route.emp),
+  };
+}
+
 /** Bank planner Monkey Knowledge defaults from the save; a toggle the URL sets (`mk` present) is left alone. */
 export function bankKnowledge(save: UserSave | undefined, urlSetsMk: boolean, route: { bb: boolean; mvb: boolean }) {
   const k = save?.acquiredKnowledge;

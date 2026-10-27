@@ -369,7 +369,7 @@ async function main() {
     await toolsMenu();
     await shoot(page, "tools-menu");
     await step("Now → Tools", '#tools-dd a[href="/tools"]', "tools");
-    if ((await page.evaluate(() => document.querySelectorAll(".tools-tiles a.tile").length)) !== 5) problems.push("tools hub: want 5 tool cards");
+    if ((await page.evaluate(() => document.querySelectorAll(".tools-tiles a.tile").length)) !== 6) problems.push("tools hub: want 6 tool cards");
     await step("Tools → Round visualizer", ".tools-tiles a.tile[href^='/tools/rounds']", "rounds-tool");
     if (!(await has("ol.rv-list li.rv-row"))) problems.push("tools: no round rows");
     // One scroll context: nothing on the page may be an inner vertical scroller, and the wheel over the list
@@ -422,6 +422,14 @@ async function main() {
     await page.waitForFunction(() => location.search.includes("m=dep") && document.querySelectorAll(".bk-ladder tbody tr").length > 0 && /\$/.test(document.querySelector(".bk-big .v")?.textContent ?? ""), { timeout: 3000 }).catch(() => problems.push("bank planner: Deposit planner shows no amount / ladder"));
     pages["bank-planner-deposit"] = await here();
     await shoot(page, "desktop-bank-planner-deposit");
+
+    // Tools → Hero XP planner: default answer is a placement round; the T1 chip rewrites the URL in place.
+    await toolsMenu();
+    await step("Tools menu → Hero XP planner", "#tools-dd a[href='/tools/hero-xp']", "hero-xp");
+    if (!/^\d+$/.test(await page.$eval(".bk-big .v", (el) => el.textContent ?? "").catch(() => ""))) problems.push("hero xp: default answer is not a placement round");
+    if ((await page.$$(".hx-lv")).length !== 20 || !(await has(".hx-win tbody tr"))) problems.push("hero xp: timeline / window rows missing");
+    await page.click(".hx-tiers .bk-chip");
+    await page.waitForFunction(() => location.search.includes("r=40"), { timeout: 3000 }).catch(() => problems.push(`hero xp: tier chip didn't update the URL (${location.search})`));
 
     // Tools → Paragon calculator: the URL is the state; changing an input rewrites it in place (no new history entry).
     await toolsMenu();

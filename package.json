@@ -1,6 +1,6 @@
 {
   "name": "btd6-opendata-site",
-  "version": "2.27.1",
+  "version": "2.28.0",
   "private": true,
   "type": "module",
   "description": "Aggressively cached front-end for the Ninja Kiwi BTD6 Open Data API",
@@ -8,7 +8,7 @@
     "node": ">=22.18"
   },
   "scripts": {
-    "test": "node --import ./test/url-imports.ts --test --test-reporter=spec test/worker.test.ts test/store.test.ts test/challenges.test.ts test/format.test.ts test/events.test.ts test/rounds.test.ts test/bosses.test.ts test/maps.test.ts test/paragon.test.ts test/bank.test.ts test/ct-api.test.ts test/ct.test.ts test/suggest.test.ts test/oak.test.ts test/oakSave.test.ts test/ctOverview.test.ts test/ctMap.test.ts",
+    "test": "node --import ./test/url-imports.ts --test --test-reporter=spec test/worker.test.ts test/store.test.ts test/challenges.test.ts test/format.test.ts test/events.test.ts test/rounds.test.ts test/bosses.test.ts test/maps.test.ts test/paragon.test.ts test/bank.test.ts test/ct-api.test.ts test/ct.test.ts test/suggest.test.ts test/oak.test.ts test/oakSave.test.ts test/ctOverview.test.ts test/ctMap.test.ts test/heroXp.test.ts",
     "typecheck": "tsc -p .",
     "validate": "node scripts/validate-contracts.mjs",
     "check": "npm run typecheck && npm run validate && npm test",

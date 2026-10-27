@@ -19,7 +19,7 @@ architecture; this file is how to work on it.
   link prefetch, back link), `store.ts` (client cache, /api/batch), `views/*.tsx` pages, `rules.tsx` (rules
   panel), `rounds.ts` + `views/rounds.tsx` (round visualizer), `paragon.ts` + `views/paragon.tsx`
   (paragon calculator; provisional constants in `REF`; `scaling()` = per-degree stats, checked against the v57
-  game code), `views/paragonScaling.tsx` (paragon scaling charts), `views/farming.tsx` (banana timing), `bank.ts` + `views/bankPlanner.tsx` (bank collect timing and IMF
+  game code), `views/paragonScaling.tsx` (paragon scaling charts), `views/farming.tsx` (banana timing), `heroXp.ts` + `views/heroXp.tsx` (hero XP planner; game-code formula in heroXp.ts), `bank.ts` + `views/bankPlanner.tsx` (bank collect timing and IMF
   deposits; v57.1 game code + wiki values in `BANK`),
   `views/ct.tsx` / `ctOverview.tsx` / `ctGroup.tsx` (CT event page, /ct cards + My team, group page), `ctMap.ts` +
   `views/ctMap.tsx` (CT hex map; tile code → hex = the game's CtMapGenerator table, pinned in test/ctMap.test.ts),
@@ -30,7 +30,7 @@ architecture; this file is how to work on it.
   `npm run art` (venv `.venv-art`): `web/src/art/*` sprite sheets, `web/public/art/maps`, `web/src/data/names.ts`
   (map/ability/relic names), `web/src/data/rounds/*` (85 round sets: the game's 54 + NK's event sets from the game's
   cached server settings, so launch the game once before `npm run art`), `web/src/data/paragons.json` (`build_paragons.py`; v56.3 frozen in
-  `paragons-56.json` for the old/new toggle). `scripts/build_og.py` → `web/public/og.jpg`; `scripts/build_icons.py` → site icon (favicon.svg/.ico, apple-touch-icon.png). `node scripts/boss_history.ts` → `web/src/data/bossHistory.ts`
+  `paragons-56.json` for the old/new toggle), `web/src/data/heroes.json` (`build_heroes.py`: hero level XP, hero MK, level texts). `scripts/build_og.py` → `web/public/og.jpg`; `scripts/build_icons.py` → site icon (favicon.svg/.ico, apple-touch-icon.png). `node scripts/boss_history.ts` → `web/src/data/bossHistory.ts`
   (boss events before the archive: bloonswiki.com exact times over the old Fandom list, which still fills gaps; numbering checked against archived NK ids); `node scripts/race_history.ts`
   → `web/src/data/raceHistory.ts` (bloonswiki.com races, Dec 2018 – Dec 2025). Both fill newer events from a community list whose URL is only in
   the `EVENT_LIST_BASE` env var (unset = keep the rows already there); never name that site in the repo or commits.

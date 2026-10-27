@@ -27,6 +27,7 @@ const PAGES: [string, string][] = [
   ["Paragon scaling", "Tools"],
   ["Farming resources", "Tools"],
   ["Bank & IMF Loan planner", "Tools"],
+  ["Hero XP planner", "Tools"],
   ["The whole site", "Other"],
 ];
 const OTHER = "Other (specify above)";

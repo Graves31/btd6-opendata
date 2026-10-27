@@ -10,6 +10,7 @@ Outputs (all committed build artifacts):
   web/public/art/maps/<Map>.<hash>-{96,200,400}.webp   built-in map art, content-hashed
   web/src/data/names.ts          map / ability / CT relic names + relic descriptions (scripts/build_names.py)
   web/src/data/bosses.json       boss stats (scripts/build_bosses.py)
+  web/src/data/heroes.json       hero levels + hero Monkey Knowledge (scripts/build_heroes.py)
   web/src/art/bossbar/<part>.webp  in-game boss health-bar pieces at native size (BOSS_BAR in index.ts)
 
 Setup (once):
@@ -577,6 +578,13 @@ TOOL_ICONS = {
     "monkeyCity": "ref/MonkeyCityUpgradeIcon",
     "overclock": "ref/OverclockUpgradeIcon",
     "halfCash": "ref/HalfCashIcon",
+    # Hero XP planner
+    "heroXp": "MonkeyKnowledgeUi/SelfTaughtHeroesIcon",
+    "mkMonkeyEducation": "MonkeyKnowledgeUi/MonkeyEducationIcon",
+    "mkSelfTaughtHeroes": "MonkeyKnowledgeUi/SelfTaughtHeroesIcon",
+    "mkMonkeysTogetherStrong": "MonkeyKnowledgeUi/MonkeysStrongerTogetherIcon",
+    "mkEmpoweredHeroes": "MonkeyKnowledgeUi/EmpoweredHeroesIcon",
+    "energizer": "ref/EnergizerUpgradeIcon",
     # header / phone bar icons (main.tsx, tools hub, /maps title): Tools = the wrench above, Maps = the map editor map
     "maps": "ref/EditMapIcon",
 }
@@ -1539,6 +1547,9 @@ def main() -> None:
     import build_progress  # completion totals for /me -> web/src/data/progress.json
 
     build_progress.main()
+    import build_heroes  # hero levels + hero Monkey Knowledge -> web/src/data/heroes.json
+
+    build_heroes.main()
     for stale in ART_DIR.glob("*.webp"):
         if stale.stem not in FAMILIES:
             stale.unlink()

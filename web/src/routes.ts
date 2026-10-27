@@ -2,6 +2,7 @@
 // any link can compute exactly which keys its target page will read, before the user clicks it.
 
 import type { Ben, Path, Tier } from "./bank.ts";
+import { HEROES } from "./heroXp.ts";
 import { MAP_LIST } from "./data/names.ts";
 import { myTeam } from "./myTeam.ts";
 import { paragonTowers, type Difficulty, type GameVer, type ParagonTower } from "./paragon.ts";
@@ -38,6 +39,7 @@ export type Route =
   | ParagonRoute
   | { name: "farming"; r?: number }
   | BankRoute
+  | HeroXpRoute
   | { name: "pgscaling"; d?: number; to?: number }
   | { name: "stats" }
   | { name: "suggest" }
@@ -93,6 +95,54 @@ function parseBank(q: URLSearchParams): BankRoute {
     half: x.includes("half"),
     end: end || undefined,
     k: int(q.get("k"), 1, 1, BANK_RUNGS),
+  };
+}
+
+/** Hero XP planner (/tools/hero-xp). Defaults (Geraldo, level 20 by round 100, Beginner, all four MK, no boost/Energizer, solo, from round 1) stay out of the URL. */
+export interface HeroXpRoute {
+  name: "heroXp";
+  hero: string;
+  /** goal: this level at the start of round `round` */
+  level: number;
+  round: number;
+  /** map difficulty 0..3 */
+  map: 0 | 1 | 2 | 3;
+  edu: boolean;
+  taught: boolean;
+  mts: boolean;
+  emp: boolean;
+  boost: 0 | 1 | 2;
+  /** Energizer from this round on (0 = none) */
+  en: number;
+  /** heroes on the map */
+  n: number;
+  /** first round the hero can be placed */
+  first: number;
+  /** placement round the timeline shows (undefined = the plan's latest) */
+  at?: number;
+}
+export const HERO_XP_DEFAULT = { hero: "Geraldo", level: 20, round: 100, map: 0, edu: true, taught: true, mts: true, emp: true, boost: 0, en: 0, n: 1, first: 1 } as const;
+const HERO_MK = ["edu", "taught", "mts", "emp"] as const;
+
+function parseHeroXp(q: URLSearchParams): HeroXpRoute {
+  const mk = q.has("mk") ? list(q.get("mk")) : undefined;
+  const at = int(q.get("at"), 0, 1, 999);
+  const hero = q.get("h") ?? "";
+  return {
+    name: "heroXp",
+    hero: hero in HEROES ? hero : HERO_XP_DEFAULT.hero,
+    level: int(q.get("lv"), 20, 2, 20),
+    round: int(q.get("r"), 100, 1, 200),
+    map: int(q.get("d"), 0, 0, 3) as HeroXpRoute["map"],
+    edu: !mk || mk.includes("edu"),
+    taught: !mk || mk.includes("taught"),
+    mts: !mk || mk.includes("mts"),
+    emp: !mk || mk.includes("emp"),
+    boost: int(q.get("boost"), 0, 0, 2) as 0 | 1 | 2,
+    en: int(q.get("en"), 0, 1, 200),
+    n: int(q.get("n"), 1, 1, 4),
+    first: int(q.get("from"), 1, 1, 200),
+    at: at || undefined,
   };
 }
 
@@ -371,6 +421,7 @@ export function needs(r: Route): string[] {
     case "rounds":
       return roundKeys(r);
     case "bankPlanner":
+    case "heroXp":
       return []; // pure client maths
     case "tools":
     case "farming":
@@ -448,6 +499,7 @@ export function parse(url: URL): Route {
     return { name: "farming", r: Number.isInteger(r) && r >= 1 && r <= 1000 ? r : undefined };
   }
   if (a === "tools" && b === "bank-planner" && !c) return parseBank(q);
+  if (a === "tools" && b === "hero-xp" && !c) return parseHeroXp(q);
   if (a === "tools" && b === "paragon-scaling" && !c) {
     const deg = (k: string) => {
       const n = Number(q.get(k));
@@ -616,6 +668,23 @@ export const href = {
       x: x || undefined,
       end: p.end,
       k: d.dep && d.k > 1 ? d.k : undefined,
+    }).replace(/%2C/g, ",")}`;
+  },
+  /** The hero XP planner; only non-default values are written. */
+  heroXp: (p: Partial<Omit<HeroXpRoute, "name">> = {}) => {
+    const d = { ...HERO_XP_DEFAULT, ...p };
+    const on = HERO_MK.filter((k) => d[k]);
+    return `/tools/hero-xp${qs({
+      h: d.hero !== HERO_XP_DEFAULT.hero ? d.hero : undefined,
+      lv: d.level !== 20 ? d.level : undefined,
+      r: d.round !== 100 ? d.round : undefined,
+      d: d.map || undefined,
+      mk: on.length === 4 ? undefined : on.join(",") || "0",
+      boost: d.boost || undefined,
+      en: d.en || undefined,
+      n: d.n > 1 ? d.n : undefined,
+      from: d.first > 1 ? d.first : undefined,
+      at: p.at,
     }).replace(/%2C/g, ",")}`;
   },
   /** Paragon scaling charts; `d` = a degree to mark. */
