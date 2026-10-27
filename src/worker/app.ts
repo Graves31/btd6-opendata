@@ -6,7 +6,8 @@
 //   GET /api/batch?k=<key>&k=…         up to 20 keys in one invocation, streamed as NDJSON (prefetching)
 //   GET /api/now                       hot bundle: lists + featured events, one request for the home page
 //   GET /api/history/:kind[?before=ms&limit=n]  every race|boss|ct|odyssey ever seen, newest first
-//   GET /api/history/team/:guildId     a team's CT results (rank, score, group) from archived data only
+//   GET /sitemap-events.xml                     every archived event page (boss/race/ct/odyssey) for crawlers
+//   GET /api/history/team/:guildId    a team's CT results (rank, score, group) from archived data only
 //   GET /api/ct/:id/cutoffs            CT cut-off scores per day (hot cron snapshots, D1 only)
 //   GET /api/ct/relics                 relic tiles of every archived CT (D1 only)
 //   GET /api/health                    cache status
@@ -117,6 +118,27 @@ export async function handleApi(deps: Deps, request: Request): Promise<Response>
 const error = (status: number, code: ErrorCode, cacheControl = "no-store", extra: Record<string, string> = {}, message?: string) =>
   jsonResponse(errorBody(code, message), status, cacheControl, extra);
 
+const SITEMAP_TTL_MS = 10 * 60_000;
+let sitemapCache: { db: D1Like; at: number; xml: string } | undefined;
+const xmlEsc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/** urlset of every archived event page that has started (lastmod = end date once over); built once per 10 min per isolate. */
+async function eventsSitemap(deps: Deps): Promise<string> {
+  const now = deps.now();
+  if (sitemapCache && sitemapCache.db === deps.db && now - sitemapCache.at < SITEMAP_TTL_MS) return sitemapCache.xml;
+  const urls: string[] = [];
+  for (const kind of KINDS) {
+    const items = JSON.parse(await listHistoryJson(deps.db, kind, now, 100_000)) as { id: string; end?: number }[];
+    for (const it of items) {
+      const lastmod = typeof it.end === "number" && it.end <= now ? `<lastmod>${new Date(it.end).toISOString().slice(0, 10)}</lastmod>` : "";
+      urls.push(`<url><loc>${xmlEsc(`${SITE}/${kind}/${encodeURIComponent(it.id)}`)}</loc>${lastmod}</url>`);
+    }
+  }
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>\n`;
+  sitemapCache = { db: deps.db, at: now, xml };
+  return xml;
+}
+
 async function route(deps: Deps, request: Request): Promise<Response> {
   if (new URL(request.url).pathname === "/api/suggest") {
     if (request.method !== "POST") return error(405, "method_not_allowed", "no-store", { Allow: "POST" });
@@ -185,6 +207,17 @@ async function route(deps: Deps, request: Request): Promise<Response> {
       return error(503, "unavailable", "no-store", { "Retry-After": "60" });
     }
     return jsonResponse(`{"success":true,"body":${items}}`, 200, "public, max-age=300, stale-while-revalidate=86400");
+  }
+
+  if (path === "/sitemap-events.xml") {
+    let xml: string;
+    try {
+      xml = await eventsSitemap(deps);
+    } catch (err) {
+      console.warn("sitemap: D1 read failed", String(err));
+      return error(503, "unavailable", "no-store", { "Retry-After": "60" });
+    }
+    return new Response(xml, { headers: { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=3600" } });
   }
 
   if (path === "/api/stats") {

@@ -347,6 +347,29 @@ describe("history", () => {
   });
 });
 
+describe("event sitemap", () => {
+  it("lists started events of every kind, escaped, with lastmod only once over", async () => {
+    const t = makeEnv();
+    const now = t.clock.now;
+    const ins = t.db.raw.prepare("INSERT OR REPLACE INTO events (kind, id, start_at, end_at, data) VALUES (?, ?, ?, ?, ?)");
+    for (const kind of ["boss", "race", "ct", "odyssey"]) ins.run(kind, `old&<${kind}> x`, now - 3 * DAY, now - DAY, JSON.stringify({ id: `old&<${kind}> x`, start: now - 3 * DAY, end: now - DAY }));
+    ins.run("boss", "live", now - DAY, now + DAY, JSON.stringify({ id: "live", start: now - DAY, end: now + DAY }));
+    ins.run("boss", "future", now + DAY, now + 2 * DAY, JSON.stringify({ id: "future", start: now + DAY, end: now + 2 * DAY }));
+    const r = await handleApi(t.deps, get("/sitemap-events.xml"));
+    assert.equal(r.status, 200);
+    assert.match(r.headers.get("Content-Type")!, /^application\/xml/);
+    assert.equal(r.headers.get("Cache-Control"), "public, max-age=3600");
+    const xml = await r.text();
+    assert.match(xml, /^<\?xml[^>]*\?>\s*<urlset xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9">/);
+    for (const kind of ["boss", "race", "ct", "odyssey"]) {
+      assert.ok(xml.includes(`<loc>https://btd6data.com/${kind}/old%26%3C${kind}%3E%20x</loc><lastmod>`), kind);
+    }
+    assert.ok(xml.includes("<loc>https://btd6data.com/boss/live</loc></url>"), "running: no lastmod");
+    assert.ok(!xml.includes("future"));
+    assert.ok(!/&(?!amp;|lt;|gt;)/.test(xml.replace(/<\?xml.*?\?>/, "")));
+  });
+});
+
 describe("batch (prefetch)", () => {
   const lines = async (r: Response) => (await r.text()).trim().split(/\n/).map((l) => JSON.parse(l));
 
@@ -1611,7 +1634,7 @@ describe("notifications (new boss / race → Discord)", () => {
       const pings = { posts: [] as { init: RequestInit; body: any }[], status: 202, retryAfter: "" };
       const inner = s.t.deps.fetch;
       s.t.deps.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
-        if (!String(input).startsWith("https://api.indexnow.org/")) return inner(input, init);
+        if (!String(input).startsWith("https://www.bing.com/indexnow")) return inner(input, init);
         pings.posts.push({ init: init!, body: JSON.parse(String(init?.body)) });
         return new Response(null, { status: pings.status, headers: pings.retryAfter ? { "retry-after": pings.retryAfter } : {} });
       }) as typeof fetch;

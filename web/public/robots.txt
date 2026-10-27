@@ -4,3 +4,4 @@ Disallow: /player/
 Disallow: /team/
 
 Sitemap: https://btd6data.com/sitemap.xml
+Sitemap: https://btd6data.com/sitemap-events.xml
