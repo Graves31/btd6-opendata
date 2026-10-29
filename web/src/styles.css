@@ -11220,14 +11220,8 @@ a.th-ic:focus-visible {
   gap: 12px;
 }
 .my-intro a,
-.my-pub a {
+.my .profile-sub a {
   text-decoration: underline;
-}
-.my-av {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  object-fit: cover;
 }
 .my-form {
   display: grid;
@@ -11305,22 +11299,56 @@ a.th-ic:focus-visible {
   color: var(--ink-2);
   font-size: 14px;
 }
-.my-pub {
-  margin: 12px 0 0;
-  font-weight: 600;
-}
+/* Overview tiles: the game's blue menu panels (same in both themes), 6 / 4 / 3 / 2 per row so 12 tiles fill even rows. */
 .my-tiles {
-  margin-top: 16px;
-}
-.my-tiles .stat-v {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 8px;
-  font-size: 32px;
+  margin: 16px 0 0;
+}
+.my-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 6px 10px;
+  text-align: center;
+  color: #fff;
+  background: linear-gradient(180deg, #3a78c9 0%, #24539b 55%, #1b4180 100%);
+  border: 2px solid #0e2550;
+  border-radius: 8px;
+  box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.25), inset 0 -3px 0 rgb(0 0 0 / 0.25), 0 2px 0 rgb(0 0 0 / 0.35);
+}
+.my-tile dd {
+  display: contents;
+}
+.my-tile .spr {
+  order: 0;
+  filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.35));
+}
+.my-tile b {
+  order: 1;
+  font: 800 30px/1 var(--f-display);
+  font-variant-numeric: tabular-nums;
+  margin-top: 4px;
+  -webkit-text-stroke: 5px #0b1d3f;
+  paint-order: stroke fill;
   overflow-wrap: anywhere;
 }
-.my-tiles .stat-v .spr {
-  flex: none;
+.my-tile dt {
+  order: 2;
+  margin-top: 4px;
+  font: 700 11px/1.25 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #d6e6ff;
+}
+.my-tile small {
+  order: 3;
+  min-height: 1.3em;
+  font-size: 12px;
+  line-height: 1.3;
+  color: #a9c8f5;
 }
 .my-medals h3,
 .my-h3 {
@@ -11442,7 +11470,7 @@ button.my-miss:hover {
   color: var(--ink);
   border-color: var(--ink-2);
 }
-.my-panel .my-h3 span {
+.my-h3 span {
   color: var(--ink-2);
   margin-left: 4px;
 }
@@ -11476,15 +11504,17 @@ button.my-miss:hover {
   margin: 12px 0 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
-  gap: 4px;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 6px;
 }
+/* an insta: the tower's portrait at those tiers, as the game's insta collection shows it */
 .my-tgrid li {
   display: grid;
   justify-items: center;
-  gap: 1px;
+  gap: 2px;
   padding: 6px 2px;
-  background: var(--s2);
+  background: radial-gradient(circle at 50% 35%, rgb(255 214 10 / 0.18), transparent 70%), var(--s2);
+  border: 1px solid var(--rule);
   border-radius: 6px;
   font-variant-numeric: tabular-nums;
 }
@@ -11497,9 +11527,25 @@ button.my-miss:hover {
 }
 .my-tgrid li.no {
   background: none;
-  outline: 1px dashed var(--rule);
-  outline-offset: -1px;
-  opacity: 0.5;
+  border-style: dashed;
+  opacity: 0.45;
+}
+.my-tgrid li.no .spr {
+  filter: grayscale(1);
+}
+.my-rar {
+  font: 700 10px/1.2 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.my-rar.r1 {
+  color: var(--ink-3);
+}
+.my-rar.r2 {
+  color: var(--soon);
+}
+.my-rar.r3 {
+  color: var(--accent-ink);
 }
 .my-miss {
   background: var(--s1);
@@ -11542,23 +11588,39 @@ button.my-miss:hover {
   margin-top: 16px;
 }
 .my-all {
-  margin: 0 0 10px;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px 12px;
+  margin: 0 0 12px;
   font-size: 15px;
+  font-weight: 600;
 }
 .my-all b {
-  font: 800 28px/1 var(--f-display);
-  margin-right: 4px;
+  font: 800 30px/1 var(--f-display);
+  font-variant-numeric: tabular-nums;
 }
-.my-all span {
-  color: var(--ink-3);
-  font-size: 13px;
+.my-allbar {
+  height: 12px;
+  background: var(--s2);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.my-allbar i {
+  display: block;
+  height: 100%;
+  background: var(--soon-fill);
+}
+.my-all.done .my-allbar i {
+  background: var(--live-fill);
 }
 .my-sumry ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
   gap: 8px;
 }
 .my-sumry a {
@@ -11608,14 +11670,32 @@ button.my-miss:hover {
   font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
-.my-instas {
+.my-instas,
+.my-aq {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
   gap: 8px;
   align-items: start;
+}
+/* one line per card (icon, name cut with …, count) and the meter under it: every card the same height */
+.my-instas .my-sum,
+.my-aq .my-sum {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-height: 60px;
+}
+.my-instas .my-in,
+.my-aq .my-in {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.my-instas .my-meter,
+.my-aq .my-meter {
+  grid-column: 1 / -1;
 }
 .my-in {
   flex: 1;
@@ -11708,21 +11788,171 @@ button.my-miss:hover {
   border-radius: var(--r);
   font-weight: 600;
 }
-.my-skins {
-  display: grid;
-  gap: 12px;
-}
-.my-skg {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.my-skg > .spr {
-  flex: none;
-}
-.my-heroes li.locked {
+.my-heroes li.locked,
+.my-hs li.locked > .my-hsh,
+.my-hs li li.locked {
   opacity: 0.45;
   filter: grayscale(1);
+}
+/* heroes and skins: a card per hero, its skins under it */
+.my-hs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 8px;
+  align-items: start;
+}
+.my-hs > li {
+  background: var(--s1);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+}
+.my-hsh {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px 6px 6px;
+  font-size: 17px;
+}
+.my-hsh .my-in {
+  font: 800 20px/1.05 var(--f-display);
+  text-transform: uppercase;
+}
+.my-hs ul {
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 6px;
+  border-top: 1px solid var(--rule);
+}
+.my-hs li li {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 4px;
+  padding: 6px 2px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  background: var(--s2);
+  border-radius: 6px;
+}
+/* Rogue Legends */
+.my-rwins {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: 8px;
+}
+.my-rwins li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--s1);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+  font-weight: 600;
+}
+.my-rwins span {
+  flex: 1;
+}
+.my-rwins b {
+  font: 800 24px/1 var(--f-display);
+  font-variant-numeric: tabular-nums;
+}
+.my-rh {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 8px;
+  align-items: start;
+}
+.my-rh > li {
+  background: var(--s1);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+}
+.my-rt {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  border-top: 1px solid var(--rule);
+}
+.my-rt th,
+.my-rt td {
+  padding: 6px 12px;
+  text-align: right;
+}
+.my-rt thead th {
+  font: 700 11px/1.3 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+.my-rt tbody th {
+  text-align: left;
+  font-weight: 700;
+}
+.my-rt td {
+  font-weight: 700;
+  font-size: 16px;
+}
+.my-rfav {
+  padding: 8px 12px 10px;
+  border-top: 1px solid var(--rule);
+}
+.my-rfav > span {
+  font: 700 11px/1.3 var(--f-body);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+.my-rfav ul {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.my-rfav li {
+  display: grid;
+  justify-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.my-rart {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 8px;
+}
+.my-rart li {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 4px;
+  padding: 8px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  background: var(--s1);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
 }
 .my-kv {
   display: grid;
@@ -11742,7 +11972,21 @@ button.my-miss:hover {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+@media (max-width: 1000px) {
+  .my-tiles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
 @media (max-width: 700px) {
+  .my-tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .my-all {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .my-allbar {
+    grid-column: 1 / -1;
+  }
   .my-keyrow {
     flex-wrap: wrap;
   }
@@ -11758,6 +12002,11 @@ button.my-miss:hover {
   .my-xb {
     grid-column: 2 / -1;
     grid-row: 2;
+  }
+}
+@media (max-width: 480px) {
+  .my-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

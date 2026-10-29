@@ -2,18 +2,35 @@
 // (oak.ts). Nothing here touches our Worker or the store, so the route needs() nothing.
 import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
-import type { UserSave } from "../../../src/nk/types.ts";
+import type { UserProfile, UserSave } from "../../../src/nk/types.ts";
 import { agoText } from "../boards.ts";
 import { cap, fmtInt, human, unitName } from "../format.ts";
 import { forgetOak, OAK_FORMAT, refreshOak, setOak, useOak, type OakError } from "../oak.ts";
-import { MAP_LIST, MAP_NAMES } from "../data/names.ts";
+import { ARTIFACT_NAMES, MAP_LIST, MAP_NAMES, QUEST_NAMES } from "../data/names.ts";
 import progressData from "../data/progress.json" with { type: "json" };
-import { achievementParts, completion, heroParts, instaParts, instaPossible, instaSummary, knowledgeParts, medalCounts, powerUpgradeParts, skinParts, towerParts, upgradeParts, type MedalRow, type Part, type Progress as GameProgress } from "../oakSave.ts";
+import {
+  achievementParts,
+  completion,
+  heroParts,
+  instaParts,
+  instaPossible,
+  instaSummary,
+  knowledgeParts,
+  medalCounts,
+  powerUpgradeParts,
+  skinParts,
+  towerParts,
+  upgradeParts,
+  type MedalRow,
+  type Part,
+  type Progress as GameProgress,
+} from "../oakSave.ts";
 import { DIFF_LABEL } from "../maps.ts";
 import { href } from "../routes.ts";
-import { CATEGORY } from "../rules.tsx";
-import { artName, MapArt, MODE_NAME, Spr } from "../sprite.tsx";
-import { A, Img, Section, Stat, ToolHero, useTick } from "../ui.tsx";
+import { CATEGORY, HERO_ORDER, inOrder, TOWER_ORDER } from "../rules.tsx";
+import { artName, hasArt, MapArt, MODE_NAME, Spr } from "../sprite.tsx";
+import { A, Img, Section, ToolHero, useTick } from "../ui.tsx";
+import { longWord } from "./people.tsx";
 
 const PROGRESS = progressData as unknown as GameProgress;
 const OAK_FAQ = "https://ninja.kiwi/opendatafaq";
@@ -83,7 +100,8 @@ function Intro() {
   return (
     <div class="my-intro">
       <p>
-        An Open Access Key (OAK) is a private key from Ninja Kiwi that lets this page read <strong>your own</strong> BTD6 save: medals, instas, tower XP and more. Anyone with your key can read your save, so don't share it.
+        An Open Access Key (OAK) is a private key from Ninja Kiwi that lets this page read <strong>your own</strong> BTD6 save: medals, instas, tower XP and more. Anyone with your key can read your save, so don't share
+        it.
       </p>
       <p>
         <a href={OAK_FAQ} target="_blank" rel="noopener noreferrer">
@@ -178,19 +196,25 @@ function Miss(p: { name: ComponentChildren; part: Part; label?: (id: string) => 
 
 function Summary(p: { s: UserSave }) {
   const { rings, overall } = completion(p.s, PROGRESS);
+  const all = pct(overall, 1);
   const go = (id: string) => (e: Event) => {
     e.preventDefault();
     document.getElementById(`my-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
   return (
     <section class="my-sumry" aria-label="Completion">
-      <p class="my-all">
-        <b>{pct(overall, 1)}%</b> overall completion <span>(mean of the parts below)</span>
-      </p>
+      <div class={all === 100 ? "my-all done" : "my-all"}>
+        <b>{all}%</b>
+        <span>overall completion</span>
+        <span class="my-allbar" aria-hidden="true">
+          <i style={{ width: `${all}%` }} />
+        </span>
+      </div>
       <ul>
         {rings.map((r) => (
           <li key={r.id}>
-            <a href={`#my-${r.id}`} onClick={go(r.id)} class={pct(r.owned, r.total) === 100 ? "done" : undefined} style={{ "--p": pct(r.owned, r.total) }}>
+            {/* skins live in the heroes section */}
+            <a href={`#my-${r.id}`} onClick={go(r.id === "skins" ? "heroes" : r.id)} class={pct(r.owned, r.total) === 100 ? "done" : undefined} style={{ "--p": pct(r.owned, r.total) }}>
               <span class="my-ring">
                 <b>{pct(r.owned, r.total)}%</b>
               </span>
@@ -206,24 +230,22 @@ function Summary(p: { s: UserSave }) {
   );
 }
 
-/** Overview tile: label on top, the game icon in front of the number. */
-const Tile = (p: { k: string; ico: string; v: number | undefined; note?: string }) => (
-  <Stat
-    k={p.k}
-    v={
-      <>
-        <Ico k={p.ico} size={32} />
-        {fmtInt(p.v)}
-      </>
-    }
-    note={p.note}
-  />
+/** Game-panel tile: icon, number, label, note, all centred (the note line is always there so tiles line up). */
+const Tile = (p: { k: string; ico?: string; art?: ComponentChildren; v: number | string | undefined; note?: string }) => (
+  <div class="my-tile">
+    <dt>{p.k}</dt>
+    <dd>
+      {p.art ?? <Ico k={p.ico ?? ""} size={40} />}
+      <b>{typeof p.v === "string" ? p.v : fmtInt(p.v)}</b>
+      <small>{p.note}</small>
+    </dd>
+  </div>
 );
 
 function Overview(p: { s: UserSave }) {
   const s = p.s;
   return (
-    <dl class="stats grid my-tiles">
+    <dl class="my-tiles">
       <Tile k="Games played" ico="GamesPlayed" v={s.gamesPlayed} />
       <Tile k="Highest round seen" ico="HighestRound" v={s.highestSeenRound} />
       <Tile k="Monkey money" ico="MonkeyMoney" v={s.monkeyMoney} />
@@ -301,7 +323,11 @@ function Medals(p: { s: UserSave }) {
         <span class="my-in">{co ? "Co-op" : "Solo"}</span>
       </>
     );
-    const part = { owned: n, total: r.total, missing: co ? r.coopMissing : r.soloMissing };
+    const part = {
+      owned: n,
+      total: r.total,
+      missing: co ? r.coopMissing : r.soloMissing,
+    };
     return <Pick name={name} part={part} on={sel === key} panel="my-medal-panel" onPick={() => setSel(sel === key ? null : key)} class={n ? undefined : "dim"} />;
   };
   const panel = (r: MedalRow) => {
@@ -361,7 +387,6 @@ function Medals(p: { s: UserSave }) {
           </ul>
         </div>
       ))}
-      <p class="my-note">Maps completed out of all {MAP_LIST.length}. Open a medal to see the maps still missing it.</p>
     </Section>
   );
 }
@@ -370,7 +395,8 @@ function Instas(p: { s: UserSave }) {
   const [sel, setSel] = useState<string | null>(null);
   const owned = new Map(instaSummary(p.s).map((r) => [r.tower, r]));
   if (!owned.size) return null;
-  const parts = instaParts(p.s, PROGRESS).sort((a, b) => (owned.get(b.tower)?.total ?? 0) - (owned.get(a.tower)?.total ?? 0));
+  const rank = (t: string) => TOWER_ORDER.indexOf(t) + 1 || 99;
+  const parts = instaParts(p.s, PROGRESS).sort((a, b) => rank(a.tower) - rank(b.tower)); // the game's shop order
   const sets = parts.reduce((n, r) => n + r.owned, 0);
   const possible = parts.reduce((n, r) => n + r.total, 0);
   const all = [...owned.values()].reduce((n, r) => n + r.total, 0);
@@ -388,12 +414,11 @@ function Instas(p: { s: UserSave }) {
               <Pick
                 name={
                   <>
-                    <Spr family="tower" k={r.tower} size={36} label />
+                    <Spr family="tower" k={r.tower} size={40} count={o?.total || undefined} label />
                     <span class="my-in">{unitName(r.tower)}</span>
                   </>
                 }
                 part={r}
-                unit={` sets · ${fmtInt(o?.total ?? 0)}`}
                 on={on}
                 panel="my-insta-panel"
                 onPick={() => setSel(on ? null : r.tower)}
@@ -413,6 +438,7 @@ function Instas(p: { s: UserSave }) {
                     const n = have.get(t) ?? 0;
                     return (
                       <li key={t} class={n ? undefined : "no"}>
+                        <Spr family="insta" k={`${r.tower}:${t.replace(/-/g, "")}`} size={56} name={`${unitName(r.tower)} ${t}`} label optional />
                         <b>{t}</b>
                         <span>{n ? `×${fmtInt(n)}` : "–"}</span>
                       </li>
@@ -467,39 +493,47 @@ function Units(p: { family: "tower" | "hero"; all: string[]; missing: string[] }
   );
 }
 
-/** Every skin under its hero, with its portrait; the ones not owned greyed out. */
-function Skins(p: { missing: string[] }) {
-  const lock = new Set(p.missing);
-  const skins = Object.entries(PROGRESS.skins ?? {});
-  return (
-    <div class="my-skins">
-      {PROGRESS.heroes.map((h) => {
-        const mine = skins.filter(([, v]) => v.hero === h);
-        return (
-          mine.length > 0 && (
-            <div key={h} class="my-skg">
-              <Spr family="hero" k={h} size={48} />
-              <ul class="my-heroes">
-                {mine.map(([k, v]) => (
-                  <li key={k} class={lock.has(k) ? "locked" : undefined}>
-                    <Spr family="skin" k={k} size={48} name={v.name} label />
-                    <span>{v.name}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )
-        );
-      })}
-    </div>
-  );
-}
-
+/** Heroes and their skins in one grid: a card per hero with its skins under it; what isn't owned is greyed out. */
 function Heroes(p: { s: UserSave }) {
   const h = heroParts(p.s, PROGRESS);
+  const sk = skinParts(p.s, PROGRESS);
+  const heroLock = new Set(h.missing);
+  const skinLock = new Set(sk?.missing);
+  const skins = Object.entries(PROGRESS.skins ?? {});
+  const aside = `${h.owned} / ${h.total} heroes · ${sk ? `${sk.owned} / ${sk.total}` : owned(p.s.unlockedSkins)} skins`;
   return (
-    <Section title={<Lbl k="Hero">Heroes</Lbl>} aside={`${h.owned} / ${h.total} unlocked`}>
-      <Units family="hero" all={PROGRESS.heroes} missing={h.missing} />
+    <Section title={<Lbl k="Hero">Heroes and skins</Lbl>} aside={aside}>
+      <ul class="my-hs">
+        {inOrder(HERO_ORDER, PROGRESS.heroes)
+          .filter((hero) => PROGRESS.heroes.includes(hero))
+          .map((hero) => {
+            const mine = skins.filter(([, v]) => v.hero === hero);
+            const got = mine.filter(([k]) => !skinLock.has(k)).length;
+            return (
+              <li key={hero} class={heroLock.has(hero) ? "locked" : undefined}>
+                <div class="my-hsh">
+                  <Spr family="hero" k={hero} size={56} label />
+                  <span class="my-in">{unitName(hero)}</span>
+                  {mine.length > 0 && (
+                    <span class="my-ic">
+                      {got} / {mine.length}
+                    </span>
+                  )}
+                </div>
+                {mine.length > 0 && (
+                  <ul>
+                    {mine.map(([k, v]) => (
+                      <li key={k} class={skinLock.has(k) ? "locked" : undefined}>
+                        <Spr family="skin" k={k} size={48} name={v.name} label />
+                        <span>{v.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
+      </ul>
     </Section>
   );
 }
@@ -516,7 +550,6 @@ function Towers(p: { s: UserSave }) {
 function Collection(p: { s: UserSave }) {
   const mk = knowledgeParts(p.s, PROGRESS);
   const up = upgradeParts(p.s, PROGRESS);
-  const sk = skinParts(p.s, PROGRESS);
   const pw = powerUpgradeParts(p.s, PROGRESS);
   const mkOwned = mk.reduce((n, t) => n + t.owned, 0);
   const mkTotal = mk.reduce((n, t) => n + t.total, 0);
@@ -577,29 +610,72 @@ function Collection(p: { s: UserSave }) {
           </Section>
         </Anchor>
       )}
-      <Anchor id="skins">
-        <Section title={<Lbl k="Skin">Skins</Lbl>} aside={sk ? `${sk.owned} / ${sk.total} owned` : `${owned(p.s.unlockedSkins)} owned`}>
-          {sk ? <Skins missing={sk.missing} /> : <p class="my-note">{owned(p.s.unlockedSkins)} skins owned.</p>}
-        </Section>
-      </Anchor>
     </>
   );
 }
 
 function Progress(p: { s: UserSave }) {
   const s = p.s;
+  const [sel, setSel] = useState<"ac" | "q" | null>(null);
   const q = s.quests ?? [];
-  const ac = achievementParts(s, PROGRESS);
+  const qOpen = q.filter((x) => !x.complete);
+  const qPart: Part = {
+    owned: q.length - qOpen.length,
+    total: q.length,
+    missing: qOpen.map((x) => x.id),
+  };
+  const ac = achievementParts(s, PROGRESS) ?? {
+    owned: s.achievementsClaimed?.length ?? 0,
+    total: s.achievementsClaimed?.length ?? 0,
+    missing: [],
+  };
   const powers = Object.entries(s.powers ?? {})
     .filter(([, v]) => v.quantity > 0)
     .sort((a, b) => b[1].quantity - a[1].quantity);
+  const card = (id: "ac" | "q", ico: string, label: string, part: Part) => (
+    <li key={id}>
+      <Pick
+        name={
+          <>
+            <Ico k={ico} size={40} />
+            <span class="my-in">{label}</span>
+          </>
+        }
+        part={part}
+        on={sel === id}
+        panel="my-aq-panel"
+        onPick={() => setSel(sel === id ? null : id)}
+      />
+    </li>
+  );
   return (
-    <Section title={<Lbl k="Powers">Powers, achievements and quests</Lbl>}>
-      <dl class="stats grid my-tiles">
-        <Stat k={<Lbl k="Achievement">Achievements claimed</Lbl>} v={ac ? `${fmtInt(ac.owned)} / ${fmtInt(ac.total)}` : fmtInt(s.achievementsClaimed?.length ?? 0)} />
-        <Stat k={<Lbl k="Quest">Quests complete</Lbl>} v={fmtInt(q.filter((x) => x.complete).length)} note={`of ${fmtInt(q.length)}`} />
-      </dl>
-      {ac && <Miss name={<span class="my-in">Achievements not claimed yet</span>} part={ac} label={human} />}
+    <Section title={<Lbl k="Achievement">Achievements, quests and powers</Lbl>}>
+      <ul class="my-aq my-dense">
+        {card("ac", "Achievement", "Achievements", ac)}
+        {card("q", "Quest", "Quests", qPart)}
+        {sel === "ac" && (
+          <Panel key="ac-panel" id="my-aq-panel" art={<Ico k="Achievement" size={48} />} title="Achievements" note={`${fmtInt(ac.missing.length)} not claimed yet`} onClose={() => setSel(null)}>
+            <Chips ids={ac.missing} label={human} />
+          </Panel>
+        )}
+        {sel === "q" && (
+          <Panel key="q-panel" id="my-aq-panel" art={<Ico k="Quest" size={48} />} title="Quests" note={`${fmtInt(qOpen.length)} not complete yet`} onClose={() => setSel(null)}>
+            <ul class="my-tiers">
+              {qOpen.map((x) => (
+                <li key={x.id}>
+                  {QUEST_NAMES[x.id] ?? human(x.id)}
+                  {x.parts > 1 && (
+                    <span class="my-ic">
+                      {" "}
+                      {x.partsComplete} / {x.parts}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </Panel>
+        )}
+      </ul>
       {powers.length > 0 && (
         <>
           <h3 class="my-h3">Powers in stock</h3>
@@ -610,6 +686,239 @@ function Progress(p: { s: UserSave }) {
               </li>
             ))}
           </ul>
+        </>
+      )}
+    </Section>
+  );
+}
+
+/** The parts of save.rogueLegendsStats this page reads (docs/api/fixtures/btd6__save__sample.json). */
+interface RogueHero {
+  heroName: string;
+  skinName: string;
+  runsCompletedNormal: number;
+  runsCompletedChimps: number;
+  highestStageReachedNormal: number;
+  highestStageReachedChimps: number;
+  fastestNormalCompletionSeconds: number;
+  fastestChimpsCompletionSeconds: number;
+  lifetimePops: number;
+  favouriteArtifacts?: { tier: number; name: string; count: number }[];
+  favouriteTeamMembers?: { tiers: number[]; name: string; count: number }[];
+}
+interface RogueStats {
+  winsByTileType?: Record<string, number>;
+  rogueHeroStats?: RogueHero[];
+  miniGameTilesCompleted?: string[];
+  legendaryBoostTypesCollected?: string[];
+  [k: string]: unknown;
+}
+const TILE_TYPE: Record<string, string> = {
+  pathStandardGame: "Standard tiles",
+  miniGame: "Mini-games",
+  miniBoss: "Mini-bosses",
+  boss: "Bosses",
+};
+/** Rogue counters listed as feats (the stats object also carries Frontier Legends counters: not these). */
+const ROGUE_FEATS = ["extractedArtifacts", "totalBoostMonkeys", "fullParty", "perfectAdventure", "perfectTrade", "overgeared", "masterBlacksmith", "trainingWeights", "tomfoolery"];
+/** Artifact tier 1..3 in the save id = the game's Common / Rare / Legendary (rarity word in its names, checked). */
+const RARITY = ["Common", "Rare", "Legendary"];
+const mmss = (s: number) => (s > 0 ? `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}` : "–");
+const num = (v: unknown) => (typeof v === "number" ? v : 0);
+
+/** A Rogue Legends artifact by save id ("OneShot2") or base name + tier. */
+function Artifact(p: { id?: string; name?: string; tier?: number; size: number; named?: boolean }) {
+  const id = p.id ?? `${p.name}${(p.tier ?? 0) + 1}`; // favourites carry a 0-based tier, save ids end in 1..3
+  const tier = Number(id.slice(-1));
+  const label = ARTIFACT_NAMES[id] ?? human(id.replace(/\d$/, ""));
+  return (
+    <>
+      <Spr family="artifact" k={id} size={p.size} name={label} label />
+      {p.named && <span>{label}</span>}
+      {tier >= 1 && tier <= 3 && <small class={`my-rar r${tier}`}>{RARITY[tier - 1]}</small>}
+    </>
+  );
+}
+
+function Rogue(p: { s: UserSave }) {
+  const st = (p.s.rogueLegendsStats ?? {}) as RogueStats;
+  const rl = p.s.rogueLegends ?? {};
+  const n = (k: string) => num(rl[k] ?? st[k]);
+  if (!n("tilesCaptured") && !st.rogueHeroStats?.length) return null;
+  const heroes = [...(st.rogueHeroStats ?? [])].sort((a, b) => b.lifetimePops - a.lifetimePops);
+  const starters = Object.values(p.s.rogueUnlockedStarterArtifacts ?? {});
+  const feats = ROGUE_FEATS.filter((k) => typeof st[k] === "number").map((k) => [k, st[k]] as const);
+  const towers = (k: string) => (Array.isArray(st[k]) ? (st[k] as string[]).filter((t) => hasArt("tower", t)) : []) // also lists powers (SuperMonkeyBeacon);
+  const split = (a: string, b: string, c: string) => `${fmtInt(n(a))} common · ${fmtInt(n(b))} rare · ${fmtInt(n(c))} legendary`;
+  return (
+    <Section title={<Lbl k="rogue:Legends">Rogue Legends</Lbl>}>
+      <dl class="my-tiles">
+        <Tile k="Tiles captured" ico="rogue:Legends" v={n("tilesCaptured")} note={st.tilesCapturedWithinCampaign !== undefined ? `${fmtInt(num(st.tilesCapturedWithinCampaign))} in campaign` : undefined} />
+        <Tile k="Bosses defeated" art={<Spr family="boss" k="skull" size={40} label />} v={n("bossesDefeated")} />
+        <Tile k="Campaigns won" ico="Trophy" v={n("campaignMapsWon")} />
+        <Tile k="Loops" ico="HighestRound" v={n("loops")} />
+        <Tile
+          k="Artifacts"
+          art={<Spr family="artifact" k={starters[0] ?? "BouncingProjectiles3"} size={40} label optional />}
+          v={n("totalArtifacts")}
+          note={split("commonArtifactsCollected", "rareArtifactsCollected", "legendaryArtifactsCollected")}
+        />
+        <Tile
+          k="Boosts"
+          art={<Spr family="artifact" k="boost:Toughness" size={40} label optional />}
+          v={n("commonBoostsCollected") + n("rareBoostsCollected") + n("legendaryBoostsCollected")}
+          note={split("commonBoostsCollected", "rareBoostsCollected", "legendaryBoostsCollected")}
+        />
+      </dl>
+      {st.winsByTileType && (
+        <>
+          <h3 class="my-h3">Wins by tile</h3>
+          <ul class="my-rwins">
+            {Object.entries(st.winsByTileType).map(([k, v]) => (
+              <li key={k}>
+                <span>{TILE_TYPE[k] ?? counterLabel(k)}</span>
+                <b>{fmtInt(v)}</b>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {heroes.length > 0 && (
+        <>
+          <h3 class="my-h3">Heroes</h3>
+          <ul class="my-rh">
+            {heroes.map((h) => (
+              <li key={h.heroName}>
+                <div class="my-hsh">
+                  {h.skinName && h.skinName !== h.heroName ? <Spr family="skin" k={h.skinName} size={56} name={unitName(h.heroName)} label /> : <Spr family="hero" k={h.heroName} size={56} label />}
+                  <span class="my-in">{unitName(h.heroName)}</span>
+                  <span class="my-ic">{fmtInt(h.lifetimePops)} pops</span>
+                </div>
+                <table class="my-rt">
+                  <thead>
+                    <tr>
+                      <th />
+                      <th scope="col">Runs won</th>
+                      <th scope="col">Best stage</th>
+                      <th scope="col">Fastest</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th scope="row">Normal</th>
+                      <td>{fmtInt(h.runsCompletedNormal)}</td>
+                      <td>{fmtInt(h.highestStageReachedNormal)}</td>
+                      <td>{mmss(h.fastestNormalCompletionSeconds)}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">CHIMPS</th>
+                      <td>{fmtInt(h.runsCompletedChimps)}</td>
+                      <td>{fmtInt(h.highestStageReachedChimps)}</td>
+                      <td>{mmss(h.fastestChimpsCompletionSeconds)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                {!!h.favouriteTeamMembers?.length && (
+                  <div class="my-rfav">
+                    <span>Favourite team</span>
+                    <ul>
+                      {h.favouriteTeamMembers.map((m, i) => (
+                        <li key={i}>
+                          <Spr family="tower" k={m.name} size={40} label optional />
+                          <small>{m.tiers.join("-")}</small>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {!!h.favouriteArtifacts?.length && (
+                  <div class="my-rfav">
+                    <span>Favourite artifacts</span>
+                    <ul>
+                      {h.favouriteArtifacts.map((a, i) => (
+                        <li key={i}>
+                          <Artifact name={a.name} tier={a.tier} size={40} />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {starters.length > 0 && (
+        <>
+          <h3 class="my-h3">
+            Starter artifacts unlocked <span>{starters.length}</span>
+          </h3>
+          <ul class="my-rart">
+            {starters.map((id) => (
+              <li key={id}>
+                <Artifact id={id} size={56} named />
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {[
+        ["towerTypesPlaced", "Towers placed"],
+        ["tier5sAcrossAll", "Tier 5s reached"],
+      ].map(
+        ([k, title]) =>
+          towers(k).length > 0 && (
+            <div key={k}>
+              <h3 class="my-h3">
+                {title} <span>{towers(k).length}</span>
+              </h3>
+              <ul class="my-powers">
+                {towers(k).map((t) => (
+                  <li key={t}>
+                    <Spr family="tower" k={t} size={48} label />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ),
+      )}
+      {!!st.miniGameTilesCompleted?.length && (
+        <>
+          <h3 class="my-h3">Mini-games cleared</h3>
+          <ul class="my-rart">
+            {st.miniGameTilesCompleted.map((k) => (
+              <li key={k}>
+                <Ico k={`rogue:${k}`} size={56} />
+                <span>{counterLabel(k)}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {!!st.legendaryBoostTypesCollected?.length && (
+        <>
+          <h3 class="my-h3">Legendary boosts found</h3>
+          <ul class="my-rart">
+            {st.legendaryBoostTypesCollected.map((k) => (
+              <li key={k}>
+                <Spr family="artifact" k={`boost:${k}`} size={56} name={k} label optional />
+                <span>{counterLabel(k)}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {feats.length > 0 && (
+        <>
+          <h3 class="my-h3">Feats</h3>
+          <dl class="my-kv">
+            {feats.map(([k, v]) => (
+              <div key={k}>
+                <dt>{counterLabel(k)}</dt>
+                <dd>{fmtInt(v as number)}</dd>
+              </div>
+            ))}
+          </dl>
         </>
       )}
     </Section>
@@ -633,34 +942,64 @@ function Legends(p: { title: string; data: Record<string, number> | undefined })
   );
 }
 
+/** The public profile's header (people.tsx PlayerPage): NK banner, avatar, name, rank, main tower and hero. */
+function Head(p: { prof: UserProfile; hero: string | undefined; playerId: string | null }) {
+  const u = p.prof;
+  const nk = (url: string | undefined) => (url?.startsWith(NK_ASSETS) ? url : null);
+  return (
+    <header class="profile">
+      <div class="profile-banner">
+        <Img src={nk(u.bannerURL)} w={1536} h={192} eager />
+      </div>
+      <div class="profile-id">
+        <Img src={nk(u.avatarURL)} w={360} h={360} eager class="avatar" alt="" />
+        <div class="profile-t">
+          <p class="eyebrow">Your save</p>
+          <h1 class={`title xl uname${longWord(u.displayName)}`}>{u.displayName}</h1>
+          <p class="profile-sub">
+            <span>
+              Rank <b class="num">{u.rank}</b>
+            </span>
+            {u.veteranRank > 0 && (
+              <span>
+                Veteran <b class="num">{u.veteranRank}</b>
+              </span>
+            )}
+            <span class="main-t">
+              <Spr family="tower" k={u.mostExperiencedMonkey} size={32} label />
+              Main <b>{unitName(u.mostExperiencedMonkey)}</b>
+            </span>
+            {p.hero && (
+              <span class="main-t">
+                <Spr family="hero" k={p.hero} size={32} label optional />
+                Hero <b>{unitName(p.hero)}</b>
+              </span>
+            )}
+            {p.playerId && <A href={href.player(p.playerId)}>Public profile</A>}
+          </p>
+        </div>
+      </div>
+    </header>
+  );
+}
+
 export function MePage() {
   const o = useOak();
   const mine = o.mine;
   const prof = mine?.profile;
-  const avatar = prof?.avatarURL?.startsWith(NK_ASSETS) ? prof.avatarURL : null;
   return (
     <div class="my">
-      <ToolHero
-        eyebrow="Your save"
-        art={avatar ? <Img src={avatar} w={72} h={72} alt="" class="my-av" eager fallback={<PersonIcon />} /> : <PersonIcon />}
-        title={prof?.displayName ?? "My stats"}
-        sub={prof ? `Rank ${fmtInt(prof.rank)} · Veteran rank ${fmtInt(prof.veteranRank)}` : "Your own BTD6 progress, read straight from Ninja Kiwi."}
-      >
-        {prof && <Spr family="tower" k={prof.mostExperiencedMonkey} size={44} name={`Most experienced: ${unitName(prof.mostExperiencedMonkey)}`} />}
-        {mine && mine.save.primaryHero && <Spr family="hero" k={mine.save.primaryHero} size={44} name={`Primary hero: ${unitName(mine.save.primaryHero)}`} optional />}
-      </ToolHero>
+      {prof ? (
+        <Head prof={prof} hero={mine.save.primaryHero || undefined} playerId={o.playerId} />
+      ) : (
+        <ToolHero eyebrow="Your save" art={<PersonIcon />} title="My stats" sub="Your own BTD6 progress, read straight from Ninja Kiwi." />
+      )}
       {!o.key && <Intro />}
       {o.key && <Bar at={mine?.at ?? null} loading={o.loading} error={o.error} />}
       {o.key && !mine && o.loading && <p class="my-note">Loading your stats from Ninja Kiwi…</p>}
       {mine && (
         <>
-          {o.playerId ? (
-            <p class="my-pub">
-              <A href={href.player(o.playerId)}>Your public profile</A>
-            </p>
-          ) : (
-            <p class="my-note">Want your public profile here too? Open your player page from any leaderboard and press "This is me".</p>
-          )}
+          {!o.playerId && <p class="my-note">Want your public profile here too? Open your player page from any leaderboard and press "This is me".</p>}
           <Summary s={mine.save} />
           <Overview s={mine.save} />
           <Anchor id="medals">
@@ -680,7 +1019,7 @@ export function MePage() {
           <Anchor id="achievements">
             <Progress s={mine.save} />
           </Anchor>
-          <Legends title="Rogue Legends" data={mine.save.rogueLegends} />
+          <Rogue s={mine.save} />
           <Legends title="Frontier Legends" data={mine.save.frontierLegends} />
         </>
       )}

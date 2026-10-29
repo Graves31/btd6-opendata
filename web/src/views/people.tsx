@@ -472,7 +472,7 @@ function CtBadges(props: { badges: Record<string, { id: string; url: string }> }
 }
 
 /** layout#12: " nlong" when the longest word is over 12 characters, so the name can shrink instead of breaking mid-word. */
-const longWord = (s: string) => (s.split(/\s+/).some((w) => w.length > 12) ? " nlong" : "");
+export const longWord = (s: string) => (s.split(/\s+/).some((w) => w.length > 12) ? " nlong" : "");
 
 const TEAM_STATUS: Record<string, string> = { OPEN: "Open to join", FILTERED: "Join by request", CLOSED: "Closed", DISBANDED: "Disbanded" };
 

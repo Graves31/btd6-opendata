@@ -502,10 +502,10 @@ async function main() {
       for (let i = 0; i < 30; i++) await page.keyboard.press("Backspace");
       await page.type("#my-key", "oak_e2etest0000");
       await page.click(".my-go");
-      await page.waitForSelector(".my-tiles .stat", { timeout: 8000 }).catch(() => problems.push("me: no stats after entering a key"));
+      await page.waitForSelector(".my-tiles .my-tile", { timeout: 8000 }).catch(() => problems.push("me: no stats after entering a key"));
     };
     await enterKey();
-    for (const [sel, what] of [[".my-medals li", "medal"], [".my-instas > li", "insta"], [".my-xp li", "tower XP"], [".my-heroes li", "hero"], [".my-powers li", "power"]] as const) {
+    for (const [sel, what] of [[".my-medals li", "medal"], [".my-instas > li", "insta"], [".my-xp li", "tower XP"], [".my-hs > li", "hero"], [".my-powers li", "power"]] as const) {
       if (!(await has(sel))) problems.push(`me: no ${what} rows`);
     }
     if (nkSeen.length < 2 || nkSeen.some((p) => !/^\/btd6\/(save|users)\/oak_e2etest0000$/.test(p))) problems.push(`me: unexpected NK requests: ${nkSeen.join(", ")}`);
