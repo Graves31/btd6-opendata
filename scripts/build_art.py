@@ -300,6 +300,13 @@ UI = {
     "Pops": "Ui/PopIconLarge",
     "Income": "Ui/CoinGainIcon",
     "Tier5": "Ui/InstaRandomTier5",  # the wildcard tier 5 insta monkey
+    # Rogue Legends on /me: the Rogue monkey (the game's Legends-menu feature art) and the mini-game tile icons, keyed
+    # like the save's miniGameTilesCompleted ("race", "bossRush", "leastCash", "enduranceRace"); RogueData's sprites.
+    "rogue:Legends": "ref/LegendsBtnFeatureRogue",
+    "rogue:race": "Ui/StopWatch",
+    "rogue:bossRush": "ref/BossRushKills",
+    "rogue:leastCash": "ChallengeRulesIcons/LeastCashIconSmall",
+    "rogue:enduranceRace": "IngameUi/DamageIcon",
     "ParagonTotem": "UiBuffIcons/BuffIconParagonTotem",
     "ParagonDegree": "Ui/ParagonPip",
     "ParagonPower": "UiBuffIcons/BuffIconParagonOfPower",
@@ -470,22 +477,132 @@ def paragon_icons() -> dict:
     return table
 
 
+# Circle-free skin portraits: MonkeyIcons atlas sprite per skin key (like the "hero" family; the skin assets' own icon /
+# iconSquare guids are the round menu medallions). Names are not derivable (QuincyCyberIcon, AdmiralBrickellLifeguard
+# BrickellIcon, ETnIcon...), so they are listed; a skin without an entry (new, or no MonkeyIcons sprite: Fusty the
+# Snowman, Kaiju Pat) keeps its round HeroIcon medallion from the skin asset.
+SKIN_PORTRAITS = {
+    "AdoraSheRa": "AdoraSheRaIcon", "BenJammin": "BenJamminIcon", "Biker Bones": "BikerBonesIcon",
+    "BookWyrmEtienne": "EtienneBookWyrmIcon", "CircusGwendolin": "CircusGwendolinIcon",
+    "CorvusDecryptor": "CorvusDecryptorIcon", "Cyber Quincy": "QuincyCyberIcon", "DanDMonkeHeMan": "DanDMonkeHeManIcon",
+    "DreadPirateBrickell": "AdmiralBrickellDreadPirateBrickellIcon", "DreamstatePsi": "PsiDreamstateIcon",
+    "ETnEtienne": "ETnIcon", "FirecrackerGwendolin": "GwendolinFirecrackerIcon", "Galaxili": "EziliGalaxiliIcon",
+    "GeraldoGentlemanGadgeteer": "GeraldoGentlemanGadgeteerIcon", "JiangshiSauda": "SaudaJiangshiIcon",
+    "JoanOfArcAdora": "AdoraJoanOfArcIcon", "LifeguardBrickell": "AdmiralBrickellLifeguardBrickellIcon",
+    "MoltenObyn": "MountainObynIcon", "ObynOceanGuardian": "OceanObynIcon", "ObynSkeletor": "ObynSkeletorIcon",
+    "Octo Jones": "OctoJonesIcon", "Psimbals": "PsiPsimbalsIcon", "RosaliaTinkerfairy": "RosaliaTinkerfairyIcon",
+    "Scientist Gwendolin": "GwendolinScientistIcon", "Sentai Captain Churchill": "SentaiChurchillIcon",
+    "Sleigh Captain Churchill": "ChurchillSleighIcon", "SmudgeCatt": "EziliSmudgeCattIcon",
+    "SushiBento": "SushiBentoIcon", "VikingSauda": "SaudaVikingIcon", "Voidora": "AdoraVoidoraIcon",
+    "Wolfpack Quincy": "QuincyWolfpackIcon",
+}
+
+
 def skin_icons() -> dict:
-    """Hero skin portraits keyed by the save's skin name ("skin" family): each skin asset's icon guid -> catalog file
-    name (HeroIcon<...>.png) -> that sprite in asset_references. Molten Obyn's file is HeroIconMountainObyn."""
+    """Hero skin portraits keyed by the save's skin name ("skin" family): SKIN_PORTRAITS (circle-free MonkeyIcons
+    sprite), else the skin asset's round icon guid -> catalog file name (HeroIcon<...>.png) -> asset_references."""
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     import build_progress
     import build_rounds
 
     skins, _ = build_progress.skins_achievements(build_rounds)
-    names = catalog_file_names([v["icon"] for v in skins.values()])
+    if stale := sorted(set(SKIN_PORTRAITS) - set(skins)):
+        sys.exit(f"SKIN_PORTRAITS names skins the game no longer has: {stale}")
+    rest = {k: v for k, v in skins.items() if k not in SKIN_PORTRAITS}
+    names = catalog_file_names([v["icon"] for v in rest.values()]) if rest else {}
     table = {}
-    for k, v in sorted(skins.items()):
-        file = names[v["icon"]]
+    for k in sorted(skins):
+        if k in SKIN_PORTRAITS:
+            table[k] = "MonkeyIcons/" + SKIN_PORTRAITS[k]
+            continue
+        file = names[rest[k]["icon"]]
         if not file.endswith(".png"):
             sys.exit(f"skin icon of {k!r} is not a .png: {file!r}")
         table[k] = "ref/" + file[: -len(".png")]
+    if rest:
+        print(f"  skin       round medallion kept (no MonkeyIcons sprite): {', '.join(sorted(rest))}")
     return table
+
+
+def insta_icons() -> dict:
+    """"<TowerId>:<tiers>" -> sprite spec, for the "insta" family (the Insta Monkey collection portraits).
+
+    sim_model holds one record per model, in the order of the TowerModel header run (every "<Id>-ddd" tier set plus
+    some extras); a later block has, per such record, the display refs [prefab, portrait, insta portrait] as
+    length-prefixed (0x20) Addressables guids, the last being the insta sprite ("500-DartMonkeyInsta.png"; catalog.bin
+    names it). The block starts right after the model records (2 strings + 8 bytes each), one group per tower in
+    tower order. Super Monkey has two extra records (SpectreA, SpectreC), dropped here. Checked: every insta sprite
+    names its own tower and uses only tiers the set has."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import build_paragons
+    import build_progress
+    import build_rounds
+
+    b = build_rounds.load_sim_model()
+    off = b.find(b"DartMonkey-032")
+    r = next(build_paragons._header(b, off - k) for k in range(8, 16) if build_paragons._header(b, off - k))
+    t, start = r[0], off - next(k for k in range(8, 16) if build_paragons._header(b, off - k))
+    while True:  # walk back to the first header of the run
+        for L in range(0, 128):
+            h = build_paragons._header(b, start - 11 - L)
+            if h and h[0] == t and h[2] == start:
+                start -= 11 + L
+                break
+        else:
+            break
+    run, q = [], start
+    while (h := build_paragons._header(b, q)) and h[0] == t:
+        run.append(h[1])
+        q = h[2]
+    for _ in run:  # skip the model records: zero byte, str, guid-or-empty int32 float32
+        q += 2 + b[q + 1]
+        q += 1 + b[q] + 8
+    towers = build_progress.tower_order(b)
+    recs = [re.findall(rb"[0-9a-f]{32}", m.group()) for m in re.finditer(rb"(?: [0-9a-f]{32}){2,6}", b[q:q + 3_000_000])]
+    guids = sorted({g.decode() for r_ in recs[:len(run)] for g in r_})
+    files = catalog_file_names(guids)
+    table, i = {}, 0
+    for tower in towers:
+        names = [n for n in run if n.split("-")[0] == tower]
+        n_rec = len(names) + (2 if tower == "SuperMonkey" else 0)
+        grp = recs[i:i + n_rec]
+        i += n_rec
+        if tower == "SuperMonkey":
+            del grp[7], grp[5]
+        for n, g in zip(names, grp):
+            tiers = n.partition("-")[2] or "000"
+            if not re.fullmatch(r"\d{3}", tiers):
+                continue  # Paragon
+            f = files[g[-1].decode()]
+            m = re.fullmatch(r"(\d{3})-(\w+?)(?:Insta)+\.png", f)
+            ok = m and m.group(2).lower()[:3] == tower.lower()[:3] and all(int(m.group(1)[k]) <= int(tiers[k]) for k in range(3))
+            if not ok:
+                sys.exit(f"insta portrait of {n}: unexpected {f!r}")
+            table[f"{tower}:{tiers}"] = "ref/" + f[: -len(".png")]
+    return table
+
+
+
+def artifact_icons() -> dict:
+    """Rogue Legends artifact icons ("artifact" family). Keys: the save's artifact id (the asset name: base + tier + 1,
+    "OneShot2"), the favouriteArtifacts form "<name><tier + 1>" where that differs, and "boost:<Type>" for the boost
+    types (Quickening, Toughness, Velocity: the BoostX.png icon every boost artifact of that type shares)."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import build_names
+
+    arts = [a for a in build_names.load_game_records()["artifacts"] if a["icon"]]  # a few have no icon
+    files = catalog_file_names(sorted({a["icon"] for a in arts}))
+    table, boosts = {}, {}
+    for a in arts:
+        f = files[a["icon"]]
+        if not f.endswith(".png"):
+            sys.exit(f"artifact icon of {a['key']!r} is not a .png: {f!r}")
+        table[a["key"]] = "ref/" + f[: -len(".png")]
+        if a["kind"] == "boost":
+            boosts["boost:" + re.fullmatch(r"Boost(\w+)\.png", f).group(1)] = table[a["key"]]  # every boost icon is BoostX.png
+    for alias, key in build_names.artifact_aliases(arts).items():
+        table[alias] = table[key]
+    return {**table, **boosts}
 
 
 BLOONS = {  # canonical bloon keys -> plain base sprites (no damage states, no event skins)
@@ -648,6 +765,8 @@ FAMILIES = {  # family -> (table, cell px, aliases)
     "relic": (RELICS, 64, {}),
     "paragon": ({}, 96, {}),  # filled by main() from paragon_icons()
     "skin": ({}, 96, {}),  # filled by main() from skin_icons()
+    "insta": ({}, 64, {}),  # filled by main() from insta_icons(); /me only
+    "artifact": ({}, 64, {}),  # filled by main() from artifact_icons(); /me only
     "season": (SEASON_BADGES, 96, {}),
     "eventIcon": (EVENT_ICONS, 96, {}),
 }
@@ -1299,7 +1418,8 @@ export type Family =
    *  AbilityCooldownDecrease the opposite. Extras: LeastCashRule, LeastTiersRule (framed rule versions),
    *  RemovableCostIncrease, RemovableCostDecrease, CeramicIncreaseHP, CeramicDecreaseHP, FastTrackDisabled,
    *  NoLivesLost, Race, Odyssey, ContestedTerritory, CtPoints, Relic (generic relic), MaxTowers, CustomRounds,
-   *  mode:<mode>. Paragon calculator: CashSpent, Pops, Income, Tier5 (empty gold frame), ParagonTotem,
+   *  mode:<mode>, rogue:Legends / rogue:race / rogue:bossRush / rogue:leastCash / rogue:enduranceRace (Rogue Legends
+   *  logo and mini-game tiles). Paragon calculator: CashSpent, Pops, Income, Tier5 (empty gold frame), ParagonTotem,
    *  ParagonDegree (degree badge), ParagonPower. MonkeyMoney is the game's currency banknote ("BloonjaminsIcon").
    *  Maps explorer: MapBeginner, MapIntermediate, MapAdvanced, MapExpert (map-select difficulty tabs), Water
    *  (RequiresWaterIcon), Search. */
@@ -1347,6 +1467,12 @@ export type Family =
   /** Hero skin portraits keyed by the save's skin name (the keys of progress.json "skins": "Cyber Quincy",
    *  KaijuPat, MoltenObyn, …). */
   | "skin"
+  /** Insta Monkey collection portraits keyed "<TowerId>:<tiers>" ("DartMonkey:032"), every tier set 000..520 the
+   *  game has; many sets share one picture. Only the /me page loads this sheet. */
+  | "insta"
+  /** Rogue Legends artifacts keyed by the save id ("OneShot2" = name + tier 1..3; favouriteArtifacts: name + (tier + 1))
+   *  and "boost:Quickening" / "boost:Toughness" / "boost:Velocity". Only the /me page loads this sheet. */
+  | "artifact"
   /** Social Season badges keyed by UserProfile.seasonBadges ids: SeasonTier1–4, SeasonUltimate1–3 (one per
    *  season: 1 Dr. Monkey, 2 Striker's Vacation, 3 Quincy's Roadtrip), SeasonChampion. */
   | "season";
@@ -1557,6 +1683,8 @@ def main() -> None:
     FAMILIES["bloonVariant"] = (bloon_variants(), 64, {})
     FAMILIES["paragon"] = (paragon_icons(), 96, {})
     FAMILIES["skin"] = (skin_icons(), 96, {})
+    FAMILIES["insta"] = (insta_icons(), 64, {})
+    FAMILIES["artifact"] = (artifact_icons(), 64, {})
     fams = {f: build_family(src, f, t, c, a) for f, (t, c, a) in FAMILIES.items()}
     print(f"  sheets total {sum(i['bytes'] for i in fams.values()) / 1024:.1f} KB")
     for key, spec in TOOL_ICONS.items():

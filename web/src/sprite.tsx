@@ -159,9 +159,10 @@ const PAGE_FAMILIES: Record<string, AnyFamily[]> = {
   challenges: ["bloon"],
   rounds: ["bloon", "bloonVariant", "boss", "ui"],
   paragon: ["paragon", "tower", "ui"],
+  me: ["ui", "tower", "hero", "skin", "insta", "artifact"],
 };
 /** Sheets only their own pages load (never warmed on idle elsewhere). */
-const PAGE_ONLY = new Set<AnyFamily>(["bloonVariant", "skin"]);
+const PAGE_ONLY = new Set<AnyFamily>(["bloonVariant", "skin", "insta", "artifact"]);
 
 /** Start decoding the sheets a page will use. Fire and forget. */
 export function warmFor(page: string): void {

@@ -147,6 +147,51 @@ def load_map_details() -> list[dict]:
     sys.exit("MapDetails not found in game_data bundle")
 
 
+_RECORDS: dict | None = None
+
+
+def load_game_records() -> dict:
+    """One pass over game_data: {"quests": {id: title loc id}, "artifacts": [{key, kind, tier, base, name, icon}]}.
+
+    Quests: QuestData assets (id, questTitleLoc). Rogue Legends artifacts: assets holding one `<kind>ArtifactModel`
+    (item / map / boost; the Frontier-only trait kind is left out). The asset name (m_Name) is the id the save uses
+    ("BouncingProjectiles3" = baseId + tier + 1); favouriteArtifacts give baseId + 0-based tier instead."""
+    global _RECORDS
+    if _RECORDS is None:
+        import UnityPy
+
+        env = UnityPy.load(str(_bundle("game_data_assets_all")))
+        quests, arts = {}, []
+        for obj in env.objects:
+            if obj.type.name != "MonoBehaviour":
+                continue
+            tt = obj.read_typetree()
+            if "questTitleLoc" in tt:
+                quests[tt["id"]] = tt["questTitleLoc"]
+            for kind in ("item", "map", "boost"):
+                m = tt.get(kind + "ArtifactModel")
+                if isinstance(m, dict) and "baseId" in m:
+                    arts.append({"key": tt["m_Name"], "kind": kind, "tier": m["tier"], "base": m["baseId"],
+                                 "name": m["nameLocKey"], "icon": m["icon"]["guidRef"]})
+        if not quests or not arts:
+            sys.exit(f"quests/artifacts not found in game_data ({len(quests)} quests, {len(arts)} artifacts)")
+        _RECORDS = {"quests": quests, "artifacts": sorted(arts, key=lambda a: a["key"])}
+    return _RECORDS
+
+
+def artifact_aliases(arts: list) -> dict:
+    """"<baseId><tier+1>" -> artifact key, where that differs from the asset name (the favouriteArtifacts form)."""
+    out = {}
+    for a in arts:
+        k = f"{a['base']}{a['tier'] + 1}"
+        if k != a["key"]:
+            if k in out and out[k] != a["key"]:
+                out[k] = None  # ambiguous: leave out
+            else:
+                out[k] = a["key"]
+    return {k: v for k, v in out.items() if v and k not in {a["key"] for a in arts}}
+
+
 # ─────────────────────────────────────────────────────────────── text helpers
 
 _TAG = re.compile(r"</?(?:color|b|i|u|s|size|sprite|style|font|mark|sup|sub|link|align|nobr|lowercase|uppercase|"
@@ -258,7 +303,33 @@ def map_list(details: list[dict], maps: dict) -> list:
             if not m.get("isBrowserOnly") and m["id"] in maps]
 
 
-def render(maps: dict, abilities: dict, relics: dict, mlist: list) -> str:
+def build_quests(text: dict) -> dict:
+    quests = load_game_records()["quests"]
+    if missing := [k for k, v in quests.items() if v not in text]:
+        sys.exit(f"quests without an English title: {missing}")
+    return {k: clean(text[v]) for k, v in quests.items()}
+
+
+_RARITY = re.compile(r"\s*(?:\{0\}|Common|Rare|Legendary)$")
+
+
+def build_artifacts(text: dict) -> dict:
+    """Display name per artifact key (+ the favouriteArtifacts aliases). The game's names end in the rarity ("{0}" or
+    spelled out); the tier is in the key, so it is dropped here."""
+    arts = load_game_records()["artifacts"]
+    out = {}
+    for a in arts:
+        if a["name"] in text:  # a few (unused test artifacts) have no text: the UI humanises their key
+            out[a["key"]] = _RARITY.sub("", clean(text[a["name"]]))
+        else:
+            print(f"  names      artifact {a['key']}: no English text for {a['name']!r}")
+    for alias, key in artifact_aliases(arts).items():
+        if key in out:
+            out[alias] = out[key]
+    return out
+
+
+def render(maps: dict, abilities: dict, relics: dict, mlist: list, quests: dict, artifacts: dict) -> str:
     rel = lambda v: "{ name: %s, description: %s }" % (_lit(v["name"]), _lit(v["description"]))  # noqa: E731
     rows = "".join(f"  [{_lit(i)}, {d}, {'true' if w else 'false'}],\n" for i, d, w in mlist)
     return (
@@ -271,6 +342,10 @@ def render(maps: dict, abilities: dict, relics: dict, mlist: list) -> str:
         + f"export const ABILITY_NAMES: Record<string, string> = {_obj(abilities, _lit)};\n"
         + '\n/** CT relic id as after "Relic - " in CT tiles (e.g. "ManaBulwark") → in-game name + effect description. */\n'
         + f"export const RELIC_INFO: Record<string, {{ name: string; description: string }}> = {_obj(relics, rel)};\n"
+        + '\n/** Quest id as in save.quests[].id (e.g. "BattleCatQuest") → in-game quest title. */\n'
+        + f"export const QUEST_NAMES: Record<string, string> = {_obj(quests, _lit)};\n"
+        + '\n/** Rogue Legends artifact key (the save id: "OneShot2" = base + tier 1..3; favouriteArtifacts: name + (tier + 1)) → name without the rarity. */\n'
+        + f"export const ARTIFACT_NAMES: Record<string, string> = {_obj(artifacts, _lit)};\n"
     )
 
 
@@ -291,10 +366,12 @@ def main(relic_ids: list[str] | None = None) -> None:
         if k not in abilities:
             abilities[k] = v
             no_ability = [x for x in no_ability if x != k]
-    data = render(maps, abilities, relics, mlist).encode("utf-8")
+    quests = build_quests(text)
+    artifacts = build_artifacts(text)
+    data = render(maps, abilities, relics, mlist, quests, artifacts).encode("utf-8")
     if not OUT.exists() or OUT.read_bytes() != data:
         OUT.write_bytes(data)
-    print(f"  names      {len(maps)} maps ({len(mlist)} listed), {len(abilities)}/{len(ABILITY_KEYS)} abilities, {len(relics)} relics"
+    print(f"  names      {len(maps)} maps ({len(mlist)} listed), {len(abilities)}/{len(ABILITY_KEYS)} abilities, {len(relics)} relics, {len(quests)} quests, {len(artifacts)} artifacts"
           f" -> {OUT.relative_to(ROOT)} ({len(data) / 1024:.1f} KB)")
     if no_map:
         print(f"             maps without a name: {', '.join(no_map)}")
