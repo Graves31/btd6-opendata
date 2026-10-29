@@ -94,13 +94,16 @@ function trackApi(page: Page) {
     // (a prefetch can be scheduled by an IntersectionObserver callback after the network went quiet).
     quiet: (quietMs = 600) =>
       until(
-        async () =>
-          open.size === 0 &&
-          Date.now() - last > quietMs &&
-          (await page.evaluate(() => {
-            const st = (window as any).__debug?.store() as any;
-            return !st || (st.pending.size === 0 && st.inflight.size === 0);
-          })),
+        async () => {
+          if (Date.now() - last <= quietMs) return false;
+          const st = await page.evaluate(() => {
+            const s = (window as any).__debug?.store() as any;
+            return s ? { idle: s.pending.size === 0 && s.inflight.size === 0, now: !s.nowInflight && s.nowLoadedAt > 0 } : { idle: true, now: false };
+          });
+          // Chrome can leave index.html's <link rel=preload> of /api/now open long after the app has its data
+          // (live and wrangler dev). Once the store has loaded /api/now, that request isn't holding the page.
+          return st.idle && [...open.values()].every((u) => st.now && u === "/api/now");
+        },
         "prefetch to settle",
         30_000,
       ).catch(async (e) => {
