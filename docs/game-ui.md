@@ -17,6 +17,7 @@ Code: `<Section tone="…">` (ui.tsx) and the `.gp` / `.gc` / `.gn` / `.gbar` bl
 | Aside | Small grey summary top right inside the panel ("12 / 45 owned"). | Counts and totals only, never sentences. |
 | Card `.gc` | Dark rounded card (10 px) with a 1 px rim and a 3 px **ledge** in the section colour under it. | Every clickable or stat card inside a panel. `.gc.on` = the picked one (yellow edge and ledge). |
 | Number `.gn` | Big display-font number with a dark outline in the section colour. | The one headline number on a card. Not for body figures or tables. |
+| Button `.gbtn` | Raised plate in the section colour (blue outside a panel), 2 px dark edge, 3 px dark ledge that presses in on click. `.gbtn.go` = the yellow main action. | Every button on a game-styled page (Refresh, Save, Show). Not for links or tabs. |
 | Bar `.gbar > i` | Sunken dark track, glossy fill in the section colour; `.done` turns it green. | Progress. Green means complete, everywhere. |
 
 ## Rules

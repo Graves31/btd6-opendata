@@ -82,10 +82,10 @@ function KeyForm() {
           aria-describedby="my-key-h"
           onInput={(e) => setV(e.currentTarget.value)}
         />
-        <button type="button" class="my-btn" aria-pressed={show} onClick={() => setShow(!show)}>
+        <button type="button" class="my-btn gbtn" aria-pressed={show} onClick={() => setShow(!show)}>
           {show ? "Hide" : "Show"}
         </button>
-        <button type="submit" class="my-btn my-go">
+        <button type="submit" class="my-btn my-go gbtn go">
           Save
         </button>
       </div>
@@ -118,10 +118,10 @@ function Bar(p: { at: number | null; loading: boolean; error: OakError | null })
   return (
     <div class="my-bar">
       <span class="my-when">{p.loading ? "Updating…" : p.at ? `Updated ${agoText(Date.now() - p.at)}` : ""}</span>
-      <button type="button" class="my-btn" disabled={p.loading} onClick={() => void refreshOak()}>
+      <button type="button" class="my-btn gbtn" disabled={p.loading} onClick={() => void refreshOak()}>
         Refresh
       </button>
-      <button type="button" class="my-btn" onClick={forgetOak}>
+      <button type="button" class="my-btn gbtn" onClick={forgetOak}>
         Forget key
       </button>
       {p.error && (
@@ -943,7 +943,7 @@ function Legends(p: { title: string; data: Record<string, number> | undefined })
 }
 
 /** The public profile's header (people.tsx PlayerPage): NK banner, avatar, name, rank, main tower and hero. */
-function Head(p: { prof: UserProfile; hero: string | undefined; playerId: string | null }) {
+function Head(p: { prof: UserProfile; hero: string | undefined; playerId: string | null; bar: ComponentChildren }) {
   const u = p.prof;
   const nk = (url: string | undefined) => (url?.startsWith(NK_ASSETS) ? url : null);
   return (
@@ -978,6 +978,7 @@ function Head(p: { prof: UserProfile; hero: string | undefined; playerId: string
             {p.playerId && <A href={href.player(p.playerId)}>Public profile</A>}
           </p>
         </div>
+        {p.bar}
       </div>
     </header>
   );
@@ -987,15 +988,16 @@ export function MePage() {
   const o = useOak();
   const mine = o.mine;
   const prof = mine?.profile;
+  const bar = o.key && <Bar at={mine?.at ?? null} loading={o.loading} error={o.error} />;
   return (
     <div class="my">
       {prof ? (
-        <Head prof={prof} hero={mine.save.primaryHero || undefined} playerId={o.playerId} />
+        <Head prof={prof} hero={mine.save.primaryHero || undefined} playerId={o.playerId} bar={bar} />
       ) : (
         <ToolHero eyebrow="Your save" art={<PersonIcon />} title="My stats" sub="Your own BTD6 progress, read straight from Ninja Kiwi." />
       )}
       {!o.key && <Intro />}
-      {o.key && <Bar at={mine?.at ?? null} loading={o.loading} error={o.error} />}
+      {!prof && bar}
       {o.key && !mine && o.loading && <p class="my-note">Loading your stats from Ninja Kiwi…</p>}
       {mine && (
         <>

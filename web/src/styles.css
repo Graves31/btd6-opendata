@@ -1209,6 +1209,36 @@ button.fd-tile:hover {
 .gbar.done > i {
   background: linear-gradient(180deg, #a8f5c8, #2fbf6e);
 }
+/* Game button: a raised plate in the section colour (blue outside a panel) on a dark ledge that presses in. */
+.gbtn {
+  min-height: 44px;
+  padding: 0 16px;
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(180deg, var(--gp-1, #4f8ad6), var(--gp-2, #3468b0));
+  border: 2px solid var(--gp-dk, #0f2650);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 3px 0 #060a14;
+  cursor: pointer;
+}
+.gbtn:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+.gbtn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 1px 0 #060a14;
+}
+.gbtn.go {
+  color: var(--on-accent);
+  background: linear-gradient(180deg, #ffe45c, #f5c400);
+  border-color: #6b5a00;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 3px 0 #060a14;
+}
+.gbtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
 .gp .spr-n {
   background: linear-gradient(180deg, var(--gp-1), var(--gp-3));
   border: 1px solid var(--gp-dk);
@@ -11381,26 +11411,37 @@ a.th-ic:focus-visible {
   border: 1px solid var(--rule-2);
   border-radius: var(--r);
 }
-.my-btn {
-  min-height: 44px;
-  padding: 0 16px;
-  font: inherit;
-  font-weight: 600;
-  color: var(--ink);
-  background: var(--s1);
-  border: 1px solid var(--rule-2);
-  border-radius: var(--r);
-  cursor: pointer;
+/* The save's header, framed like a game panel: blue-edged banner fading into the page, avatar on a ledge,
+   Refresh / Forget key in the name row. */
+.my .profile {
+  margin-bottom: 16px;
 }
-.my-btn.my-go {
-  color: var(--on-accent);
-  background: var(--accent);
-  border-color: var(--accent);
-  font-weight: 700;
+.my .profile-banner {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #2c4f88;
+  border-radius: 12px;
 }
-.my-btn:disabled {
-  opacity: 0.6;
-  cursor: default;
+.my .profile-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 35%, color-mix(in srgb, var(--bg) 85%, transparent));
+}
+.my .profile-id {
+  position: relative;
+}
+.my .profile-id .avatar {
+  border: 3px solid #0f2650;
+  border-radius: 14px;
+  box-shadow: 0 4px 0 #060a14;
+}
+.my .profile-id .my-bar {
+  flex: 1 1 auto;
+  justify-content: flex-end;
+}
+.my .profile-id .my-when {
+  margin-right: 0;
 }
 .my-msg,
 .my-note {
@@ -12165,6 +12206,10 @@ button.my-miss:hover {
   }
   .my-btn {
     flex: 1;
+  }
+  .my .profile-banner {
+    border-width: 0 0 2px;
+    border-radius: 0;
   }
   .my-xp li {
     grid-template-columns: 32px minmax(0, 1fr) auto;
