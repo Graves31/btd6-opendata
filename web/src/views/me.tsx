@@ -369,7 +369,7 @@ function Medals(p: { s: UserSave }) {
     );
   };
   return (
-    <Section title={<Lbl k="Medal">Map medals</Lbl>} aside={<A href={href.maps()}>All maps</A>}>
+    <Section tone="teal" title={<Lbl k="Medal">Map medals</Lbl>} aside={<A href={href.maps()}>All maps</A>}>
       {(["Easy", "Medium", "Hard"] as const).map((d) => (
         <div key={d} class="my-medals">
           <h3>{d}</h3>
@@ -403,7 +403,7 @@ function Instas(p: { s: UserSave }) {
   // Every crosspath an insta can have, in the same order for every tower.
   const tiers = instaPossible().map((k) => k.split("").join("-"));
   return (
-    <Section title={<Lbl k="Tier5">Insta Monkeys</Lbl>} aside={`${fmtInt(sets)} / ${fmtInt(possible)} sets · ${fmtInt(all)} in total`}>
+    <Section tone="amber" title={<Lbl k="Tier5">Insta Monkeys</Lbl>} aside={`${fmtInt(sets)} / ${fmtInt(possible)} sets · ${fmtInt(all)} in total`}>
       <ul class="my-instas my-dense">
         {parts.flatMap((r) => {
           const o = owned.get(r.tower);
@@ -461,7 +461,7 @@ function Xp(p: { s: UserSave }) {
   if (!rows.length) return null;
   const max = rows[0][1];
   return (
-    <Section title={<Lbl k="Xp">Tower XP</Lbl>}>
+    <Section tone="green" title={<Lbl k="Xp">Tower XP</Lbl>}>
       <ol class="my-xp">
         {rows.map(([t, x]) => (
           <li key={t} class={`my-cat-${CATEGORY.get(t) ?? "Other"}`}>
@@ -502,7 +502,7 @@ function Heroes(p: { s: UserSave }) {
   const skins = Object.entries(PROGRESS.skins ?? {});
   const aside = `${h.owned} / ${h.total} heroes · ${sk ? `${sk.owned} / ${sk.total}` : owned(p.s.unlockedSkins)} skins`;
   return (
-    <Section title={<Lbl k="Hero">Heroes and skins</Lbl>} aside={aside}>
+    <Section tone="rose" title={<Lbl k="Hero">Heroes and skins</Lbl>} aside={aside}>
       <ul class="my-hs">
         {inOrder(HERO_ORDER, PROGRESS.heroes)
           .filter((hero) => PROGRESS.heroes.includes(hero))
@@ -541,7 +541,7 @@ function Heroes(p: { s: UserSave }) {
 function Towers(p: { s: UserSave }) {
   const t = towerParts(p.s, PROGRESS);
   return (
-    <Section title={<Lbl k="Towers">Towers</Lbl>} aside={`${t.owned} / ${t.total} unlocked`}>
+    <Section tone="blue" title={<Lbl k="Towers">Towers</Lbl>} aside={`${t.owned} / ${t.total} unlocked`}>
       {t.missing.length ? <Units family="tower" all={t.missing} missing={t.missing} /> : <p class="my-note">Every tower is unlocked.</p>}
     </Section>
   );
@@ -565,7 +565,7 @@ function Collection(p: { s: UserSave }) {
   return (
     <>
       <Anchor id="mk">
-        <Section title={<Lbl k="KnowledgePoints">Monkey Knowledge</Lbl>} aside={`${mkOwned} / ${mkTotal} owned`}>
+        <Section tone="blue" title={<Lbl k="KnowledgePoints">Monkey Knowledge</Lbl>} aside={`${mkOwned} / ${mkTotal} owned`}>
           <div class="my-misses">
             {mk.map((t) => (
               <Miss key={t.tree} name={<span class="my-in">{t.tree}</span>} part={t} label={human} />
@@ -574,7 +574,7 @@ function Collection(p: { s: UserSave }) {
         </Section>
       </Anchor>
       <Anchor id="upgrades">
-        <Section title={<Lbl k="Upgrade">Upgrades</Lbl>} aside={`${fmtInt(up.owned)} / ${fmtInt(up.total)} owned`}>
+        <Section tone="blue" title={<Lbl k="Upgrade">Upgrades</Lbl>} aside={`${fmtInt(up.owned)} / ${fmtInt(up.total)} owned`}>
           {up.by.length ? (
             <div class="my-misses">
               {up.by.map((t) => (
@@ -588,7 +588,7 @@ function Collection(p: { s: UserSave }) {
       </Anchor>
       {pw && (
         <Anchor id="powerups">
-          <Section title={<Lbl k="Powers">Pro power upgrades</Lbl>} aside={`${fmtInt(pw.owned)} / ${fmtInt(pw.total)} owned`}>
+          <Section tone="blue" title={<Lbl k="Powers">Pro power upgrades</Lbl>} aside={`${fmtInt(pw.owned)} / ${fmtInt(pw.total)} owned`}>
             {pw.by.length ? (
               <div class="my-misses">
                 {pw.by.map((t) => (
@@ -649,7 +649,7 @@ function Progress(p: { s: UserSave }) {
     </li>
   );
   return (
-    <Section title={<Lbl k="Achievement">Achievements, quests and powers</Lbl>}>
+    <Section tone="violet" title={<Lbl k="Achievement">Achievements, quests and powers</Lbl>}>
       <ul class="my-aq my-dense">
         {card("ac", "Achievement", "Achievements", ac)}
         {card("q", "Quest", "Quests", qPart)}
@@ -751,7 +751,7 @@ function Rogue(p: { s: UserSave }) {
   const towers = (k: string) => (Array.isArray(st[k]) ? (st[k] as string[]).filter((t) => hasArt("tower", t)) : []) // also lists powers (SuperMonkeyBeacon);
   const split = (a: string, b: string, c: string) => `${fmtInt(n(a))} common · ${fmtInt(n(b))} rare · ${fmtInt(n(c))} legendary`;
   return (
-    <Section title={<Lbl k="rogue:Legends">Rogue Legends</Lbl>}>
+    <Section tone="crimson" title={<Lbl k="rogue:Legends">Rogue Legends</Lbl>}>
       <dl class="my-tiles">
         <Tile k="Tiles captured" ico="rogue:Legends" v={n("tilesCaptured")} note={st.tilesCapturedWithinCampaign !== undefined ? `${fmtInt(num(st.tilesCapturedWithinCampaign))} in campaign` : undefined} />
         <Tile k="Bosses defeated" art={<Spr family="boss" k="skull" size={40} label />} v={n("bossesDefeated")} />
@@ -929,7 +929,7 @@ function Legends(p: { title: string; data: Record<string, number> | undefined })
   const rows = counters(p.data);
   if (!rows.some(([, v]) => v !== 0)) return null;
   return (
-    <Section title={p.title}>
+    <Section tone="bronze" title={p.title}>
       <dl class="my-kv">
         {rows.map(([k, v]) => (
           <div key={k}>
@@ -1000,8 +1000,10 @@ export function MePage() {
       {mine && (
         <>
           {!o.playerId && <p class="my-note">Want your public profile here too? Open your player page from any leaderboard and press "This is me".</p>}
-          <Summary s={mine.save} />
-          <Overview s={mine.save} />
+          <Section tone="blue" title={<Lbl k="Trophy">Overview</Lbl>}>
+            <Summary s={mine.save} />
+            <Overview s={mine.save} />
+          </Section>
           <Anchor id="medals">
             <Medals s={mine.save} />
           </Anchor>

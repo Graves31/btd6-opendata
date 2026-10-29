@@ -579,9 +579,13 @@ export const Stat = (p: { k: ComponentChildren; v: ComponentChildren; note?: Com
   </div>
 );
 
-export function Section(props: { title: ComponentChildren; aside?: ComponentChildren; children: ComponentChildren; class?: string }) {
+/** Game-panel colours (docs/game-ui.md): one per section, never two neighbours alike. */
+export type Tone = "blue" | "amber" | "violet" | "teal" | "rose" | "bronze" | "crimson" | "green";
+
+/** A page section; with `tone` it becomes a game panel (framed, title as a tab on the top edge). */
+export function Section(props: { title: ComponentChildren; aside?: ComponentChildren; children: ComponentChildren; class?: string; tone?: Tone }) {
   return (
-    <section class={`sec ${props.class ?? ""}`}>
+    <section class={`sec ${props.tone ? `gp gp-${props.tone} ` : ""}${props.class ?? ""}`}>
       <header class="sec-h">
         <h2>{props.title}</h2>
         {props.aside && <span class="sec-aside">{props.aside}</span>}

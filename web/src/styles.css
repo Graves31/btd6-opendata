@@ -1100,6 +1100,138 @@ button.fd-tile:hover {
   font-size: 13px;
   text-align: right;
 }
+
+/* ─────────────────────────────── game panels (docs/game-ui.md)
+   <Section tone="…">: a framed panel with its title as a tab on the top edge, one game colour per section.
+   Dark in both themes like the game's menus: the theme tokens are reset to the dark set inside, so anything
+   built on --s1/--ink/--rule just works. Cards inside use .gc (or a page's own card classes, see .my-*). */
+.gp {
+  --s1: #1a2440;
+  --s2: #131b30;
+  --sub: #0d1424;
+  --numbox: #05080f;
+  --ink: #ffffff;
+  --ink-2: #c4cbd8;
+  --ink-3: #a3adbf;
+  --rule: var(--gp-rim);
+  --rule-2: #67748d;
+  --accent-ink: #ffd60a;
+  --live: #3ddc84;
+  --soon: #62c6ff;
+  --ended: #a3a3ab;
+  --focus: #ffd60a;
+  --bar: #c4cbd8;
+  --shade: rgb(255 255 255 / 0.04);
+  --zebra: rgb(255 255 255 / 0.028);
+  --hover: rgb(255 255 255 / 0.065);
+  --track: #0a1222;
+  color-scheme: dark;
+  position: relative;
+  margin-top: 56px;
+  padding: 34px 16px 16px;
+  color: var(--ink);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--gp-1) 10%, transparent), transparent 240px),
+    repeating-linear-gradient(135deg, rgb(255 255 255 / 0.016) 0 2px, transparent 2px 14px),
+    #111a2c;
+  border: 2px solid var(--gp-edge);
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.04), 0 4px 0 #060a14;
+}
+/* The header row is pulled up so the title tab sits on the border; the aside lands inside, top right. */
+.gp > .sec-h {
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin: -56px 0 14px;
+  padding: 0;
+  border: 0;
+}
+.gp > .sec-h h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 5px 18px 5px 10px;
+  font: 800 22px/1 var(--f-display);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #fff;
+  -webkit-text-stroke: 4px var(--gp-stk);
+  paint-order: stroke fill;
+  background: linear-gradient(180deg, var(--gp-1) 0%, var(--gp-2) 60%, var(--gp-3) 100%);
+  border: 2px solid var(--gp-dk);
+  border-radius: 10px;
+  box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.25), 0 3px 0 #060a14;
+}
+.gp > .sec-h h2 .spr {
+  filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.4));
+}
+.gp > .sec-h .sec-aside {
+  padding-bottom: 2px;
+  color: var(--ink-2);
+  font-weight: 600;
+}
+/* Card inside a panel: dark, rounded, a ledge in the section colour; .on = the picked one. */
+.gc {
+  background: linear-gradient(180deg, #1c2643, #161f36);
+  border: 1px solid var(--gp-rim);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 var(--gp-led);
+}
+.gc.on {
+  border-color: var(--accent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #8a7406;
+}
+/* Big number on a card: display font with a dark outline in the section colour. */
+.gn {
+  font: 800 30px/1 var(--f-display);
+  font-variant-numeric: tabular-nums;
+  -webkit-text-stroke: 4px var(--gp-stk);
+  paint-order: stroke fill;
+}
+/* Glossy progress bar: dark sunken track, fill in the section colour, green when complete. */
+.gbar {
+  display: block;
+  height: 7px;
+  border-radius: 99px;
+  background: var(--track);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.6);
+  overflow: hidden;
+}
+.gbar > i {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(180deg, var(--gp-f1), var(--gp-f2));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35);
+}
+.gbar.done > i {
+  background: linear-gradient(180deg, #a8f5c8, #2fbf6e);
+}
+.gp .spr-n {
+  background: linear-gradient(180deg, var(--gp-1), var(--gp-3));
+  border: 1px solid var(--gp-dk);
+  color: #fff;
+  border-radius: 4px;
+}
+/* Section colours: tab gradient (1-3), its dark edge (dk), panel edge, card rim and ledge, number outline, bar fill. */
+.gp-blue { --gp-1: #4f8ad6; --gp-2: #3468b0; --gp-3: #295594; --gp-dk: #0f2650; --gp-edge: #2c4f88; --gp-rim: #2c3e62; --gp-led: #22498a; --gp-stk: #0b1d3f; --gp-f1: #b0e0ff; --gp-f2: #4a9ce6; }
+.gp-amber { --gp-1: #e0a84c; --gp-2: #bc8432; --gp-3: #9c6a26; --gp-dk: #3d2408; --gp-edge: #74552a; --gp-rim: #463b2c; --gp-led: #835c22; --gp-stk: #301b04; --gp-f1: #f8dc9a; --gp-f2: #e0a43c; }
+.gp-violet { --gp-1: #9479d2; --gp-2: #7259b2; --gp-3: #5e4898; --gp-dk: #22163f; --gp-edge: #523f8c; --gp-rim: #3b3460; --gp-led: #4c3986; --gp-stk: #1a0f35; --gp-f1: #ddd1f8; --gp-f2: #9880dc; }
+.gp-teal { --gp-1: #46b2ad; --gp-2: #2f8f8a; --gp-3: #267571; --gp-dk: #0a2e2c; --gp-edge: #276a66; --gp-rim: #2a4448; --gp-led: #22655f; --gp-stk: #062523; --gp-f1: #a6eee8; --gp-f2: #3cb8b0; }
+.gp-rose { --gp-1: #d26e92; --gp-2: #b05374; --gp-3: #934360; --gp-dk: #3a1324; --gp-edge: #763a58; --gp-rim: #4a3245; --gp-led: #793452; --gp-stk: #2c0b19; --gp-f1: #f8c0d4; --gp-f2: #de7399; }
+.gp-bronze { --gp-1: #cc8b55; --gp-2: #a96c3f; --gp-3: #8b5732; --gp-dk: #34190a; --gp-edge: #6d462c; --gp-rim: #463a32; --gp-led: #764828; --gp-stk: #2a1306; --gp-f1: #f3cba6; --gp-f2: #d08a56; }
+.gp-crimson { --gp-1: #d25c5c; --gp-2: #ae4343; --gp-3: #923636; --gp-dk: #3a0f0f; --gp-edge: #763131; --gp-rim: #4a3036; --gp-led: #792a2a; --gp-stk: #2c0909; --gp-f1: #f8b8b8; --gp-f2: #de6262; }
+.gp-green { --gp-1: #62b062; --gp-2: #479047; --gp-3: #397639; --gp-dk: #102e10; --gp-edge: #336a33; --gp-rim: #2e4636; --gp-led: #2e632e; --gp-stk: #0a240a; --gp-f1: #bcf0bc; --gp-f2: #52b852; }
+@media (max-width: 480px) {
+  .gp {
+    padding: 34px 10px 12px;
+  }
+  .gp > .sec-h h2 {
+    font-size: 19px;
+  }
+}
 .page-h {
   margin-bottom: 24px;
   padding-bottom: 20px;
@@ -11299,12 +11431,12 @@ a.th-ic:focus-visible {
   color: var(--ink-2);
   font-size: 14px;
 }
-/* Overview tiles: the game's blue menu panels (same in both themes), 6 / 4 / 3 / 2 per row so 12 tiles fill even rows. */
+/* Overview tiles: game-panel cards, 6 / 4 / 3 / 2 per row so 12 tiles fill even rows. */
 .my-tiles {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 8px;
-  margin: 16px 0 0;
+  gap: 10px;
+  margin: 14px 0 0;
 }
 .my-tile {
   display: flex;
@@ -11313,11 +11445,49 @@ a.th-ic:focus-visible {
   gap: 2px;
   padding: 12px 6px 10px;
   text-align: center;
-  color: #fff;
-  background: linear-gradient(180deg, #3a78c9 0%, #24539b 55%, #1b4180 100%);
-  border: 2px solid #0e2550;
-  border-radius: 8px;
-  box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.25), inset 0 -3px 0 rgb(0 0 0 / 0.25), 0 2px 0 rgb(0 0 0 / 0.35);
+}
+/* My stats cards take the game-panel card look (.gc) and its section's colours. */
+.gp :is(.my-tile, .my-miss, .my-sumry a, .my-medals > ul > li:not(.my-panel), .my-hs > li, .my-heroes li, .my-rwins li, .my-rh > li, .my-rart li) {
+  background: linear-gradient(180deg, #1c2643, #161f36);
+  border: 1px solid var(--gp-rim);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 var(--gp-led);
+}
+.gp .my-medals .my-miss {
+  background: var(--s2);
+  box-shadow: none;
+}
+.gp .my-miss.on {
+  border-color: var(--accent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #8a7406;
+}
+.gp .my-panel {
+  border-radius: 10px;
+}
+.gp .my-sumry {
+  margin-top: 0;
+}
+.gp :is(.my-meter, .my-allbar) {
+  background: var(--track);
+  border: 0;
+  border-radius: 99px;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.6);
+}
+.gp :is(.my-meter, .my-allbar) i {
+  border-radius: 99px;
+  background: linear-gradient(180deg, var(--gp-f1), var(--gp-f2));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35);
+}
+.gp :is(.my-miss.done .my-meter, .my-all.done .my-allbar) i {
+  background: linear-gradient(180deg, #a8f5c8, #2fbf6e);
+}
+.gp .my-all b {
+  -webkit-text-stroke: 4px var(--gp-stk);
+  paint-order: stroke fill;
+}
+.gp .my-ring {
+  box-shadow: 0 0 0 2px var(--gp-dk);
+  background: conic-gradient(var(--soon-fill) calc(var(--p) * 1%), var(--track) 0);
 }
 .my-tile dd {
   display: contents;
@@ -11331,7 +11501,7 @@ a.th-ic:focus-visible {
   font: 800 30px/1 var(--f-display);
   font-variant-numeric: tabular-nums;
   margin-top: 4px;
-  -webkit-text-stroke: 5px #0b1d3f;
+  -webkit-text-stroke: 4px var(--gp-stk, #0b1d3f);
   paint-order: stroke fill;
   overflow-wrap: anywhere;
 }
@@ -11341,14 +11511,14 @@ a.th-ic:focus-visible {
   font: 700 11px/1.25 var(--f-body);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #d6e6ff;
+  color: var(--ink-2);
 }
 .my-tile small {
   order: 3;
   min-height: 1.3em;
   font-size: 12px;
   line-height: 1.3;
-  color: #a9c8f5;
+  color: var(--ink-3);
 }
 .my-medals h3,
 .my-h3 {
