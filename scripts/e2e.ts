@@ -247,6 +247,10 @@ async function main() {
           still = y === last ? still + 1 : 0;
           last = y;
         }
+        // Centre it: scrolled only "into view", a link lands at the top edge under the sticky header, and the
+        // click hits the header's "Now" link instead (CT map → Teams after the relic scroll).
+        e.scrollIntoView({ block: "center" });
+        await new Promise((r) => requestAnimationFrame(() => r(0)));
       });
       await api.quiet(300);
       // Diagnostics: keys the target needs that weren't in memory at click time (empty when instant).
