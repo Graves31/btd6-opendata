@@ -624,35 +624,38 @@ strong {
   place-items: center;
   width: 38px;
   height: 38px;
-  color: #e6e6ea;
-  background: transparent;
-  border: 1px solid rgb(255 255 255 / 0.22);
-  border-radius: var(--r);
   cursor: pointer;
 }
-.theme-btn:hover,
-.sug-btn:hover {
+.theme-btn {
+  color: #e6e6ea;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r);
+}
+.theme-btn:hover {
   color: var(--hdr-ink);
   border-color: rgb(255 255 255 / 0.5);
   background: rgb(255 255 255 / 0.06);
 }
-.sug-btn.on {
-  color: var(--accent);
+/* My stats and Suggest are game buttons (.gbtn) in their page's panel colour; the open one gets the yellow edge.
+   The theme toggle is a plain icon beside them. */
+.top-tools .sug-btn {
+  min-height: 0;
+  padding: 0;
+}
+.top-tools .sug-btn.on {
   border-color: var(--accent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 3px 0 #8a7406;
 }
-/* Suggest is the labelled, outlined button with a yellow icon; the theme toggle is a plain icon beside it. */
 .sug-btn svg {
-  color: var(--accent);
-}
-.theme-btn:not(:hover) {
-  border-color: transparent;
+  filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.45));
 }
 .sug-t,
 .top-sep {
   display: none;
 }
 @media (min-width: 1024px) {
-  .sug-btn {
+  .top-tools .sug-btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -1105,7 +1108,8 @@ button.fd-tile:hover {
    <Section tone="…">: a framed panel with its title as a tab on the top edge, one game colour per section.
    Dark in both themes like the game's menus: the theme tokens are reset to the dark set inside, so anything
    built on --s1/--ink/--rule just works. Cards inside use .gc (or a page's own card classes, see .my-*). */
-.gp {
+.gp,
+.gh {
   --s1: #1a2440;
   --s2: #131b30;
   --sub: #0d1424;
@@ -9789,7 +9793,8 @@ a.map-stat:hover {
 
 /* ── /suggest: the private suggestions box. */
 .sug {
-  max-width: 560px;
+  max-width: 720px;
+  margin-inline: auto;
 }
 .sug fieldset {
   display: grid;
@@ -9806,13 +9811,15 @@ a.map-stat:hover {
 .sug-row label {
   font-weight: 700;
 }
+/* Fields sit sunk into the panel. */
 .sug-field {
   display: flex;
   align-items: center;
   padding: 0 10px;
-  background: var(--s1);
+  background: var(--sub);
   border: 1px solid var(--rule-2);
-  border-radius: var(--r);
+  border-radius: 8px;
+  box-shadow: inset 0 2px 3px rgb(0 0 0 / 0.5);
 }
 .sug-field:focus-within {
   border-color: var(--focus);
@@ -9865,14 +9872,7 @@ a.map-stat:hover {
   font: inherit;
   font-weight: 600;
   color: var(--ink);
-  background: var(--s1);
-  border: 1px solid var(--rule-2);
-  border-radius: var(--r);
   cursor: pointer;
-}
-.sug-chip[aria-pressed="true"] {
-  border-color: var(--accent);
-  color: var(--accent-ink);
 }
 .sug-hp {
   position: absolute;
@@ -9883,19 +9883,11 @@ a.map-stat:hover {
 }
 .sug-send {
   justify-self: start;
-  min-height: 44px;
   padding: 0 24px;
-  font: inherit;
-  font-weight: 700;
-  color: var(--on-accent);
-  background: var(--accent);
-  border: 0;
-  border-radius: var(--r);
-  cursor: pointer;
 }
-.sug-send:disabled {
-  opacity: 0.6;
-  cursor: default;
+.sug .empty {
+  padding: 4px 0;
+  border: 0;
 }
 .sug-status {
   margin: 12px 0 0;
@@ -10004,6 +9996,23 @@ footer a {
   margin-top: 6px;
   color: var(--ink);
   font-weight: 600;
+}
+/* Game title card (ToolHero tone): the game-panel frame and dark tokens (.gh shares .gp's), title outlined like a tab. */
+.th.gh {
+  margin-top: 0;
+  background:
+    linear-gradient(120deg, color-mix(in srgb, var(--gp-1) 22%, transparent), transparent 70%),
+    repeating-linear-gradient(135deg, rgb(255 255 255 / 0.016) 0 2px, transparent 2px 14px),
+    #111a2c;
+  border: 2px solid var(--gp-edge);
+  border-radius: 14px;
+}
+.gh .th-art {
+  filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.45));
+}
+.gh .th-h1 {
+  -webkit-text-stroke: 6px var(--gp-stk);
+  paint-order: stroke fill;
 }
 /* the strip: game icons (a row of .th-ic, links or plain) and/or buttons */
 .th-x {

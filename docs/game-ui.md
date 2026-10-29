@@ -12,12 +12,13 @@ Code: `<Section tone="…">` (ui.tsx) and the `.gp` / `.gc` / `.gn` / `.gbar` bl
 
 | Piece | What it is | Use |
 |---|---|---|
+| Title card `.th.gh` | The page's title card (`<ToolHero tone>`) in the game-panel frame: big game art, eyebrow, outlined display title, one-line sub. | Top of every converted page that has no header of its own (/me with a save uses the profile header instead). Tone = the page's main panel tone. |
 | Game panel `.gp` | A framed section: 2 px edge in the section colour, 14 px radius, faint diagonal texture, a light wash of the section colour at the top, a 4 px dark drop below. | One per page section: `<Section tone="teal" title={…} aside={…}>`. |
 | Title tab | The section title as a game plate on the panel's top edge: section-colour gradient, display font in capitals with a dark outline, game icon on the left. | Automatic with `tone`. Keep titles short (they are capitals). |
 | Aside | Small grey summary top right inside the panel ("12 / 45 owned"). | Counts and totals only, never sentences. |
 | Card `.gc` | Dark rounded card (10 px) with a 1 px rim and a 3 px **ledge** in the section colour under it. | Every clickable or stat card inside a panel. `.gc.on` = the picked one (yellow edge and ledge). |
 | Number `.gn` | Big display-font number with a dark outline in the section colour. | The one headline number on a card. Not for body figures or tables. |
-| Button `.gbtn` | Raised plate in the section colour (blue outside a panel), 2 px dark edge, 3 px dark ledge that presses in on click. `.gbtn.go` = the yellow main action. | Every button on a game-styled page (Refresh, Save, Show). Not for links or tabs. |
+| Button `.gbtn` | Raised plate in the section colour (blue outside a panel), 2 px dark edge, 3 px dark ledge that presses in on click. `.gbtn.go` = the yellow main action. | Every button on a game-styled page (Refresh, Save, Show). Header: My stats (blue) and Suggest (violet), the tone of their page; `.on` = yellow edge. Not for links or tabs. |
 | Bar `.gbar > i` | Sunken dark track, glossy fill in the section colour; `.done` turns it green. | Progress. Green means complete, everywhere. |
 
 ## Rules
@@ -59,6 +60,14 @@ Code: `<Section tone="…">` (ui.tsx) and the `.gp` / `.gc` / `.gn` / `.gbar` bl
 - Use more than one tone inside a panel, or invent a tone for a single element.
 - Stack panels inside panels. A sub-group inside a panel uses an `h3` label (`.my-h3`) and its own grid.
 - Add outlines, ledges or capitals to running text, tables or form fields.
+
+## Bringing a page over
+
+Pages move over one at a time, and it is a transition, not a redesign: keep the page's layout and graphics, and
+change only the frames. Put its content in `<Section tone>` panels, turn its buttons into `.gbtn`, its picked
+chips and cards into `.gc` / `.gc.on`, and sink form fields into the panel (dark well, inset shadow; see
+`.sug-field`). Its plain title becomes the toned title card (`<ToolHero tone>`). Done so far: /me, /suggest, the header's My
+stats and Suggest buttons.
 
 ## New section checklist
 

@@ -600,9 +600,10 @@ export function Section(props: { title: ComponentChildren; aside?: ComponentChil
  * A tool page's title card (the template for every tool, see CLAUDE.md): its art, a big title, one line on what it
  * does, and an optional strip of game icons or buttons (right of the title on desktop, under it on phones).
  */
-export function ToolHero(p: { art: ComponentChildren; eyebrow?: string; title: ComponentChildren; sub?: ComponentChildren; children?: ComponentChildren }) {
+/** A page's title card; with `tone` it gets the game-panel frame (docs/game-ui.md). */
+export function ToolHero(p: { art: ComponentChildren; eyebrow?: string; title: ComponentChildren; sub?: ComponentChildren; children?: ComponentChildren; tone?: Tone }) {
   return (
-    <header class="th">
+    <header class={p.tone ? `th gh gp-${p.tone}` : "th"}>
       <span class="th-art">{p.art}</span>
       <div class="th-t">
         <p class="eyebrow">{p.eyebrow ?? "Tools"}</p>

@@ -1,7 +1,8 @@
 // /suggest: private suggestions box. Posts to the Worker's /api/suggest; only the site owner reads what comes in.
 import { useEffect, useRef, useState } from "preact/hooks";
 import { backTo } from "../nav.ts";
-import { A } from "../ui.tsx";
+import { Spr } from "../sprite.tsx";
+import { A, Section, ToolHero } from "../ui.tsx";
 
 declare const __APP_VERSION__: string;
 
@@ -98,93 +99,100 @@ export function SuggestPage() {
 
   return (
     <div class="sug">
-      <header class="page-h">
-        <h1>Suggest</h1>
-        <p class="lede">Found a bug, a wrong number, or have an idea? Tell me!</p>
-      </header>
-      {st.kind === "sent" ? (
-        <div class="empty">
-          <p class="empty-t" ref={msg} tabIndex={-1} role="status">
-            Thanks, got it.
-          </p>
-          <p>I read every suggestion myself. If you left a Discord name I may reply there, but I can't reply to everything.</p>
-          <p class="sug-after">
-            <a
-              href="/suggest"
-              onClick={(e) => {
-                e.preventDefault();
-                setText("");
-                setKind("");
-                setPage(OTHER);
-                setDiscord("");
-                setSt({ kind: "idle" });
-                t0.current = Date.now();
-              }}
-            >
-              Send another
-            </a>
-            <A href={from?.href ?? "/"}>Back to the page</A>
-          </p>
-        </div>
-      ) : (
-        <form class="sug-form" onSubmit={send} noValidate>
-          <fieldset disabled={busy}>
-            <div class="sug-chips" role="group" aria-label="What kind of suggestion (optional)">
-              {KINDS.map(([k, label]) => (
-                <button key={k} type="button" class="sug-chip" aria-pressed={kind === k} onClick={() => setKind(kind === k ? "" : k)}>
-                  {label}
-                </button>
-              ))}
-            </div>
-            <div class="sug-row">
-              <label for="sug-text">Your suggestion</label>
-              <div class="sug-field">
-                <textarea id="sug-text" maxLength={MAX} value={text} onInput={(e) => setText(e.currentTarget.value)} aria-invalid={tooShort} aria-describedby={tooShort ? "sug-text-h sug-status" : "sug-text-h"} />
+      <ToolHero tone="violet" eyebrow="Feedback" art={<Spr family="ui" k="Quest" size={72} label />} title="Suggest" sub="Found a bug, a wrong number, or have an idea? Tell me!" />
+      <Section
+        tone="violet"
+        title={
+          <>
+            <Spr family="ui" k="Quest" size={24} label optional />
+            Suggestion box
+          </>
+        }
+      >
+        {st.kind === "sent" ? (
+          <div class="empty">
+            <p class="empty-t" ref={msg} tabIndex={-1} role="status">
+              Thanks, got it.
+            </p>
+            <p>I read every suggestion myself. If you left a Discord name I may reply there, but I can't reply to everything.</p>
+            <p class="sug-after">
+              <a
+                href="/suggest"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setText("");
+                  setKind("");
+                  setPage(OTHER);
+                  setDiscord("");
+                  setSt({ kind: "idle" });
+                  t0.current = Date.now();
+                }}
+              >
+                Send another
+              </a>
+              <A href={from?.href ?? "/"}>Back to the page</A>
+            </p>
+          </div>
+        ) : (
+          <form class="sug-form" onSubmit={send} noValidate>
+            <fieldset disabled={busy}>
+              <div class="sug-chips" role="group" aria-label="What kind of suggestion (optional)">
+                {KINDS.map(([k, label]) => (
+                  <button key={k} type="button" class={kind === k ? "sug-chip gc on" : "sug-chip gc"} aria-pressed={kind === k} onClick={() => setKind(kind === k ? "" : k)}>
+                    {label}
+                  </button>
+                ))}
               </div>
-              <div class="sug-sub">
-                <span id="sug-text-h">A feature, a bug, a wrong number, anything</span>
-                <span>
-                  {text.length} / {MAX}
-                </span>
+              <div class="sug-row">
+                <label for="sug-text">Your suggestion</label>
+                <div class="sug-field">
+                  <textarea id="sug-text" maxLength={MAX} value={text} onInput={(e) => setText(e.currentTarget.value)} aria-invalid={tooShort} aria-describedby={tooShort ? "sug-text-h sug-status" : "sug-text-h"} />
+                </div>
+                <div class="sug-sub">
+                  <span id="sug-text-h">A feature, a bug, a wrong number, anything</span>
+                  <span>
+                    {text.length} / {MAX}
+                  </span>
+                </div>
               </div>
-            </div>
-            <div class="sug-row">
-              <label for="sug-page">Which page is this about?</label>
-              <div class="sug-field">
-                <select id="sug-page" value={page} onChange={(e) => setPage(e.currentTarget.value)}>
-                  <option value={OTHER}>{OTHER}</option>
-                  {["Pages", "Tools", "Other"].map((g) => (
-                    <optgroup key={g} label={g}>
-                      {PAGES.filter(([, pg]) => pg === g).map(([l]) => (
-                        <option key={l} value={l}>
-                          {l}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </select>
+              <div class="sug-row">
+                <label for="sug-page">Which page is this about?</label>
+                <div class="sug-field">
+                  <select id="sug-page" value={page} onChange={(e) => setPage(e.currentTarget.value)}>
+                    <option value={OTHER}>{OTHER}</option>
+                    {["Pages", "Tools", "Other"].map((g) => (
+                      <optgroup key={g} label={g}>
+                        {PAGES.filter(([, pg]) => pg === g).map(([l]) => (
+                          <option key={l} value={l}>
+                            {l}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                </div>
               </div>
-            </div>
-            <div class="sug-row">
-              <label for="sug-dc">Discord name, if you want a reply (optional)</label>
-              <div class="sug-field">
-                <input id="sug-dc" type="text" maxLength={40} autocomplete="off" value={discord} onInput={(e) => setDiscord(e.currentTarget.value)} aria-describedby="sug-dc-h" />
+              <div class="sug-row">
+                <label for="sug-dc">Discord name, if you want a reply (optional)</label>
+                <div class="sug-field">
+                  <input id="sug-dc" type="text" maxLength={40} autocomplete="off" value={discord} onInput={(e) => setDiscord(e.currentTarget.value)} aria-describedby="sug-dc-h" />
+                </div>
+                <div class="sug-sub">
+                  <span id="sug-dc-h">Your Discord username (not the old name#1234 tag)</span>
+                </div>
               </div>
-              <div class="sug-sub">
-                <span id="sug-dc-h">Your Discord username (not the old name#1234 tag)</span>
-              </div>
-            </div>
-            <input class="sug-hp" type="text" name="website" tabIndex={-1} autocomplete="off" aria-hidden="true" value={hp} onInput={(e) => setHp(e.currentTarget.value)} />
-            <button type="submit" class="sug-send">
-              {busy ? "Sending…" : "Send suggestion"}
-            </button>
-          </fieldset>
-          <p id="sug-status" class={`sug-status${st.kind === "error" ? " err" : ""}`} role="status" aria-live="polite" tabIndex={-1} ref={msg}>
-            {st.kind === "error" || st.kind === "limit" ? st.msg : ""}
-          </p>
-          <p class="sug-priv">Only the site owner reads this.</p>
-        </form>
-      )}
+              <input class="sug-hp" type="text" name="website" tabIndex={-1} autocomplete="off" aria-hidden="true" value={hp} onInput={(e) => setHp(e.currentTarget.value)} />
+              <button type="submit" class="sug-send gbtn go">
+                {busy ? "Sending…" : "Send suggestion"}
+              </button>
+            </fieldset>
+            <p id="sug-status" class={`sug-status${st.kind === "error" ? " err" : ""}`} role="status" aria-live="polite" tabIndex={-1} ref={msg}>
+              {st.kind === "error" || st.kind === "limit" ? st.msg : ""}
+            </p>
+            <p class="sug-priv">Only the site owner reads this.</p>
+          </form>
+        )}
+      </Section>
     </div>
   );
 }

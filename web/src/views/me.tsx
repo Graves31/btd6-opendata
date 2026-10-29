@@ -994,7 +994,7 @@ export function MePage() {
       {prof ? (
         <Head prof={prof} hero={mine.save.primaryHero || undefined} playerId={o.playerId} bar={bar} />
       ) : (
-        <ToolHero eyebrow="Your save" art={<PersonIcon />} title="My stats" sub="Your own BTD6 progress, read straight from Ninja Kiwi." />
+        <ToolHero tone="blue" eyebrow="Your save" art={<PersonIcon />} title="My stats" sub="Your own BTD6 progress, read straight from Ninja Kiwi." />
       )}
       {!o.key && <Intro />}
       {!prof && bar}
