@@ -10,7 +10,8 @@ architecture; this file is how to work on it.
 - `docs/api/` — the local API contract (README + openapi.yaml + captured fixtures). Answer API-shape questions
   from here, not from the live API.
 - `docs/BACKLOG.md` — open items, ideas, declined items. **Read it at the start of a session.**
-- `docs/visual-plan.md` (art/visual rules), `docs/round-visualizer-spec.md` + `docs/round-visualizer-ux-review.md`
+- `docs/game-ui.md` (the "modern but BTD6" UI rules: game panels, section colours, cards; read before any UI
+  work), `docs/visual-plan.md` (art/visual rules), `docs/round-visualizer-spec.md` + `docs/round-visualizer-ux-review.md`
   (Tools → round visualizer; the UX review is the current layout), `docs/batch-1-19.md` (how a big batch was
   split across parallel agents: file ownership, ports, OUT_DIR).
 - `src/worker/` Worker (proxy, hot cron, archive, og previews, team history), `src/nk/routes.ts` NK route
@@ -86,6 +87,7 @@ Commits: Conventional Commits. One logical change per commit. Enforced by `.gith
   Never burst-fetch NK; prefer fixtures.
 - Stay inside free budgets: 100k Worker requests/day, 10 ms CPU, KV 1k writes/day, D1 100k row writes/day.
 - Modern, high-contrast UI, not "AI slop"; official NK game art everywhere recognisable (owner approved).
+  Content sections follow docs/game-ui.md: `<Section tone>` game panels, colour on the frame, not on whole cards.
 - Tool page template (every tool, new ones too): `<ToolBack />` then `<ToolHero>` (ui.tsx): the tool's tile art
   (build_art.py TOOL_ICONS), big title, one-line sub, and a strip of game icons (links when they lead somewhere).
   Pages should have identity like the boss pages, not a grey info page.
