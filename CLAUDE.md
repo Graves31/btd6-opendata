@@ -35,6 +35,9 @@ architecture; this file is how to work on it.
   (boss events before the archive: bloonswiki.com exact times over the old Fandom list, which still fills gaps; numbering checked against archived NK ids); `node scripts/race_history.ts`
   → `web/src/data/raceHistory.ts` (bloonswiki.com races, Dec 2018 – Dec 2025). Both fill newer events from a community list whose URL is only in
   the `EVENT_LIST_BASE` env var (unset = keep the rows already there); never name that site in the repo or commits.
+  Game model as JSON (tower behaviours with values, upgrades, Monkey Knowledge, game mods, income sets): the Mod Helper
+  export in `../game-export/v<game version>/` (NK data, never committed; `_common.game_export(version)` finds it,
+  refresh steps in `game-export/README.md`). Prefer it over decoding `sim_model` for new data.
   New maps: rerun `npm run art`, then add their `/maps/<id>` lines to `web/public/sitemap.xml` (a test checks it).
   New pages/tools: add them to `web/public/sitemap.xml` and to the "Which page" dropdown (`PAGES` in `views/suggest.tsx`).
 

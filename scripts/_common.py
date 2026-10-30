@@ -11,6 +11,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BTD6_DIR = Path(os.environ.get("BTD6_DIR", r"C:\Program Files (x86)\Steam\steamapps\common\BloonsTD6"))
 AA_DIR = BTD6_DIR / "BloonsTD6_Data" / "StreamingAssets" / "aa" / "StandaloneWindows64" / "Full"
+# Mod Helper "Export Game Data" (the game model as JSON), one folder per game version (game-export/README.md).
+EXPORT_ROOT = Path(os.environ.get("GAME_EXPORT_ROOT", ROOT.parent / "game-export"))
+
+
+def game_export(version: str) -> Path:
+    """The export for exactly this game version (build_rounds.load_game_version()): never mixes two versions."""
+    path = EXPORT_ROOT / f"v{version}"
+    if not (path / "Towers").is_dir():
+        sys.exit(f"no Mod Helper export for game {version} at {path}: re-export (game-export/README.md)")
+    return path
 
 
 def relaunch_in_venv(script: str) -> None:
