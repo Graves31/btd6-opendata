@@ -359,6 +359,12 @@ A team's Contested Territory results, **newest CT first**, built only from data 
 | `score` | Final team score: from the board, or from the group page for teams outside the top 1,000 |
 | `group` | `{rank, of}` in its CT group, or `null` when no final group page is stored. Group pages aren't archived (NK drops them 2–3 days after the end); one is recorded when a visitor opens it after the CT ended |
 
+### 7.3 `GET /api/players?name=<displayName>`
+
+Public player IDs seen under that exact display name on frozen race, boss and CT player boards (top 1,000 each),
+from D1 only: `{"ids": ["9fee14df…", …]}` (at most 20; `[]` when unknown). Names aren't unique, so /me checks each
+ID against the key owner's own profile before linking it. A missing or > 64-character name is `400 bad_request`.
+
 Source: the `ct_teams` table (`migrations/0003_ct_teams.sql`, which also backfills from boards already archived), written when a frozen team-board page or a post-event group page is stored (`src/worker/teams.ts`). One indexed query per request, ≤ 200 entries; ≤ 1,000 extra row writes per CT. `Cache-Control: public, max-age=300, stale-while-revalidate=86400`.
 
 ### 7.3 Link previews (Open Graph / Twitter tags)

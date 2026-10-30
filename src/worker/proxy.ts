@@ -25,6 +25,7 @@ import { CT_API, ctApi } from "./ct.ts";
 import { getTiming } from "./events.ts";
 import { OriginGate, originCooldownS, RateLimited } from "./limit.ts";
 import { d1FreezeStmt, d1Get, d1PutStmt, getHot, hotEntry, mem } from "./store.ts";
+import { playerIndexStmts } from "./players.ts";
 import { GUILD_ID, teamHistory, teamIndexStmts, teamKeyKind } from "./teams.ts";
 import { fetchUpstream, mapLimit, UpstreamError, type Entry } from "./upstream.ts";
 
@@ -364,7 +365,7 @@ async function fetchAndStore(deps: Deps, key: string, prev: Entry | null, policy
   // One row write either way (a 304 only moves fetched_at, but the row may not exist yet if `prev`
   // came from the hot bundle). A frozen row is never overwritten (d1PutStmt), so this is safe when degraded.
   if (cacheable) {
-    const index = entry.ok ? finalTeamIndex(deps, key, entry.body, policy) : [];
+    const index = entry.ok ? [...finalTeamIndex(deps, key, entry.body, policy), ...(policy.frozen ? playerIndexStmts(deps.db, key, entry.body) : [])] : [];
     await d1Write(() => (index.length ? deps.db.batch([d1PutStmt(deps.db, entry), ...index]) : d1PutStmt(deps.db, entry).run()));
   }
   return entry;

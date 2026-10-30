@@ -8,7 +8,7 @@ import type { UserProfile, UserSave } from "../../src/nk/types.ts";
 const NK = "https://data.ninjakiwi.com";
 const KEY = "oak";
 const SAVE = "oak-save";
-/** The public 48-hex player id the owner of the key confirmed as theirs (player page "This is me"). */
+/** The key owner's public 48-hex player id: found by name (autoLink) or confirmed with "This is me". "" = "Not me". */
 const ME = "oak-player";
 export const OAK_STALE_MS = 60 * 60_000;
 export const OAK_FORMAT = /^oak_[0-9a-z]{8,64}$/i;
@@ -58,7 +58,7 @@ export function oak(): OakState {
     } catch {
       /* corrupt cache: refetched below */
     }
-    state = { key: ls.get(KEY), mine, loading: false, error: null, playerId: ls.get(ME) };
+    state = { key: ls.get(KEY), mine, loading: false, error: null, playerId: ls.get(ME) || null };
   }
   return state;
 }
@@ -106,6 +106,7 @@ export function refreshOak(): Promise<void> {
     const mine: Mine = { save: save as UserSave, profile: profile as UserProfile, at: Date.now() };
     ls.set(SAVE, JSON.stringify(mine));
     set({ loading: false, mine });
+    if (ls.get(ME) === null) void autoLink(mine.profile);
   })();
   return inflight;
 }
@@ -127,9 +128,32 @@ export function forgetOak() {
   set({ key: null, mine: null, loading: false, error: null, playerId: null });
 }
 
+/** null = "Not me": remembered, so autoLink doesn't link it again for this key. */
 export function setPlayerId(id: string | null) {
-  ls.set(ME, id);
+  ls.set(ME, id ?? "");
   set({ playerId: id });
+}
+
+/**
+ * Find the key owner's public profile: the IDs seen under their name on archived leaderboards (/api/players),
+ * each checked against their own profile (looksLikeMe). Links only when exactly one matches; finds nothing for
+ * players who never reached a top-1,000 board, and "This is me" on the player page stays the way then.
+ */
+async function autoLink(mine: UserProfile) {
+  const key = oak().key;
+  try {
+    const r = await fetch(`/api/players?name=${encodeURIComponent(mine.displayName)}`);
+    const ids = r.ok ? ((await r.json()) as { ids: string[] }).ids.slice(0, 5) : [];
+    const hits: string[] = [];
+    for (const id of ids) {
+      const pub = await fetch(`/api/nk/btd6/users/${id}`).then((x) => (x.ok ? x.json() : null)).catch(() => null);
+      const body = unwrap<UserProfile>(200, pub);
+      if (typeof body !== "string" && looksLikeMe(body, mine)) hits.push(id);
+    }
+    if (hits.length === 1 && oak().key === key && ls.get(ME) === null) setPlayerId(hits[0]);
+  } catch {
+    /* offline / no match: "This is me" still works */
+  }
 }
 
 /**

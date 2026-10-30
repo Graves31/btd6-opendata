@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import type { UserProfile, UserSave } from "../src/nk/types.ts";
-import { looksLikeMe, unwrap } from "../web/src/oak.ts";
+import { looksLikeMe, oak, refreshOak, setOak, setPlayerId, unwrap } from "../web/src/oak.ts";
 import { instaSummary, medalCounts } from "../web/src/oakSave.ts";
 
 const fx = (name: string) => JSON.parse(readFileSync(new URL(`../docs/api/fixtures/${name}.json`, import.meta.url), "utf8"));
@@ -34,6 +34,31 @@ describe("looksLikeMe", () => {
   });
   it("a different name is somebody else", () => {
     assert.equal(looksLikeMe(profile, copy((p) => (p.displayName = "someoneelse"))), false);
+  });
+});
+
+describe("auto-link the public profile", () => {
+  it("links the one ID under the key owner's name that looks like them, and keeps a \"Not me\"", async () => {
+    const mine = "a".repeat(48), other = "b".repeat(48);
+    const ok = (body: unknown) => new Response(JSON.stringify({ success: true, body }));
+    const store = new Map<string, string>();
+    Object.assign(globalThis, {
+      localStorage: { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => store.set(k, v), removeItem: (k: string) => store.delete(k) },
+      fetch: async (u: string) => {
+        if (u.includes("/btd6/save/")) return ok(save);
+        if (u.startsWith("https://data.ninjakiwi.com/btd6/users/")) return ok(profile);
+        if (u.startsWith("/api/players?name=")) return new Response(JSON.stringify({ ids: [other, mine] }));
+        return ok(u.endsWith(mine) ? profile : { ...profile, avatar: "SomeoneElse" });
+      },
+    });
+    const settle = () => new Promise((r) => setTimeout(r, 20));
+    await setOak("oak_test0000");
+    await settle();
+    assert.equal(oak().playerId, mine);
+    setPlayerId(null);
+    await refreshOak();
+    await settle();
+    assert.equal(oak().playerId, null, "Not me sticks");
   });
 });
 

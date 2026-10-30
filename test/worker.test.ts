@@ -1092,6 +1092,38 @@ describe("team CT history (/api/history/team/:guildId)", () => {
   });
 });
 
+describe("player lookup by name (/api/players)", () => {
+  it("indexes archived player boards and answers by exact name, no NK requests", async () => {
+    const t = makeEnv();
+    await refreshHot(t.deps);
+    t.clock.now = CAPTURED_AT + 3 * DAY;
+    await archiveAll(t);
+    const row = t.db.raw.prepare("SELECT name, id FROM players LIMIT 1").get() as { name: string; id: string } | undefined;
+    assert.ok(row, "archived boards fill players");
+    assert.match(row.id, /^[0-9a-f]{48}$/);
+    const calls = t.origin.calls.length;
+    const r = await handleApi(t.deps, get(`/api/players?name=${encodeURIComponent(row.name)}`));
+    assert.equal(r.status, 200);
+    assert.ok(((await r.json()) as { ids: string[] }).ids.includes(row.id));
+    assert.deepEqual(await (await handleApi(t.deps, get("/api/players?name=nobody%20at%20all"))).json(), { ids: [] });
+    assert.equal(t.origin.calls.length, calls, "no NK requests");
+    assert.equal((await handleApi(t.deps, get("/api/players"))).status, 400);
+    assert.equal((await handleApi(t.deps, get(`/api/players?name=${"x".repeat(65)}`))).status, 400);
+  });
+
+  it("the migration backfills players from what is already stored", async () => {
+    const t = makeEnv();
+    await refreshHot(t.deps);
+    t.clock.now = CAPTURED_AT + 3 * DAY;
+    await archiveAll(t);
+    const before = t.db.raw.prepare("SELECT * FROM players ORDER BY name, id").all();
+    t.db.raw.exec("DELETE FROM players");
+    t.db.raw.exec(readFileSync(new URL("../migrations/0008_players.sql", import.meta.url), "utf8"));
+    assert.ok(before.length > 0);
+    assert.deepEqual(t.db.raw.prepare("SELECT * FROM players ORDER BY name, id").all(), before);
+  });
+});
+
 describe("link previews (og tags on page navigations)", () => {
   const SHELL = `<!doctype html><html><head><meta charset="utf-8" />
     <meta name="description" content="Generic." />

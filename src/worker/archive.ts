@@ -11,6 +11,7 @@ import type { Deps } from "./deps.ts";
 import { eventKeys } from "./events.ts";
 import { d1FreezeStmt, d1Get, d1PutStmt, mem } from "./store.ts";
 import { originCooldownS } from "./limit.ts";
+import { playerIndexStmts } from "./players.ts";
 import { teamIndexStmts } from "./teams.ts";
 import { fetchUpstream, mapLimit } from "./upstream.ts";
 
@@ -98,12 +99,12 @@ async function archiveRun(deps: Deps, budget: number, result: ArchiveResult): Pr
         if (!got.ok && prev?.ok) {
           // NK no longer has it, but we do: freeze our copy rather than the error.
           writes.push(d1FreezeStmt(db, job.key));
-          writes.push(...teamIndexStmts(db, job.key, prev.body));
+          writes.push(...teamIndexStmts(db, job.key, prev.body), ...playerIndexStmts(db, job.key, prev.body));
         } else {
           const entry = { ...got, frozen: true };
           writes.push(d1PutStmt(db, entry));
           writes.push(...expandPages(deps, job.key, entry.body, job.kind, job.event_id, now));
-          if (entry.ok) writes.push(...teamIndexStmts(db, job.key, entry.body)); // CT team boards → ct_teams
+          if (entry.ok) writes.push(...teamIndexStmts(db, job.key, entry.body), ...playerIndexStmts(db, job.key, entry.body)); // → ct_teams, players
           mem.set(entry);
         }
       }

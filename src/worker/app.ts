@@ -8,6 +8,7 @@
 //   GET /api/history/:kind[?before=ms&limit=n]  every race|boss|ct|odyssey ever seen, newest first
 //   GET /sitemap-events.xml                     every archived event page (boss/race/ct/odyssey) for crawlers
 //   GET /api/history/team/:guildId    a team's CT results (rank, score, group) from archived data only
+//   GET /api/players?name=<name>       public IDs seen under that display name on archived boards (players.ts)
 //   GET /api/ct/:id/cutoffs            CT cut-off scores per day (hot cron snapshots, D1 only)
 //   GET /api/ct/relics                 relic tiles of every archived CT (D1 only)
 //   GET /api/health                    cache status
@@ -30,6 +31,7 @@ import { handlePage, SITE, type AssetsLike } from "./og.ts";
 import { handleStats, STATS_GRAPHQL_URL } from "./stats.ts";
 import { getHot, getHotText } from "./store.ts";
 import { handleSuggest } from "./suggest.ts";
+import { MAX_NAME, playerIds } from "./players.ts";
 import { GUILD_ID, teamHistory } from "./teams.ts";
 
 export interface Env {
@@ -193,6 +195,19 @@ async function route(deps: Deps, request: Request): Promise<Response> {
       return error(503, "unavailable", "no-store", { "Retry-After": "60" });
     }
     return jsonResponse(json, 200, "public, max-age=300, stale-while-revalidate=86400");
+  }
+
+  if (path === "/api/players") {
+    const name = url.searchParams.get("name") ?? "";
+    if (!name || name.length > MAX_NAME) return error(400, "bad_request", "public, max-age=3600");
+    let ids: string[];
+    try {
+      ids = await playerIds(deps.db, name);
+    } catch (err) {
+      console.warn("players: D1 read failed", String(err));
+      return error(503, "unavailable", "no-store", { "Retry-After": "60" });
+    }
+    return jsonResponse(JSON.stringify({ ids }), 200, "public, max-age=3600");
   }
 
   const hist = /^\/api\/history\/([a-z]+)$/.exec(path);

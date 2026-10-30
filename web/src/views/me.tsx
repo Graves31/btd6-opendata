@@ -1028,7 +1028,7 @@ export function MePage() {
       {o.key && !mine && o.loading && <p class="my-note">Loading your stats from Ninja Kiwi…</p>}
       {mine && (
         <>
-          {!o.playerId && <p class="my-note">Want your public profile here too? Open your player page from any leaderboard and press "This is me".</p>}
+          {!o.playerId && <p class="my-note">Your public profile isn't linked: it's found by name only if you've been on an event leaderboard. Open your player page and press "This is me".</p>}
           <Fold tone="blue" title={<Lbl k="Trophy">Overview</Lbl>}>
             <Summary s={mine.save} />
             <Overview s={mine.save} />
