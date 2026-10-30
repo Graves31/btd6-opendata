@@ -29,7 +29,7 @@ import { DIFF_LABEL } from "../maps.ts";
 import { href } from "../routes.ts";
 import { CATEGORY, HERO_ORDER, inOrder, TOWER_ORDER } from "../rules.tsx";
 import { artName, hasArt, MapArt, MODE_NAME, Spr } from "../sprite.tsx";
-import { A, Img, Section, ToolHero, useTick } from "../ui.tsx";
+import { A, Img, ToolHero, useTick, type Tone } from "../ui.tsx";
 import { longWord } from "./people.tsx";
 
 const PROGRESS = progressData as unknown as GameProgress;
@@ -142,17 +142,34 @@ const Lbl = (p: { k: string; children: string }) => (
   </span>
 );
 const pct = (o: number, t: number) => (t > 0 && o >= t ? 100 : Math.min(99, Math.round((o / Math.max(t, 1)) * 100)));
-/** Section wrapper the summary rings scroll to. */
-const Anchor = (p: { id: string; children: ComponentChildren }) => (
-  <div id={`my-${p.id}`} class="my-anc">
-    {p.children}
-  </div>
-);
 const Meter = (p: { o: number; t: number }) => (
   <span class="my-meter" aria-hidden="true">
     <i style={{ width: `${(p.o / Math.max(p.t, 1)) * 100}%` }} />
   </span>
 );
+type Count = { owned: number; total: number };
+const add = (...xs: (Count | null | undefined)[]): Count => ({ owned: xs.reduce((n, x) => n + (x?.owned ?? 0), 0), total: xs.reduce((n, x) => n + (x?.total ?? 0), 0) });
+/**
+ * A game panel that folds, its header tab the toggle; the summary rings scroll to it by id. A finished section
+ * starts folded; folded, a line filled to the section's completion stands in for the body.
+ */
+function Fold(p: { id?: string; tone: Tone; title: ComponentChildren; aside?: ComponentChildren; part?: Count; children: ComponentChildren }) {
+  const done = !!p.part && p.part.total > 0 && p.part.owned >= p.part.total;
+  return (
+    <details id={p.id && `my-${p.id}`} class={`sec gp gp-${p.tone} my-fold`} open={!done}>
+      <summary class="sec-h">
+        <h2>{p.title}</h2>
+        {p.aside && <span class="sec-aside">{p.aside}</span>}
+        {p.part && (
+          <span class={done ? "my-recap done" : "my-recap"}>
+            <Meter o={p.part.owned} t={p.part.total} />
+          </span>
+        )}
+      </summary>
+      {p.children}
+    </details>
+  );
+}
 /** <details> whose body (long lists) is only built once opened. */
 function Lazy(p: { head: ComponentChildren; class?: string; children: ComponentChildren }) {
   const [open, setOpen] = useState(false);
@@ -199,7 +216,10 @@ function Summary(p: { s: UserSave }) {
   const all = pct(overall, 1);
   const go = (id: string) => (e: Event) => {
     e.preventDefault();
-    document.getElementById(`my-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const el = document.getElementById(`my-${id}`) as HTMLDetailsElement | null;
+    if (!el) return;
+    el.open = true;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
   return (
     <section class="my-sumry" aria-label="Completion">
@@ -368,8 +388,19 @@ function Medals(p: { s: UserSave }) {
       </Panel>
     );
   };
+  const solo = add(...rows.map((r) => ({ owned: r.solo, total: r.total }))); // the summary ring counts solo medals
   return (
-    <Section tone="teal" title={<Lbl k="Medal">Map medals</Lbl>} aside={<A href={href.maps()}>All maps</A>}>
+    <Fold
+      id="medals"
+      tone="teal"
+      title={<Lbl k="Medal">Map medals</Lbl>}
+      part={solo}
+      aside={
+        <>
+          {fmtInt(solo.owned)} / {fmtInt(solo.total)} solo · <A href={href.maps()}>All maps</A>
+        </>
+      }
+    >
       {(["Easy", "Medium", "Hard"] as const).map((d) => (
         <div key={d} class="my-medals">
           <h3>{d}</h3>
@@ -387,7 +418,7 @@ function Medals(p: { s: UserSave }) {
           </ul>
         </div>
       ))}
-    </Section>
+    </Fold>
   );
 }
 
@@ -403,7 +434,7 @@ function Instas(p: { s: UserSave }) {
   // Every crosspath an insta can have, in the same order for every tower.
   const tiers = instaPossible().map((k) => k.split("").join("-"));
   return (
-    <Section tone="amber" title={<Lbl k="Tier5">Insta Monkeys</Lbl>} aside={`${fmtInt(sets)} / ${fmtInt(possible)} sets · ${fmtInt(all)} in total`}>
+    <Fold id="instas" tone="amber" title={<Lbl k="Tier5">Insta Monkeys</Lbl>} part={{ owned: sets, total: possible }} aside={`${fmtInt(sets)} / ${fmtInt(possible)} sets · ${fmtInt(all)} in total`}>
       <ul class="my-instas my-dense">
         {parts.flatMap((r) => {
           const o = owned.get(r.tower);
@@ -450,7 +481,7 @@ function Instas(p: { s: UserSave }) {
           ];
         })}
       </ul>
-    </Section>
+    </Fold>
   );
 }
 
@@ -461,7 +492,7 @@ function Xp(p: { s: UserSave }) {
   if (!rows.length) return null;
   const max = rows[0][1];
   return (
-    <Section tone="green" title={<Lbl k="Xp">Tower XP</Lbl>}>
+    <Fold tone="green" title={<Lbl k="Xp">Tower XP</Lbl>}>
       <ol class="my-xp">
         {rows.map(([t, x]) => (
           <li key={t} class={`my-cat-${CATEGORY.get(t) ?? "Other"}`}>
@@ -474,7 +505,7 @@ function Xp(p: { s: UserSave }) {
           </li>
         ))}
       </ol>
-    </Section>
+    </Fold>
   );
 }
 
@@ -502,7 +533,7 @@ function Heroes(p: { s: UserSave }) {
   const skins = Object.entries(PROGRESS.skins ?? {});
   const aside = `${h.owned} / ${h.total} heroes · ${sk ? `${sk.owned} / ${sk.total}` : owned(p.s.unlockedSkins)} skins`;
   return (
-    <Section tone="rose" title={<Lbl k="Hero">Heroes and skins</Lbl>} aside={aside}>
+    <Fold id="heroes" tone="rose" title={<Lbl k="Hero">Heroes and skins</Lbl>} aside={aside} part={add(h, sk)}>
       <ul class="my-hs">
         {inOrder(HERO_ORDER, PROGRESS.heroes)
           .filter((hero) => PROGRESS.heroes.includes(hero))
@@ -520,7 +551,7 @@ function Heroes(p: { s: UserSave }) {
                     </span>
                   )}
                 </div>
-                {mine.length > 0 && (
+                {mine.length > 0 ? (
                   <ul>
                     {mine.map(([k, v]) => (
                       <li key={k} class={skinLock.has(k) ? "locked" : undefined}>
@@ -529,33 +560,33 @@ function Heroes(p: { s: UserSave }) {
                       </li>
                     ))}
                   </ul>
+                ) : (
+                  <p class="my-noskin">No skins</p>
                 )}
               </li>
             );
           })}
       </ul>
-    </Section>
+    </Fold>
   );
 }
 
 function Towers(p: { s: UserSave }) {
   const t = towerParts(p.s, PROGRESS);
   return (
-    <Section tone="blue" title={<Lbl k="Towers">Towers</Lbl>} aside={`${t.owned} / ${t.total} unlocked`}>
-      {t.missing.length ? <Units family="tower" all={t.missing} missing={t.missing} /> : <p class="my-note">Every tower is unlocked.</p>}
-    </Section>
+    <Fold id="towers" tone="blue" title={<Lbl k="Towers">Towers</Lbl>} aside={`${t.owned} / ${t.total} unlocked`} part={t}>
+      <Units family="tower" all={inOrder(TOWER_ORDER, PROGRESS.towers).filter((x) => PROGRESS.towers.includes(x))} missing={t.missing} />
+    </Fold>
   );
 }
 
 function Collection(p: { s: UserSave }) {
   const mk = knowledgeParts(p.s, PROGRESS);
   const up = upgradeParts(p.s, PROGRESS);
-  const pw = powerUpgradeParts(p.s, PROGRESS);
-  const mkOwned = mk.reduce((n, t) => n + t.owned, 0);
-  const mkTotal = mk.reduce((n, t) => n + t.total, 0);
+  const rank = (t: string) => TOWER_ORDER.indexOf(t) + 1 || 99;
   const nameOf = (t: string) =>
     t === "_" ? (
-      <span class="my-in">Missing upgrades</span>
+      <span class="my-in">Upgrades</span>
     ) : (
       <>
         <Spr family="tower" k={t} size={32} label optional />
@@ -564,53 +595,64 @@ function Collection(p: { s: UserSave }) {
     );
   return (
     <>
-      <Anchor id="mk">
-        <Section tone="blue" title={<Lbl k="KnowledgePoints">Monkey Knowledge</Lbl>} aside={`${mkOwned} / ${mkTotal} owned`}>
-          <div class="my-misses">
-            {mk.map((t) => (
-              <Miss key={t.tree} name={<span class="my-in">{t.tree}</span>} part={t} label={human} />
+      <Fold id="mk" tone="blue" title={<Lbl k="KnowledgePoints">Monkey Knowledge</Lbl>} aside={`${fmtInt(add(...mk).owned)} / ${fmtInt(add(...mk).total)} owned`} part={add(...mk)}>
+        <div class="my-misses">
+          {mk.map((t) => (
+            <Miss key={t.tree} name={<span class="my-in">{t.tree}</span>} part={t} label={human} />
+          ))}
+        </div>
+      </Fold>
+      <Fold id="upgrades" tone="blue" title={<Lbl k="Upgrade">Upgrades</Lbl>} aside={`${fmtInt(up.owned)} / ${fmtInt(up.total)} owned`} part={up}>
+        <div class="my-misses">
+          {[...up.by]
+            .sort((a, b) => rank(a.tower) - rank(b.tower))
+            .map((t) => (
+              <Miss key={t.tower} name={nameOf(t.tower)} part={t} />
             ))}
-          </div>
-        </Section>
-      </Anchor>
-      <Anchor id="upgrades">
-        <Section tone="blue" title={<Lbl k="Upgrade">Upgrades</Lbl>} aside={`${fmtInt(up.owned)} / ${fmtInt(up.total)} owned`}>
-          {up.by.length ? (
-            <div class="my-misses">
-              {up.by.map((t) => (
-                <Miss key={t.tower} name={nameOf(t.tower)} part={t} />
-              ))}
-            </div>
-          ) : (
-            <p class="my-note">Every upgrade is unlocked.</p>
-          )}
-        </Section>
-      </Anchor>
-      {pw && (
-        <Anchor id="powerups">
-          <Section tone="blue" title={<Lbl k="Powers">Pro power upgrades</Lbl>} aside={`${fmtInt(pw.owned)} / ${fmtInt(pw.total)} owned`}>
-            {pw.by.length ? (
-              <div class="my-misses">
-                {pw.by.map((t) => (
-                  <Miss
-                    key={t.power}
-                    name={
-                      <>
-                        <Spr family="power" k={t.power} size={32} label optional />
-                        <span class="my-in">{artName("power", t.power)}</span>
-                      </>
-                    }
-                    part={t}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p class="my-note">Every Pro power upgrade is unlocked.</p>
-            )}
-          </Section>
-        </Anchor>
-      )}
+        </div>
+      </Fold>
     </>
+  );
+}
+
+/** Powers: Pro upgrades per power, and the powers in stock. */
+function Powers(p: { s: UserSave }) {
+  const pw = powerUpgradeParts(p.s, PROGRESS);
+  const stock = Object.entries(p.s.powers ?? {})
+    .filter(([, v]) => v.quantity > 0)
+    .sort((a, b) => b[1].quantity - a[1].quantity);
+  if (!pw && !stock.length) return null;
+  return (
+    <Fold id="powerups" tone="blue" title={<Lbl k="Powers">Powers</Lbl>} aside={pw && `${fmtInt(pw.owned)} / ${fmtInt(pw.total)} Pro upgrades`} part={pw ?? undefined}>
+      {pw && (
+        <div class="my-misses">
+          {pw.by.map((t) => (
+            <Miss
+              key={t.power}
+              name={
+                <>
+                  <Spr family="power" k={t.power} size={32} label optional />
+                  <span class="my-in">{artName("power", t.power)}</span>
+                </>
+              }
+              part={t}
+            />
+          ))}
+        </div>
+      )}
+      {stock.length > 0 && (
+        <>
+          <h3 class="my-h3">In stock</h3>
+          <ul class="my-powers">
+            {stock.map(([k, v]) => (
+              <li key={k}>
+                <Spr family="power" k={k} size={40} count={v.quantity} />
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </Fold>
   );
 }
 
@@ -629,9 +671,6 @@ function Progress(p: { s: UserSave }) {
     total: s.achievementsClaimed?.length ?? 0,
     missing: [],
   };
-  const powers = Object.entries(s.powers ?? {})
-    .filter(([, v]) => v.quantity > 0)
-    .sort((a, b) => b[1].quantity - a[1].quantity);
   const card = (id: "ac" | "q", ico: string, label: string, part: Part) => (
     <li key={id}>
       <Pick
@@ -649,7 +688,7 @@ function Progress(p: { s: UserSave }) {
     </li>
   );
   return (
-    <Section tone="violet" title={<Lbl k="Achievement">Achievements, quests and powers</Lbl>}>
+    <Fold id="achievements" tone="violet" title={<Lbl k="Achievement">Achievements and quests</Lbl>} part={add(ac, qPart)}>
       <ul class="my-aq my-dense">
         {card("ac", "Achievement", "Achievements", ac)}
         {card("q", "Quest", "Quests", qPart)}
@@ -676,19 +715,7 @@ function Progress(p: { s: UserSave }) {
           </Panel>
         )}
       </ul>
-      {powers.length > 0 && (
-        <>
-          <h3 class="my-h3">Powers in stock</h3>
-          <ul class="my-powers">
-            {powers.map(([k, v]) => (
-              <li key={k}>
-                <Spr family="power" k={k} size={40} count={v.quantity} />
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-    </Section>
+    </Fold>
   );
 }
 
@@ -751,7 +778,7 @@ function Rogue(p: { s: UserSave }) {
   const towers = (k: string) => (Array.isArray(st[k]) ? (st[k] as string[]).filter((t) => hasArt("tower", t)) : []) // also lists powers (SuperMonkeyBeacon);
   const split = (a: string, b: string, c: string) => `${fmtInt(n(a))} common · ${fmtInt(n(b))} rare · ${fmtInt(n(c))} legendary`;
   return (
-    <Section tone="crimson" title={<Lbl k="rogue:Legends">Rogue Legends</Lbl>}>
+    <Fold tone="crimson" title={<Lbl k="rogue:Legends">Rogue Legends</Lbl>}>
       <dl class="my-tiles">
         <Tile k="Tiles captured" ico="rogue:Legends" v={n("tilesCaptured")} note={st.tilesCapturedWithinCampaign !== undefined ? `${fmtInt(num(st.tilesCapturedWithinCampaign))} in campaign` : undefined} />
         <Tile k="Bosses defeated" art={<Spr family="boss" k="skull" size={40} label />} v={n("bossesDefeated")} />
@@ -921,7 +948,7 @@ function Rogue(p: { s: UserSave }) {
           </dl>
         </>
       )}
-    </Section>
+    </Fold>
   );
 }
 
@@ -929,7 +956,7 @@ function Legends(p: { title: string; data: Record<string, number> | undefined })
   const rows = counters(p.data);
   if (!rows.some(([, v]) => v !== 0)) return null;
   return (
-    <Section tone="bronze" title={p.title}>
+    <Fold tone="bronze" title={p.title}>
       <dl class="my-kv">
         {rows.map(([k, v]) => (
           <div key={k}>
@@ -938,16 +965,16 @@ function Legends(p: { title: string; data: Record<string, number> | undefined })
           </div>
         ))}
       </dl>
-    </Section>
+    </Fold>
   );
 }
 
-/** The public profile's header (people.tsx PlayerPage): NK banner, avatar, name, rank, main tower and hero. */
+/** The public profile's header (people.tsx PlayerPage) as a game title card on the player's NK banner. */
 function Head(p: { prof: UserProfile; hero: string | undefined; playerId: string | null; bar: ComponentChildren }) {
   const u = p.prof;
   const nk = (url: string | undefined) => (url?.startsWith(NK_ASSETS) ? url : null);
   return (
-    <header class="profile">
+    <header class="profile gh gp-blue">
       <div class="profile-banner">
         <Img src={nk(u.bannerURL)} w={1536} h={192} eager />
       </div>
@@ -1002,27 +1029,18 @@ export function MePage() {
       {mine && (
         <>
           {!o.playerId && <p class="my-note">Want your public profile here too? Open your player page from any leaderboard and press "This is me".</p>}
-          <Section tone="blue" title={<Lbl k="Trophy">Overview</Lbl>}>
+          <Fold tone="blue" title={<Lbl k="Trophy">Overview</Lbl>}>
             <Summary s={mine.save} />
             <Overview s={mine.save} />
-          </Section>
-          <Anchor id="medals">
-            <Medals s={mine.save} />
-          </Anchor>
-          <Anchor id="instas">
-            <Instas s={mine.save} />
-          </Anchor>
+          </Fold>
+          <Medals s={mine.save} />
+          <Instas s={mine.save} />
           <Xp s={mine.save} />
-          <Anchor id="heroes">
-            <Heroes s={mine.save} />
-          </Anchor>
-          <Anchor id="towers">
-            <Towers s={mine.save} />
-          </Anchor>
+          <Heroes s={mine.save} />
+          <Towers s={mine.save} />
           <Collection s={mine.save} />
-          <Anchor id="achievements">
-            <Progress s={mine.save} />
-          </Anchor>
+          <Powers s={mine.save} />
+          <Progress s={mine.save} />
           <Rogue s={mine.save} />
           <Legends title="Frontier Legends" data={mine.save.frontierLegends} />
         </>

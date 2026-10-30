@@ -11420,25 +11420,90 @@ a.th-ic:focus-visible {
   border: 1px solid var(--rule-2);
   border-radius: var(--r);
 }
-/* The save's header, framed like a game panel: blue-edged banner fading into the page, avatar on a ledge,
-   Refresh / Forget key in the name row. */
+/* The save's header: a game title card (.gh) with the player's NK banner behind it, dimmed under the text;
+   avatar on a ledge, Refresh / Forget key in the name row. */
 .my .profile {
-  margin-bottom: 16px;
+  margin: 0 0 16px;
+  padding: 0;
+  overflow: hidden;
+  isolation: isolate;
 }
 .my .profile-banner {
-  position: relative;
-  overflow: hidden;
-  border: 2px solid #2c4f88;
-  border-radius: 12px;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border: 0;
+}
+.my .profile-banner :is(img, .img-missing) {
+  height: 100%;
+  min-height: 0;
+  aspect-ratio: auto;
 }
 .my .profile-banner::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 35%, color-mix(in srgb, var(--bg) 85%, transparent));
+  background: linear-gradient(90deg, rgb(10 16 30 / 0.9), rgb(10 16 30 / 0.65) 60%, rgb(10 16 30 / 0.8));
+}
+.my .profile .my-btn {
+  white-space: nowrap;
 }
 .my .profile-id {
   position: relative;
+  margin: 0;
+  padding: 20px 24px;
+  align-items: center;
+}
+.my .profile-t {
+  padding-top: 0;
+}
+.my .profile h1 {
+  -webkit-text-stroke: 6px #0b1d3f;
+  paint-order: stroke fill;
+}
+@media (max-width: 720px) {
+  .my .profile-id {
+    padding: 14px;
+  }
+}
+/* Folding panels: the title tab is the toggle (its arrow turns); folded, a line shows the section's completion. */
+.my-fold > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.my-fold > summary::-webkit-details-marker {
+  display: none;
+}
+.my-fold > summary .sec-aside {
+  margin-left: auto;
+}
+.my-fold > summary h2::after {
+  content: "";
+  margin-left: 4px;
+  border-style: solid;
+  border-width: 9px 7px 0;
+  border-color: #fff transparent transparent;
+  filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.4));
+  transition: transform 0.15s;
+}
+.my-fold:not([open]) > summary h2::after {
+  transform: rotate(-90deg);
+}
+.my-fold > summary:hover h2 {
+  filter: brightness(1.12);
+}
+.my-fold:not([open]) > summary {
+  margin-bottom: 0;
+}
+.my-recap {
+  flex-basis: 100%;
+  display: flex;
+}
+.my-fold[open] .my-recap {
+  display: none;
+}
+.my-recap .my-meter {
+  height: 10px;
 }
 .my .profile-id .avatar {
   border: 3px solid #0f2650;
@@ -11528,7 +11593,7 @@ a.th-ic:focus-visible {
   background: linear-gradient(180deg, var(--gp-f1), var(--gp-f2));
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35);
 }
-.gp :is(.my-miss.done .my-meter, .my-all.done .my-allbar) i {
+.gp :is(.my-miss.done .my-meter, .my-all.done .my-allbar, .my-recap.done .my-meter) i {
   background: linear-gradient(180deg, #a8f5c8, #2fbf6e);
 }
 .gp .my-all b {
@@ -11800,7 +11865,7 @@ button.my-miss:hover {
   margin: 0;
   padding: 0 12px;
 }
-.my-anc {
+.my-fold {
   scroll-margin-top: 72px;
 }
 /* completion summary */
@@ -12022,9 +12087,11 @@ button.my-miss:hover {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   gap: 8px;
-  align-items: start;
 }
+/* cards of a row stretch to the same height; the skin grid fills the rest */
 .my-hs > li {
+  display: flex;
+  flex-direction: column;
   background: var(--s1);
   border: 1px solid var(--rule);
   border-radius: var(--r);
@@ -12046,8 +12113,25 @@ button.my-miss:hover {
   padding: 8px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  align-content: start;
   gap: 6px;
   border-top: 1px solid var(--rule);
+}
+.my-hs ul,
+.my-noskin {
+  flex: 1;
+}
+.my-noskin {
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 8px;
+  color: var(--ink-3);
+  font-size: 13px;
+  border-top: 1px solid var(--rule);
+}
+.my-hs li li span {
+  min-height: 2.4em;
 }
 .my-hs li li {
   display: grid;

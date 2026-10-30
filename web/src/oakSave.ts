@@ -148,11 +148,11 @@ export function knowledgeParts(s: UserSave, p: Progress): (Part & { tree: string
   return trees.map((tree) => ({ tree, ...part(p.knowledge.filter((k) => k.tree === tree).map((k) => k.id), (id) => !!s.acquiredKnowledge?.[id]) }));
 }
 
-/** Upgrades overall; `by` lists only towers (or "_" when flat) with something missing. */
+/** Upgrades overall and per tower (or "_" when flat). */
 export function upgradeParts(s: UserSave, p: Progress) {
   const by = Object.entries(p.upgrades).map(([tower, ids]) => ({ tower, ...part(ids, (u) => !!s.acquiredUpgrades?.[u]) }));
   const sum = (f: (x: Part) => number) => by.reduce((n, x) => n + f(x), 0);
-  return { owned: sum((x) => x.owned), total: sum((x) => x.total), by: by.filter((x) => x.missing.length) };
+  return { owned: sum((x) => x.owned), total: sum((x) => x.total), by };
 }
 
 /** Pro power upgrades; null when the game list is unknown. Same shape as upgradeParts. */
@@ -160,7 +160,7 @@ export function powerUpgradeParts(s: UserSave, p: Progress) {
   if (!p.powerUpgrades) return null;
   const by = Object.entries(p.powerUpgrades).map(([power, ids]) => ({ power, ...part(ids, (u) => !!s.acquiredUpgrades?.[u]) }));
   const sum = (f: (x: Part) => number) => by.reduce((n, x) => n + f(x), 0);
-  return { owned: sum((x) => x.owned), total: sum((x) => x.total), by: by.filter((x) => x.missing.length) };
+  return { owned: sum((x) => x.owned), total: sum((x) => x.total), by };
 }
 
 export interface InstaPart extends Part {
