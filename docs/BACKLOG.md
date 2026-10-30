@@ -5,6 +5,10 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
 
 ## Later (agreed)
 
+- **Farming optimizer for boss events** (2026-10-30, P0 done: docs/farming-optimizer.md). Next, P1: the owner runs
+  Mod Helper "Export Game Data" (modded game), then `build_economy.py`, the exact simulator, in-game checks and a
+  HiGHS benchmark. Owner: a real matrix optimizer (MILP), "fastest routes to cash".
+
 - **CT: archive groups while the CT is live** (2026-10-27, owner: not yet). A group is stored only when someone opens
   it after the end, and NK drops groups 2–3 days later. Cheap version: store any group page opened during the CT.
   Storing every group would cost hundreds of NK requests: don't.

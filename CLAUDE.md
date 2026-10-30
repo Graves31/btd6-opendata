@@ -12,7 +12,7 @@ architecture; this file is how to work on it.
 - `docs/BACKLOG.md` — open items, ideas, declined items. **Read it at the start of a session.**
 - `docs/game-ui.md` (the "modern but BTD6" UI rules: game panels, section colours, cards; read before any UI
   work), `docs/visual-plan.md` (art/visual rules), `docs/round-visualizer-spec.md` + `docs/round-visualizer-ux-review.md`
-  (Tools → round visualizer; the UX review is the current layout), `docs/batch-1-19.md` (how a big batch was
+  (Tools → round visualizer; the UX review is the current layout), `docs/farming-optimizer.md` + `docs/economy/*` (farming optimizer plan; economy rules from the game code), `docs/batch-1-19.md` (how a big batch was
   split across parallel agents: file ownership, ports, OUT_DIR).
 - `src/worker/` Worker (proxy, hot cron, archive, og previews, team history), `src/nk/routes.ts` NK route
   table + cache policies, `migrations/` D1 schema.
