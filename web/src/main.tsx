@@ -393,6 +393,7 @@ function App() {
                     aria-controls="tools-dd"
                     onClick={() => setMore(more === "tools" ? "" : "tools")}
                   >
+                    <span class="nav-i">{sectionIcon(sec)}</span>
                     {label}
                     <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5">
                       <path d="m6 9 6 6 6-6" />
@@ -406,6 +407,7 @@ function App() {
             // aria-current="page" only on the page itself; a detail page (a boss, a player) just keeps the tab lit.
             return (
               <A key={h} href={h} class={on ? "on" : undefined} current={on && location.pathname === h}>
+                <span class="nav-i">{sectionIcon(sec)}</span>
                 {label}
               </A>
             );

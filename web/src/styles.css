@@ -14679,3 +14679,152 @@ main > .vh + .feature.gh {
   position: relative;
   top: 22px;
 }
+
+/* ─────────────────────────────── Nav in the game look (docs/game-ui.md; dark in both themes, like the game's menus)
+   Desktop: each section with its game icon (from 1280 px; narrower keeps labels only), the current one a raised plate
+   with the yellow edge. Tools menu and the phone sheets are small game panels of cards. Theme toggle: a round plate. */
+.nav-i {
+  display: none;
+  flex: none;
+}
+.top nav a,
+.nav-dd > button {
+  gap: 7px;
+  margin: 9px 0;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+}
+.top nav a:hover,
+.nav-dd > button:hover,
+.nav-dd > button[aria-expanded="true"] {
+  background: rgb(255 255 255 / 0.06);
+}
+.top nav > a.on,
+.nav-dd > button.on {
+  color: #fff;
+  background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
+  border-color: var(--accent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #8a7406;
+}
+@media (min-width: 1280px) {
+  .nav-i {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+  }
+  .nav-i > :is(svg, img, .spr) {
+    --s: 20px;
+    width: 20px;
+    height: 20px;
+    filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.4));
+  }
+  .top {
+    gap: 20px;
+  }
+  .top nav {
+    gap: 0;
+  }
+  .top nav a,
+  .nav-dd > button {
+    gap: 5px;
+    padding: 0 7px 0 5px;
+  }
+}
+/* Tools menu: a blue game panel, each tool a card with its art; the open page gets the yellow edge */
+.dd {
+  gap: 6px;
+  padding: 10px;
+  background:
+    linear-gradient(180deg, rgb(79 138 214 / 0.1), transparent 200px),
+    repeating-linear-gradient(135deg, rgb(255 255 255 / 0.016) 0 2px, transparent 2px 14px),
+    #111a2c;
+  border: 2px solid #2c4f88;
+  border-radius: 14px;
+  box-shadow: 0 4px 0 #060a14, 0 14px 32px rgb(0 0 0 / 0.4);
+}
+.top nav .dd a {
+  margin: 0;
+  color: #fff;
+  font-weight: 700;
+  background: linear-gradient(180deg, #1c2643, #161f36);
+  border: 1px solid #2c3e62;
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #22498a;
+}
+.top nav .dd a:first-child {
+  color: #fff;
+}
+.top nav .dd a:hover {
+  background: linear-gradient(180deg, #1c2643, #161f36);
+  border-color: var(--accent);
+}
+.top nav .dd a.on {
+  background: linear-gradient(180deg, #1c2643, #161f36);
+  border-color: var(--accent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #8a7406;
+}
+.dd img,
+.sheet img {
+  filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.4));
+}
+/* Theme toggle: a small round plate beside My stats and Suggest */
+.theme-btn {
+  color: #fff;
+  background: linear-gradient(180deg, #3c4a68, #283350);
+  border: 2px solid #0b1220;
+  border-radius: 50%;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), 0 3px 0 #060a14;
+}
+.theme-btn:hover {
+  color: #fff;
+  background: linear-gradient(180deg, #3c4a68, #283350);
+  border-color: var(--accent);
+}
+.theme-btn:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), 0 1px 0 #060a14;
+}
+.theme-btn svg {
+  filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.45));
+}
+/* Phone bar: the current section a raised plate with the yellow ledge; sheets are game panels of cards */
+.bar > a,
+.bar > button {
+  margin: 5px 3px 7px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+}
+.bar > .on {
+  color: #fff;
+  background: linear-gradient(180deg, #1c2643, #161f36);
+  border-color: var(--accent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #8a7406;
+}
+.bar > :is(a, button) > :is(svg, img, .spr) {
+  filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.4));
+}
+.sheet {
+  gap: 10px;
+  padding: 10px;
+  background:
+    linear-gradient(180deg, rgb(79 138 214 / 0.1), transparent 200px),
+    repeating-linear-gradient(135deg, rgb(255 255 255 / 0.016) 0 2px, transparent 2px 14px),
+    #111a2c;
+  border: 2px solid #2c4f88;
+  border-radius: 14px;
+  box-shadow: 0 4px 0 #060a14;
+}
+.sheet a {
+  color: #fff;
+  font-weight: 700;
+  background: linear-gradient(180deg, #1c2643, #161f36);
+  border: 1px solid #2c3e62;
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #22498a;
+}
+.sheet a.on {
+  border-color: var(--accent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #8a7406;
+}
