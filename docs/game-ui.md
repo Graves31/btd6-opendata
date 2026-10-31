@@ -16,7 +16,7 @@ Code: `<Section tone="…">` (ui.tsx) and the `.gp` / `.gc` / `.gn` / `.gbar` bl
 | Game panel `.gp` | A framed section: 2 px edge in the section colour, 14 px radius, faint diagonal texture, a light wash of the section colour at the top, a 4 px dark drop below. | One per page section: `<Section tone="teal" title={…} aside={…}>`. |
 | Title tab | The section title as a game plate on the panel's top edge: section-colour gradient, display font in capitals with a dark outline, game icon on the left. | Automatic with `tone`. Keep titles short (they are capitals). |
 | Aside | Small grey summary top right inside the panel ("12 / 45 owned"). | Counts and totals only, never sentences. |
-| Card `.gc` | Dark rounded card (10 px) with a 1 px rim and a 3 px **ledge** in the section colour under it. | Every clickable or stat card inside a panel. `.gc.on` = the picked one (yellow edge and ledge). |
+| Card `.gc` | Rounded card (10 px; dark, white in light-theme panels) with a 1 px rim and a 3 px **ledge** in the section colour under it. | Every clickable or stat card inside a panel. `.gc.on` = the picked one (yellow edge and ledge). |
 | Number `.gn` | Big display-font number with a dark outline in the section colour. | The one headline number on a card. Not for body figures or tables. |
 | Button `.gbtn` | Raised plate in the section colour (blue outside a panel), 2 px dark edge, 3 px dark ledge that presses in on click. `.gbtn.go` = the yellow main action. | Every button on a game-styled page (Refresh, Save, Show). Header: My stats (blue) and Suggest (violet), the tone of their page; `.on` = yellow edge. Not for links or tabs. |
 | Bar `.gbar > i` | Sunken dark track, glossy fill in the section colour; `.done` turns it green. | Progress. Green means complete, everywhere. |
@@ -39,10 +39,13 @@ Code: `<Section tone="…">` (ui.tsx) and the `.gp` / `.gc` / `.gn` / `.gbar` bl
 5. **Type.** Display font (Big Shoulders) for tab titles and headline numbers, with the dark outline
    (`-webkit-text-stroke` + `paint-order: stroke fill`). Archivo for everything else. Labels are 11-12 px capitals
    with letter spacing, in `--ink-2`. Body text never gets an outline.
-6. **Panels are dark in both themes**, like the game's menus and the site header. `.gp` / `.gh` reset the theme
-   tokens to the dark set, `--bg` included, so content built on `--bg`, `--s1`, `--ink`, `--rule` and so on works
-   inside without per-theme rules. `--page` is the real page colour (for something that must match the page from
-   inside a panel). Never hard-code light-theme colours inside a panel.
+6. **Panels follow the theme; art cards stay dark.** Content panels (`.gp`) are dark in the dark theme and light
+   in the light theme (pale surface, white cards, dark text); the section colour stays on the tab, edge, rims and
+   ledges. Title cards and art cards (`.gh`: banners, profile headers, tool heroes) are dark in both themes so the
+   game art pops. Both set their own token set, `--bg` included, so content built on `--bg`, `--s1`, `--ink`,
+   `--rule` and so on works inside without per-theme rules. Panel and card surfaces are tokens too (`--gp-bg`,
+   `--gc-1` / `--gc-2`, `--gc-hi`, `--gc-ink`): use them, never a hex. `--page` is the real page colour (for
+   something that must match the page from inside a panel). White text only on coloured plates (tabs, buttons).
 7. **Same size, same row.** Cards in a grid are the same height (min-height on the card, ellipsis on long names),
    and their contents are centred or aligned on a grid. Rows fill evenly: pick column counts that divide the item
    count (/me tiles: 6 / 4 / 3 / 2).
