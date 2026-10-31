@@ -117,7 +117,6 @@ import {
   peek,
   Rank,
   Section,
-  Stat,
   Submitted,
   Tabs,
   ToolHero,
@@ -162,6 +161,7 @@ const KIND_LABEL: Record<EventKind, string> = {
 /** Lists with a lede (bosses have their stats strip; races explain themselves). */
 const KIND_BLURB: Partial<Record<EventKind, string>> = {
   ct: "Teams claim hexagon tiles over a week. Players and teams are ranked separately.",
+  race: "One map and one rule set each week. The fastest game time wins.",
   odyssey:
     "A chain of islands with one boat crew. No leaderboards; clear it to collect the rewards.",
 };
@@ -892,42 +892,43 @@ export function EventList(props: { kind: EventKind }) {
       >
         <A
           href={eventHref(kind, e.id)}
-          class={`ev-row st-${s}${noArt(kind, e) ? " no-art" : ""}${kind === "odyssey" && s !== "live" ? " gc" : ""}`}
+          class={`ev-row st-${s}${noArt(kind, e) ? " no-art" : ""}${(kind === "odyssey" || kind === "race") && s !== "live" ? " gc" : ""}`}
         >
           <EventRow kind={kind} e={e} big={s === "live"} />
         </A>
       </li>
     );
   };
-  if (kind === "odyssey") {
-    // Game panels (docs/game-ui.md): this week's odyssey in green (live), the others in one blue panel.
+  if (kind === "odyssey" || kind === "race") {
+    // Game panels (docs/game-ui.md): this week's event in green (live), the others in one blue panel.
+    const ody = kind === "odyssey";
     const live = events.filter((e) => status(e.start, e.end).s === "live");
     const rest = events.filter((e) => !live.includes(e));
     const soon = rest.some((e) => status(e.start, e.end).s === "upcoming");
     return (
       <>
         <ToolHero
-          tone="teal"
-          art={<EvIcon k="odyssey" size={96} />}
+          tone={ody ? "teal" : "crimson"}
+          art={<EvIcon k={kind} size={96} />}
           eyebrow="Weekly event"
-          title={KIND_LABEL.odyssey}
-          sub={KIND_BLURB.odyssey}
+          title={KIND_LABEL[kind]}
+          sub={KIND_BLURB[kind]}
         >
-          <Freshness k={LIST_KEY.odyssey} />
+          <Freshness k={LIST_KEY[kind]} />
         </ToolHero>
-        {all.length === 0 && <Gate k={LIST_KEY.odyssey} />}
+        {all.length === 0 && <Gate k={LIST_KEY[kind]} />}
         {live.length > 0 && (
           <Section
             tone="green"
             title={
               <>
-                <Spr family="ui" k="Odyssey" size={34} />
+                <Spr family="ui" k={ody ? "Odyssey" : "Race"} size={34} />
                 This week
               </>
             }
             aside={<EvStatus start={live[0].start} end={live[0].end} />}
           >
-            <ul class="events k-odyssey">{live.map(row)}</ul>
+            <ul class={`events k-${kind}`}>{live.map(row)}</ul>
           </Section>
         )}
         {rest.length > 0 && (
@@ -935,16 +936,17 @@ export function EventList(props: { kind: EventKind }) {
             tone="blue"
             title={
               <>
-                <EvIcon k="odyssey" size={34} />
-                {soon ? "Upcoming and past" : "Past odysseys"}
+                <EvIcon k={kind} size={34} />
+                {soon ? "Upcoming and past" : ody ? "Past odysseys" : "Past races"}
               </>
             }
-            aside={`${all.length - live.length} odysseys`}
+            aside={`${all.length - live.length} ${ody ? "odysseys" : "races"}`}
           >
-            <ul class="events k-odyssey">{rest.map(row)}</ul>
+            <ul class={`events k-${kind}`}>{rest.map(row)}</ul>
           </Section>
         )}
         {!peek(historyKey(kind)) && <p class="quiet">Loading older events…</p>}
+        {!ody && <FullHistory key={kind} kind={kind} tone="bronze" />}
       </>
     );
   }
@@ -986,7 +988,7 @@ export function EventList(props: { kind: EventKind }) {
         </ul>
       )}
       {!peek(historyKey(kind)) && <p class="quiet">Loading older events…</p>}
-      {(kind === "boss" || kind === "race") && <FullHistory key={kind} kind={kind} />}
+      {kind === "boss" && <FullHistory key={kind} kind={kind} />}
     </>
   );
 }
@@ -1118,8 +1120,9 @@ function HistoryRow(props: { e: HistEvent }) {
 }
 
 /** Every boss event / race since the wiki's records begin, closed by default and built only once opened (the list stays light). */
-function FullHistory(props: { kind: "boss" | "race" }) {
-  const { kind } = props;
+/** `tone`: the fold as a game panel (docs/game-ui.md), its title tab the toggle. */
+function FullHistory(props: { kind: "boss" | "race"; tone?: Tone }) {
+  const { kind, tone } = props;
   const [open, setOpen] = useState(false);
   const [pick, setPick] = useState("");
   const ref = useRef<HTMLDetailsElement>(null);
@@ -1174,7 +1177,7 @@ function FullHistory(props: { kind: "boss" | "race" }) {
   };
   return (
     <details
-      class="hist"
+      class={tone ? `hist gp gp-${tone} gp-fold` : "hist"}
       ref={ref}
       onToggle={(ev) => {
         const o = (ev.currentTarget as HTMLDetailsElement).open;
@@ -1184,11 +1187,18 @@ function FullHistory(props: { kind: "boss" | "race" }) {
         setOpen(o);
       }}
     >
-      <summary>
-        <span class="hist-sum">Full history</span>
+      <summary class={tone ? "sec-h" : undefined}>
+        {tone ? (
+          <h2>
+            <Spr family="ui" k="Trophy" size={34} />
+            Full history
+          </h2>
+        ) : (
+          <span class="hist-sum">Full history</span>
+        )}
         {open && <span class="hist-collapse">Collapse</span>}
         {!open && rows.length > 0 && (
-          <span class="bs-count num">
+          <span class={tone ? "sec-aside num" : "bs-count num"}>
             {rows.length} {kind === "boss" ? "boss events" : "races"} since {monthYear.format(rows[rows.length - 1].start)}
           </span>
         )}
@@ -2001,6 +2011,8 @@ export function CutoffStrip(props: {
   coop?: boolean;
   /** Change at a medal's rank since the previous daily snapshot ("+12,340 since yesterday"), live CTs only. */
   trendAt?: (rank: number) => string | undefined;
+  /** `side` as a game panel (docs/game-ui.md). */
+  tone?: Tone;
 }) {
   const cuts = cutoffs(props.board, props.total);
   if (!cuts.length) return null;
@@ -2075,6 +2087,23 @@ export function CutoffStrip(props: {
     </ol>
   );
   if (props.variant === "side") {
+    if (props.tone) {
+      return (
+        <Section
+          tone={props.tone}
+          class="cutoffs co-side"
+          title={
+            <>
+              <Spr family="ui" k="Medal" size={34} />
+              Medal cut-offs
+            </>
+          }
+        >
+          {note}
+          {list}
+        </Section>
+      );
+    }
     return (
       <section class="cutoffs co-side" aria-label="Medal cut-offs">
         <h2 class="kicker-h">Medal cut-offs</h2>
@@ -2621,12 +2650,17 @@ export function RacePage(props: { id: string; p: number }) {
         icon="race"
         title={ev?.name ?? id.replace(/_[a-z0-9]+$/, "").replace(/_/g, " ")}
         ev={ev}
+        tone="crimson"
         stats={
           <>
-            <Stat k="Finishers" v={ev ? fmtInt(ev.totalScores) : "–"} />
-            {best && <Stat k="Best time" v={fmtMs(best.score)} accent />}
+            <GStat art={<Spr family="ui" k="Race" size={36} />} big={ev ? fmtInt(ev.totalScores) : "–"} small="Finishers" />
+            {best && <GStat art={<Spr family="ui" k="GameTime" size={36} />} big={fmtMs(best.score)} small="Best time" acc />}
             {meta && (
-              <Stat k="Rounds" v={fmtRounds(meta.startRound, meta.endRound)} />
+              <GStat
+                art={<Spr family="ui" k="StartRound" size={36} />}
+                big={fmtRounds(meta.startRound, meta.endRound)}
+                small="Rounds"
+              />
             )}
           </>
         }
@@ -2640,10 +2674,16 @@ export function RacePage(props: { id: string; p: number }) {
         />
       </EventHead>
       <div class="split">
-        <section class="board-sec" aria-labelledby="lb-h">
-          <h2 class="vh" id="lb-h">
-            Race leaderboard
-          </h2>
+        <Section
+          tone="blue"
+          class="board-sec"
+          title={
+            <>
+              <Spr family="ui" k="GameTime" size={34} />
+              Leaderboard
+            </>
+          }
+        >
           <div class="lb-bar">
             <Freshness
               k={key}
@@ -2757,7 +2797,7 @@ export function RacePage(props: { id: string; p: number }) {
             </div>
           )}
           <Pager page={p} maxPages={maxPages} to={(x) => href.race(id, x)} />
-        </section>
+        </Section>
         <aside class="rules" id="rules" ref={rulesRef}>
           {rows && rows.length > 0 && (
             <CutoffStrip
@@ -2766,14 +2806,20 @@ export function RacePage(props: { id: string; p: number }) {
               total={ev?.totalScores}
               scoreAt={scoreAt}
               full={full}
+              tone="bronze"
             />
           )}
-          <h2 class="kicker-h">Rules</h2>
-          {!full ? null : meta ? (
-            <Ruleset doc={meta} noPowers />
-          ) : (
-            <Gate k={raceMetaKey(id)} rows={4} />
-          )}
+          <Section
+            tone="violet"
+            title={
+              <>
+                <Spr family="ui" k="Towers" size={34} />
+                Rules
+              </>
+            }
+          >
+            {!full ? null : meta ? <Ruleset doc={meta} noPowers game /> : <Gate k={raceMetaKey(id)} rows={4} />}
+          </Section>
         </aside>
       </div>
     </>

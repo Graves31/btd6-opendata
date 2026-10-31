@@ -583,10 +583,10 @@ export const Stat = (p: { k: ComponentChildren; v: ComponentChildren; note?: Com
 export type Tone = "blue" | "amber" | "violet" | "teal" | "rose" | "bronze" | "crimson" | "green";
 
 /** A stat card on a game panel or title card: icon, big outlined number, small label. */
-export const GStat = (p: { art: ComponentChildren; big: ComponentChildren; small: string }) => (
+export const GStat = (p: { art: ComponentChildren; big: ComponentChildren; small: string; acc?: boolean }) => (
   <div class="gc mp-stat">
     {p.art}
-    <b class="gn">{p.big}</b>
+    <b class={p.acc ? "gn acc" : "gn"}>{p.big}</b>
     <small>{p.small}</small>
   </div>
 );
