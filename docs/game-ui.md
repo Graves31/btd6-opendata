@@ -72,8 +72,10 @@ panels use `.gp-fold`), /odyssey and /odyssey/<id> (teal title cards; Islands pa
 colour: Easy green, Medium blue, Hard amber), /races and /race/<id> (crimson title cards; leaderboard blue, medal
 cut-offs bronze via `CutoffStrip tone`, rules violet; full history a bronze fold via `FullHistory tone`), /ct,
 /ct/<id> and its group pages (amber title cards and tab cards; boards blue, cut-offs bronze, map teal, tile mix
-violet, relics rose; list: my team violet, this week green, next teal, past CTs blue). Boss pages can reuse all of
-these.
+violet, relics rose; list: my team violet, this week green, next teal, past CTs blue), /bosses and /boss/<id> (rose
+title card and banner frame, Normal / Elite as two cards; board blue, cut-offs bronze, rules violet; list: boss
+stats violet with each portrait's ledge in its boss's colour, this week green, past blue, history bronze). The boss
+list keeps its own identity on purpose: the boss-tinted banner cards and the boss order ring are not turned into `.gc`.
 
 ## New section checklist
 
