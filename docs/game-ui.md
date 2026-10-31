@@ -39,9 +39,10 @@ Code: `<Section tone="…">` (ui.tsx) and the `.gp` / `.gc` / `.gn` / `.gbar` bl
 5. **Type.** Display font (Big Shoulders) for tab titles and headline numbers, with the dark outline
    (`-webkit-text-stroke` + `paint-order: stroke fill`). Archivo for everything else. Labels are 11-12 px capitals
    with letter spacing, in `--ink-2`. Body text never gets an outline.
-6. **Panels are dark in both themes**, like the game's menus and the site header. `.gp` resets the theme tokens
-   to the dark set, so content built on `--s1`, `--ink`, `--rule` and so on works inside without per-theme rules.
-   Never hard-code light-theme colours inside a panel.
+6. **Panels are dark in both themes**, like the game's menus and the site header. `.gp` / `.gh` reset the theme
+   tokens to the dark set, `--bg` included, so content built on `--bg`, `--s1`, `--ink`, `--rule` and so on works
+   inside without per-theme rules. `--page` is the real page colour (for something that must match the page from
+   inside a panel). Never hard-code light-theme colours inside a panel.
 7. **Same size, same row.** Cards in a grid are the same height (min-height on the card, ellipsis on long names),
    and their contents are centred or aligned on a grid. Rows fill evenly: pick column counts that divide the item
    count (/me tiles: 6 / 4 / 3 / 2).
@@ -77,11 +78,12 @@ title card and banner frame, Normal / Elite as two cards; board blue, cut-offs b
 stats violet with each portrait's ledge in its boss's colour, this week green, past blue, history bronze). The boss
 list keeps its own identity on purpose: the boss-tinted banner cards and the boss order ring are not turned into `.gc`.
 /bosses/<type> (banner in the rose frame, Normal / Elite cards and T1-T5 plates; health green, kill time amber,
-always active violet, skulls crimson, spawns teal, past events blue, about a bronze fold). Panels reset every theme
-token except `--bg`: a page whose wells use `--bg` sets it dark on its panels (`.bs-page .gp`). Live (/): the
+always active violet, skulls crimson, spawns teal, past events blue, about a bronze fold). Live (/): the
 featured boss in the rose frame (Normal / Elite cards), the other events as four cards built alike in a blue "This
 week" panel (same ledge, same art well, same height; phones keep the mini cards in the boss frame, statuses on the
-bottom line), coming up violet.
+bottom line), coming up violet. /player/<id> (the /me header in the blue frame, any `.profile.gh`; Overview stat
+cards blue, event medals amber, boss badges rose, seasons violet, single-player teal, co-op green; Lifetime stats
+opens from a game button) and /team/<id> (header in the amber frame, CT badges violet, CT history blue).
 
 ## New section checklist
 
