@@ -3255,12 +3255,6 @@ button.fd-tile:hover {
   border-left: 6px solid var(--accent);
   border-radius: var(--r);
 }
-.oops-warn {
-  border-left-color: var(--ban);
-}
-.oops-info {
-  border-left-color: var(--soon);
-}
 .oops-k {
   font: 700 12px/1.2 var(--f-body);
   text-transform: uppercase;
@@ -14466,5 +14460,42 @@ main > .vh + .feature.gh {
 @media (max-width: 700px) {
   .tools-sec .tile-art {
     width: 96px;
+  }
+}
+
+/* ─────────────────────────────── Error panels as game title cards (docs/game-ui.md)
+   Not found / private amber, warnings crimson, busy blue: the dark frame, outlined title, yellow main button. */
+.oops.gh {
+  margin: 8px 0 24px;
+  padding: 28px 28px 30px;
+  background:
+    linear-gradient(120deg, color-mix(in srgb, var(--gp-1) 22%, transparent), transparent 70%),
+    repeating-linear-gradient(135deg, rgb(255 255 255 / 0.016) 0 2px, transparent 2px 14px),
+    #111a2c;
+  border: 2px solid var(--gp-edge);
+  border-radius: 14px;
+  box-shadow: 0 4px 0 #060a14;
+}
+.oops.gh .oops-art {
+  filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.45));
+}
+.oops.gh .oops-h {
+  -webkit-text-stroke: 6px var(--gp-stk);
+  paint-order: stroke fill;
+}
+.oops.gh .oops-btn {
+  min-height: 44px;
+  background: linear-gradient(180deg, #ffe45c, #f5c400);
+  border: 2px solid #6b5a00;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 3px 0 #060a14;
+}
+.oops.gh .oops-btn:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 1px 0 #060a14;
+}
+@media (max-width: 560px) {
+  .oops.gh {
+    padding: 20px 18px 22px;
   }
 }

@@ -197,7 +197,7 @@ export function Gate(props: { k: string; rows?: number; empty?: ComponentChildre
 /** No connection: the fault is on this side, not Ninja Kiwi's (same panel look as views/errors.tsx). */
 function OfflinePanel(p: { onRetry: () => void }) {
   return (
-    <section class="oops oops-info">
+    <section class="oops gh gp-blue">
       <span class="oops-art" aria-hidden="true">
         <Spr family="bloon" k="moab" size={72} label />
       </span>

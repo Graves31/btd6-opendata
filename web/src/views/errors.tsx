@@ -21,7 +21,7 @@ function Panel(p: {
 }) {
   const H = p.heading ?? "h2";
   return (
-    <section class={`oops${p.tone ? ` oops-${p.tone}` : ""}`} role={p.tone === "warn" ? "alert" : undefined}>
+    <section class={`oops gh gp-${p.tone === "warn" ? "crimson" : p.tone === "info" ? "blue" : "amber"}`} role={p.tone === "warn" ? "alert" : undefined}>
       <span class="oops-art" aria-hidden="true">
         <Spr family={p.art[0]} k={p.art[1]} size={72} label />
       </span>
