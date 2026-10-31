@@ -70,8 +70,10 @@ chips and cards into `.gc` / `.gc.on`, and sink form fields into the panel (dark
 stats and Suggest buttons, /maps and /maps/<id> (tone = the map's difficulty: green, blue, amber, crimson; folding
 panels use `.gp-fold`), /odyssey and /odyssey/<id> (teal title cards; Islands panel in the picked difficulty's
 colour: Easy green, Medium blue, Hard amber), /races and /race/<id> (crimson title cards; leaderboard blue, medal
-cut-offs bronze via `CutoffStrip tone`, rules violet; full history a bronze fold via `FullHistory tone`; boss and CT
-pages can reuse all of these).
+cut-offs bronze via `CutoffStrip tone`, rules violet; full history a bronze fold via `FullHistory tone`), /ct,
+/ct/<id> and its group pages (amber title cards and tab cards; boards blue, cut-offs bronze, map teal, tile mix
+violet, relics rose; list: my team violet, this week green, next teal, past CTs blue). Boss pages can reuse all of
+these.
 
 ## New section checklist
 
