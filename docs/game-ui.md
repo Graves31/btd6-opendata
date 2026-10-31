@@ -12,13 +12,13 @@ Code: `<Section tone="…">` (ui.tsx) and the `.gp` / `.gc` / `.gn` / `.gbar` bl
 
 | Piece | What it is | Use |
 |---|---|---|
-| Title card `.th.gh` | The page's title card (`<ToolHero tone>`) in the game-panel frame: big game art, eyebrow, outlined display title, one-line sub. | Top of every converted page that has no header of its own (/me with a save uses the profile header instead). Tone = the page's main panel tone. |
+| Title card `.th.gh` | The page's title card (`<ToolHero tone>`) in the game-panel frame: big game art, eyebrow, outlined display title, one-line sub. | Top of every page that has no header of its own (event pages use `EventHead tone`, profiles `.profile.gh`). Tone = the page's main panel tone. |
 | Game panel `.gp` | A framed section: 2 px edge in the section colour, 14 px radius, faint diagonal texture, a light wash of the section colour at the top, a 4 px dark drop below. | One per page section: `<Section tone="teal" title={…} aside={…}>`. |
 | Title tab | The section title as a game plate on the panel's top edge: section-colour gradient, display font in capitals with a dark outline, game icon on the left. | Automatic with `tone`. Keep titles short (they are capitals). |
 | Aside | Small grey summary top right inside the panel ("12 / 45 owned"). | Counts and totals only, never sentences. |
 | Card `.gc` | Rounded card (10 px; dark, white in light-theme panels) with a 1 px rim and a 3 px **ledge** in the section colour under it. | Every clickable or stat card inside a panel. `.gc.on` = the picked one (yellow edge and ledge). |
 | Number `.gn` | Big display-font number with a dark outline in the section colour. | The one headline number on a card. Not for body figures or tables. |
-| Button `.gbtn` | Raised plate in the section colour (blue outside a panel), 2 px dark edge, 3 px dark ledge that presses in on click. `.gbtn.go` = the yellow main action. | Every button on a game-styled page (Refresh, Save, Show). Header: My stats (blue) and Suggest (violet), the tone of their page; `.on` = yellow edge. Not for links or tabs. |
+| Button `.gbtn` | Raised plate in the section colour (blue outside a panel), 2 px dark edge, 3 px dark ledge that presses in on click, white text with a dark outline. `.gbtn.go` = the yellow main action. | Every button on a game-styled page (Refresh, Save, Show). Header: My stats (blue) and Suggest (violet), the tone of their page; `.on` = yellow edge. Not for links or tabs. |
 | Bar `.gbar > i` | Sunken dark track, glossy fill in the section colour; `.done` turns it green. | Progress. Green means complete, everywhere. |
 
 ## Rules
@@ -53,8 +53,8 @@ Code: `<Section tone="…">` (ui.tsx) and the `.gp` / `.gc` / `.gn` / `.gbar` bl
    in me.tsx), never a modal, never a second page.
 9. **Phones.** At 390 px the panel padding drops to 10 px, the tab font to 19 px, grids drop to 2 or 1
    columns, and the aside wraps under the tab. No sideways scroll.
-10. **Accessibility.** Text on cards and tabs meets 4.5:1 (white on the tab gradient is fine thanks to the
-    outline; grey labels use `--ink-2` / `--ink-3`, never darker). Clickable cards are real `<button>`s with
+10. **Accessibility.** Text on cards and tabs meets 4.5:1 (white on a tab or button plate is fine thanks to the
+    outline: a text stroke on tabs, a 4-way text shadow on buttons; grey labels use `--ink-2` / `--ink-3`, never darker). Clickable cards are real `<button>`s with
     `aria-expanded`. Colour is never the only signal: complete also shows the full bar and the count.
 
 ## Don't
@@ -65,40 +65,43 @@ Code: `<Section tone="…">` (ui.tsx) and the `.gp` / `.gc` / `.gn` / `.gbar` bl
 - Stack panels inside panels. A sub-group inside a panel uses an `h3` label (`.my-h3`) and its own grid.
 - Add outlines, ledges or capitals to running text, tables or form fields.
 
-## Bringing a page over
+## Page map (v3.0.0: every page is in the game look)
 
-Pages move over one at a time, and it is a transition, not a redesign: keep the page's layout and graphics, and
-change only the frames. Put its content in `<Section tone>` panels, turn its buttons into `.gbtn`, its picked
-chips and cards into `.gc` / `.gc.on`, and sink form fields into the panel (dark well, inset shadow; see
-`.sug-field`). Its plain title becomes the toned title card (`<ToolHero tone>`). Done so far: /me, /suggest, the header's My
-stats and Suggest buttons, /maps and /maps/<id> (tone = the map's difficulty: green, blue, amber, crimson; folding
-panels use `.gp-fold`), /odyssey and /odyssey/<id> (teal title cards; Islands panel in the picked difficulty's
-colour: Easy green, Medium blue, Hard amber), /races and /race/<id> (crimson title cards; leaderboard blue, medal
-cut-offs bronze via `CutoffStrip tone`, rules violet; full history a bronze fold via `FullHistory tone`), /ct,
-/ct/<id> and its group pages (amber title cards and tab cards; boards blue, cut-offs bronze, map teal, tile mix
-violet, relics rose; list: my team violet, this week green, next teal, past CTs blue), /bosses and /boss/<id> (rose
-title card and banner frame, Normal / Elite as two cards; board blue, cut-offs bronze, rules violet; list: boss
-stats violet with each portrait's ledge in its boss's colour, this week green, past blue, history bronze). The boss
-list keeps its own identity on purpose: the boss-tinted banner cards and the boss order ring are not turned into `.gc`.
-/bosses/<type> (banner in the rose frame, Normal / Elite cards and T1-T5 plates; health green, kill time amber,
-always active violet, skulls crimson, spawns teal, past events blue, about a bronze fold). Live (/): the
-featured boss in the rose frame (Normal / Elite cards), the other events as four cards built alike in a blue "This
-week" panel (same ledge, same art well, same height; phones keep the mini cards in the boss frame, statuses on the
-bottom line), coming up violet. /player/<id> (the /me header in the blue frame, any `.profile.gh`; Overview stat
-cards blue, event medals amber, boss badges rose, seasons violet, single-player teal, co-op green; Lifetime stats
-opens from a game button) and /team/<id> (header in the amber frame, CT badges violet, CT history blue).
-/challenges (bronze title card; Daily / Newest / Trending as tab cards; live now green, each daily series in its
-card colour: standard amber, advanced crimson, co-op blue; player lists violet; cards keep their series top edge)
-and /challenge/<id> (bronze title card with stat cards, play stats blue, rules violet). /tools and five tools
-(add `gp gp-<tone>` to a `.pg-panel`: its `.pg-ph` heading becomes the tab, steppers and chips become plates;
-title cards: hub blue, paragon violet, scaling violet, farming green, bank amber, hero XP teal). Round visualizer
-(frames only, its layout and scroll model stay: blue title card, Edit form a violet panel except in the phone sheet,
-round card a rounded frame, buttons as plates). /stats (totals blue, chart teal, top lists one colour each). Error
-and offline panels are `.gh` title cards (amber, warnings crimson, busy and offline blue). Every page is converted.
+The look shipped page by page as a transition, not a redesign: each page kept its layout and graphics and only its
+frames changed. The tone of every page, for reference when touching one:
+
+| Page | Title card | Panels |
+|---|---|---|
+| Live `/` | featured boss in the rose frame | this week blue (four cards built alike: same ledge, art well, height), coming up violet; phones: mini cards in the boss frame |
+| `/bosses` | rose | boss stats violet (portrait ledges in each boss's colour), this week green, past blue, history bronze. The boss-tinted banner cards and the boss order ring stay as they are (the list's identity) |
+| `/boss/<id>` | banner in the rose frame, Normal / Elite cards | board blue, cut-offs bronze, rules violet |
+| `/bosses/<type>` | banner in the rose frame | health green, kill time amber, always active violet, skulls crimson, spawns teal, past events blue, about bronze (fold) |
+| `/races`, `/race/<id>` | crimson | leaderboard blue, cut-offs bronze (`CutoffStrip tone`), rules violet, history bronze (`FullHistory tone`) |
+| `/ct`, `/ct/<id>`, groups | amber, tab cards | boards blue, cut-offs bronze, map teal, tile mix violet, relics rose; list: my team violet, this week green, next teal, past blue |
+| `/odyssey`, `/odyssey/<id>` | teal | islands in the picked difficulty's colour (Easy green, Medium blue, Hard amber) |
+| `/maps`, `/maps/<id>` | the map's difficulty (green, blue, amber, crimson) | folds use `.gp-fold` |
+| `/challenges`, `/challenge/<id>` | bronze | live now green, each daily series in its card colour (standard amber, advanced crimson, co-op blue), player lists violet; play stats blue, rules violet |
+| `/player/<id>`, `/team/<id>` | profile header in the blue / amber frame (`.profile.gh`) | overview stat cards blue, event medals amber, boss badges rose, seasons violet, single-player teal, co-op green; CT badges violet, CT history blue |
+| `/me`, `/suggest` | blue / violet | see me.tsx |
+| `/tools` and the tools | hub blue, paragon and scaling violet, farming green, bank amber, hero XP teal, rounds blue | `gp gp-<tone>` on a `.pg-panel`: its `.pg-ph` heading becomes the tab, steppers and chips become plates. Round visualizer: frames only (its layout and scroll model stay) |
+| `/stats` | blue | totals blue, chart teal, top lists one colour each |
+| errors, offline | `.gh` title card: amber, warnings crimson, busy and offline blue | |
+
+Back links (`‹ Maps`, `‹ Boss events`) are small blue plates. Pages opened from a list or board get one
+(`BACK_ON` in main.tsx); a tab or page of the same page keeps it (nav.ts).
+
+## New page checklist
+
+1. A toned title card (`<ToolHero tone>`, or `EventHead tone` for an event), then one `<Section tone>` per block.
+2. Buttons `.gbtn` (or a page plate rule with the same look), picked chips and cards `.gc` / `.gc.on`, form fields
+   sunk into the panel (dark well, inset shadow; see `.sug-field`).
+3. White text on a plate gets the dark outline (the "Plate text" rule in styles.css): add the plate's selector there.
+4. The offline e2e guards this: it fails on a `section.sec` that isn't a game panel or a leftover `.page-h`, and on
+   text inside a light-theme panel under 3:1.
 
 ## New section checklist
 
-1. `<Section tone="…" title={<Lbl k="IconKey">Title</Lbl>} aside={counts}>`, with a tone different from its
-   neighbours (`Lbl` = icon + text, in me.tsx; move it to ui.tsx when a second page needs it).
+1. `<Section tone="…" title={<><Spr family="ui" k="IconKey" size={34} />Title</>} aside={counts}>`, with a tone
+   different from its neighbours.
 2. Cards: `.gc` (+ `.gn` for the headline number, `.gbar` for progress).
 3. Check desktop 1280 and mobile 390 screenshots, in both the dark and light themes.

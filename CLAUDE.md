@@ -46,7 +46,8 @@ architecture; this file is how to work on it.
 - `npm run check` — typecheck + contract validation + unit tests (must pass).
 - `npm run build` — Vite build to `dist/`.
 - `node scripts/e2e.ts` — offline browser test (own wrangler dev + fixture origin on 8787/8788); must end with
-  "Every navigation opened from memory." Live: `E2E_BASE=<url> node scripts/e2e.ts`.
+  "Every navigation opened from memory." Live: `E2E_BASE=<url> node scripts/e2e.ts`. It also guards the game UI:
+  every section a game panel, no text under 3:1 in a light-theme panel, back links on pages opened from a list.
 - `node scripts/smoke.ts <url>` — live smoke test (9 checks).
 - Deploy: new D1 migrations first (`npx wrangler d1 migrations apply btd6-opendata --remote`), then
   `npx wrangler deploy`, then smoke + live e2e.

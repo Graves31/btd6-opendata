@@ -84,11 +84,10 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
   the top edge of the details card; the card shows only the selected difficulty). Option B, if A doesn't work out:
   keep the strip and the separate Normal/Elite + Solo–4P row; the strip shows the selected difficulty only (one
   bigger scoring, map, rounds) and drops entries (the tab shows the count).
-- **Game-style identity** (UI audit, 2026-09-30; owner: "for later"). The visual designer's "Bigger ideas" A–E in
-  `.audit/visual.md` (from l.344): chunky game-style buttons for controls, outlined game-style numerals for hero
-  figures, game icons instead of caps labels, a "blue sky" light theme, ribbon-shaped podium plates. Each needs the
-  owner's go before it's built; a mock-up per idea first. Tool pages already got theirs (2026-10-14): the title
-  card template and game icons on stats (CLAUDE.md, product rules).
+- **Game-style identity, last two ideas** (UI audit, 2026-09-30; owner: "for later"). From the visual designer's
+  "Bigger ideas" in `.audit/visual.md` (l.344): a "blue sky" light theme and ribbon-shaped podium plates. The rest
+  (game buttons, outlined numerals, game icons on titles) shipped with the game UI (v3.0.0, docs/game-ui.md). Each
+  needs the owner's go; a mock-up first.
 - **Search** players/teams by name (NK has no search API: only names on boards we've already loaded/archived).
 - **Player boss history**: past boss placements per player from archived boards (like team CT history).
 - **Name the remaining unnamed ability keys** (17 read fine as-is; see `scripts/build_names.py` output).
