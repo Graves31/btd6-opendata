@@ -6,6 +6,8 @@
 // Between clicks the script "reads" (waits for prefetching to go quiet), like a user would. Every navigation
 // must open from memory: `cached` true and paint within 50 ms. Screenshots (desktop 1280×900 and mobile
 // 390×844) of home, events list, boss, player, challenge and odyssey go to .wrangler/e2e-shots.
+// Game UI guards (docs/game-ui.md): every step lands on sections that are game panels; an event opened from its
+// list has a back link that survives a tab switch; in the light theme no text in a panel is under 3:1.
 //
 //   npm run build && node scripts/e2e.ts                  (needs Chrome or Edge installed)
 //   E2E_BASE=https://x.workers.dev node scripts/e2e.ts    (same scenario against a deployed site)
@@ -281,6 +283,8 @@ async function main() {
       // "Read" the page: let visible-link prefetching finish.
       await api.quiet();
       const row: (typeof results)[number] = { step: name, ...t, prefetchCalls: api.log.length - calls };
+      const oldStyle = await page.evaluate(() => [...document.querySelectorAll("main section.sec:not(.gp), main .page-h")].map((e) => e.className));
+      if (oldStyle.length) problems.push(`${name}: sections not in the game look: ${oldStyle.join(", ")}`);
       results.push(row);
       if (shot) {
         pages[shot] = await here();
@@ -304,6 +308,8 @@ async function main() {
     await step("Now → Bosses", 'header nav a[href="/bosses"]', "events");
     if ((await page.evaluate(() => document.querySelectorAll(".bs-strip a[href^='/bosses/']").length)) !== 7) problems.push("/bosses: the 7-portrait boss stats strip is missing");
     await step("Bosses → newest boss", "ul.events li:first-child a[href^='/boss/']", "boss");
+    const backText = () => page.evaluate(() => document.querySelector("main .backlink")?.textContent?.trim() ?? "");
+    if (!/Boss events/.test(await backText())) problems.push(`boss page from the list: no "‹ Boss events" back link (${await backText()})`);
     // The boss stats page, opened from the event page's link (data file + lists + the event's ruleset prefetched).
     await step("Boss → boss stats", "a.bs-link[href^='/bosses/']", "bossstats");
     if (!(await has(".bs-tiers .bs-tier")) || !(await has(".hb-stage .hb-skull")) || !((await has(".bs-skull-list li")) || (await has(".bs-every")))) problems.push("boss stats: tiers / skull bar / skull stretches missing");
@@ -317,7 +323,9 @@ async function main() {
       await page.goBack();
       await page.waitForFunction(() => location.pathname.startsWith("/boss/"), { timeout: 3000 }).catch(() => problems.push("paragon calculator: Back didn't return to the boss"));
     } else console.log("  (live: the newest boss allows no paragons; paragon link step skipped)");
+    const backBefore = await backText();
     await step("Boss → Elite tab", "nav.tabs a.tab[href*='d=elite']");
+    if (!backBefore || (await backText()) !== backBefore) problems.push(`boss Elite tab: the back link didn't survive the tab switch ("${backBefore}" → "${await backText()}")`);
     // The rules' "Round set" row links to the round visualizer with the event applied (set file prefetched).
     await step("Boss rules → See rounds", "a.rs-link[href^='/tools/rounds']");
     if (!(await here()).includes("view=round") || !(await has(".rv-card.focus .rv-lane"))) problems.push("See rounds: didn't land on the focused round view");
@@ -774,6 +782,39 @@ async function main() {
       await load(pages[name]);
       await api.quiet();
       await shoot(page, `light-${name}`);
+    }
+    // Panels go light in the light theme (docs/game-ui.md rule 6): no text inside one may drop under 3:1 against
+    // its background (colour or a gradient's first stop). Outlined text (a stroke or a 4-way shadow) is exempt.
+    for (const [name, path] of Object.entries(pages)) {
+      await load(path);
+      await api.quiet();
+      const low: string[] = await page.evaluate(() => {
+        const rgb = (s: string) => (s.match(/rgba?\(([^)]+)\)/) || [])[1]?.split(/[ ,/]+/).filter(Boolean).map(Number);
+        const lum = (c: number[]) => c.slice(0, 3).map((v) => ((v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)).reduce((a, v, i) => a + v * [0.2126, 0.7152, 0.0722][i], 0);
+        const bgOf = (el: Element | null) => {
+          for (let e = el; e; e = e.parentElement) {
+            const cs = getComputedStyle(e);
+            const c = rgb(cs.backgroundColor);
+            if (c && (c[3] ?? 1) > 0.5) return c;
+            const g = cs.backgroundImage.includes("gradient") ? rgb(cs.backgroundImage) : undefined;
+            if (g && (g[3] ?? 1) > 0.5) return g;
+          }
+          return undefined;
+        };
+        const out: string[] = [];
+        for (const el of document.querySelectorAll("main .gp *")) {
+          if (![...el.childNodes].some((n) => n.nodeType === 3 && n.textContent!.trim())) continue;
+          const cs = getComputedStyle(el);
+          if (cs.display === "none" || cs.visibility === "hidden" || +cs.opacity < 0.5 || !el.getClientRects().length) continue;
+          if (parseFloat(cs.webkitTextStrokeWidth) > 0 || (cs.textShadow.match(/rgb/g) ?? []).length >= 4) continue;
+          const fg = rgb(cs.color), bg = bgOf(el);
+          if (!fg || !bg) continue;
+          const [a, b] = [lum(fg), lum(bg)];
+          if ((Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) < 3) out.push(`${el.tagName.toLowerCase()}.${[...el.classList].join(".")} "${el.textContent!.trim().slice(0, 24)}"`);
+        }
+        return [...new Set(out)].slice(0, 5);
+      });
+      if (low.length) problems.push(`light ${name}: low-contrast text in a panel: ${low.join(" · ")}`);
     }
 
     console.table(results);
