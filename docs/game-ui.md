@@ -89,7 +89,9 @@ cards blue, event medals amber, boss badges rose, seasons violet, single-player 
 opens from a game button) and /team/<id> (header in the amber frame, CT badges violet, CT history blue).
 /challenges (bronze title card; Daily / Newest / Trending as tab cards; live now green, each daily series in its
 card colour: standard amber, advanced crimson, co-op blue; player lists violet; cards keep their series top edge)
-and /challenge/<id> (bronze title card with stat cards, play stats blue, rules violet).
+and /challenge/<id> (bronze title card with stat cards, play stats blue, rules violet). /tools and five tools
+(add `gp gp-<tone>` to a `.pg-panel`: its `.pg-ph` heading becomes the tab, steppers and chips become plates;
+title cards: hub blue, paragon violet, scaling violet, farming green, bank amber, hero XP teal). Round visualizer next.
 
 ## New section checklist
 
