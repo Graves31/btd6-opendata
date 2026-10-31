@@ -78,7 +78,10 @@ stats violet with each portrait's ledge in its boss's colour, this week green, p
 list keeps its own identity on purpose: the boss-tinted banner cards and the boss order ring are not turned into `.gc`.
 /bosses/<type> (banner in the rose frame, Normal / Elite cards and T1-T5 plates; health green, kill time amber,
 always active violet, skulls crimson, spawns teal, past events blue, about a bronze fold). Panels reset every theme
-token except `--bg`: a page whose wells use `--bg` sets it dark on its panels (`.bs-page .gp`).
+token except `--bg`: a page whose wells use `--bg` sets it dark on its panels (`.bs-page .gp`). Live (/): the
+featured boss in the rose frame (Normal / Elite cards), the other events as four cards built alike in a blue "This
+week" panel (same ledge, same art well, same height; phones keep the mini cards in the boss frame, statuses on the
+bottom line), coming up violet.
 
 ## New section checklist
 
