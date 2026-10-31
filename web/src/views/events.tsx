@@ -298,12 +298,26 @@ export function Home() {
           <MiniGrid p={p} />
         </FeaturedBoss>
       )}
-      <div class="tiles">
-        {p.race && <RaceTile race={p.race} prev={p.racePrev} />}
-        {p.ct && <CTTile ct={p.ct} prev={p.ctPrev} />}
-        {p.ody && <OdysseyTile ody={p.ody} />}
-        {p.daily && <DailyTile id={p.daily.id} name={p.daily.name} />}
-      </div>
+      {(p.race || p.ct || p.ody || p.daily) && (
+        // Wide screens only (phones get the mini cards inside the boss panel): one panel, four cards built alike.
+        <Section
+          tone="blue"
+          class="home-sec"
+          title={
+            <>
+              <Spr family="ui" k="Trophy" size={34} />
+              This week
+            </>
+          }
+        >
+          <div class="tiles">
+            {p.race && <RaceTile race={p.race} prev={p.racePrev} />}
+            {p.ct && <CTTile ct={p.ct} prev={p.ctPrev} />}
+            {p.ody && <OdysseyTile ody={p.ody} />}
+            {p.daily && <DailyTile id={p.daily.id} name={p.daily.name} />}
+          </div>
+        </Section>
+      )}
       {events && <ComingUp events={events} />}
     </>
   );
@@ -331,7 +345,7 @@ function FeaturedBoss(props: { boss: Boss; children?: ComponentChildren }) {
     setD(x);
   };
   return (
-    <section class="feature" aria-labelledby="feat-title">
+    <section class="feature gh gp-rose" aria-labelledby="feat-title">
       <BossHero
         boss={b}
         fallback={bossLabel(b)}
@@ -543,7 +557,7 @@ function CTTile(props: { ct: CT; prev?: CT }) {
       ? "Winning team"
       : "Leading team";
   return (
-    <A href={href.ct(c.id)} class={`tile tile-ct${st === "upcoming" ? " soon" : st === "ended" ? " ended" : ""}`}>
+    <A href={href.ct(c.id)} class="tile">
       <span class="tile-art">
         {tiles.length > 0 ? <HexThumb tiles={tiles} size={120} /> : <NoMapFrame size={120} />}
       </span>
@@ -788,7 +802,16 @@ function ComingUp(props: { events: NKEvent[] }) {
     .sort((a, b) => a.start - b.start);
   if (!rows.length) return null;
   return (
-    <Section title="Coming up" aside="Your local time">
+    <Section
+      tone="violet"
+      title={
+        <>
+          <Spr family="ui" k="GameTime" size={34} />
+          Coming up
+        </>
+      }
+      aside="Your local time"
+    >
       <div class="board-wrap">
         <table class="board sched">
           <thead>
