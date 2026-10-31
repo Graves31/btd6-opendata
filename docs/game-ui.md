@@ -87,6 +87,9 @@ week" panel (same ledge, same art well, same height; phones keep the mini cards 
 bottom line), coming up violet. /player/<id> (the /me header in the blue frame, any `.profile.gh`; Overview stat
 cards blue, event medals amber, boss badges rose, seasons violet, single-player teal, co-op green; Lifetime stats
 opens from a game button) and /team/<id> (header in the amber frame, CT badges violet, CT history blue).
+/challenges (bronze title card; Daily / Newest / Trending as tab cards; live now green, each daily series in its
+card colour: standard amber, advanced crimson, co-op blue; player lists violet; cards keep their series top edge)
+and /challenge/<id> (bronze title card with stat cards, play stats blue, rules violet).
 
 ## New section checklist
 
