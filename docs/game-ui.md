@@ -91,7 +91,10 @@ opens from a game button) and /team/<id> (header in the amber frame, CT badges v
 card colour: standard amber, advanced crimson, co-op blue; player lists violet; cards keep their series top edge)
 and /challenge/<id> (bronze title card with stat cards, play stats blue, rules violet). /tools and five tools
 (add `gp gp-<tone>` to a `.pg-panel`: its `.pg-ph` heading becomes the tab, steppers and chips become plates;
-title cards: hub blue, paragon violet, scaling violet, farming green, bank amber, hero XP teal). Round visualizer next.
+title cards: hub blue, paragon violet, scaling violet, farming green, bank amber, hero XP teal). Round visualizer
+(frames only, its layout and scroll model stay: blue title card, Edit form a violet panel except in the phone sheet,
+round card a rounded frame, buttons as plates). /stats (totals blue, chart teal, top lists one colour each). Error
+and offline panels are `.gh` title cards (amber, warnings crimson, busy and offline blue). Every page is converted.
 
 ## New section checklist
 
