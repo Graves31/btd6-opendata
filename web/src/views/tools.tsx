@@ -8,7 +8,8 @@ import paragonArt from "../art/tools/paragon.webp";
 import paragonScalingArt from "../art/tools/paragonScaling.webp";
 import roundsArt from "../art/tools/rounds.webp";
 import { href } from "../routes.ts";
-import { A, ToolHero } from "../ui.tsx";
+import { A, Section, ToolHero } from "../ui.tsx";
+import { Spr } from "../sprite.tsx";
 import toolsArt from "../art/tools/overclock.webp";
 
 /** Tile art: the game sprite at 2x (scripts/build_art.py TOOL_ICONS), so it stays sharp on phones. */
@@ -74,18 +75,31 @@ export function ToolsHub() {
   return (
     <div class="tools">
       <ToolHero
+        tone="blue"
         art={<img src={toolsArt} width={96} height={96} alt="" />}
         eyebrow="BTD6 Open Data"
         title="Tools"
         sub="Calculators and visualizers built from the game's own data."
       />
-      <div class="tiles tools-tiles">
-        {TOOLS.map((t) => (
-          <ToolTile key={t.to} to={t.to} title={t.title} art={art(t.art)}>
-            {t.sub}
-          </ToolTile>
-        ))}
-      </div>
+      <Section
+        tone="blue"
+        class="tools-sec"
+        title={
+          <>
+            <Spr family="ui" k="Upgrade" size={34} />
+            All tools
+          </>
+        }
+        aside={`${TOOLS.length} tools`}
+      >
+        <div class="tiles tools-tiles">
+          {TOOLS.map((t) => (
+            <ToolTile key={t.to} to={t.to} title={t.title} art={art(t.art)}>
+              {t.sub}
+            </ToolTile>
+          ))}
+        </div>
+      </Section>
     </div>
   );
 }

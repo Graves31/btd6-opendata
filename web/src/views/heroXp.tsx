@@ -117,7 +117,7 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
   return (
     <div class="pg bk hx">
       <ToolBack />
-      <ToolHero art={<img src={heroArt} width={96} height={96} alt="" />} title="Hero XP planner" sub="When to place a hero so it reaches a level by a round, such as a boss tier.">
+      <ToolHero tone="teal" art={<img src={heroArt} width={96} height={96} alt="" />} title="Hero XP planner" sub="When to place a hero so it reaches a level by a round, such as a boss tier.">
         {[
           { art: mkEducation, alt: "Monkey Education" },
           { art: mkTaught, alt: "Self Taught Heroes" },
@@ -131,9 +131,10 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
         ))}
       </ToolHero>
 
-      <section class="pg-panel hx-heroes" aria-labelledby="hx-hero">
+      <section class="pg-panel hx-heroes gp gp-blue" aria-labelledby="hx-hero">
         <div class="pg-ph">
           <h2 class="eyebrow" id="hx-hero">
+            <Spr family="ui" k="Hero" size={34} />
             Hero
           </h2>
           <span class="pg-hint">{hero}</span>
@@ -157,7 +158,13 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
 
       <div class="bk-grid">
         <div class="bk-side">
-          <section class="pg-panel" aria-label={placed ? "Placement" : "Goal"}>
+          <section class="pg-panel gp gp-amber" aria-labelledby="hx-goal">
+            <div class="pg-ph">
+              <h2 class="eyebrow" id="hx-goal">
+                <Spr family="ui" k="Xp" size={34} />
+                {placed ? "Placement" : "Goal"}
+              </h2>
+            </div>
             <div class="bk-seg hx-mode" role="group" aria-label="Mode">
               <button type="button" class="bk-chip" aria-pressed={!placed} onClick={() => go({ mode: "goal", at: undefined })}>
                 Goal
@@ -194,7 +201,13 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
             )}
           </section>
 
-          <section class="pg-panel hx-setup" aria-label="Map and Monkey Knowledge">
+          <section class="pg-panel hx-setup gp gp-violet" aria-labelledby="hx-set">
+            <div class="pg-ph">
+              <h2 class="eyebrow" id="hx-set">
+                <Spr family="ui" k="KnowledgePoints" size={34} />
+                Map and Knowledge
+              </h2>
+            </div>
             <div class="bk-field">
               <span class="bk-lab">Map difficulty</span>
               <div class="bk-seg" role="group" aria-label="Map difficulty">
@@ -280,10 +293,13 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
 
         <div class="bk-col">
           {!placed && (
-            <section class="pg-panel bk-hot" aria-labelledby="hx-ans">
-              <h2 class="eyebrow" id="hx-ans">
-                Answer
-              </h2>
+            <section class="pg-panel bk-hot gp gp-green" aria-labelledby="hx-ans">
+              <div class="pg-ph">
+                <h2 class="eyebrow" id="hx-ans">
+                  <Spr family="ui" k="StartRound" size={34} />
+                  Answer
+                </h2>
+              </div>
               {pl.latest !== undefined ? (
                 <div class="bk-ans">
                   <div class="bk-big">
@@ -354,9 +370,10 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
             </section>
           )}
 
-          <section class="pg-panel" aria-labelledby="hx-tl">
+          <section class="pg-panel gp gp-teal" aria-labelledby="hx-tl">
             <div class="pg-ph">
               <h2 class="eyebrow" id="hx-tl">
+                <Spr family="ui" k="GameTime" size={34} />
                 Timeline
               </h2>
               <span class="pg-hint">
@@ -415,9 +432,10 @@ export function HeroXpPage(p: { r: HeroXpRoute }) {
       </div>
 
       {!placed && (
-        <section class="pg-panel" aria-labelledby="hx-cmp">
+        <section class="pg-panel gp gp-rose" aria-labelledby="hx-cmp">
           <div class="pg-ph">
             <h2 class="eyebrow" id="hx-cmp">
+              <Spr family="ui" k="Trophy" size={34} />
               Every hero
             </h2>
             <span class="pg-hint">

@@ -1143,14 +1143,16 @@ button.fd-tile:hover {
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.04), 0 4px 0 var(--gp-drop);
 }
 /* The header row is pulled up so the title tab sits on the border; the aside lands inside, top right. */
-.gp > .sec-h {
+.gp > .sec-h,
+.gp > .pg-ph {
   flex-wrap: wrap;
   align-items: flex-end;
   margin: -56px 0 14px;
   padding: 0;
   border: 0;
 }
-.gp > .sec-h h2 {
+.gp > .sec-h h2,
+.gp > .pg-ph > .eyebrow:first-child {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1168,7 +1170,8 @@ button.fd-tile:hover {
   border-radius: 10px;
   box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.25), 0 3px 0 #060a14;
 }
-.gp > .sec-h h2 .spr {
+.gp > .sec-h h2 .spr,
+.gp > .pg-ph > .eyebrow:first-child .spr {
   filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.4));
 }
 .gp > .sec-h .sec-aside {
@@ -14099,7 +14102,7 @@ main > .vh + .feature.gh {
   paint-order: stroke fill;
 }
 .feature.gh :is(.fd-tile, .mini),
-.home-sec .tile {
+:is(.home-sec, .tools-sec) .tile {
   color: var(--gc-ink);
   background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
   border: 1px solid var(--gp-rim);
@@ -14107,7 +14110,7 @@ main > .vh + .feature.gh {
   box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 var(--gp-led);
 }
 .feature.gh :is(button.fd-tile, .mini):hover,
-.home-sec .tile:hover {
+:is(.home-sec, .tools-sec) .tile:hover {
   border-color: var(--accent);
 }
 .feature.gh .fd-tile.on {
@@ -14117,15 +14120,15 @@ main > .vh + .feature.gh {
 .feature.gh .fd-tile:not(.on) .fd-sc {
   color: var(--ink-2);
 }
-.home-sec .tiles {
+:is(.home-sec, .tools-sec) .tiles {
   grid-auto-rows: 1fr;
   gap: 12px;
   margin-top: 0;
 }
-.home-sec .tile {
+:is(.home-sec, .tools-sec) .tile {
   align-items: stretch;
 }
-.home-sec .tile-art {
+:is(.home-sec, .tools-sec) .tile-art {
   display: grid;
   place-items: center;
   align-self: stretch;
@@ -14385,4 +14388,74 @@ main > .vh + .feature.gh {
 .daynav-all:hover {
   background: linear-gradient(180deg, #4f8ad6, #3468b0);
   filter: brightness(1.12);
+}
+
+/* ─────────────────────────────── Tool game panels (docs/game-ui.md)
+   The tools' shared panel (.pg-panel) as a game panel: add `gp gp-<tone>` and its .pg-ph heading becomes the title
+   tab (rules at the top of the game panel block); a panel without a heading is a plain frame. Steppers and copy
+   buttons are plates in the section colour, chips are small cards with the yellow "picked" fill. */
+.gp.pg-panel {
+  margin-top: 56px;
+  padding: 34px 16px 16px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--gp-1) 10%, transparent), transparent 240px),
+    repeating-linear-gradient(135deg, var(--gp-tex) 0 2px, transparent 2px 14px),
+    var(--gp-bg);
+  border: 2px solid var(--gp-edge);
+  border-radius: 14px;
+}
+.gp.pg-panel:not(:has(> .pg-ph)) {
+  padding-top: 16px;
+}
+.gp > .pg-ph > :not(:first-child) {
+  padding-bottom: 4px;
+}
+.gp :is(.pg-step, .pg-copy) {
+  color: #fff;
+  background: linear-gradient(180deg, var(--gp-1), var(--gp-2));
+  border: 2px solid var(--gp-dk);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 3px 0 #060a14;
+}
+.gp :is(.pg-step, .pg-copy):hover:not(:disabled) {
+  color: #fff;
+  background: linear-gradient(180deg, var(--gp-1), var(--gp-2));
+  border-color: var(--gp-dk);
+  filter: brightness(1.12);
+}
+.gp :is(.pg-step, .pg-copy):active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 1px 0 #060a14;
+}
+.gp :is(.rv-chip, .bk-chip) {
+  color: var(--gc-ink);
+  background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
+  border: 1px solid var(--gp-rim);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 var(--gc-hi), 0 2px 0 var(--gp-led);
+}
+.gp .rv-chip:hover:not(:disabled, .on),
+.gp .bk-chip:hover:not(:disabled, [aria-pressed="true"]) {
+  color: var(--gc-ink);
+  background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
+  border-color: var(--accent);
+}
+.gp .rv-chip.on,
+.gp .bk-chip[aria-pressed="true"] {
+  color: var(--on-accent);
+  background: linear-gradient(180deg, #ffe45c, #f5c400);
+  border-color: #6b5a00;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 2px 0 #8a7406;
+}
+/* paragon calculator: the grid's rows leave room for the title tabs */
+.pg-grid {
+  row-gap: 56px;
+  margin-top: 56px;
+}
+.pg-grid .gp,
+.pg-side > .gp {
+  margin-top: 0;
+}
+.pg-fold-big.gp {
+  margin-top: 56px;
 }

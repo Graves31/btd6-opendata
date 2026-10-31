@@ -10,7 +10,7 @@ import { navigate } from "../nav.ts";
 import { cooldownCut, degreeData, MAX_DEGREE, gameVersion, paragonName, paragonTowers, powerForDegree, scaling } from "../paragon.ts";
 import { href } from "../routes.ts";
 import { Spr } from "../sprite.tsx";
-import { A, ToolBack, ToolHero } from "../ui.tsx";
+import { A, ToolBack, ToolHero, type Tone } from "../ui.tsx";
 import { paragonIcon, TargetInput } from "./paragon.tsx";
 
 const VER = "57" as const;
@@ -56,6 +56,8 @@ const niceMax = (v: number) => {
 
 function Chart(p: {
   title: string;
+  /** panel colour (docs/game-ui.md) */
+  tone: Tone;
   icon?: ComponentChildren;
   take: string;
   series: Series[];
@@ -105,7 +107,7 @@ function Chart(p: {
   const vline = (cls: string, dg: number) => <line class={cls} x1={x(dg)} x2={x(dg)} y1={MT} y2={H - MB} />;
   const plain = p.take.replace(/\*/g, "");
   return (
-    <section class={`pg-panel ps-panel`}>
+    <section class={`pg-panel ps-panel gp gp-${p.tone}`}>
       <div class="pg-ph">
         <h2 class="eyebrow ps-h">
           {p.icon}
@@ -298,7 +300,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
   return (
     <div class="pg ps">
       <ToolBack />
-      <ToolHero art={<img src={heroArt} width={96} height={96} alt="" />} title="Paragon scaling" sub="What every degree adds to a paragon, from degree 1 to 100.">
+      <ToolHero tone="violet" art={<img src={heroArt} width={96} height={96} alt="" />} title="Paragon scaling" sub="What every degree adds to a paragon, from degree 1 to 100.">
         <nav class="ps-pgs" aria-label={`Open a paragon in the calculator at degree ${d}`}>
           {paragonTowers(VER).map((t) => (
             <A key={t} href={href.paragon({ tower: t, target: d >= 2 ? d : undefined }, true)} class="th-ic" title={`${paragonName(t, VER)}, degree ${d}`}>
@@ -326,9 +328,10 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
           <input type="range" class="pg-range" min={1} max={MAX_DEGREE} step={1} value={d} aria-label="Degree, 1 to 100" onInput={(e) => setD(+e.currentTarget.value)} />
         </div>
       </section>
-      <section class="pg-panel ps-panel" aria-labelledby="ps-sum">
+      <section class="pg-panel ps-panel gp gp-blue" aria-labelledby="ps-sum">
         <div class="pg-ph">
           <h2 class="eyebrow" id="ps-sum">
+            <Ic f="ui" k="ParagonDegree" size={34} />
             Degree {d}
           </h2>
           <button type="button" class="pg-copy" onClick={copy}>
@@ -374,6 +377,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
       <div class="ps-charts">
         <Chart
           {...c}
+          tone="crimson"
           title="Damage & pierce bonus"
           icon={ICON.damage()}
           take={
@@ -387,6 +391,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
         />
         <Chart
           {...c}
+          tone="amber"
           title="Flat bonuses"
           icon={ICON.flat()}
           take={`Flat damage grows +${D.damageIncreasePerDegree} every ${D.damageIncreaseForDegrees} degrees, at 11, 21 … 91, and once more at 100 (*+${sc(MAX_DEGREE).damageFlat}*); flat pierce +${one(sc(2).pierceFlat)} every degree (*+${one(sc(MAX_DEGREE).pierceFlat)}* at 100).`}
@@ -398,6 +403,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
         />
         <Chart
           {...c}
+          tone="teal"
           title="Attack speed"
           icon={ICON.cooldown()}
           take={`Attacks and abilities are *+${one(cd(MAX_DEGREE))}% faster* at degree 100 (cooldowns ${cutTxt(cd(MAX_DEGREE))}), but it levels off: degrees 1 to 21 give +${one(cd(21))}%, degrees 80 to 100 only ${one(cd(MAX_DEGREE) - cd(80))} points more.`}
@@ -407,6 +413,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
         />
         <Chart
           {...c}
+          tone="rose"
           title="Boss damage"
           icon={ICON.boss()}
           ymin={1}
@@ -422,6 +429,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
         <summary>Power needed per degree</summary>
         <Chart
           {...c}
+          tone="green"
           title="Power needed"
           icon={ICON.power()}
           take={`Degree 100 needs *${fmtInt(pw(MAX_DEGREE))} total power*. The power for one degree keeps growing too: *${fmtInt(step)}* for degree 3, *${fmtInt(pw(MAX_DEGREE) - pw(99))}* for degree 100.`}
@@ -429,9 +437,12 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
           yFmt={compact}
         />
       </details>
-      <section class="pg-panel ps-panel">
+      <section class="pg-panel ps-panel gp gp-bronze">
         <div class="pg-ph">
-          <h2 class="eyebrow">Breakpoints</h2>
+          <h2 class="eyebrow">
+            <Ic f="ui" k="Medal" size={34} />
+            Breakpoints
+          </h2>
         </div>
         <div class="ps-tw">
           <table class="pg-table ps-table">

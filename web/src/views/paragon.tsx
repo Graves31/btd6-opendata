@@ -256,6 +256,7 @@ export function ParagonPage(props: { r: ParagonRoute }) {
     <div class="pg">
       <ToolBack />
       <ToolHero
+        tone="violet"
         art={<img src={heroArt} width={96} height={96} alt="" />}
         title="Paragon degree calculator"
         sub="How much sacrificed cash, pops, towers and totems each paragon degree takes, from the game's own data."
@@ -345,9 +346,12 @@ function Picker(props: { s: ParagonRoute; go: (p: Patch) => void }) {
 function Settings(props: { s: ParagonRoute; go: (p: Patch) => void }) {
   const { s, go } = props;
   return (
-    <section class="pg-panel pg-set" aria-label="Settings">
+    <section class="pg-panel pg-set gp gp-blue" aria-label="Settings">
       <div class="pg-ph">
-        <p class="eyebrow">Settings</p>
+        <p class="eyebrow">
+          <Spr family="ui" k="Upgrade" size={34} />
+          Settings
+        </p>
       </div>
       <div class="pg-opts">
         <div class="rv-chips" role="group" aria-label="Difficulty">
@@ -442,9 +446,12 @@ function TargetPanel(p: { s: ParagonRoute; input: ParagonInput; res: ParagonResu
     );
   }
   return (
-    <section class="pg-panel pg-tg" aria-label="Target degree">
+    <section class="pg-panel pg-tg gp gp-amber" aria-label="Target degree">
       <div class="pg-ph">
-        <p class="eyebrow">Target degree</p>
+        <p class="eyebrow">
+          <Spr family="ui" k="ParagonDegree" size={34} />
+          Target degree
+        </p>
         {explicit ? (
           <button type="button" class="pg-link" onClick={() => go({ target: undefined })}>
             Back to next boss breakpoint
@@ -495,9 +502,12 @@ function InputsPanel(p: { s: ParagonRoute; res: ParagonResult; max: Max; go: (p:
   const keys = degreeData(s.ver).maxPowerFromNonTier5Count ? IN_KEYS : IN_KEYS.filter((k) => k !== "tiers"); // v57: tiers give no power
   const empty = keys.every((k) => s[k] === 0);
   return (
-    <section class="pg-panel pg-in" aria-label="Your inputs">
+    <section class="pg-panel pg-in gp gp-teal" aria-label="Your inputs">
       <div class="pg-ph">
-        <p class="eyebrow">Your inputs</p>
+        <p class="eyebrow">
+          <Spr family="ui" k="ParagonPower" size={34} />
+          Your inputs
+        </p>
         <span class="pg-ph-a">
           <span class="pg-hint">type 85m · 1.2b · 40k</span>
           <button type="button" class="pg-copy" disabled={empty} onClick={() => go(Object.fromEntries(keys.map((k) => [k, 0])))}>
@@ -569,9 +579,12 @@ function ResultCard(p: { res: ParagonResult; ver: GameVer; boost: boolean; copie
   const bp = res.breakpoint;
   const at = bp ? scaling(bp.degree, p.ver) : undefined;
   return (
-    <div class="pg-res">
-      <div class="pg-res-h">
-        <p class="eyebrow">Result</p>
+    <div class="pg-res pg-panel gp gp-violet">
+      <div class="pg-res-h pg-ph">
+        <p class="eyebrow">
+          <Spr family="ui" k="Trophy" size={34} />
+          Result
+        </p>
         <button type="button" class="pg-copy" onClick={p.copy}>
           {p.copied ? "Link copied" : "Copy link"}
         </button>
@@ -635,8 +648,13 @@ function ScalingFold(p: { degree: number; ver: GameVer }) {
     </th>
   );
   return (
-    <details class="pg-fold pg-fold-big">
-      <summary>Per-degree scaling</summary>
+    <details class="pg-fold-big gp gp-green gp-fold">
+      <summary class="sec-h">
+        <h2>
+          <Spr family="ui" k="Towers" size={34} />
+          Per-degree scaling
+        </h2>
+      </summary>
       <table class="pg-table">
         <thead>
           <tr>
@@ -684,8 +702,13 @@ function MethodFold(p: { s: ParagonRoute; max: Max }) {
   const unit = cost / D.moneySpentOverX;
   const pen = +(D.paidContributionPenalty * 100).toFixed(1);
   return (
-    <details class="pg-fold pg-fold-big">
-      <summary>How this is calculated</summary>
+    <details class="pg-fold-big gp gp-bronze gp-fold">
+      <summary class="sec-h">
+        <h2>
+          <Spr family="ui" k="Quest" size={34} />
+          How this is calculated
+        </h2>
+      </summary>
       <ul class="pg-how">
         <li>
           <b>Absorbed towers:</b> every tower of the paragon's type on the map, from any player, is absorbed when the paragon is built. Monkey Knowledge doesn't change the power.

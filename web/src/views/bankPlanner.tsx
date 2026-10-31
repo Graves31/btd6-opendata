@@ -38,6 +38,7 @@ import { useOak } from "../oak.ts";
 import { bankKnowledge } from "../oakSave.ts";
 import { href, type BankRoute } from "../routes.ts";
 import { A, ToolBack, ToolHero } from "../ui.tsx";
+import { Spr } from "../sprite.tsx";
 import { TargetInput } from "./paragon.tsx";
 
 const money = (v: number) => "$" + Math.floor(v + 1e-6).toLocaleString("en-US");
@@ -284,12 +285,13 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
   if (pl.hit < 0) {
     return (
       <section
-        class="pg-panel bk-hot"
+        class="pg-panel bk-hot gp gp-amber"
         aria-labelledby="bk-ans"
         aria-live="polite"
       >
         <div class="pg-ph">
           <h2 class="eyebrow" id="bk-ans">
+            <Spr family="ui" k="Income" size={34} />
             When to collect
           </h2>
         </div>
@@ -319,12 +321,13 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
   return (
     <>
       <section
-        class="pg-panel bk-hot"
+        class="pg-panel bk-hot gp gp-amber"
         aria-labelledby="bk-ans"
         aria-live="polite"
       >
         <div class="pg-ph">
           <h2 class="eyebrow" id="bk-ans">
+            <Spr family="ui" k="Income" size={34} />
             When to collect
           </h2>
           <span class="pg-hint">
@@ -423,9 +426,10 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
         </div>
       </section>
 
-      <section class="pg-panel" aria-labelledby="bk-rr">
+      <section class="pg-panel gp gp-teal" aria-labelledby="bk-rr">
         <div class="pg-ph">
           <h2 class="eyebrow" id="bk-rr">
+            <Spr family="ui" k="StartingCash" size={34} />
             Bank balance before each round
           </h2>
           <span class="pg-hint">
@@ -468,9 +472,10 @@ function Collect(p: { r: BankRoute; P: number; cap: number }) {
         </details>
       </section>
 
-      <section class="pg-panel" aria-labelledby="bk-cy">
+      <section class="pg-panel gp gp-violet" aria-labelledby="bk-cy">
         <div class="pg-ph">
           <h2 class="eyebrow" id="bk-cy">
+            <Spr family="ui" k="StartRound" size={34} />
             Collect before these rounds
           </h2>
           <span class="pg-hint">
@@ -519,9 +524,10 @@ function Deposit(p: {
       const rows = depositRows(r.r, b0, 0, P, cap, of.k + 2);
       return (
         <>
-          <section class="pg-panel bk-hot" aria-labelledby="bk-ans" aria-live="polite">
+          <section class="pg-panel bk-hot gp gp-amber" aria-labelledby="bk-ans" aria-live="polite">
             <div class="pg-ph">
               <h2 class="eyebrow" id="bk-ans">
+                <Spr family="ui" k="Income" size={34} />
                 How much to deposit
               </h2>
               <span class="pg-hint">
@@ -551,9 +557,10 @@ function Deposit(p: {
               Switch to Collect timing
             </button>
           </section>
-          <section class="pg-panel" aria-labelledby="bk-rr">
+          <section class="pg-panel gp gp-teal" aria-labelledby="bk-rr">
             <div class="pg-ph">
               <h2 class="eyebrow" id="bk-rr">
+                <Spr family="ui" k="StartingCash" size={34} />
                 Bank balance before each round
               </h2>
               <span class="pg-hint">
@@ -567,12 +574,13 @@ function Deposit(p: {
     }
     return (
       <section
-        class="pg-panel bk-hot"
+        class="pg-panel bk-hot gp gp-amber"
         aria-labelledby="bk-ans"
         aria-live="polite"
       >
         <div class="pg-ph">
           <h2 class="eyebrow" id="bk-ans">
+            <Spr family="ui" k="Income" size={34} />
             How much to deposit
           </h2>
         </div>
@@ -626,12 +634,13 @@ function Deposit(p: {
   return (
     <>
       <section
-        class="pg-panel bk-hot"
+        class="pg-panel bk-hot gp gp-amber"
         aria-labelledby="bk-ans"
         aria-live="polite"
       >
         <div class="pg-ph">
           <h2 class="eyebrow" id="bk-ans">
+            <Spr family="ui" k="Income" size={34} />
             How much to deposit
           </h2>
           <span class="pg-hint">
@@ -665,9 +674,10 @@ function Deposit(p: {
         </div>
       </section>
 
-      <section class="pg-panel" aria-labelledby="bk-lad">
+      <section class="pg-panel gp gp-green" aria-labelledby="bk-lad">
         <div class="pg-ph">
           <h2 class="eyebrow" id="bk-lad">
+            <Spr family="ui" k="CashSpent" size={34} />
             Deposit amounts
           </h2>
           <span class="pg-hint">a smaller deposit takes longer to fill</span>
@@ -714,9 +724,10 @@ function Deposit(p: {
         </div>
       </section>
 
-      <section class="pg-panel" aria-labelledby="bk-clk">
+      <section class="pg-panel gp gp-rose" aria-labelledby="bk-clk">
         <div class="pg-ph">
           <h2 class="eyebrow" id="bk-clk">
+            <Spr family="ui" k="MonkeyMoney" size={34} />
             Plenty of cash? Count the clicks
           </h2>
           <span class="pg-hint">each click puts in half the room left</span>
@@ -766,9 +777,10 @@ function Deposit(p: {
         </div>
       </section>
 
-      <section class="pg-panel" aria-labelledby="bk-rr">
+      <section class="pg-panel gp gp-teal" aria-labelledby="bk-rr">
         <div class="pg-ph">
           <h2 class="eyebrow" id="bk-rr">
+            <Spr family="ui" k="StartingCash" size={34} />
             Bank balance before each round
           </h2>
           <span class="pg-hint">
@@ -779,9 +791,10 @@ function Deposit(p: {
       </section>
 
       {again && (
-        <section class="pg-panel" aria-labelledby="bk-cy">
+        <section class="pg-panel gp gp-violet" aria-labelledby="bk-cy">
           <div class="pg-ph">
             <h2 class="eyebrow" id="bk-cy">
+              <Spr family="ui" k="StartRound" size={34} />
               Collect before these rounds
             </h2>
             <span class="pg-hint">
@@ -848,6 +861,7 @@ export function BankPlannerPage(p: { r: BankRoute }) {
     <div class="pg bk">
       <ToolBack />
       <ToolHero
+        tone="amber"
         art={<img src={heroArt} width={96} height={96} alt="" />}
         title="Bank & IMF Loan planner"
         sub="When to collect a Monkey Bank, and how much to deposit in an IMF Loan."
@@ -870,7 +884,7 @@ export function BankPlannerPage(p: { r: BankRoute }) {
         ))}
       </ToolHero>
 
-      <div class="tabs bk-mode" role="group" aria-label="Mode">
+      <div class="tabs bk-mode gp-amber" role="group" aria-label="Mode">
         <button
           type="button"
           class={`tab${r.dep ? "" : " on"}`}
@@ -891,9 +905,10 @@ export function BankPlannerPage(p: { r: BankRoute }) {
 
       <div class="bk-grid">
         <div class="bk-side">
-          <section class="pg-panel" aria-labelledby="bk-setup">
+          <section class="pg-panel gp gp-blue" aria-labelledby="bk-setup">
             <div class="pg-ph">
               <h2 class="eyebrow" id="bk-setup">
+                <Spr family="ui" k="Upgrade" size={34} />
                 Your bank
               </h2>
               <span class="pg-hint">Game v57.1</span>

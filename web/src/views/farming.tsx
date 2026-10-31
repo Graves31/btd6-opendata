@@ -15,6 +15,7 @@ import { navigate, store } from "../nav.ts";
 import { spawnEnd } from "../rounds.ts";
 import { href } from "../routes.ts";
 import { A, ToolBack, ToolHero } from "../ui.tsx";
+import { Spr } from "../sprite.tsx";
 import { TargetInput } from "./paragon.tsx";
 
 // Banana counts are the bank planner's (BANK.packets); cash per round is not in BANK (the bank's packets are worth more).
@@ -38,9 +39,10 @@ function SpawnChart(p: { r?: number }) {
   const len = round ? spawnEnd(round) : undefined;
   const go = (n: number | undefined) => navigate(href.farming(n === undefined ? undefined : Math.min(set.last, Math.max(set.first, n))), { replace: true, keepScroll: true });
   return (
-    <section class="pg-panel fm-panel" aria-labelledby="fm-spawn">
+    <section class="pg-panel fm-panel gp gp-amber" aria-labelledby="fm-spawn">
       <div class="pg-ph">
         <h2 class="eyebrow" id="fm-spawn">
+          <Spr family="ui" k="Income" size={34} />
           Banana spawn timing
         </h2>
         <span class="pg-hint">when each banana drops during the round</span>
@@ -121,7 +123,7 @@ export function FarmingPage(p: { r?: number }) {
   return (
     <div class="pg">
       <ToolBack />
-      <ToolHero art={<img src={heroArt} width={96} height={96} alt="" />} title="Farming resources" sub="When Banana Farms drop their bananas during a round, and what they're worth.">
+      <ToolHero tone="green" art={<img src={heroArt} width={96} height={96} alt="" />} title="Farming resources" sub="When Banana Farms drop their bananas during a round, and what they're worth.">
         {FARMS.map((f) => (
           <span key={f.path} class="th-ic">
             <img src={f.art} width={44} height={44} alt={`Banana Farm ${f.path}`} decoding="async" />
