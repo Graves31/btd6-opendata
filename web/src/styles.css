@@ -9,6 +9,15 @@
   --bg: #0c111d;
   /* the page colour in either theme, also inside game panels (which set --bg to the dark one) */
   --page: var(--bg);
+  /* game panel surface and cards (docs/game-ui.md); dark everywhere except light-theme panels (end of file) */
+  --gp-bg: #111a2c;
+  --gp-tex: rgb(255 255 255 / 0.016);
+  --gp-band: #131c2f;
+  --gp-drop: #060a14;
+  --gc-1: #1c2643;
+  --gc-2: #161f36;
+  --gc-hi: rgb(255 255 255 / 0.07);
+  --gc-ink: #fff;
   --s1: #141b2a;
   --s2: #1c2537;
   --sub: #0c111c; /* subcard inside a panel (paragon inputs, target) */
@@ -1127,11 +1136,11 @@ button.fd-tile:hover {
   color: var(--ink);
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--gp-1) 10%, transparent), transparent 240px),
-    repeating-linear-gradient(135deg, rgb(255 255 255 / 0.016) 0 2px, transparent 2px 14px),
-    #111a2c;
+    repeating-linear-gradient(135deg, var(--gp-tex) 0 2px, transparent 2px 14px),
+    var(--gp-bg);
   border: 2px solid var(--gp-edge);
   border-radius: 14px;
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.04), 0 4px 0 #060a14;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.04), 0 4px 0 var(--gp-drop);
 }
 /* The header row is pulled up so the title tab sits on the border; the aside lands inside, top right. */
 .gp > .sec-h {
@@ -1170,14 +1179,14 @@ button.fd-tile:hover {
 /* Card inside a panel: dark, rounded, a ledge in the section colour; .on = the picked one. */
 .gc,
 .ev-row.gc {
-  background: linear-gradient(180deg, #1c2643, #161f36);
+  background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
   border: 1px solid var(--gp-rim);
   border-radius: 10px;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 var(--gp-led);
+  box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 var(--gp-led);
 }
 .gc.on {
   border-color: var(--accent);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #8a7406;
+  box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 #8a7406;
 }
 /* Big number on a card: display font with a dark outline in the section colour. */
 .gn {
@@ -9370,7 +9379,7 @@ a.map-stat:hover {
 }
 /* No diagonal texture on these tall panels: it is barely visible and costs phones a paint over the whole grid. */
 .gp.map-sec {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--gp-1) 10%, transparent), transparent 240px), #111a2c;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gp-1) 10%, transparent), transparent 240px), var(--gp-bg);
 }
 /* Fresh visit (maps.tsx): the browser skips whole panels below the fold until they scroll in. The wrapper's
    padding, cancelled by its margins, keeps the title tab above the panel's edge, the panel's ledge and focus
@@ -11568,10 +11577,10 @@ a.th-ic:focus-visible {
 }
 /* My stats cards take the game-panel card look (.gc) and its section's colours. */
 .gp :is(.my-tile, .my-miss, .my-sumry a, .my-medals > ul > li:not(.my-panel), .my-hs > li, .my-heroes li, .my-rwins li, .my-rh > li, .my-rart li) {
-  background: linear-gradient(180deg, #1c2643, #161f36);
+  background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
   border: 1px solid var(--gp-rim);
   border-radius: 10px;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 var(--gp-led);
+  box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 var(--gp-led);
 }
 .gp .my-medals .my-miss {
   background: var(--s2);
@@ -11579,7 +11588,7 @@ a.th-ic:focus-visible {
 }
 .gp .my-miss.on {
   border-color: var(--accent);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #8a7406;
+  box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 #8a7406;
 }
 .gp .my-panel {
   border-radius: 10px;
@@ -13698,10 +13707,10 @@ a.oy-dp:focus-visible,
   margin-bottom: 0;
 }
 .gp .co {
-  background: linear-gradient(180deg, #1c2643, #161f36);
+  background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
   border: 1px solid var(--gp-rim);
   border-radius: 10px;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 var(--gp-led);
+  box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 var(--gp-led);
 }
 .gp .co-list {
   gap: 10px;
@@ -13744,7 +13753,7 @@ a.oy-dp:focus-visible,
 }
 .hist.gp[open] > summary {
   height: var(--hist-sum);
-  background: linear-gradient(180deg, var(--page) 22px, #131c2f 22px);
+  background: linear-gradient(180deg, var(--page) 22px, var(--gp-band) 22px);
 }
 /* phones: the board reaches the panel's edges (outside a panel it reaches the screen's) */
 @media (max-width: 860px) {
@@ -13766,28 +13775,28 @@ a.oy-dp:focus-visible,
 .rc.gc,
 .ctp.gc,
 .gp .ctpod-a {
-  color: #fff;
-  background: linear-gradient(180deg, #1c2643, #161f36);
+  color: var(--gc-ink);
+  background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
   border: 1px solid var(--gp-rim);
   border-radius: 10px;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 var(--gp-led);
+  box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 var(--gp-led);
 }
 .ct-tab.tab:hover,
 .gp .ctv-chips button.gc:hover,
 .rc.gc:hover,
 .ctp.gc:hover,
 .gp .ctpod-a:hover {
-  color: #fff;
-  background: linear-gradient(180deg, #1c2643, #161f36);
+  color: var(--gc-ink);
+  background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
   border-color: var(--accent);
 }
 .ct-tab.tab.on,
 .gp .ctv-chips button.gc.on,
 .rc.gc.on {
-  color: #fff;
-  background: linear-gradient(180deg, #1c2643, #161f36);
+  color: var(--gc-ink);
+  background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
   border-color: var(--accent);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #8a7406;
+  box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 #8a7406;
 }
 .ct-tabs .tabs {
   display: flex;
@@ -13835,7 +13844,7 @@ a.oy-dp:focus-visible,
 }
 .gp .ctpod-1 .ctpod-a {
   border-top-color: var(--accent);
-  background: linear-gradient(180deg, rgb(255 214 10 / 0.14), #161f36);
+  background: linear-gradient(180deg, rgb(255 214 10 / 0.14), var(--gc-2));
 }
 .gp .ctpod-2 .ctpod-a {
   border-top-color: #d7dde8;
@@ -13925,19 +13934,19 @@ a.oy-dp:focus-visible,
   content: none;
 }
 .bh-tabs.gh .tab {
-  background: linear-gradient(180deg, #1c2643, #161f36);
+  background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
   border: 1px solid var(--gp-rim);
   border-radius: 10px;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 var(--gp-led);
+  box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 var(--gp-led);
 }
 .bh-tabs.gh .tab:not(.on):hover {
-  background: linear-gradient(180deg, #1c2643, #161f36);
+  background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
   border-color: var(--accent);
 }
 .bh-tabs.gh .tab.on {
-  background: linear-gradient(180deg, #1c2643, #161f36);
+  background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
   border-color: var(--accent);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #8a7406;
+  box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 #8a7406;
 }
 .bh-tabs.gh .tab.on::after {
   background: #0b1220;
@@ -13986,11 +13995,11 @@ a.oy-dp:focus-visible,
   display: contents;
 }
 .bs-pick.gc {
-  color: #fff;
-  background: linear-gradient(180deg, #1c2643, #161f36);
+  color: var(--gc-ink);
+  background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
   border: 1px solid var(--gp-rim);
   border-radius: 10px;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 rgb(var(--tint));
+  box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 rgb(var(--tint));
 }
 .bs-pick.gc:hover {
   border-color: var(--accent);
@@ -14014,10 +14023,10 @@ a.oy-dp:focus-visible,
 }
 .bs-controls .bs-tabs .tab {
   color: #c4cbd8;
-  background: linear-gradient(180deg, #1c2643, #161f36);
+  background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
   border: 1px solid var(--gp-rim);
   border-radius: 10px;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 var(--gp-led);
+  box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 var(--gp-led);
 }
 .bs-controls .bs-tabs .tab:hover {
   border-color: var(--accent);
@@ -14025,7 +14034,7 @@ a.oy-dp:focus-visible,
 .bs-controls .bs-tabs .tab.on {
   color: #fff;
   border-color: var(--accent);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #8a7406;
+  box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 #8a7406;
 }
 .bs-controls .bs-tabs .tab .bt-s {
   color: inherit;
@@ -14059,10 +14068,10 @@ a.oy-dp:focus-visible,
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 1px 0 #060a14;
 }
 .gp .bs-spawn {
-  background: linear-gradient(180deg, #1c2643, #161f36);
+  background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
   border: 1px solid var(--gp-rim);
   border-radius: 10px;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 var(--gp-led);
+  box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 var(--gp-led);
 }
 
 /* ─────────────────────────────── Live (home) game panels (docs/game-ui.md)
@@ -14091,11 +14100,11 @@ main > .vh + .feature.gh {
 }
 .feature.gh :is(.fd-tile, .mini),
 .home-sec .tile {
-  color: #fff;
-  background: linear-gradient(180deg, #1c2643, #161f36);
+  color: var(--gc-ink);
+  background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
   border: 1px solid var(--gp-rim);
   border-radius: 10px;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 var(--gp-led);
+  box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 var(--gp-led);
 }
 .feature.gh :is(button.fd-tile, .mini):hover,
 .home-sec .tile:hover {
@@ -14103,7 +14112,7 @@ main > .vh + .feature.gh {
 }
 .feature.gh .fd-tile.on {
   border-color: var(--accent);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #8a7406;
+  box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 #8a7406;
 }
 .feature.gh .fd-tile:not(.on) .fd-sc {
   color: var(--ink-2);
@@ -14122,7 +14131,7 @@ main > .vh + .feature.gh {
   align-self: stretch;
   width: 148px;
   margin: 10px 0 10px 10px;
-  background: #0d1424;
+  background: var(--sub);
   border-radius: 8px;
   box-shadow: inset 0 2px 0 rgb(0 0 0 / 0.35);
 }
@@ -14208,4 +14217,90 @@ main > .vh + .feature.gh {
   .profile.gh .title.xl.uname.nlong {
     font-size: clamp(18px, 5.6vw, 44px);
   }
+}
+
+/* ─────────────────────────────── Light theme game panels (docs/game-ui.md rule 6)
+   Content panels go light in the light theme: pale surface, white cards, dark text; the section colour stays on
+   the tab, edge, rims and ledges. Title cards (.gh: banners, profile headers, tool heroes) stay dark for the art.
+   Same values twice: device light, and light picked with the header toggle. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .gp {
+    --bg: #eef1f6;
+    --s1: #ffffff;
+    --s2: #e4e8ef;
+    --sub: #e8ecf3;
+    --numbox: #ffffff;
+    --ink: #0a0a0b;
+    --ink-2: #3d3d44;
+    --ink-3: #474b55;
+    --rule: color-mix(in srgb, var(--gp-1) 30%, #d6dae2);
+    --rule-2: #7c7c84;
+    --accent-ink: #7a5800;
+    --live: #0a7a3d;
+    --soon: #0759a8;
+    --ended: #55555c;
+    --focus: #0a0a0b;
+    --bar: #3d3d44;
+    --shade: rgb(0 0 0 / 0.035);
+    --zebra: rgb(10 20 40 / 0.035);
+    --hover: rgb(10 20 40 / 0.06);
+    --track: #dde3ec;
+    --gp-bg: #f8fafd;
+    --gp-tex: rgb(10 20 40 / 0.022);
+    --gp-band: #eef2f8;
+    --gp-drop: rgb(20 30 60 / 0.3);
+    --gp-rim: color-mix(in srgb, var(--gp-1) 35%, #d6dae2);
+    --gc-1: #ffffff;
+    --gc-2: #f2f5fa;
+    --gc-hi: rgb(255 255 255 / 0.9);
+    --gc-ink: #0a0a0b;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] .gp {
+  --bg: #eef1f6;
+  --s1: #ffffff;
+  --s2: #e4e8ef;
+  --sub: #e8ecf3;
+  --numbox: #ffffff;
+  --ink: #0a0a0b;
+  --ink-2: #3d3d44;
+  --ink-3: #474b55;
+  --rule: color-mix(in srgb, var(--gp-1) 30%, #d6dae2);
+  --rule-2: #7c7c84;
+  --accent-ink: #7a5800;
+  --live: #0a7a3d;
+  --soon: #0759a8;
+  --ended: #55555c;
+  --focus: #0a0a0b;
+  --bar: #3d3d44;
+  --shade: rgb(0 0 0 / 0.035);
+  --zebra: rgb(10 20 40 / 0.035);
+  --hover: rgb(10 20 40 / 0.06);
+  --track: #dde3ec;
+  --gp-bg: #f8fafd;
+  --gp-tex: rgb(10 20 40 / 0.022);
+  --gp-band: #eef2f8;
+  --gp-drop: rgb(20 30 60 / 0.3);
+  --gp-rim: color-mix(in srgb, var(--gp-1) 35%, #d6dae2);
+  --gc-1: #ffffff;
+  --gc-2: #f2f5fa;
+  --gc-hi: rgb(255 255 255 / 0.9);
+  --gc-ink: #0a0a0b;
+  color-scheme: light;
+}
+/* the big outlined numbers keep the game's white fill (yellow for the accent one) on light cards */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .gp .gn {
+    color: #fff;
+  }
+  :root:not([data-theme="dark"]) .gp .gn.acc {
+    color: #ffd60a;
+  }
+}
+:root[data-theme="light"] .gp .gn {
+  color: #fff;
+}
+:root[data-theme="light"] .gp .gn.acc {
+  color: #ffd60a;
 }
