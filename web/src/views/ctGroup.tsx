@@ -244,7 +244,17 @@ export function CTHistory(props: { guildId: string }) {
     );
   }
   return (
-    <Section title="Contested Territory history" aside={aside} class="ct-hist">
+    <Section
+      tone="blue"
+      title={
+        <>
+          <Spr family="ui" k="ContestedTerritory" size={34} />
+          CT history
+        </>
+      }
+      aside={aside}
+      class="ct-hist"
+    >
       {!entries ? (
         <Skeleton rows={3} />
       ) : (

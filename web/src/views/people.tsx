@@ -8,13 +8,23 @@ import { Ruleset } from "../rules.tsx";
 import { challengeKey, DAILY_KEY, guildKey, href, idFromUrl, isPublicId, userKey } from "../routes.ts";
 import { hasArt, MEDAL_NAME, MODE_NAME, Spr } from "../sprite.tsx";
 
-import { A, body, Emblem, Gate, Img, Section, Stat } from "../ui.tsx";
+import { A, body, Emblem, Gate, GStat, Img, Section, Stat } from "../ui.tsx";
 import { backTo } from "../nav.ts";
 import { looksLikeMe, setPlayerId, useOak } from "../oak.ts";
 import { CTHistory } from "./ctGroup.tsx";
 import { followTeam, myTeam, onMyTeam } from "../myTeam.ts";
 import { EventHead } from "./events.tsx";
 import { ErrorPanel } from "./errors.tsx";
+
+/** A game panel's title: its ui icon, then the words. */
+const lbl = (k: string, t: string) => (
+  <>
+    <Spr family="ui" k={k} size={34} />
+    {t}
+  </>
+);
+/** A stat card's ui icon. */
+const ic = (k: string) => <Spr family="ui" k={k} size={36} />;
 
 /** Event medal tiers, best first (the game's order). Position encodes the tier. */
 const MEDAL_ORDER = ["BlackDiamond", "RedDiamond", "BlueDiamond", "GoldDiamond", "DoubleGold", "GoldSilver", "DoubleSilver", "Silver", "Bronze"];
@@ -291,7 +301,7 @@ export function PlayerPage(props: { id: string }) {
   const coopTotal = Object.values(u._medalsMultiplayer ?? {}).reduce((a, b) => a + b, 0);
   return (
     <>
-      <header class="profile">
+      <header class="profile gh gp-blue">
         <div class="profile-banner">
           <Img src={u.bannerURL} w={1536} h={192} eager />
         </div>
@@ -328,25 +338,27 @@ export function PlayerPage(props: { id: string }) {
       </header>
       <ThisIsMe id={props.id} u={u} />
 
-      <dl class="stats grid">
-        <Stat k="Games won" v={fmtInt(g.gamesWon)} note={won !== null ? `of ${fmtInt(g.gameCount)} · ${fmtPct(won)}` : undefined} />
-        <Stat k="Highest round" v={fmtInt(g.highestRound ?? u.highestRound)} />
-        <Stat k="Best CHIMPS round" v={fmtInt(g.highestRoundCHIMPS)} />
-        <Stat k="Best Deflation round" v={fmtInt(g.highestRoundDeflation)} />
-        <Stat k="Bloons popped" v={fmtCompact(bp.bloonsPopped)} note={`${fmtCompact(bp.coopBloonsPopped)} in co-op · ${fmtCompact(bp.bloonsLeaked)} leaked`} />
-        <Stat k="Boss damage" v={fmtCompact(g.damageDoneToBosses)} />
-        <Stat k="Cash earned" v={`$${fmtCompact(g.cashEarned)}`} />
-        <Stat k="Monkeys placed" v={fmtCompact(g.monkeysPlaced)} note={`${fmtCompact(u.stats.totalTowersSold)} sold`} />
-        <Stat k="Abilities used" v={fmtCompact(g.abilitiesUsed)} />
-        <Stat k="Trophies earned" v={fmtInt(g.totalTrophiesEarned)} />
-        <Stat k="Challenges won" v={fmtInt(g.challengesCompleted)} />
-        <Stat k="Odysseys" v={fmtInt(g.totalOdysseysCompleted)} note={`${fmtInt(g.totalOdysseyStars)} stars`} />
-        <Stat k="Insta collection" v={fmtInt(g.instaMonkeyCollection)} note={`${fmtInt(g.instaMonkeysUsed)} used`} />
-        <Stat k="CT tiles captured" v={fmtInt(u.stats.ctCapturedTiles)} />
-      </dl>
+      <Section tone="blue" title={lbl("Trophy", "Overview")}>
+        <div class="pp-stats">
+          <GStat art={ic("GamesPlayed")} big={fmtInt(g.gamesWon)} small="Games won" note={won !== null ? `of ${fmtInt(g.gameCount)} · ${fmtPct(won)}` : undefined} />
+          <GStat art={ic("HighestRound")} big={fmtInt(g.highestRound ?? u.highestRound)} small="Highest round" />
+          <GStat art={<Spr family="modeMedal" k="CHIMPS-BLACK" size={36} />} big={fmtInt(g.highestRoundCHIMPS)} small="Best CHIMPS round" />
+          <GStat art={ic("mode:Deflation")} big={fmtInt(g.highestRoundDeflation)} small="Best Deflation round" />
+          <GStat art={ic("Pops")} big={fmtCompact(bp.bloonsPopped)} small="Bloons popped" note={`${fmtCompact(bp.coopBloonsPopped)} in co-op · ${fmtCompact(bp.bloonsLeaked)} leaked`} />
+          <GStat art={ic("BossTier")} big={fmtCompact(g.damageDoneToBosses)} small="Boss damage" />
+          <GStat art={ic("Income")} big={`$${fmtCompact(g.cashEarned)}`} small="Cash earned" />
+          <GStat art={ic("Towers")} big={fmtCompact(g.monkeysPlaced)} small="Monkeys placed" note={`${fmtCompact(u.stats.totalTowersSold)} sold`} />
+          <GStat art={ic("AbilityCooldownDecrease")} big={fmtCompact(g.abilitiesUsed)} small="Abilities used" />
+          <GStat art={ic("Trophy")} big={fmtInt(g.totalTrophiesEarned)} small="Trophies earned" />
+          <GStat art={ic("DailyChallenge")} big={fmtInt(g.challengesCompleted)} small="Challenges won" />
+          <GStat art={ic("Odyssey")} big={fmtInt(g.totalOdysseysCompleted)} small="Odysseys" note={`${fmtInt(g.totalOdysseyStars)} stars`} />
+          <GStat art={ic("Tier5")} big={fmtInt(g.instaMonkeyCollection)} small="Insta collection" note={`${fmtInt(g.instaMonkeysUsed)} used`} />
+          <GStat art={ic("ContestedTerritory")} big={fmtInt(u.stats.ctCapturedTiles)} small="CT tiles captured" />
+        </div>
+      </Section>
 
       <div class="split even">
-        <Section title="Event medals" aside="Best tier first">
+        <Section tone="amber" title={lbl("Medal", "Event medals")} aside="Best tier first">
           <MedalCabinet
             rows={[
               ["Boss", "boss", u._medalsBoss],
@@ -357,45 +369,44 @@ export function PlayerPage(props: { id: string }) {
             ]}
           />
         </Section>
-        <Section title="Boss badges" aside="Normal / Elite">
+        <Section tone="rose" title={lbl("BossTier", "Boss badges")} aside="Normal / Elite">
           <BossStrip normal={u.bossBadgesNormal} elite={u.bossBadgesElite} />
         </Section>
       </div>
 
-      <Section title="Season badges" aside={seasonTotal ? `${fmtInt(seasonTotal)} earned` : undefined}>
+      <Section tone="violet" title={lbl("Achievement", "Season badges")} aside={seasonTotal ? `${fmtInt(seasonTotal)} earned` : undefined}>
         <SeasonBadges badges={u.seasonBadges ?? {}} />
       </Section>
 
-      <Section title="Single-player medals" aside={`${fmtInt(spTotal)} total`}>
+      <Section tone="teal" title={lbl("Medal", "Single-player medals")} aside={`${fmtInt(spTotal)} total`}>
         <ModeBoard m={u._medalsSinglePlayer} />
       </Section>
-      <Section title="Co-op medals" aside={`${fmtInt(coopTotal)} total`}>
+      <Section tone="green" title={lbl("Coop4", "Co-op medals")} aside={`${fmtInt(coopTotal)} total`}>
         <ModeBoard m={u._medalsMultiplayer ?? {}} coop />
       </Section>
 
       <details class="lt-fold">
-        <summary>Lifetime stats</summary>
-      <Section title="Bloons popped" aside={`${fmtInt(bp.bloonsPopped)} total`}>
-        <BloonWall bp={bp} />
-      </Section>
-
-      <div class="split even">
-        <Section title="Towers placed">
-          <Bars m={u.towersPlaced} n={12} family="tower" />
-        </Section>
-        <Section title="Heroes placed">
-          <Bars m={u.heroesPlaced} n={12} family="hero" />
-        </Section>
-      </div>
-      <div class="split even">
-        <Section title="Paragons bought" aside={`${fmtInt(Object.values(u.stats.paragonsPurchasedByName ?? {}).reduce((a, b) => a + b, 0))} total`}>
-          <Bars m={u.stats.paragonsPurchasedByName ?? {}} n={10} family="tower" />
+        <summary class="gbtn">Lifetime stats</summary>
+        <Section tone="crimson" title={lbl("Pops", "Bloons popped")} aside={`${fmtInt(bp.bloonsPopped)} total`}>
+          <BloonWall bp={bp} />
         </Section>
 
-        <Section title="Most used abilities">
-          <Bars m={byAbilityName(u.stats.abilitiesActivatedByName ?? {})} n={10} name={(k) => k} />
-        </Section>
-      </div>
+        <div class="split even">
+          <Section tone="blue" title={lbl("Towers", "Towers placed")}>
+            <Bars m={u.towersPlaced} n={12} family="tower" />
+          </Section>
+          <Section tone="rose" title={lbl("Hero", "Heroes placed")}>
+            <Bars m={u.heroesPlaced} n={12} family="hero" />
+          </Section>
+        </div>
+        <div class="split even">
+          <Section tone="violet" title={lbl("ParagonPower", "Paragons bought")} aside={`${fmtInt(Object.values(u.stats.paragonsPurchasedByName ?? {}).reduce((a, b) => a + b, 0))} total`}>
+            <Bars m={u.stats.paragonsPurchasedByName ?? {}} n={10} family="tower" />
+          </Section>
+          <Section tone="amber" title={lbl("Powers", "Most used abilities")}>
+            <Bars m={byAbilityName(u.stats.abilitiesActivatedByName ?? {})} n={10} name={(k) => k} />
+          </Section>
+        </div>
       </details>
     </>
   );
@@ -507,7 +518,7 @@ export function TeamPage(props: { id: string }) {
   const badgeCount = Object.keys(t.CtBadges ?? {}).length;
   return (
     <>
-      <header class="profile">
+      <header class="profile gh gp-amber">
         <div class="profile-banner">
           <Img src={t.bannerURL} w={1536} h={192} eager />
         </div>
@@ -532,7 +543,7 @@ export function TeamPage(props: { id: string }) {
           </div>
         </div>
       </header>
-      <Section title="Contested Territory badges" aside={badgeCount ? `${badgeCount} earned` : undefined}>
+      <Section tone="violet" title={lbl("CtBanner", "CT badges")} aside={badgeCount ? `${badgeCount} earned` : undefined}>
         <CtBadges badges={t.CtBadges ?? {}} />
       </Section>
       <CTHistory guildId={props.id} />

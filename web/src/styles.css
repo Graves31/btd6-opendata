@@ -7,6 +7,8 @@
 
 :root {
   --bg: #0c111d;
+  /* the page colour in either theme, also inside game panels (which set --bg to the dark one) */
+  --page: var(--bg);
   --s1: #141b2a;
   --s2: #1c2537;
   --sub: #0c111c; /* subcard inside a panel (paragon inputs, target) */
@@ -1098,6 +1100,7 @@ button.fd-tile:hover {
    built on --s1/--ink/--rule just works. Cards inside use .gc (or a page's own card classes, see .my-*). */
 .gp,
 .gh {
+  --bg: #0c111d; /* the dark page colour too (wells, plates, tracks); --page keeps the real one */
   --s1: #1a2440;
   --s2: #131b30;
   --sub: #0d1424;
@@ -11393,7 +11396,7 @@ a.th-ic:focus-visible {
   gap: 12px;
 }
 .my-intro a,
-.my .profile-sub a {
+.profile.gh .profile-sub a {
   text-decoration: underline;
 }
 .my-form {
@@ -11424,24 +11427,24 @@ a.th-ic:focus-visible {
 }
 /* The save's header: a game title card (.gh) with the player's NK banner behind it, dimmed under the text;
    avatar on a ledge, Refresh / Forget key in the name row. */
-.my .profile {
+.profile.gh {
   margin: 0 0 16px;
   padding: 0;
   overflow: hidden;
   isolation: isolate;
 }
-.my .profile-banner {
+.profile.gh .profile-banner {
   position: absolute;
   inset: 0;
   z-index: -1;
   border: 0;
 }
-.my .profile-banner :is(img, .img-missing) {
+.profile.gh .profile-banner :is(img, .img-missing) {
   height: 100%;
   min-height: 0;
   aspect-ratio: auto;
 }
-.my .profile-banner::after {
+.profile.gh .profile-banner::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -11450,21 +11453,21 @@ a.th-ic:focus-visible {
 .my .profile .my-btn {
   white-space: nowrap;
 }
-.my .profile-id {
+.profile.gh .profile-id {
   position: relative;
   margin: 0;
   padding: 20px 24px;
   align-items: center;
 }
-.my .profile-t {
+.profile.gh .profile-t {
   padding-top: 0;
 }
-.my .profile h1 {
-  -webkit-text-stroke: 6px #0b1d3f;
+.profile.gh h1 {
+  -webkit-text-stroke: 6px var(--gp-stk);
   paint-order: stroke fill;
 }
 @media (max-width: 720px) {
-  .my .profile-id {
+  .profile.gh .profile-id {
     padding: 14px;
   }
 }
@@ -11507,8 +11510,8 @@ a.th-ic:focus-visible {
 .my-recap .my-meter {
   height: 10px;
 }
-.my .profile-id .avatar {
-  border: 3px solid #0f2650;
+.profile.gh .avatar {
+  border: 3px solid var(--gp-dk);
   border-radius: 14px;
   box-shadow: 0 4px 0 #060a14;
 }
@@ -12302,7 +12305,7 @@ button.my-miss:hover {
   .my-btn {
     flex: 1;
   }
-  .my .profile-banner {
+  .profile.gh .profile-banner {
     border-width: 0 0 2px;
     border-radius: 0;
   }
@@ -13741,7 +13744,7 @@ a.oy-dp:focus-visible,
 }
 .hist.gp[open] > summary {
   height: var(--hist-sum);
-  background: linear-gradient(180deg, var(--bg) 22px, #131c2f 22px);
+  background: linear-gradient(180deg, var(--page) 22px, #131c2f 22px);
 }
 /* phones: the board reaches the panel's edges (outside a panel it reaches the screen's) */
 @media (max-width: 860px) {
@@ -13992,11 +13995,6 @@ a.oy-dp:focus-visible,
 .bs-pick.gc:hover {
   border-color: var(--accent);
 }
-/* the #2 plate's text is the page background, which panels don't reset: keep it dark in the light theme */
-.gp .plate.p2,
-.gh .plate.p2 {
-  color: #0b1220;
-}
 
 /* ─────────────────────────────── Boss stats game panels (docs/game-ui.md)
    Banner in the rose frame (as on the event page), Normal / Elite as cards and T1-T5 as plates; health green,
@@ -14059,10 +14057,6 @@ a.oy-dp:focus-visible,
 .gp .bs-more:active {
   transform: translateY(2px);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 1px 0 #060a14;
-}
-/* inside these panels the page background (wells, bar tracks, spawn cards) stays the dark one in both themes */
-.bs-page .gp {
-  --bg: #0c111d;
 }
 .gp .bs-spawn {
   background: linear-gradient(180deg, #1c2643, #161f36);
@@ -14143,4 +14137,75 @@ main > .vh + .feature.gh {
 }
 .feature.gh .mini-map {
   flex-wrap: wrap;
+}
+
+/* ─────────────────────────────── People game panels (docs/game-ui.md)
+   Player: the profile header in the blue frame (as on My stats), the 14 headline numbers as stat cards in a blue
+   Overview panel (7 x 2; 2 wide below 1150), each section a panel; Lifetime stats opens from a game button.
+   Team: header in the CT amber frame, CT badges violet, CT history blue. */
+.pp-stats {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (max-width: 1150px) {
+  .pp-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.pp-stats .mp-stat {
+  align-content: start;
+}
+.pp-stats .mp-stat .gn {
+  font-size: 24px;
+}
+.mp-stat:has(.gs-note) > :first-child {
+  grid-row: span 3;
+}
+.gs-note {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+.lt-fold > summary.gbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  font: 800 18px/1 var(--f-display);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 2px solid var(--gp-dk, #0f2650);
+  list-style: none;
+}
+.lt-fold > summary.gbtn::-webkit-details-marker {
+  display: none;
+}
+.lt-fold > summary.gbtn::after {
+  content: "";
+  border-style: solid;
+  border-width: 8px 6px 0;
+  border-color: #fff transparent transparent;
+  transform: rotate(-90deg);
+  transition: transform 0.15s;
+}
+.lt-fold[open] > summary.gbtn::after {
+  transform: none;
+}
+.lt-fold > summary.gbtn:hover {
+  color: #fff;
+}
+.lt-fold[open] > summary {
+  margin-bottom: 0;
+}
+/* a team emblem sits straight on the banner (no page-coloured backing square) */
+.profile.gh .profile-id > .emblem {
+  background: none;
+  border: 0;
+}
+@media (max-width: 700px) {
+  /* the frame's padding leaves less width: long unbroken names shrink a step further */
+  .profile.gh .title.xl.uname.nlong {
+    font-size: clamp(18px, 5.6vw, 44px);
+  }
 }
