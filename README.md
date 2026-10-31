@@ -18,6 +18,8 @@ on the game's own data. It works on phone and desktop, with no ads, no account a
   player-made challenges.
 - **[Maps](https://btd6data.com/maps)**: every map, with the boss events and races played on it.
 - **Player and team profiles**: medals, badges, stats and Contested Territory history.
+- **[My stats](https://btd6data.com/me)**: your own save with your Open Access Key: map medals, Insta Monkeys,
+  tower XP, heroes, Monkey Knowledge and more. The key stays in your browser.
 
 ### Tools
 
@@ -25,13 +27,21 @@ on the game's own data. It works on phone and desktop, with no ads, no account a
   round, straight from the game's round sets.
 - **[Paragon degree calculator](https://btd6data.com/tools/paragon)**: how much sacrificed cash, pops,
   towers and totems a degree takes, and the quickest way to the next breakpoint.
-- **[Farming](https://btd6data.com/tools/farming)**: when each Banana Farm drops its bananas during a round.
+- **[Paragon scaling](https://btd6data.com/tools/paragon-scaling)**: what every degree from 1 to 100 adds,
+  charted.
+- **[Farming resources](https://btd6data.com/tools/farming)**: when each Banana Farm drops its bananas during a
+  round.
+- **[Bank & IMF Loan planner](https://btd6data.com/tools/bank-planner)**: when to collect a Monkey Bank so the
+  cap never eats your cash, and how much to deposit in an IMF Loan.
+- **[Hero XP planner](https://btd6data.com/tools/hero-xp)**: when to place a hero so it reaches a level by a
+  round, with map, Monkey Knowledge and Energizer.
 
 ## Why use it
 
 - **Instant**: pages open as soon as you click, and live leaderboards keep updating.
 - **Full history**: events stay browsable long after they leave the game.
-- **The game's own art**: towers, bosses, maps and relics as you know them.
+- **Looks like the game**: version 3 dresses every page in the game's own menus: framed panels, plate
+  buttons and the official art of towers, bosses, maps and relics.
 - **Made for phones** as much as desktops, with light and dark themes.
 
 Have an idea or found a bug? Press **Suggest** at the top of [btd6data.com](https://btd6data.com).

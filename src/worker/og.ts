@@ -22,7 +22,7 @@ export interface AssetsLike {
 /** The site's one public address: canonical links, link previews, Discord posts, redirects from other hosts. */
 export const SITE = "https://btd6data.com";
 export const SITE_NAME = "BTD6 Open Data";
-const GENERIC_DESCRIPTION = "Unofficial, instant-loading browser for Bloons TD 6 events, leaderboards and player profiles.";
+const GENERIC_DESCRIPTION = "Live Bloons TD 6 boss, race, CT and odyssey leaderboards, player profiles, and tools: round visualizer, paragon calculator and more. Unofficial.";
 /** Site-wide preview image (absolute path on this site), or null for none. */
 export const SITE_IMAGE: string | null = "/og.jpg";
 const LOOKUP_TIMEOUT_MS = 300;
