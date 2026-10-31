@@ -582,6 +582,15 @@ export const Stat = (p: { k: ComponentChildren; v: ComponentChildren; note?: Com
 /** Game-panel colours (docs/game-ui.md): one per section, never two neighbours alike. */
 export type Tone = "blue" | "amber" | "violet" | "teal" | "rose" | "bronze" | "crimson" | "green";
 
+/** A stat card on a game panel or title card: icon, big outlined number, small label. */
+export const GStat = (p: { art: ComponentChildren; big: ComponentChildren; small: string }) => (
+  <div class="gc mp-stat">
+    {p.art}
+    <b class="gn">{p.big}</b>
+    <small>{p.small}</small>
+  </div>
+);
+
 /** A page section; with `tone` it becomes a game panel (framed, title as a tab on the top edge). */
 export function Section(props: { title: ComponentChildren; aside?: ComponentChildren; children: ComponentChildren; class?: string; tone?: Tone }) {
   return (

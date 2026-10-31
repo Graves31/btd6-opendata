@@ -216,12 +216,13 @@ const BAN_VIEWS: [BanView, string][] = [
   ["only", "Only banned"],
 ];
 /** One banned filter for a rules block (heroes, towers and powers together): All · Hide banned · Only banned. */
-export function HideBannedToggle() {
+/** `game`: game buttons (.gbtn), for a game panel. */
+export function HideBannedToggle(p: { game?: boolean }) {
   const v = useBanView();
   return (
-    <span class="hideban" role="group" aria-label="Banned">
+    <span class={p.game ? "hideban g" : "hideban"} role="group" aria-label="Banned">
       {BAN_VIEWS.map(([k, t]) => (
-        <button key={k} type="button" class={v === k ? "on" : undefined} aria-pressed={v === k} onClick={() => setBanView(k)}>
+        <button key={k} type="button" class={`${p.game ? "gbtn " : ""}${v === k ? "on" : ""}` || undefined} aria-pressed={v === k} onClick={() => setBanView(k)}>
           {t}
         </button>
       ))}

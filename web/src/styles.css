@@ -1177,7 +1177,8 @@ button.fd-tile:hover {
   font-weight: 600;
 }
 /* Card inside a panel: dark, rounded, a ledge in the section colour; .on = the picked one. */
-.gc {
+.gc,
+.ev-row.gc {
   background: linear-gradient(180deg, #1c2643, #161f36);
   border: 1px solid var(--gp-rim);
   border-radius: 10px;
@@ -1767,33 +1768,55 @@ button.fd-tile:hover {
 
 /* ─────────────────────────────── odyssey */
 
+/* Island cards (.gc): map art on top with its number, a ledge of the panel colour, then the rules. */
 .islands {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
-  gap: 16px;
-  counter-reset: island;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 24px;
 }
 .island {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  background: var(--s1);
-  border: 1px solid var(--rule);
+  position: relative;
 }
 .island-art {
+  position: relative;
   display: block;
-  padding: 12px 0 12px 12px;
+}
+.island-art .map-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 200 / 129;
+  object-fit: cover;
+  border-radius: 9px 9px 0 0;
+}
+.isl-n {
+  position: absolute;
+  left: 10px;
+  top: 6px;
+  font: 900 34px/1 var(--f-display);
+  color: #fff;
+  -webkit-text-stroke: 5px #000;
+  paint-order: stroke fill;
+}
+/* the voyage: a dashed line from each island to the one before it, never across a row break */
+.islands > li + li .island-art::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  width: 26px;
+  border-top: 3px dashed var(--gp-1);
+}
+.islands > li:nth-child(3n + 1) .island-art::before {
+  display: none;
 }
 .island .ruleset .spec .fact {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
 }
-.island-n .plate {
-  border-color: var(--rule-2);
-  color: var(--ink);
-}
 .island-b {
-  padding: 12px 14px 6px;
+  padding: 10px 14px 6px;
+  border-top: 3px solid var(--gp-1);
 }
 .island-n {
   display: flex;
@@ -9823,7 +9846,7 @@ a.mp-ev:focus-visible {
   .mp-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .mp-stat:nth-child(n + 3),
+  .mp-stats > .mp-stat:nth-child(n + 3),
   .mp-nb .mf {
     display: none;
   }
@@ -10040,7 +10063,8 @@ footer a {
 }
 /* Game title card (ToolHero tone): the game-panel frame and dark tokens (.gh shares .gp's), title outlined like a tab. */
 .th.gh,
-.gh.mp-head {
+.gh.mp-head,
+.gh.ev-hero {
   margin-top: 0;
   background:
     linear-gradient(120deg, color-mix(in srgb, var(--gp-1) 22%, transparent), transparent 70%),
@@ -11261,8 +11285,7 @@ a.th-ic:focus-visible {
   justify-content: center;
   gap: 8px;
   padding: 10px 14px;
-  border: 1.5px solid var(--accent-ink);
-  color: var(--accent-ink);
+  min-height: 38px;
   font: 800 15px/1 var(--f-display);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -11272,9 +11295,7 @@ a.th-ic:focus-visible {
   margin-left: auto;
 }
 .ev-row:hover .oy-cta {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--on-accent);
+  filter: brightness(1.12);
 }
 .oy-cta-row {
   display: none;
@@ -13542,4 +13563,165 @@ button.my-miss:hover {
 }
 .hx-note {
   margin: 16px 0 0;
+}
+
+/* ─────────────────────────────── odyssey game panels (docs/game-ui.md)
+   Page: the event header as a teal title card, difficulty cards in the difficulty colours, then panels.
+   List: this week's odyssey in a green panel (frameless card inside), the others as .gc rows in a blue one. */
+.gh.ev-hero {
+  margin: 0 0 16px;
+  padding: 18px;
+}
+.gh.ev-hero .ev-head {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.gh.ev-hero .title {
+  -webkit-text-stroke: 6px var(--gp-stk);
+  paint-order: stroke fill;
+}
+.gh.ev-hero .stats {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 240px;
+  border-left: 0;
+}
+.oy-ctl {
+  gap: 10px 14px;
+}
+.oy-diffs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.oy-dp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px 0 14px;
+  font: 800 20px/1 var(--f-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  text-decoration: none;
+}
+.oy-dp i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--gp-1);
+  box-shadow: 0 0 0 2px #000;
+}
+a.oy-dp:hover,
+a.oy-dp:focus-visible,
+.ev-row.gc:hover,
+.ev-row.gc:focus-visible {
+  border-color: var(--accent);
+}
+.oy-xt {
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--gp-3);
+  border: 2px solid var(--gp-dk);
+  border-radius: 8px;
+}
+.oy-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.gp .rewards {
+  gap: 10px;
+}
+.rewards li.gc {
+  padding: 6px 12px 6px 8px;
+  font-weight: 700;
+}
+.split.oy-split {
+  row-gap: 0;
+}
+.hideban.g {
+  gap: 6px;
+  border: 0;
+  overflow: visible;
+}
+.hideban.g button {
+  min-height: 34px;
+  padding: 0 12px;
+  color: #fff;
+  background: linear-gradient(180deg, var(--gp-1), var(--gp-2));
+  border: 2px solid var(--gp-dk);
+  border-radius: 8px;
+}
+.hideban.g button.on {
+  color: #fff;
+  background: linear-gradient(180deg, var(--gp-1), var(--gp-2));
+  border-color: var(--accent);
+}
+/* list: the live card sits frameless in its panel; its status is the panel's aside */
+.gp .events.k-odyssey li.now .ev-row {
+  padding: 0;
+  background: none;
+  border: 0;
+}
+.gp .oy-pill {
+  display: none;
+}
+.oy-isl.gc {
+  padding: 6px 6px 8px;
+}
+.oy-isl.gc .oy-mf {
+  border: 0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.oy-isl.gc:not(.first) .oy-art::before {
+  left: calc(-1 * var(--gap) - 7px);
+}
+.oy-isl.gc:not(.last) .oy-art::before {
+  right: calc(-1 * var(--gap) - 7px);
+}
+@media (max-width: 1000px) {
+  .islands {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .islands > li:nth-child(3n + 1) .island-art::before {
+    display: block;
+  }
+  .islands > li:nth-child(2n + 1) .island-art::before {
+    display: none;
+  }
+}
+@media (max-width: 860px) {
+  .gh.ev-hero .stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    min-width: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+}
+@media (max-width: 700px) {
+  .gh.ev-hero {
+    padding: 10px;
+  }
+  .gh.ev-hero .mp-stat {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 8px 10px;
+  }
+  .gh.ev-hero .mp-stat > :first-child {
+    grid-row: auto;
+  }
+  .islands {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .islands .island-art::before {
+    display: none !important;
+  }
+  .oy-dp {
+    padding: 0 14px 0 12px;
+  }
 }

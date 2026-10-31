@@ -108,8 +108,8 @@ import {
   Bug,
   EndedBug,
   EvIcon,
-  Fact,
   Gate,
+  GStat,
   Img,
   Pager,
   PartHead,
@@ -120,6 +120,8 @@ import {
   Stat,
   Submitted,
   Tabs,
+  ToolHero,
+  type Tone,
   useFullRender,
   useTick,
   When,
@@ -877,6 +879,75 @@ export function EventList(props: { kind: EventKind }) {
   const events = full
     ? all
     : all.slice(0, Math.max(6, Math.ceil(innerHeight / 110)));
+  // A row of the list: its card link (the live one gets the big card).
+  const row = (e: AnyEvent) => {
+    // Cards: the left stripe says live / soon / ended; a live event gets the big card; a boss card wears
+    // its boss's tint (styles.css [data-boss]), like its event page.
+    const s = status(e.start, e.end).s;
+    return (
+      <li
+        key={e.id}
+        class={s === "live" ? "now" : undefined}
+        data-boss={kind === "boss" ? (e as Boss).bossType : undefined}
+      >
+        <A
+          href={eventHref(kind, e.id)}
+          class={`ev-row st-${s}${noArt(kind, e) ? " no-art" : ""}${kind === "odyssey" && s !== "live" ? " gc" : ""}`}
+        >
+          <EventRow kind={kind} e={e} big={s === "live"} />
+        </A>
+      </li>
+    );
+  };
+  if (kind === "odyssey") {
+    // Game panels (docs/game-ui.md): this week's odyssey in green (live), the others in one blue panel.
+    const live = events.filter((e) => status(e.start, e.end).s === "live");
+    const rest = events.filter((e) => !live.includes(e));
+    const soon = rest.some((e) => status(e.start, e.end).s === "upcoming");
+    return (
+      <>
+        <ToolHero
+          tone="teal"
+          art={<EvIcon k="odyssey" size={96} />}
+          eyebrow="Weekly event"
+          title={KIND_LABEL.odyssey}
+          sub={KIND_BLURB.odyssey}
+        >
+          <Freshness k={LIST_KEY.odyssey} />
+        </ToolHero>
+        {all.length === 0 && <Gate k={LIST_KEY.odyssey} />}
+        {live.length > 0 && (
+          <Section
+            tone="green"
+            title={
+              <>
+                <Spr family="ui" k="Odyssey" size={34} />
+                This week
+              </>
+            }
+            aside={<EvStatus start={live[0].start} end={live[0].end} />}
+          >
+            <ul class="events k-odyssey">{live.map(row)}</ul>
+          </Section>
+        )}
+        {rest.length > 0 && (
+          <Section
+            tone="blue"
+            title={
+              <>
+                <EvIcon k="odyssey" size={34} />
+                {soon ? "Upcoming and past" : "Past odysseys"}
+              </>
+            }
+            aside={`${all.length - live.length} odysseys`}
+          >
+            <ul class="events k-odyssey">{rest.map(row)}</ul>
+          </Section>
+        )}
+        {!peek(historyKey(kind)) && <p class="quiet">Loading older events…</p>}
+      </>
+    );
+  }
   return (
     <>
       <header class="page-h">
@@ -906,25 +977,7 @@ export function EventList(props: { kind: EventKind }) {
         <Gate k={LIST_KEY[kind]} />
       ) : (
         <ul class={`events k-${kind}`}>
-          {events.map((e) => {
-            // Cards: the left stripe says live / soon / ended; a live event gets the big card; a boss card wears
-            // its boss's tint (styles.css [data-boss]), like its event page.
-            const s = status(e.start, e.end).s;
-            return (
-              <li
-                key={e.id}
-                class={s === "live" ? "now" : undefined}
-                data-boss={kind === "boss" ? (e as Boss).bossType : undefined}
-              >
-                <A
-                  href={eventHref(kind, e.id)}
-                  class={`ev-row st-${s}${noArt(kind, e) ? " no-art" : ""}`}
-                >
-                  <EventRow kind={kind} e={e} big={s === "live"} />
-                </A>
-              </li>
-            );
-          })}
+          {events.map(row)}
           {folded > 0 && (
             <li class="ev-fold">
               Older CTs: leaderboard no longer published ({folded})
@@ -1353,7 +1406,7 @@ function OdyBar(props: { d: number; n: number; meta?: OdysseyMetadata; cta?: boo
 }
 
 const OdyCta = (p: { bar?: boolean }) => (
-  <span class={p.bar ? "oy-cta in-bar" : "oy-cta"}>Rewards, crew &amp; rules →</span>
+  <span class={p.bar ? "gbtn go oy-cta in-bar" : "gbtn go oy-cta"}>Rewards, crew &amp; rules →</span>
 );
 
 /**
@@ -1448,7 +1501,7 @@ function OdyRow(props: { o: Odyssey; st: ComponentChildren; dates: ComponentChil
           {chain.map((m, i) => {
             const by = modes(i);
             return (
-              <span key={i} class={`oy-isl${i === chain.length - 1 ? " last" : ""}${i === 0 ? " first" : ""}`}>
+              <span key={i} class={`oy-isl gc${i === chain.length - 1 ? " last" : ""}${i === 0 ? " first" : ""}`}>
                 <span class="oy-art">
                   <span class="oy-mf">
                     <MapArt map={m.map} url={m.mapURL} size={200} alt="" />
@@ -1860,10 +1913,12 @@ export function EventHead(props: {
   children?: ComponentChildren;
   /** Decorative art behind the title (dimmed, not interactive). */
   backdrop?: ComponentChildren;
+  /** Game title card (docs/game-ui.md); `stats` are then GStat cards. */
+  tone?: Tone;
 }) {
   const { map, ev } = props;
   return (
-    <header class={props.backdrop ? "ev-hero has-bd" : "ev-hero"}>
+    <header class={`ev-hero${props.backdrop ? " has-bd" : ""}${props.tone ? ` gh gp-${props.tone}` : ""}`}>
       {props.backdrop && (
         <div class="ev-backdrop" aria-hidden="true">
           {props.backdrop}
@@ -1917,7 +1972,7 @@ export function EventHead(props: {
           {ev && <When start={ev.start} end={ev.end} />}
           {props.children}
         </div>
-        {props.stats && <dl class="stats">{props.stats}</dl>}
+        {props.stats && (props.tone ? <div class="stats">{props.stats}</div> : <dl class="stats">{props.stats}</dl>)}
       </div>
     </header>
   );
@@ -2745,8 +2800,8 @@ function Rewards(props: { rewards: string[] }) {
       {props.rewards.map((r) => {
         const [fam, k] = rewardIcon(r);
         return (
-          <li key={r}>
-            {fam && <Spr family={fam} k={k} size={24} label optional />}
+          <li key={r} class="gc">
+            {fam && <Spr family={fam} k={k} size={30} label optional />}
             <span>{fmtReward(r)}</span>
           </li>
         );
@@ -2754,6 +2809,9 @@ function Rewards(props: { rewards: string[] }) {
     </ul>
   );
 }
+
+/** Game-panel colour per odyssey difficulty: the same as the list card's difficulty bars. */
+const ODY_TONE: Record<OdyDiff, Tone> = { easy: "green", medium: "blue", hard: "amber" };
 
 export function OdysseyPage(props: { id: string; d: OdyDiff }) {
   const { id, d } = props;
@@ -2775,12 +2833,17 @@ export function OdysseyPage(props: { id: string; d: OdyDiff }) {
         icon="odyssey"
         title={ev?.name ?? "Odyssey"}
         ev={ev}
+        tone="teal"
         stats={
           meta && (
             <>
-              <Stat k="Islands" v={maps ? maps.length : "–"} />
-              <Stat k="Boat health" v={fmtInt(meta.startingHealth)} />
-              <Stat k="Monkey seats" v={meta.maxMonkeySeats} />
+              <GStat art={<Spr family="ui" k="Odyssey" size={36} />} big={maps ? maps.length : "–"} small="Islands" />
+              <GStat
+                art={<Spr family="ui" k="StartingLives" size={36} />}
+                big={fmtInt(meta.startingHealth)}
+                small="Boat health"
+              />
+              <GStat art={<Spr family="ui" k="MaxTowers" size={36} />} big={meta.maxMonkeySeats} small="Monkey seats" />
             </>
           )
         }
@@ -2788,39 +2851,43 @@ export function OdysseyPage(props: { id: string; d: OdyDiff }) {
         {ev?.description && <p class="lede">{ev.description}</p>}
         <Freshness k={odyMetaKey(id, d)} ended={ended(ev)} />
       </EventHead>
-      <div class="controls">
-        <Tabs
-          label="Difficulty"
-          items={(["easy", "medium", "hard"] as const).map((x) => ({
-            href: href.odyssey(id, x),
-            label: cap(x),
-            current: x === d,
-          }))}
-        />
-        {meta?.isExtreme && (
-          <span class="st ended">Extreme: health does not carry over</span>
-        )}
+      <div class="controls oy-ctl">
+        <nav class="oy-diffs" aria-label="Difficulty">
+          {ODY_DIFFS.map((x) => (
+            <A
+              key={x}
+              href={href.odyssey(id, x)}
+              class={`gc gp-${ODY_TONE[x]} oy-dp${x === d ? " on" : ""}`}
+              current={x === d}
+              keepScroll
+            >
+              <i aria-hidden="true" />
+              {cap(x)}
+            </A>
+          ))}
+        </nav>
+        {meta?.isExtreme && <span class="oy-xt gp-crimson">Extreme: health does not carry over</span>}
       </div>
       <Section
-        title="Islands"
+        tone={ODY_TONE[d]}
+        title={
+          <>
+            <Spr family="ui" k="Odyssey" size={34} />
+            Islands
+          </>
+        }
         aside={maps ? `${maps.length} maps, played in order` : undefined}
       >
         {maps ? (
-          <ol class="islands">
+          <ol class="islands oy-isls">
             {maps.map((m, i) => (
-              <li key={i} class="island">
+              <li key={i} class="island gc">
                 <span class="island-art">
-                  <MapArt
-                    framed
-                    map={m.map}
-                    url={m.mapURL}
-                    size={120}
-                    alt={`${mapName(m.map)} map`}
-                  />
+                  <MapArt map={m.map} url={m.mapURL} size={400} alt={`${mapName(m.map)} map`} />
+                  <b class="isl-n">{i + 1}</b>
                 </span>
                 <div class="island-b">
                   <p class="island-n">
-                    <span class="plate">{i + 1}</span>
                     <MapLine doc={m} />
                   </p>
                   <Ruleset doc={m} compact />
@@ -2833,29 +2900,32 @@ export function OdysseyPage(props: { id: string; d: OdyDiff }) {
         )}
       </Section>
       {meta ? (
-        <div class="split even">
-          <Section title="Boat">
-            <dl class="spec">
-              {/* Boat health and monkey seats are in the header; the cap on monkeys aboard is a limit, not the crew size below. */}
-              <Fact k="Boat capacity" v={`${meta.maxMonkeysOnBoat} monkeys`} />
-              <Fact k="Power slots" v={meta.maxPowerSlots} />
-              <Fact
-                k="Rewards"
-                v={
-                  meta._rewards.length ? (
-                    <Rewards rewards={meta._rewards} />
-                  ) : (
-                    "–"
-                  )
-                }
-              />
-            </dl>
+        <div class="split even oy-split">
+          <Section
+            tone="bronze"
+            title={
+              <>
+                <Spr family="ui" k="MaxTowers" size={34} />
+                Boat
+              </>
+            }
+          >
+            {/* Boat health and monkey seats are in the header; the cap on monkeys aboard is a limit, not the crew size below. */}
+            <div class="oy-facts">
+              <GStat art={<Spr family="ui" k="Towers" size={36} />} big={meta.maxMonkeysOnBoat} small="Boat capacity" />
+              <GStat art={<Spr family="ui" k="Powers" size={36} />} big={meta.maxPowerSlots} small="Power slots" />
+            </div>
+            <div class="rgroup">
+              <p class="rhead">
+                <span class="label">Rewards</span>
+              </p>
+              {meta._rewards.length ? <Rewards rewards={meta._rewards} /> : <p class="quiet">–</p>}
+            </div>
             <div class="rgroup">
               <p class="rhead">
                 <span class="label">Starting crew</span>
                 <span class="rhead-v quiet">
-                  {meta._defaultTowers.reduce((a, t) => a + t.quantity, 0)}{" "}
-                  monkeys at the start
+                  {meta._defaultTowers.reduce((a, t) => a + t.quantity, 0)} monkeys at the start
                 </span>
               </p>
               <Crew
@@ -2865,9 +2935,7 @@ export function OdysseyPage(props: { id: string; d: OdyDiff }) {
                   id: t.name,
                   n: t.quantity,
                 }))}
-                hero={(id) =>
-                  meta._availableTowers.some((a) => a.tower === id && a.isHero)
-                }
+                hero={(id) => meta._availableTowers.some((a) => a.tower === id && a.isHero)}
               />
             </div>
             {meta._defaultPowers.length > 0 && (
@@ -2887,12 +2955,14 @@ export function OdysseyPage(props: { id: string; d: OdyDiff }) {
             )}
           </Section>
           <Section
-            title="Allowed on the boat"
-            aside={
-              hasBans(meta._availableTowers, meta._availablePowers, true) ? (
-                <HideBannedToggle />
-              ) : undefined
+            tone="violet"
+            title={
+              <>
+                <Spr family="ui" k="Towers" size={34} />
+                Allowed
+              </>
             }
+            aside={hasBans(meta._availableTowers, meta._availablePowers, true) ? <HideBannedToggle game /> : undefined}
           >
             <HeroRule towers={meta._availableTowers} roster />
             <TowerRoster towers={meta._availableTowers} />

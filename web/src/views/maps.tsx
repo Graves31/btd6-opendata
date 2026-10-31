@@ -37,6 +37,7 @@ import {
   A,
   body,
   EvIcon,
+  GStat,
   peek,
   Section,
   Skeleton,
@@ -582,18 +583,6 @@ function YourMedals(p: { id: string }) {
   );
 }
 
-const MpStat = (p: {
-  art: ComponentChildren;
-  big: ComponentChildren;
-  small: string;
-}) => (
-  <div class="gc mp-stat">
-    {p.art}
-    <b class="gn">{p.big}</b>
-    <small>{p.small}</small>
-  </div>
-);
-
 export function MapPage(props: { id: string }) {
   const id = props.id;
   const loading = useMapData();
@@ -675,17 +664,17 @@ export function MapPage(props: { id: string }) {
           </div>
         </div>
         <div class="mp-stats">
-          <MpStat
+          <GStat
             art={<EvIcon k="boss" size={36} />}
             big={count(bosses.length)}
             small="Boss events"
           />
-          <MpStat
+          <GStat
             art={<EvIcon k="race" size={36} />}
             big={count(races.length)}
             small="Races"
           />
-          <MpStat
+          <GStat
             art={
               lb?.kind === "boss" ? (
                 <Spr family="boss" k={lb.type} size={36} label optional />
@@ -696,7 +685,7 @@ export function MapPage(props: { id: string }) {
             big={last(lb)}
             small="Last boss"
           />
-          <MpStat
+          <GStat
             art={<EvIcon k="race" size={36} />}
             big={last(lr)}
             small="Last race"
