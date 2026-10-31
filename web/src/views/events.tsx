@@ -160,6 +160,7 @@ const KIND_LABEL: Record<EventKind, string> = {
 };
 /** Lists with a lede (bosses have their stats strip; races explain themselves). */
 const KIND_BLURB: Partial<Record<EventKind, string>> = {
+  boss: "The bosses take turns, each with a Normal and an Elite leaderboard.",
   ct: "Teams claim hexagon tiles over a week. Players and teams are ranked separately.",
   race: "One map and one rule set each week. The fastest game time wins.",
   odyssey:
@@ -866,14 +867,7 @@ function ComingUp(props: { events: NKEvent[] }) {
 
 export function EventList(props: { kind: EventKind }) {
   const { kind } = props;
-  const every = allEvents(kind);
-  // Old CTs whose boards NK no longer publishes fold into one line instead of a row of dashes each.
-  const gone = kind === "ct" ? every.filter((e) => ctGone(e as CT)) : [];
-  const all =
-    gone.length && gone.length < every.length
-      ? every.filter((e) => !gone.includes(e))
-      : every;
-  const folded = all !== every ? gone.length : 0;
+  const all = allEvents(kind);
   // First frame: the cards on screen; the rest a frame later (useFullRender, like the boards).
   const full = useFullRender();
   const events = full
@@ -899,6 +893,82 @@ export function EventList(props: { kind: EventKind }) {
       </li>
     );
   };
+  if (kind === "boss") {
+    // Game panels around the boss list's own look: the boss-tinted banner cards, the boss order ring and the
+    // portrait strip stay as they are.
+    const live = events.filter((e) => status(e.start, e.end).s === "live");
+    const rest = events.filter((e) => !live.includes(e));
+    const soon = rest.some((e) => status(e.start, e.end).s === "upcoming");
+    return (
+      <>
+        <ToolHero
+          tone="rose"
+          art={<EvIcon k="boss" size={96} />}
+          eyebrow="Event"
+          title={KIND_LABEL.boss}
+          sub={KIND_BLURB.boss}
+        >
+          <Freshness k={LIST_KEY.boss} />
+          <BossOrder />
+        </ToolHero>
+        <Section
+          tone="violet"
+          class="bs-sec"
+          title={
+            <>
+              <Spr family="ui" k="BossTier" size={34} />
+              Boss stats
+            </>
+          }
+          aside={`${BOSS_TYPES.length} bosses`}
+        >
+          {/* One page per boss type (health per tier, skulls, spawns): each portrait is a prefetched link. The
+              span carries the boss's tint (A takes no data attributes). */}
+          <nav class="bs-strip" aria-label="Boss stats and skulls">
+            {BOSS_TYPES.map((t) => (
+              <span key={t} class="bs-cell" data-boss={t}>
+                <A href={href.bossstats(t)} class="bs-pick gc">
+                  <Spr family="boss" k={t} size={48} label optional />
+                  <span>{bossName(t)}</span>
+                </A>
+              </span>
+            ))}
+          </nav>
+        </Section>
+        {all.length === 0 && <Gate k={LIST_KEY.boss} />}
+        {live.length > 0 && (
+          <Section
+            tone="green"
+            title={
+              <>
+                <EvIcon k="boss" size={34} />
+                This week
+              </>
+            }
+            aside={<EvStatus start={live[0].start} end={live[0].end} />}
+          >
+            <ul class="events k-boss">{live.map(row)}</ul>
+          </Section>
+        )}
+        {rest.length > 0 && (
+          <Section
+            tone="blue"
+            title={
+              <>
+                <EvIcon k="boss" size={34} />
+                {soon ? "Upcoming and past" : "Past bosses"}
+              </>
+            }
+            aside={`${all.length - live.length} events`}
+          >
+            <ul class="events k-boss">{rest.map(row)}</ul>
+          </Section>
+        )}
+        {!peek(historyKey(kind)) && <p class="quiet">Loading older events…</p>}
+        <FullHistory key={kind} kind={kind} tone="bronze" />
+      </>
+    );
+  }
   if (kind === "odyssey" || kind === "race") {
     // Game panels (docs/game-ui.md): this week's event in green (live), the others in one blue panel.
     const ody = kind === "odyssey";
@@ -950,47 +1020,7 @@ export function EventList(props: { kind: EventKind }) {
       </>
     );
   }
-  return (
-    <>
-      <header class="page-h">
-        <h1 class="title ti">
-          <EvIcon k={kind} size={64} />
-          {KIND_LABEL[kind]}
-        </h1>
-        {KIND_BLURB[kind] && <p class="lede">{KIND_BLURB[kind]}</p>}
-        <Freshness k={LIST_KEY[kind]} />
-        {kind === "boss" && <BossOrder />}
-      </header>
-      {kind === "boss" && (
-        // One page per boss type (health per tier, skulls, spawns): each portrait is a prefetched link.
-        <nav class="bs-strip" aria-label="Boss stats and skulls">
-          <span class="bs-strip-l">
-            More about each boss — health, skulls and shields:
-          </span>
-          {BOSS_TYPES.map((t) => (
-            <A key={t} href={href.bossstats(t)} class="bs-pick" data-boss={t}>
-              <Spr family="boss" k={t} size={48} label optional />
-              <span>{bossName(t)}</span>
-            </A>
-          ))}
-        </nav>
-      )}
-      {all.length === 0 ? (
-        <Gate k={LIST_KEY[kind]} />
-      ) : (
-        <ul class={`events k-${kind}`}>
-          {events.map(row)}
-          {folded > 0 && (
-            <li class="ev-fold">
-              Older CTs: leaderboard no longer published ({folded})
-            </li>
-          )}
-        </ul>
-      )}
-      {!peek(historyKey(kind)) && <p class="quiet">Loading older events…</p>}
-      {kind === "boss" && <FullHistory key={kind} kind={kind} />}
-    </>
-  );
+  return null; // CT has its own list page (ctOverview.tsx)
 }
 
 /**
@@ -1882,7 +1912,7 @@ function BossDiffTabs(props: {
   return (
     <Tabs
       label="Difficulty"
-      class="bh-tabs"
+      class="bh-tabs gh gp-rose"
       items={(["standard", "elite"] as const).map((x) => {
         const t = b
           ? x === "elite"
@@ -2420,6 +2450,7 @@ export function BossPage(props: {
         boss={ev}
         fallback={pre ? bossTitle(pre) : "Boss event"}
         heading="h1"
+        class="gh gp-rose"
         share={
           ev && meta ? bossCard(ev, meta, d) : undefined
         }
@@ -2438,12 +2469,17 @@ export function BossPage(props: {
         />
       </BossHero>
       <BossDiffTabs id={id} boss={ev} d={d} n={n} />
-      <div class="bh-panel">
         <div class="split">
-          <section class="board-sec" aria-labelledby="lb-h">
-            <h2 class="vh" id="lb-h">
-              {lbName}
-            </h2>
+          <Section
+            tone="blue"
+            class="board-sec"
+            title={
+              <>
+                {scoring && <Spr family="ui" k={scoring} size={34} optional />}
+                Leaderboard
+              </>
+            }
+          >
             <div class="lb-bar lb-bar-t">
               <span class="lb-bar-l" aria-hidden="true">
                 Players
@@ -2583,7 +2619,7 @@ export function BossPage(props: {
               maxPages={maxPages}
               to={(x) => href.boss(id, d, n, x)}
             />
-          </section>
+          </Section>
           <aside class="rules" id="rules" ref={rulesRef}>
             {rows && rows.length > 0 && (
               <CutoffStrip
@@ -2593,17 +2629,22 @@ export function BossPage(props: {
                 scoreAt={scoreAt}
                 full={full}
                 coop={n > 1}
+                tone="bronze"
               />
             )}
-            <h2 class="kicker-h">{d === "elite" ? "Elite" : "Normal"} rules</h2>
-            {!full ? null : meta ? (
-              <Ruleset doc={meta} noPowers />
-            ) : (
-              <Gate k={metaKey} rows={4} />
-            )}
+            <Section
+              tone="violet"
+              title={
+                <>
+                  <Spr family="ui" k="Towers" size={34} />
+                  {d === "elite" ? "Elite" : "Normal"} rules
+                </>
+              }
+            >
+              {!full ? null : meta ? <Ruleset doc={meta} noPowers game /> : <Gate k={metaKey} rows={4} />}
+            </Section>
           </aside>
         </div>
-      </div>
     </>
   );
 }

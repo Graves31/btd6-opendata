@@ -5474,16 +5474,7 @@ button.fd-tile:hover {
   margin-right: 8px;
   color: var(--ink-3);
 }
-/* Everything below follows Normal / Elite, so it sits in one panel under the switch: two joined tiles, the
-   scoring as the headline (the two can differ), a frame and a notch that slide to the chosen one. */
-.bh-panel {
-  background: color-mix(in srgb, var(--s1) 55%, var(--bg));
-  border: 1px solid var(--rule-2);
-}
-.bh-panel > .split {
-  margin-top: 0;
-  padding: 20px 20px 4px;
-}
+/* Normal / Elite: two tiles, the scoring as the headline (the two can differ); the game cards are at the end. */
 .bh-tabs {
   position: relative;
   display: grid;
@@ -5671,9 +5662,6 @@ button.fd-tile:hover {
   .bt-s {
     font-size: 12px;
   }
-  .bh-panel > .split {
-    padding: 16px 16px 4px;
-  }
   .bh-maprow {
     font-size: 14px;
   }
@@ -5708,14 +5696,6 @@ button.fd-tile:hover {
   }
   .bh-mapsub > span:last-child {
     flex-basis: 100%;
-  }
-  .bh-panel {
-    margin: 0 calc(-1 * var(--gut));
-    border-left: 0;
-    border-right: 0;
-  }
-  .bh-panel > .split {
-    padding: 14px var(--gut) 4px;
   }
   .bh-side {
     padding: 12px var(--gut) 10px;
@@ -7402,11 +7382,6 @@ a.hist-map:hover {
   color: var(--ink);
   font-weight: 600;
 }
-.ev-fold {
-  padding: 12px 4px 4px;
-  font-size: 14px;
-  color: var(--ink-3);
-}
 @media (min-width: 861px) {
   .k-boss .ev-row {
     grid-template-columns: var(--art) minmax(0, 1fr) 230px 150px;
@@ -7417,12 +7392,7 @@ a.hist-map:hover {
   }
 }
 
-/* Boss list: the stats strip has a label and never splits a name mid-word. */
-.bs-strip-l {
-  grid-column: 1 / -1;
-  font: 700 13px/1 var(--f-body);
-  color: var(--ink-3);
-}
+/* Boss list: the stats strip never splits a name mid-word. */
 .bs-pick {
   font-size: 13px;
   letter-spacing: 0.03em;
@@ -13943,4 +13913,127 @@ a.oy-dp:focus-visible,
 .th-art > .emblem {
   width: 100% !important;
   height: 100% !important;
+}
+
+/* ─────────────────────────────── Boss game panels (docs/game-ui.md)
+   Event page: the boss banner in a rose game frame, Normal / Elite as two cards, board blue, cut-offs bronze,
+   rules violet. List: rose title card, the boss strip violet (each portrait card keeps its boss's colour as its
+   ledge), this week green, past blue. The boss-tinted banner cards stay as they are: they are the list's identity. */
+.bhero.gh {
+  margin: 0 0 16px;
+  padding: 0;
+  overflow: hidden;
+}
+.bhero.gh .bh-top,
+.bhero.gh .bh-maprow {
+  background: none;
+  border: 0;
+}
+.bhero.gh .bh-side {
+  border-left: 1px solid var(--gp-rim);
+}
+.bhero.gh .bh-maprow {
+  border-top: 1px solid var(--gp-rim);
+}
+.bhero.gh .bh-title {
+  -webkit-text-stroke: 6px var(--gp-stk);
+  paint-order: stroke fill;
+}
+@media (max-width: 1100px) {
+  .bhero.gh .bh-side {
+    border-left: 0;
+  }
+}
+@media (max-width: 700px) {
+  main > .bhero.gh:first-child {
+    margin: 0 0 16px;
+  }
+}
+/* Normal / Elite: two game cards, the picked one with the yellow edge (no sliding frame or notch) */
+.bh-tabs.gh {
+  gap: 10px;
+  margin: 0 0 20px;
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+.bh-tabs.gh::before,
+.bh-tabs.gh::after {
+  content: none;
+}
+.bh-tabs.gh .tab {
+  background: linear-gradient(180deg, #1c2643, #161f36);
+  border: 1px solid var(--gp-rim);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 var(--gp-led);
+}
+.bh-tabs.gh .tab:not(.on):hover {
+  background: linear-gradient(180deg, #1c2643, #161f36);
+  border-color: var(--accent);
+}
+.bh-tabs.gh .tab.on {
+  background: linear-gradient(180deg, #1c2643, #161f36);
+  border-color: var(--accent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #8a7406;
+}
+.bh-tabs.gh .tab.on::after {
+  background: #0b1220;
+  box-shadow: inset 0 0 0 6px var(--accent);
+}
+.bh-tabs.gh .bt-s {
+  -webkit-text-stroke: 4px var(--gp-stk);
+  paint-order: stroke fill;
+}
+.bh-tabs.gh .tab:not(.on) .bt-s {
+  color: var(--ink-2);
+}
+/* team size 1-4: plates like the pager's */
+.gp .lb-bar .tabs {
+  gap: 6px;
+  border: 0;
+}
+.gp .lb-bar .tab {
+  justify-content: center;
+  min-width: 38px;
+  color: #fff;
+  background: linear-gradient(180deg, var(--gp-1), var(--gp-2));
+  border: 2px solid var(--gp-dk);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 3px 0 #060a14;
+}
+.gp .lb-bar .tab:hover {
+  filter: brightness(1.12);
+}
+.gp .lb-bar .tab.on {
+  color: var(--on-accent);
+  background: linear-gradient(180deg, #ffe45c, #f5c400);
+  border-color: #6b5a00;
+}
+/* list: the boss order button sits in the title card's strip; the portraits are cards with their boss's ledge */
+.th-x .bo {
+  position: relative;
+  top: auto;
+  right: auto;
+  margin-left: auto;
+}
+.bs-sec .bs-strip {
+  margin-bottom: 0;
+}
+.bs-cell {
+  display: contents;
+}
+.bs-pick.gc {
+  color: #fff;
+  background: linear-gradient(180deg, #1c2643, #161f36);
+  border: 1px solid var(--gp-rim);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 rgb(var(--tint));
+}
+.bs-pick.gc:hover {
+  border-color: var(--accent);
+}
+/* the #2 plate's text is the page background, which panels don't reset: keep it dark in the light theme */
+.gp .plate.p2 {
+  color: #0b1220;
 }
