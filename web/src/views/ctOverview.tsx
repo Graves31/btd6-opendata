@@ -7,7 +7,8 @@ import { cutoffs, PAGE_SIZE } from "../medals.ts";
 import { byRecent, myTeam, nextMedal, onMyTeam, placings, type MyTeam, type TeamHistoryEntry } from "../myTeam.ts";
 import { ctCutoffsKey, ctKey, guildKey, historyKey, href, idFromUrl, teamHistoryKey } from "../routes.ts";
 import { store } from "../nav.ts";
-import { A, body, Emblem, EvIcon, Gate, peek, useFullRender, useTick } from "../ui.tsx";
+import { A, body, Emblem, EvIcon, Gate, peek, Section, ToolHero, useFullRender, useTick } from "../ui.tsx";
+import { Spr } from "../sprite.tsx";
 import { allEvents, ended, Medal } from "./events.tsx";
 import { HexThumb } from "./ctMap.tsx";
 
@@ -83,11 +84,19 @@ function MyTeamCard(p: { live?: CT }) {
   const next = stand ? nextMedal(cutoffs("ctTeam", stand.total), stand.rank, stand.score, snaps?.at(-1)?.ranks) : undefined;
   const best = placings(entries);
   return (
-    <section class="ctm" aria-label="My team">
+    <Section
+      tone="violet"
+      title={
+        <>
+          <Spr family="ui" k="CtBanner" size={34} />
+          My team
+        </>
+      }
+    >
+      <div class="ctm">
       <A href={href.team(my.id)} class="ctm-id">
         <TeamEmblem id={my.id} size={64} />
         <span class="ctm-name">
-          <span class="eyebrow">My team</span>
           <strong>{my.name}</strong>
         </span>
       </A>
@@ -130,7 +139,8 @@ function MyTeamCard(p: { live?: CT }) {
         )}
         {entries.length > 1 && <RankChips entries={entries} />}
       </div>
-    </section>
+      </div>
+    </Section>
   );
 }
 
@@ -148,7 +158,16 @@ function NowCard(p: { ct: CT; live: boolean }) {
   useWant(top.map((r) => guildKey(gid(r))));
   const tiles = tilesOf(ct.id);
   return (
-    <section class={`ctn ${live ? "live" : "soon"}`} aria-label={live ? "Contested Territory now" : "Next Contested Territory"}>
+    <Section
+      tone={live ? "green" : "teal"}
+      title={
+        <>
+          <Spr family="ui" k="ContestedTerritory" size={34} />
+          {live ? "This week" : "Next"}
+        </>
+      }
+    >
+      <div class={`ctn ${live ? "live" : "soon"}`}>
       <div class="ctn-h">
         <EvIcon k="ct" size={56} />
         <div class="ctn-hm">
@@ -161,7 +180,7 @@ function NowCard(p: { ct: CT; live: boolean }) {
             <Clock to={live ? ct.end : ct.start} />
           </p>
         </div>
-        <A href={href.ct(ct.id, "map")} class="ctn-btn">
+        <A href={href.ct(ct.id, "map")} class="ctn-btn gbtn go">
           Open the map →
         </A>
       </div>
@@ -204,7 +223,8 @@ function NowCard(p: { ct: CT; live: boolean }) {
           )}
         </div>
       </div>
-    </section>
+      </div>
+    </Section>
   );
 }
 
@@ -217,7 +237,7 @@ function PastCard(p: { ct: CT }) {
   const relics = relicsOf(ct.id);
   return (
     <li>
-      <A href={href.ct(ct.id, "teams")} class="ctp">
+      <A href={href.ct(ct.id, "teams")} class="ctp gc">
         <span class="ctp-hex">{tiles.length > 0 ? <HexThumb tiles={tiles} size={96} /> : <EvIcon k="ct" size={48} />}</span>
         <span class="ctp-main">
           <strong class="ctp-d">
@@ -259,27 +279,36 @@ export function CTOverview() {
   useWant([relicsKey]);
   return (
     <>
-      <header class="page-h">
-        <h1 class="title ti">
-          <EvIcon k="ct" size={64} />
-          Contested Territory
-        </h1>
-        <p class="lede">Teams claim hexagon tiles over a week. Players and teams are ranked separately.</p>
+      <ToolHero
+        tone="amber"
+        art={<EvIcon k="ct" size={96} />}
+        eyebrow="Weekly event"
+        title="Contested Territory"
+        sub="Teams claim hexagon tiles over a week. Players and teams are ranked separately."
+      >
         <Freshness k="/btd6/ct" />
-      </header>
+      </ToolHero>
       <MyTeamCard live={liveCt} />
       {all.length === 0 && <Gate k="/btd6/ct" />}
       {liveCt && <NowCard ct={liveCt} live />}
       {nextCt && <NowCard ct={nextCt} live={false} />}
       {past.length > 0 && (
-        <>
-          <h2 class="ctp-h">Past Contested Territories</h2>
+        <Section
+          tone="blue"
+          title={
+            <>
+              <EvIcon k="ct" size={34} />
+              Past CTs
+            </>
+          }
+          aside={`${past.length} CTs`}
+        >
           <ul class="ctp-grid">
             {shown.map((c) => (
               <PastCard key={c.id} ct={c} />
             ))}
           </ul>
-        </>
+        </Section>
       )}
       {!peek(historyKey("ct")) && <p class="quiet">Loading older events…</p>}
     </>

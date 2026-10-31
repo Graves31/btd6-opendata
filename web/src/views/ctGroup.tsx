@@ -32,7 +32,10 @@ import {
   Rank,
   Section,
   Skeleton,
+  ToolHero,
+  EvIcon,
 } from "../ui.tsx";
+import { Spr } from "../sprite.tsx";
 import { NotFound } from "./errors.tsx";
 import { ended, findEvent, isMissing, lbMeta, CutRow, Medal, RankTh } from "./events.tsx";
 export function CTGroupPage(props: { id: string; gid: string }) {
@@ -79,34 +82,44 @@ export function CTGroupPage(props: { id: string; gid: string }) {
   );
   return (
     <>
-      <header class="page-h">
-        <p class="eyebrow">
-          {backTo() ? (
-            <>Contested Territory{ev ? ` · ${fmtDay(ev.start)}` : ""}</>
-          ) : (
-            <A href={href.ct(props.id, "teams")}>
-              ‹ Contested Territory{ev ? ` · ${fmtDay(ev.start)}` : ""}
-            </A>
-          )}
+      {!backTo() && (
+        <p class="grp-up">
+          <A href={href.ct(props.id, "teams")}>‹ Contested Territory{ev ? ` · ${fmtDay(ev.start)}` : ""}</A>
         </p>
-        <h1 class="title ti">
-          {leader && <TeamEmblem id={idFromUrl(leader.profile)} size={64} />}
-          Team group
-        </h1>
-        <p class="lede">
-          Teams in the same CT group compete for the same tiles.
-          {leader && (
-            <>
-              {" "}
-              <A href={href.team(idFromUrl(leader.profile))}>{leader.displayName}</A> leads with{" "}
-              <b class="num">{fmtInt(leader.score)}</b> points.
-            </>
-          )}
-        </p>
+      )}
+      <ToolHero
+        tone="amber"
+        art={leader ? <TeamEmblem id={idFromUrl(leader.profile)} size={96} /> : <EvIcon k="ct" size={96} />}
+        eyebrow={`Contested Territory${ev && backTo() ? ` · ${fmtDay(ev.start)}` : ""}`}
+        title="Team group"
+        sub={
+          <>
+            Teams in the same CT group compete for the same tiles.
+            {leader && (
+              <>
+                {" "}
+                <A href={href.team(idFromUrl(leader.profile))}>{leader.displayName}</A> leads with{" "}
+                <b class="num">{fmtInt(leader.score)}</b> points.
+              </>
+            )}
+          </>
+        }
+      >
         <Freshness k={key} ended={ended(ev)} />
-      </header>
+      </ToolHero>
       <Gate k={key} />
       {rows && (
+        <Section
+          tone="blue"
+          class="grp-sec"
+          title={
+            <>
+              <Spr family="ui" k="CtBanner" size={34} />
+              Group
+            </>
+          }
+          aside={`${rows.length} teams`}
+        >
         <div class="board-wrap narrow">
           <table class="board lb" aria-label="Group leaderboard">
             <thead>
@@ -159,12 +172,11 @@ export function CTGroupPage(props: { id: string; gid: string }) {
             </tbody>
           </table>
         </div>
-      )}
-      {rows && (
         <p class="grp-note quiet">
           The line under a medal row is the cut-off: the last place that still earns that group medal. A team
           marked (disbanded) no longer exists; its points are still listed. Bars show points against the group's first.
         </p>
+        </Section>
       )}
     </>
   );

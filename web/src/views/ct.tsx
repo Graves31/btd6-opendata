@@ -50,11 +50,11 @@ import {
   body,
   Emblem,
   Gate,
+  GStat,
   Pager,
   peek,
   Rank,
   Section,
-  Stat,
 } from "../ui.tsx";
 import { NotFound } from "./errors.tsx";
 import { boardGone, CutRow, CutoffStrip, ended, EventHead, findEvent, isMissing, lbMeta, Medal, RankTh, useFits } from "./events.tsx";
@@ -63,6 +63,8 @@ import { HexMap, HexThumb, HexTilePanel, TileKey } from "./ctMap.tsx";
 
 const CT_TABS = ["teams", "players", "map"] as const;
 const TAB_LABEL = { teams: "Teams", players: "Players", map: "Map" } as const;
+/** ui icon per tab (and its panel title). */
+const TAB_ICON = { teams: "CtBanner", players: "Towers", map: "ContestedTerritory" } as const;
 
 /** Loads keys into the store once the page is up (batched; what the route already holds is not refetched). */
 function useWant(keys: string[]): void {
@@ -142,37 +144,35 @@ export function CTPage(props: { id: string; tab: CTTab; p: number }) {
           ev ? `${fmtDay(ev.start)} – ${fmtDay(ev.end)}` : "Contested Territory"
         }
         ev={ev}
+        tone="amber"
         backdrop={tiles && <HexThumb tiles={tiles} size={420} />}
         stats={
           ev &&
           (upcoming ? (
             ts && (
               <>
-                <Stat k="Tiles" v={fmtInt(ts.tiles)} />
-                <Stat k="Relics" v={fmtInt(ts.relics)} />
-                <Stat k="Banners" v={fmtInt(ts.banners)} />
-                <Stat k="Team starts" v={fmtInt(ts.starts)} />
+                <GStat art={<Spr family="ui" k="ContestedTerritory" size={36} />} big={fmtInt(ts.tiles)} small="Tiles" />
+                <GStat art={<Spr family="ui" k="Relic" size={36} />} big={fmtInt(ts.relics)} small="Relics" />
+                <GStat art={<Spr family="ui" k="CtBanner" size={36} />} big={fmtInt(ts.banners)} small="Banners" />
+                <GStat art={<Spr family="ui" k="StartRound" size={36} />} big={fmtInt(ts.starts)} small="Team starts" />
               </>
             )
           ) : (
             <>
               {winner && done && !gone && (
-                <div class="stat ct-winner">
-                  <dt>Winner</dt>
-                  <dd>
-                    <A href={href.team(idFromUrl(winner.profile))} class="ct-win">
-                      {wg && <Emblem frame={wg.frameURL} icon={wg.iconURL} size={56} eager />}
-                      <span class="ct-win-t">
-                        <strong>{winner.displayName}</strong>
-                        <span>{fmtInt(winner.score)} pts</span>
-                      </span>
-                    </A>
-                  </dd>
-                </div>
+                <A href={href.team(idFromUrl(winner.profile))} class="gc mp-stat ct-winner">
+                  {wg ? (
+                    <Emblem frame={wg.frameURL} icon={wg.iconURL} size={44} eager />
+                  ) : (
+                    <Spr family="ui" k="CtPoints" size={36} />
+                  )}
+                  <b class="gn">{winner.displayName}</b>
+                  <small>Winner · {fmtInt(winner.score)} pts</small>
+                </A>
               )}
-              <Stat k="Teams" v={n(ev.totalScores_team)} />
-              <Stat k="Players" v={n(ev.totalScores_player)} />
-              {live && <Stat k="Top score" v={winner ? fmtInt(winner.score) : "–"} />}
+              <GStat art={<Spr family="ui" k="CtBanner" size={36} />} big={n(ev.totalScores_team)} small="Teams" />
+              <GStat art={<Spr family="ui" k="Towers" size={36} />} big={n(ev.totalScores_player)} small="Players" />
+              {live && <GStat art={<Spr family="ui" k="CtPoints" size={36} />} big={winner ? fmtInt(winner.score) : "–"} small="Top score" />}
             </>
           ))
         }
@@ -181,17 +181,19 @@ export function CTPage(props: { id: string; tab: CTTab; p: number }) {
         <nav class="tabs" aria-label="Contested Territory">
           {CT_TABS.map((t) =>
             upcoming && t !== "map" ? (
-              <span key={t} class="tab dis" aria-disabled="true">
+              <span key={t} class="tab gc gp-amber ct-tab dis" aria-disabled="true">
+                <Spr family="ui" k={TAB_ICON[t]} size={26} />
                 {TAB_LABEL[t]}
               </span>
             ) : (
               <A
                 key={t}
                 href={href.ct(id, t)}
-                class={t === tab ? "tab on" : "tab"}
+                class={t === tab ? "tab gc gp-amber ct-tab on" : "tab gc gp-amber ct-tab"}
                 current={t === tab}
                 keepScroll
               >
+                <Spr family="ui" k={TAB_ICON[t]} size={26} />
                 {TAB_LABEL[t]}
               </A>
             ),
@@ -226,10 +228,16 @@ export function CTPage(props: { id: string; tab: CTTab; p: number }) {
           )}
           {tab !== "map" && (
             <div class="split ct-split">
-              <section class="board-sec" aria-labelledby="lb-h">
-                <h2 class="vh" id="lb-h">
-                  {tab === "players" ? "Player" : "Team"} leaderboard
-                </h2>
+              <Section
+                tone="blue"
+                class="board-sec"
+                title={
+                  <>
+                    <Spr family="ui" k={TAB_ICON[tab]} size={34} />
+                    {tab === "players" ? "Players" : "Teams"}
+                  </>
+                }
+              >
                 <div class="lb-bar">
                   <Freshness
                     k={key}
@@ -271,7 +279,7 @@ export function CTPage(props: { id: string; tab: CTTab; p: number }) {
                   maxPages={maxPages}
                   to={(x) => href.ct(id, tab, x)}
                 />
-              </section>
+              </Section>
               <aside class="co-aside" ref={asideRef}>
                 {rows && rows.length > 0 && (
                   <CutoffStrip
@@ -280,6 +288,7 @@ export function CTPage(props: { id: string; tab: CTTab; p: number }) {
                     total={total}
                     scoreAt={scoreAt}
                     trendAt={trendAt}
+                    tone="bronze"
                   />
                 )}
               </aside>
@@ -554,12 +563,23 @@ function CTMapTab(props: { id: string; tiles?: CTTile[] }) {
   const kinds = Object.entries(ts.games).sort((a, b) => b[1] - a[1]);
   return (
     <div class="ctv">
+      <Section
+        tone="teal"
+        class="ctv-sec"
+        title={
+          <>
+            <Spr family="ui" k="ContestedTerritory" size={34} />
+            Map
+          </>
+        }
+        aside={`${ts.tiles} tiles`}
+      >
       <div class="ctv-chips" role="group" aria-label="Filter by game type">
-        <button type="button" aria-pressed={!game} onClick={() => setGame(undefined)}>
+        <button type="button" class={!game ? "gc on" : "gc"} aria-pressed={!game} onClick={() => setGame(undefined)}>
           All <span class="num">{ts.tiles}</span>
         </button>
         {FILTERS.filter((g) => ts.games[g]).map((g) => (
-          <button key={g} type="button" aria-pressed={game === g} onClick={() => setGame(game === g ? undefined : g)}>
+          <button key={g} type="button" class={game === g ? "gc on" : "gc"} aria-pressed={game === g} onClick={() => setGame(game === g ? undefined : g)}>
             <GameBadge g={g} size={20} /> <span class="num">{ts.games[g]}</span>
           </button>
         ))}
@@ -572,7 +592,17 @@ function CTMapTab(props: { id: string; tiles?: CTTile[] }) {
           <HexTilePanel tile={tiles.find((t) => t.id === sel)} />
         </aside>
       </div>
-      <Section title="Tiles by game type" aside={`${ts.tiles} tiles · ${ts.banners} banners`}>
+      </Section>
+      <Section
+        tone="violet"
+        title={
+          <>
+            <Spr family="ui" k="CtPoints" size={34} />
+            Tiles by game type
+          </>
+        }
+        aside={`${ts.tiles} tiles · ${ts.banners} banners`}
+      >
         <ol class="ctv-bar" aria-hidden="true">
           {kinds.map(([k, v]) => (
             <li key={k} class={`g-${k}`} style={{ flex: v }} title={`${GAME_TYPE[k] ?? human(k)}: ${v}`}>
@@ -592,7 +622,16 @@ function CTMapTab(props: { id: string; tiles?: CTTile[] }) {
         </ul>
         {mix && <p class="quiet small">"Usually" is the average of the last {mix.of} CTs.</p>}
       </Section>
-      <Section title="Relics" aside={`${relics.length}${game ? ` ${GAME_TYPE[game]}` : ""} on the map`}>
+      <Section
+        tone="rose"
+        title={
+          <>
+            <Spr family="ui" k="Relic" size={34} />
+            Relics
+          </>
+        }
+        aside={`${relics.length}${game ? ` ${GAME_TYPE[game]}` : ""} on the map`}
+      >
         {relics.length === 0 ? (
           <p class="quiet">No relics in this CT.</p>
         ) : (
@@ -611,7 +650,7 @@ function CTMapTab(props: { id: string; tiles?: CTTile[] }) {
                 <li key={t.id}>
                   <button
                     type="button"
-                    class={sel === t.id ? "rc on" : "rc"}
+                    class={sel === t.id ? "rc gc on" : "rc gc"}
                     aria-pressed={sel === t.id}
                     onClick={() => pick(t.id)}
                     title={info.description ? `${info.name}: ${info.description}` : info.name}
