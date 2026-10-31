@@ -5,6 +5,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 os.chdir(ROOT)
 import build_art as B
+import logo_font as L
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 W, H = 1200, 630
@@ -32,13 +33,16 @@ base = img.convert("RGBA"); base.alpha_composite(g); base.alpha_composite(layer)
 
 dr = ImageDraw.Draw(base)
 F = lambda n, s: ImageFont.truetype(n, s)
-black = "C:/Windows/Fonts/seguibl.ttf" if Path("C:/Windows/Fonts/seguibl.ttf").exists() else "C:/Windows/Fonts/ariblk.ttf"
 bold = "C:/Windows/Fonts/segoeuib.ttf"
-dr.text((64, 180), "BTD6", font=F(black, 132), fill=(255, 214, 64))
-dr.text((64, 330), "OPEN DATA", font=F(black, 84), fill=(245, 247, 250))
+# The logo (scripts/logo_font.py, the header's game-logo wordmark): "BTD6" over "OPEN DATA", tilted like the header.
+logo = Image.new("RGBA", (560, 300))
+bt, od = L.word("BTD6", 150, L.WHITE, 12), L.word("OPEN DATA", 74, L.YELLOW, 8)
+logo.alpha_composite(bt, (0, 0))
+logo.alpha_composite(od, (6, bt.height - 14))
+logo = logo.rotate(4, resample=Image.BICUBIC, expand=True)
+base.alpha_composite(logo, (40, 96))
 dr.text((68, 450), "Boss, race & CT leaderboards,", font=F(bold, 34), fill=(190, 200, 220))
-dr.text((68, 494), "player profiles and event rules", font=F(bold, 34), fill=(190, 200, 220))
-dr.rectangle([64, 150, 184, 158], fill=(255, 214, 64))
+dr.text((68, 494), "player profiles and game tools", font=F(bold, 34), fill=(190, 200, 220))
 out = ROOT / "web/public/og.jpg"
 base.convert("RGB").save(out, quality=86, optimize=True, progressive=True)
 print(out, out.stat().st_size)

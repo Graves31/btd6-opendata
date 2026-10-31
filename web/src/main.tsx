@@ -5,6 +5,7 @@ import { bossName, bossTitle, dailyTitle, fmtDay, mapName } from "./format.ts";
 import { backTo, onRoute, refreshNow, route as initialRoute, routeCommitted, setBackLabeler, store } from "./nav.ts";
 import { challengeKey, guildKey, historyKey, href, LIST_KEY, needs, userKey, type EventKind, type Route } from "./routes.ts";
 import "./fonts.css";
+import "./logo-font.css";
 import { homePicks } from "./picks.ts";
 import "./styles.css";
 import { warmAllOnIdle, warmFor } from "./sprite.tsx";
