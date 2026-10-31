@@ -57,7 +57,7 @@ import {
   type BossStatsRoute,
 } from "../routes.ts";
 import { hasArt, Spr } from "../sprite.tsx";
-import { A, body, Img, peek, Skeleton, StatusBadge, Tabs } from "../ui.tsx";
+import { A, body, EvIcon, Img, peek, Section, Skeleton, StatusBadge, Tabs } from "../ui.tsx";
 import { allEvents, bossLabel, eventHref, OLD_NOTE } from "./events.tsx";
 
 const PAST_SHOWN = 8;
@@ -450,7 +450,7 @@ export function BossStatsPage(props: { r: BossStatsRoute }) {
       <A href={back.href} class="backlink">
         <span aria-hidden="true">‹</span> {back.label}
       </A>
-      <header class="bhero bs-hero">
+      <header class="bhero bs-hero gh gp-rose">
         <div class="bh-top">
           <span class="bh-art">
             <Img
@@ -581,7 +581,7 @@ function StatsBody(props: {
 
   return (
     <div class="bs-page">
-      <div class="bs-controls">
+      <div class="bs-controls gp-rose">
         <Tabs
           label="Difficulty"
           class="bs-tabs"
@@ -664,10 +664,16 @@ function StatsBody(props: {
 
       <div class="bs-grid">
         <div class="bs-stack">
-          <section class="bs-plate bs-health" aria-labelledby="bs-hp-h">
-            <h2 class="kicker-h" id="bs-hp-h">
-              Health per tier
-            </h2>
+          <Section
+            tone="green"
+            class="bs-plate bs-health"
+            title={
+              <>
+                <Spr family="ui" k="BossTier" size={34} />
+                Health per tier
+              </>
+            }
+          >
             <div class="bs-th" aria-hidden="true">
               <span>Tier</span>
               <span>Health</span>
@@ -719,12 +725,18 @@ function StatsBody(props: {
               {speedCompare(modSpeed(tier.speed, mods), data.speed)}. Game
               units.
             </p>
-          </section>
+          </Section>
           {kill && (
-            <section class="bs-plate bs-kill" aria-labelledby="bs-kt-h">
-              <h2 class="kicker-h" id="bs-kt-h">
-                Minimum kill time
-              </h2>
+            <Section
+              tone="amber"
+              class="bs-plate bs-kill"
+              title={
+                <>
+                  <Spr family="ui" k="GameTime" size={34} />
+                  Minimum kill time
+                </>
+              }
+            >
               <label class="bs-check">
                 <input
                   type="checkbox"
@@ -797,13 +809,20 @@ function StatsBody(props: {
                     ` Assumed here to include the ${backInv} s invulnerability; the wiki doesn't say.`}
                 </li>
               </ul>
-            </section>
+            </Section>
           )}
           {active.length > 0 && (
-            <section class="bs-plate bs-active" aria-labelledby="bs-ac-h">
-              <h2 class="kicker-h" id="bs-ac-h">
-                Always active · {elite ? "Elite" : "Normal"} T{r.t}
-              </h2>
+            <Section
+              tone="violet"
+              class="bs-plate bs-active"
+              title={
+                <>
+                  <Spr family="ui" k="BossBoost" size={34} />
+                  Always active
+                </>
+              }
+              aside={`${elite ? "Elite" : "Normal"} T${r.t}`}
+            >
               <ul class="bs-lines">
                 {active.map((l) => (
                   <li key={l.text}>
@@ -814,14 +833,21 @@ function StatsBody(props: {
                   </li>
                 ))}
               </ul>
-            </section>
+            </Section>
           )}
         </div>
 
-        <section class="bs-plate bs-skulls-plate" aria-labelledby="bs-sk-h">
-          <h2 class="kicker-h" id="bs-sk-h">
-            Skulls · {elite ? "Elite" : "Normal"} T{r.t}
-          </h2>
+        <Section
+          tone="crimson"
+          class="bs-plate bs-skulls-plate"
+          title={
+            <>
+              <Skull size={34} />
+              Skulls
+            </>
+          }
+          aside={`${elite ? "Elite" : "Normal"} T${r.t}`}
+        >
           <BossBar
             type={r.type}
             name={boss.name}
@@ -914,13 +940,19 @@ function StatsBody(props: {
               ))}
             </ol>
           )}
-        </section>
+        </Section>
 
         {spawns.length > 0 && (
-          <section class="bs-plate bs-spawns-plate" aria-labelledby="bs-sp-h">
-            <h2 class="kicker-h" id="bs-sp-h">
-              Spawns
-            </h2>
+          <Section
+            tone="teal"
+            class="bs-plate bs-spawns-plate"
+            title={
+              <>
+                <Spr family="ui" k="BloonBoost" size={34} />
+                Spawns
+              </>
+            }
+          >
             <ul class="bs-spawns">
               {spawns.map(({ s, levels }) => {
                 const nm = spawnName(s);
@@ -955,13 +987,20 @@ function StatsBody(props: {
             <p class="bs-note quiet">
               HP of one, by the boss tier that spawns it.
             </p>
-          </section>
+          </Section>
         )}
 
-        <section class="bs-plate bs-past-plate" aria-labelledby="bs-pe-h">
-          <h2 class="kicker-h" id="bs-pe-h">
-            Past events <span class="bs-count num">{shown}</span>
-          </h2>
+        <Section
+          tone="blue"
+          class="bs-plate bs-past-plate"
+          title={
+            <>
+              <EvIcon k="boss" size={34} />
+              <span id="bs-pe-h">Past events</span>
+            </>
+          }
+          aside={`${shown} events`}
+        >
           {shown === 0 && <p class="quiet">None in the lists yet.</p>}
           <ul class="bs-past">
             {past.map((x) => {
@@ -1048,11 +1087,16 @@ function StatsBody(props: {
           {!peek(historyKey("boss")) && (
             <p class="quiet">Loading older events…</p>
           )}
-        </section>
+        </Section>
       </div>
 
-      <details class="bs-plate bs-about">
-        <summary>About this data</summary>
+      <details class="bs-plate bs-about gp gp-bronze gp-fold">
+        <summary class="sec-h">
+          <h2>
+            <Spr family="ui" k="Quest" size={34} />
+            About this data
+          </h2>
+        </summary>
         <ul class="bs-words">
           {boss.desc.map((d) => (
             <li key={d}>{d}</li>

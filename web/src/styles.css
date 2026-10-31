@@ -6333,19 +6333,9 @@ button.fd-tile:hover {
 .bs-page > * {
   min-width: 0;
 }
+/* each block is a game panel (<Section tone>); .bs-plate only places it in the grid */
 .bs-plate {
   min-width: 0;
-  padding: 14px;
-  background: var(--s1);
-  border: 1px solid var(--rule);
-  border-radius: var(--r);
-}
-.bs-plate .kicker-h {
-  margin-bottom: 10px;
-}
-.bs-count {
-  color: var(--ink-3);
-  letter-spacing: 0;
 }
 .bs-note {
   margin-top: 8px;
@@ -7324,21 +7314,6 @@ a.hist-map:hover {
   font: 700 12px/1 var(--f-body);
   color: var(--ink-3);
   margin-right: -10px;
-}
-.bs-about {
-  padding: 0;
-}
-.bs-about summary {
-  padding: 14px;
-  cursor: pointer;
-  font-weight: 600;
-  color: var(--ink-2);
-}
-.bs-about[open] summary {
-  color: var(--ink);
-}
-.bs-about > :not(summary) {
-  margin: 0 14px 14px;
 }
 .bs-about .bs-foot {
   margin-top: 10px;
@@ -14036,4 +14011,77 @@ a.oy-dp:focus-visible,
 /* the #2 plate's text is the page background, which panels don't reset: keep it dark in the light theme */
 .gp .plate.p2 {
   color: #0b1220;
+}
+
+/* ─────────────────────────────── Boss stats game panels (docs/game-ui.md)
+   Banner in the rose frame (as on the event page), Normal / Elite as cards and T1-T5 as plates; health green,
+   kill time amber, always active violet, skulls crimson, spawns teal, past events blue, about a bronze fold. */
+.bhero.gh .bs-title {
+  -webkit-text-stroke: 6px var(--gp-stk);
+  paint-order: stroke fill;
+}
+@media (max-width: 700px) {
+  .bhero.gh.bs-hero .bh-side {
+    border-top: 1px solid var(--gp-rim);
+  }
+}
+.bs-controls .bs-tabs {
+  gap: 10px;
+  border: 0;
+}
+.bs-controls .bs-tabs .tab {
+  color: #c4cbd8;
+  background: linear-gradient(180deg, #1c2643, #161f36);
+  border: 1px solid var(--gp-rim);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 var(--gp-led);
+}
+.bs-controls .bs-tabs .tab:hover {
+  border-color: var(--accent);
+}
+.bs-controls .bs-tabs .tab.on {
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #8a7406;
+}
+.bs-controls .bs-tabs .tab .bt-s {
+  color: inherit;
+}
+.bs-controls .bs-seg {
+  gap: 6px;
+  overflow: visible;
+  border: 0;
+}
+.bs-controls .bs-seg button,
+.gp .bs-more {
+  color: #fff;
+  background: linear-gradient(180deg, var(--gp-1), var(--gp-2));
+  border: 2px solid var(--gp-dk);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 3px 0 #060a14;
+}
+.bs-controls .bs-seg button:hover,
+.gp .bs-more:hover {
+  background: linear-gradient(180deg, var(--gp-1), var(--gp-2));
+  filter: brightness(1.12);
+}
+.bs-controls .bs-seg button.on {
+  color: var(--on-accent);
+  background: linear-gradient(180deg, #ffe45c, #f5c400);
+  border-color: #6b5a00;
+}
+.bs-controls .bs-seg button:active,
+.gp .bs-more:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 1px 0 #060a14;
+}
+/* inside these panels the page background (wells, bar tracks, spawn cards) stays the dark one in both themes */
+.bs-page .gp {
+  --bg: #0c111d;
+}
+.gp .bs-spawn {
+  background: linear-gradient(180deg, #1c2643, #161f36);
+  border: 1px solid var(--gp-rim);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 var(--gp-led);
 }
