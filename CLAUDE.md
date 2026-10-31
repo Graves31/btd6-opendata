@@ -31,7 +31,8 @@ architecture; this file is how to work on it.
   `npm run art` (venv `.venv-art`): `web/src/art/*` sprite sheets, `web/public/art/maps`, `web/src/data/names.ts`
   (map/ability/relic names), `web/src/data/rounds/*` (85 round sets: the game's 54 + NK's event sets from the game's
   cached server settings, so launch the game once before `npm run art`), `web/src/data/paragons.json` (`build_paragons.py`; v56.3 frozen in
-  `paragons-56.json` for the old/new toggle), `web/src/data/heroes.json` (`build_heroes.py`: hero level XP, hero MK, level texts). `scripts/build_og.py` → `web/public/og.jpg`; `scripts/build_icons.py` → site icon (favicon.svg/.ico, apple-touch-icon.png). `node scripts/boss_history.ts` → `web/src/data/bossHistory.ts`
+  `paragons-56.json` for the old/new toggle), `web/src/data/heroes.json` (`build_heroes.py`: hero level XP, hero MK, level texts). `scripts/build_og.py` → `web/public/og.jpg`; `scripts/build_icons.py` → the logo's icons (favicon.svg/.ico, apple-touch-icon.png) and `web/src/logo-font.css`
+  (the logo's letters of Luckiest Guy, inlined); both scripts draw the logo via `scripts/logo_font.py` (needs fontTools in `.venv-art`). `node scripts/boss_history.ts` → `web/src/data/bossHistory.ts`
   (boss events before the archive: bloonswiki.com exact times over the old Fandom list, which still fills gaps; numbering checked against archived NK ids); `node scripts/race_history.ts`
   → `web/src/data/raceHistory.ts` (bloonswiki.com races, Dec 2018 – Dec 2025). Both fill newer events from a community list whose URL is only in
   the `EVENT_LIST_BASE` env var (unset = keep the rows already there); never name that site in the repo or commits.

@@ -87,7 +87,9 @@ frames changed. The tone of every page, for reference when touching one:
 | `/stats` | blue | totals blue, chart teal, top lists one colour each |
 | errors, offline | `.gh` title card: amber, warnings crimson, busy and offline blue | |
 
-Back links (`‹ Maps`, `‹ Boss events`) are small blue plates. Pages opened from a list or board get one
+The logo is the game-logo wordmark: "BTD6" white and "Open Data" yellow in Luckiest Guy (`logo-font.css`, inlined),
+heavy dark-blue outline, two-step drop, tilted -4°; only "BTD6" under 900 px. The favicon, phone icon and link preview
+are drawn from the same font and colours (`scripts/logo_font.py`). Back links (`‹ Maps`, `‹ Boss events`) are small blue plates. Pages opened from a list or board get one
 (`BACK_ON` in main.tsx); a tab or page of the same page keeps it (nav.ts).
 
 ## New page checklist
