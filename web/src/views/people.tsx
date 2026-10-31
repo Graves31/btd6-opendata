@@ -8,7 +8,7 @@ import { Ruleset } from "../rules.tsx";
 import { challengeKey, DAILY_KEY, guildKey, href, idFromUrl, isPublicId, userKey } from "../routes.ts";
 import { hasArt, MEDAL_NAME, MODE_NAME, Spr } from "../sprite.tsx";
 
-import { A, body, Emblem, Gate, GStat, Img, Section, Stat } from "../ui.tsx";
+import { A, body, Emblem, Gate, GStat, Img, Section } from "../ui.tsx";
 import { backTo } from "../nav.ts";
 import { looksLikeMe, setPlayerId, useOak } from "../oak.ts";
 import { CTHistory } from "./ctGroup.tsx";
@@ -621,12 +621,13 @@ export function ChallengePage(props: { id: string }) {
         showMap
         map={c}
         eyebrow={eyebrow}
+        tone="bronze"
         title={daily ? (dailyTitle(props.id) ?? c.name) : <span class="uname">{c.name}</span>}
         stats={
           <>
-            <Stat k="Win rate" v={rate !== null ? fmtPct(rate) : "–"} note="of players" />
-            <Stat k="Players" v={fmtCompact(c.playsUnique)} />
-            {c.upvotes > 0 && <Stat k="Upvotes" v={fmtInt(c.upvotes)} />}
+            <GStat art={ic("Trophy")} big={rate !== null ? fmtPct(rate) : "–"} small="Win rate" note="of players" acc />
+            <GStat art={ic("GamesPlayed")} big={fmtCompact(c.playsUnique)} small="Players" />
+            {c.upvotes > 0 && <GStat art={ic("Achievement")} big={fmtInt(c.upvotes)} small="Upvotes" />}
           </>
         }
       >
@@ -652,7 +653,7 @@ export function ChallengePage(props: { id: string }) {
         </p>
       </EventHead>
       <div class="split">
-        <Section title="Play stats" aside={isDaily && !dailyIsOut(props.id, Date.now()) ? "Not started yet" : undefined}>
+        <Section tone="blue" title={lbl("GamesPlayed", "Play stats")} aside={isDaily && !dailyIsOut(props.id, Date.now()) ? "Not started yet" : undefined}>
           <div class="board-wrap narrow play-stats">
             <table class="board compact">
               <thead>
@@ -693,10 +694,9 @@ export function ChallengePage(props: { id: string }) {
           </div>
         </Section>
         <aside class="rules" id="rules">
-          <header class="sec-h">
-            <h2>Rules</h2>
-          </header>
-          <Ruleset doc={c} />
+          <Section tone="violet" title={lbl("Towers", "Rules")}>
+            <Ruleset doc={c} game />
+          </Section>
         </aside>
       </div>
     </>

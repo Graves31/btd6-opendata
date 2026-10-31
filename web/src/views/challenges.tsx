@@ -24,7 +24,7 @@ import { navigate, store } from "../nav.ts";
 import { CHALLENGE_FILTERS, CHALLENGE_LABEL, challengeKey, challengeListKey, DAILY_KEY, href, idFromUrl, userKey, type ChallengeFilter } from "../routes.ts";
 import { dayBadge, matchesText, olderDaily, ruleChipData, searchTargets, splitDaily, type Kind, type Series } from "../challenges.ts";
 import { MapArt, MODE_NAME, Spr } from "../sprite.tsx";
-import { A, body, Bug, EvIcon, Gate, peek, Section, Tabs } from "../ui.tsx";
+import { A, body, Bug, EvIcon, Gate, peek, Section, Tabs, ToolHero } from "../ui.tsx";
 
 const BLURB: Record<ChallengeFilter, string> = {
   daily: "A new standard and advanced challenge every day, plus the co-op daily. Open one for its full rules and win rate.",
@@ -35,6 +35,8 @@ const FIRST_FACT = 1; // lines[0] is the blurb (see ChallengesPage), the facts f
 const PAGE_SIZE = 25; // NK's page size for the newest / trending feeds
 
 const NOW_LABEL = { standard: "Standard", advanced: "Advanced", coop: "Co-op" } as const;
+/** Each daily series' panel colour follows its card colour (standard gold, advanced red, co-op blue). */
+const SERIES_TONE = { standard: "amber", advanced: "crimson", coop: "blue" } as const;
 
 const media = (q: string) => typeof matchMedia === "function" && matchMedia(q).matches;
 const docOf = (id: string) => body<ChallengeDocument>(challengeKey(id));
@@ -155,15 +157,11 @@ export function ChallengesPage(props: { filter: ChallengeFilter; p: number }) {
   const lists = { needle, clear: () => setQ(""), older: olderHref };
   return (
     <>
-      <header class="page-h">
-        <h1 class="title ti">
-          <EvIcon k="daily" size={64} />
-          Challenges
-        </h1>
+      <ToolHero tone="bronze" art={<EvIcon k="daily" size={96} />} eyebrow="Every day" title="Challenges">
         <Sub lines={lines} />
         <Freshness k={key} />
-      </header>
-      <div class="chl-bar">
+      </ToolHero>
+      <div class="chl-bar gp-bronze">
         <Tabs
           label="Challenge lists"
           items={CHALLENGE_FILTERS.map((f) => ({
@@ -208,7 +206,17 @@ export function ChallengesPage(props: { filter: ChallengeFilter; p: number }) {
       ) : props.filter === "daily" ? (
         <DailyLists series={series} now={now} {...lists} />
       ) : (
-        <section class="chl-series">
+        <Section
+          tone="violet"
+          class="chl-series"
+          title={
+            <>
+              <Spr family="ui" k={props.filter === "trending" ? "Trophy" : "Quest"} size={34} />
+              {CHALLENGE_LABEL[props.filter]}
+            </>
+          }
+          aside={`Page ${props.p}`}
+        >
           <BrowseGrid list={list} filter={props.filter} p={props.p} {...lists} />
           <nav class="chl-pager" aria-label="Pages">
             {props.p > 1 ? (
@@ -227,7 +235,7 @@ export function ChallengesPage(props: { filter: ChallengeFilter; p: number }) {
               <span />
             )}
           </nav>
-        </section>
+        </Section>
       )}
     </>
   );
@@ -283,14 +291,20 @@ function DailyLists(props: { series: Series[]; now: number } & Lists) {
     <div class="chl-series">
       {needle && <MatchNote n={n} m={total} {...props} />}
       {shown.some((s) => s.cur) && (
-        <section class="chl-now" aria-labelledby="chl-now-h">
-          <h2 class="kicker-h" id="chl-now-h">
-            Live now
-          </h2>
+        <Section
+          tone="green"
+          class="chl-now"
+          title={
+            <>
+              <EvIcon k="daily" size={34} />
+              Live now
+            </>
+          }
+        >
           <ul class="chl-lives">
             {shown.map((s) => s.cur && <LiveDaily key={s.kind} c={s.cur} kind={s.kind} />)}
           </ul>
-        </section>
+        </Section>
       )}
       {shown.map(({ kind, label, items }) => {
         if (!items.length) return null;
@@ -298,12 +312,14 @@ function DailyLists(props: { series: Series[]; now: number } & Lists) {
         return (
           <Section
             key={kind}
+            tone={SERIES_TONE[kind]}
             title={
-              <span class="ti">
-                <EvIcon k="daily" size={28} />
+              <>
+                <EvIcon k="daily" size={34} />
                 {label}
-              </span>
-            }>
+              </>
+            }
+            aside={`${items.length} challenge${items.length === 1 ? "" : "s"}`}>
             <ul class="chl-grid">
               {items.map((c) => (
                 <ChallengeCard key={c.id} c={c} kind={kind} badge={kind !== "coop" ? dayBadge(c.id, now) : undefined} />

@@ -14304,3 +14304,85 @@ main > .vh + .feature.gh {
 :root[data-theme="light"] .gp .gn.acc {
   color: #ffd60a;
 }
+
+/* ─────────────────────────────── Challenge game panels (docs/game-ui.md)
+   List: bronze title card (the daily icon's colour), Daily / Newest / Trending as tab cards, live now green, each
+   daily series in its card colour (standard amber, advanced crimson, co-op blue), player lists violet. Cards keep
+   their series-coloured top edge. Challenge page: bronze title card, play stats blue, rules violet. */
+.th-x .chl-sub {
+  flex-basis: 100%;
+  margin: 0 0 4px;
+}
+.chl-bar .tabs {
+  gap: 8px;
+  border: 0;
+}
+.chl-bar .tab {
+  align-items: center;
+  min-height: 40px;
+  font: 800 18px/1 var(--f-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gc-ink);
+  background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
+  border: 1px solid var(--gp-rim);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 var(--gp-led);
+}
+.chl-bar .tab:hover {
+  color: var(--gc-ink);
+  border-color: var(--accent);
+}
+.chl-bar .tab.on {
+  color: var(--gc-ink);
+  background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
+  border-color: var(--accent);
+  box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 #8a7406;
+}
+.chl-series .gp + .gp {
+  margin-top: 56px;
+}
+.gp :is(.chl-card, .chl-live) {
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
+  border: 1px solid var(--gp-rim);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 var(--gp-led);
+}
+.gp .chl-live {
+  border-top: 4px solid var(--c);
+}
+.gp :is(.chl-card, .chl-live):hover {
+  border-color: var(--accent);
+}
+.gp .chl-live:hover {
+  border-top-color: var(--c);
+}
+.gp .chl-older {
+  border-radius: 10px;
+}
+.gp .chl-pager {
+  margin: 18px 0 0;
+}
+.gp .chl-pg {
+  color: #fff;
+  background: linear-gradient(180deg, var(--gp-1), var(--gp-2));
+  border: 2px solid var(--gp-dk);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 3px 0 #060a14;
+}
+.gp .chl-pg:hover {
+  background: linear-gradient(180deg, var(--gp-1), var(--gp-2));
+  filter: brightness(1.12);
+}
+.daynav-all {
+  color: #fff;
+  background: linear-gradient(180deg, #4f8ad6, #3468b0);
+  border: 2px solid #0f2650;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 3px 0 #060a14;
+}
+.daynav-all:hover {
+  background: linear-gradient(180deg, #4f8ad6, #3468b0);
+  filter: brightness(1.12);
+}
