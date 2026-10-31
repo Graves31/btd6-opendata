@@ -232,7 +232,7 @@ export function RoundsPage(props: { r: RoundsRoute }) {
         <Visualizer r={r} info={info!} data={data} base={base} go={go} />
       ) : (
         <>
-          <ToolHero art={<img src={heroArt} width={96} height={96} alt="" />} title="Round visualizer" sub="The bloons, RBE and spawn timing of every round, from the game's own data.">
+          <ToolHero tone="blue" art={<img src={heroArt} width={96} height={96} alt="" />} title="Round visualizer" sub="The bloons, RBE and spawn timing of every round, from the game's own data.">
             <BloonStrip />
           </ToolHero>
           <EditForm r={r} go={go} />
@@ -518,6 +518,7 @@ function SetBar(p: {
   return (
     <>
       <ToolHero
+        tone="blue"
         art={SET_ART[`../art/sets/${fam}-${icon.replace(":", "_")}.webp`] ? <img src={SET_ART[`../art/sets/${fam}-${icon.replace(":", "_")}.webp`]} width={96} height={96} alt="" /> : <Spr family={fam} k={icon} size={72} label />}
         eyebrow="Round visualizer"
         title={rangeTitle(info, p.from, p.to)}
@@ -659,9 +660,10 @@ function EditForm(p: { r: RoundsRoute; info?: RoundSetInfo; go: Go; onDone?: () 
   const { r, info, go } = p;
   const chips = modChips(r, info);
   return (
-    <section id="rv-edit" class={`rv-form${p.sheet ? " in-sheet" : ""}`} aria-labelledby="rv-edit-h">
-      <div class="rv-form-h">
-        <h2 id="rv-edit-h" class="label">
+    <section id="rv-edit" class={`rv-form${p.sheet ? " in-sheet" : " gp gp-violet"}`} aria-labelledby="rv-edit-h">
+      <div class="rv-form-h pg-ph">
+        <h2 id="rv-edit-h" class="label eyebrow">
+          {!p.sheet && <Spr family="ui" k="StartRound" size={34} />}
           Round set
         </h2>
         {p.onDone && (
@@ -771,7 +773,7 @@ function FilterBar(p: { r: RoundsRoute; info: RoundSetInfo; data?: RoundSetData;
   const extra = r.bloon.filter((k) => k !== "lead" && k !== "ceramic");
   const pressedClass = (on: boolean) => `rv-fchip${on ? " on" : ""}`;
   return (
-    <div class="rv-filters">
+    <div class="rv-filters gp-blue">
       <div class="rv-fscroll" role="group" aria-label="Show only rounds with (any of)">
         {info.boss && p.runs.length > 0 && (
           <button type="button" data-f="changed" class={`${pressedClass(r.has.includes("changed"))} boss`} aria-pressed={r.has.includes("changed")} onClick={() => toggleHas("changed")}>
@@ -1222,7 +1224,7 @@ function RoundCard(p: {
   const upNext = inRange.filter((x) => x.n > round.n).slice(0, 3);
   return (
     <section
-      class={`rv-card${p.focus ? " focus" : ""}${changed ? " ovr" : ""}`}
+      class={`rv-card gp-blue${p.focus ? " focus" : ""}${changed ? " ovr" : ""}`}
       aria-labelledby={id}
       onPointerDown={
         p.focus

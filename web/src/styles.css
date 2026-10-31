@@ -14499,3 +14499,116 @@ main > .vh + .feature.gh {
     padding: 20px 18px 22px;
   }
 }
+
+/* ─────────────────────────────── Stats page game panels (docs/game-ui.md)
+   Totals blue (stat cards), the per-day chart teal, the five top lists each in their own colour. */
+.gp.st-card {
+  margin-bottom: 0;
+  padding: 34px 16px 16px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--gp-1) 10%, transparent), transparent 240px),
+    repeating-linear-gradient(135deg, var(--gp-tex) 0 2px, transparent 2px 14px),
+    var(--gp-bg);
+  border: 2px solid var(--gp-edge);
+}
+.gp .st-tiles {
+  margin-bottom: 0;
+}
+.st-grid2 {
+  row-gap: 0;
+}
+.st-bar-row {
+  margin-top: 20px;
+}
+.st-foot {
+  margin-top: 16px;
+}
+
+/* ─────────────────────────────── Round visualizer game frames (docs/game-ui.md)
+   Frames only; the layout and scroll model (round-visualizer-ux-review.md) stay. Blue title card, the Edit form a
+   violet panel (the phone sheet keeps its plain look), the round card a rounded frame, buttons as plates. */
+.rv-form.gp {
+  margin: 56px 0 14px;
+  padding: 34px 16px 16px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--gp-1) 10%, transparent), transparent 240px),
+    repeating-linear-gradient(135deg, var(--gp-tex) 0 2px, transparent 2px 14px),
+    var(--gp-bg);
+  border: 2px solid var(--gp-edge);
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.04), 0 4px 0 var(--gp-drop);
+}
+.rv-form.gp > .pg-ph {
+  margin-bottom: 0;
+}
+.rv-card {
+  border: 2px solid var(--gp-edge);
+  border-top: 3px solid var(--accent);
+  border-radius: 14px;
+  box-shadow: 0 4px 0 var(--gp-drop);
+}
+.rv-card.sk {
+  border-color: var(--rule);
+}
+.rv-edit,
+.rv-focus,
+.rv-tolist,
+.rv-step {
+  color: #fff;
+  background: linear-gradient(180deg, #4f8ad6, #3468b0);
+  border: 2px solid #0f2650;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 3px 0 #060a14;
+}
+.rv-edit:hover,
+.rv-focus:hover,
+.rv-tolist:hover,
+.rv-step:hover:not(:disabled) {
+  color: #fff;
+  background: linear-gradient(180deg, #4f8ad6, #3468b0);
+  border-color: #0f2650;
+  filter: brightness(1.12);
+}
+.rv-edit:active,
+.rv-focus:active,
+.rv-tolist:active,
+.rv-step:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 1px 0 #060a14;
+}
+.rv-step:disabled {
+  color: rgb(255 255 255 / 0.5);
+  border-color: #0f2650;
+  opacity: 0.5;
+}
+.rv-edit.on {
+  color: var(--on-accent);
+  background: linear-gradient(180deg, #ffe45c, #f5c400);
+  border-color: #6b5a00;
+}
+.rv-tolist span[aria-hidden] {
+  color: #ffe45c;
+}
+.rv-fchip:not(.forced) {
+  background: var(--s1);
+  border-color: var(--gp-rim);
+  border-radius: 8px;
+  box-shadow: 0 2px 0 var(--gp-led);
+}
+.rv-fchip.forced {
+  border-radius: 8px;
+}
+.rv-fchip:not(.forced):hover {
+  background: var(--s1);
+  border-color: var(--accent);
+}
+.rv-fchip.on {
+  color: var(--on-accent);
+  background: linear-gradient(180deg, #ffe45c, #f5c400);
+  border-color: #6b5a00;
+  box-shadow: 0 2px 0 #8a7406;
+}
+.gp .st-for {
+  color: var(--accent-ink);
+  font-weight: 700;
+}

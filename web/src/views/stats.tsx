@@ -3,6 +3,8 @@
 // Filters are client-side over the per-day rows: a day (tap its bar), the last 7 or 30 days, and one row of a
 // ranked list (tap it) for the chart.
 import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
+import { Spr } from "../sprite.tsx";
+import { GStat, Section, ToolHero, type Tone } from "../ui.tsx";
 
 interface Row {
   name: string;
@@ -153,11 +155,19 @@ function Chart(p: { days: { date: string; v: number }[]; label: string; from: st
   );
 }
 
-function Rank(p: { title: string; rows: Row[]; by: Metric; label: (n: string) => string; picked?: string; onPick: (n: string) => void }) {
+function Rank(p: { title: string; tone: Tone; icon: string; rows: Row[]; by: Metric; label: (n: string) => string; picked?: string; onPick: (n: string) => void }) {
   const max = Math.max(1, ...p.rows.map((r) => r[p.by]));
   return (
-    <section class="st-card">
-      <h2 class="st-h">{p.title}</h2>
+    <Section
+      tone={p.tone}
+      class="st-card"
+      title={
+        <>
+          <Spr family="ui" k={p.icon} size={34} />
+          {p.title}
+        </>
+      }
+    >
       {p.rows.length === 0 ? (
         <p class="quiet">Nothing on these days.</p>
       ) : (
@@ -172,16 +182,12 @@ function Rank(p: { title: string; rows: Row[]; by: Metric; label: (n: string) =>
           ))}
         </ol>
       )}
-    </section>
+    </Section>
   );
 }
 
-const Tile = (p: { label: string; value: number; sub: string }) => (
-  <div class="st-tile">
-    <div class="st-v">{nf.format(p.value)}</div>
-    <div class="st-l">{p.label}</div>
-    <div class="st-s">{p.sub}</div>
-  </div>
+const Tile = (p: { label: string; value: number; sub: string; icon: string }) => (
+  <GStat art={<Spr family="ui" k={p.icon} size={36} />} big={nf.format(p.value)} small={p.label} note={p.sub} />
 );
 
 const Chip = (p: { on: boolean; onClick: () => void; children: string }) => (
@@ -205,9 +211,11 @@ function Board(p: { s: Stats }) {
     date: d.date,
     v: pick ? s[pick.dim].reduce((a, r) => (r.date === d.date && r.name === pick.name ? a + r[metric] : a), 0) : d[metric],
   }));
-  const rank = (dim: Dim, title: string, by: Metric = "views") => (
+  const rank = (dim: Dim, title: string, tone: Tone, icon: string, by: Metric = "views") => (
     <Rank
       title={title}
+      tone={tone}
+      icon={icon}
       by={by}
       rows={top(s[dim], from, to, by)}
       label={LABEL[dim]}
@@ -218,18 +226,34 @@ function Board(p: { s: Stats }) {
 
   return (
     <>
-      <div class="st-tiles">
-        <Tile label="Visits · 7 days" value={s.totals.d7.visits} sub="sessions" />
-        <Tile label="Page views · 7 days" value={s.totals.d7.views} sub="pages opened" />
-        <Tile label="Visits · 30 days" value={s.totals.d30.visits} sub="sessions" />
-        <Tile label="Page views · 30 days" value={s.totals.d30.views} sub="pages opened" />
-      </div>
-      <section class="st-card">
-        <div class="st-head">
-          <h2 class="st-h">
+      <Section
+        tone="blue"
+        title={
+          <>
+            <Spr family="ui" k="Trophy" size={34} />
+            Totals
+          </>
+        }
+      >
+        <div class="st-tiles">
+          <Tile icon="GamesPlayed" label="Visits · 7 days" value={s.totals.d7.visits} sub="sessions" />
+          <Tile icon="Search" label="Page views · 7 days" value={s.totals.d7.views} sub="pages opened" />
+          <Tile icon="GamesPlayed" label="Visits · 30 days" value={s.totals.d30.visits} sub="sessions" />
+          <Tile icon="Search" label="Page views · 30 days" value={s.totals.d30.views} sub="pages opened" />
+        </div>
+      </Section>
+      <Section
+        tone="teal"
+        class="st-card"
+        title={
+          <>
+            <Spr family="ui" k="GameTime" size={34} />
             {METRIC[metric]} per day
-            {pick && <span class="st-for"> · {LABEL[pick.dim](pick.name)}</span>}
-          </h2>
+          </>
+        }
+      >
+        <div class="st-head">
+          {pick && <span class="st-for">{LABEL[pick.dim](pick.name)}</span>}
           <div class="st-chips" role="group" aria-label="Chart shows">
             <Chip on={metric === "visits"} onClick={() => setMetric("visits")}>
               Visits
@@ -245,7 +269,7 @@ function Board(p: { s: Stats }) {
           </div>
         </div>
         <Chart days={days} label={METRIC[metric]} from={from} to={to} onDay={(d) => setDay(day === d ? null : d)} />
-      </section>
+      </Section>
       <div class="st-bar-row">
         <div class="st-chips" role="group" aria-label="Lists cover">
           <Chip on={!day && span === 30} onClick={() => (setDay(null), setSpan(30))}>
@@ -265,11 +289,11 @@ function Board(p: { s: Stats }) {
         </p>
       </div>
       <div class="st-grid2">
-        {rank("pages", "Top pages")}
-        {rank("pages", "Entry pages", "visits")}
-        {rank("referrers", "Referrers")}
-        {rank("countries", "Countries")}
-        {rank("devices", "Devices")}
+        {rank("pages", "Top pages", "violet", "Search")}
+        {rank("pages", "Entry pages", "amber", "StartRound", "visits")}
+        {rank("referrers", "Referrers", "rose", "Quest")}
+        {rank("countries", "Countries", "green", "Water")}
+        {rank("devices", "Devices", "bronze", "Towers")}
       </div>
       <p class="quiet st-foot">
         Page views per row; entry pages count the visits that started there. Tap a bar for that day, a row to chart it. Cloudflare Web Analytics, sampled; updated every 15 minutes.
@@ -320,9 +344,7 @@ export function StatsPage() {
   else content = <Board s={st.s} />;
   return (
     <>
-      <header class="page-h">
-        <h1>Site stats</h1>
-      </header>
+      <ToolHero tone="blue" art={<Spr family="ui" k="GamesPlayed" size={96} />} eyebrow="Owner only" title="Site stats" sub="Visitors from Cloudflare Web Analytics." />
       {content}
     </>
   );
