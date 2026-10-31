@@ -156,7 +156,7 @@ const add = (...xs: (Count | null | undefined)[]): Count => ({ owned: xs.reduce(
 function Fold(p: { id?: string; tone: Tone; title: ComponentChildren; aside?: ComponentChildren; part?: Count; children: ComponentChildren }) {
   const done = !!p.part && p.part.total > 0 && p.part.owned >= p.part.total;
   return (
-    <details id={p.id && `my-${p.id}`} class={`sec gp gp-${p.tone} my-fold`} open={!done}>
+    <details id={p.id && `my-${p.id}`} class={`sec gp gp-${p.tone} gp-fold`} open={!done}>
       <summary class="sec-h">
         <h2>{p.title}</h2>
         {p.aside && <span class="sec-aside">{p.aside}</span>}

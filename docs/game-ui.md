@@ -67,7 +67,8 @@ Pages move over one at a time, and it is a transition, not a redesign: keep the 
 change only the frames. Put its content in `<Section tone>` panels, turn its buttons into `.gbtn`, its picked
 chips and cards into `.gc` / `.gc.on`, and sink form fields into the panel (dark well, inset shadow; see
 `.sug-field`). Its plain title becomes the toned title card (`<ToolHero tone>`). Done so far: /me, /suggest, the header's My
-stats and Suggest buttons.
+stats and Suggest buttons, /maps and /maps/<id> (tone = the map's difficulty: green, blue, amber, crimson; folding
+panels use `.gp-fold`).
 
 ## New section checklist
 

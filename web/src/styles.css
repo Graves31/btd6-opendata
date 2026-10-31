@@ -9209,10 +9209,10 @@ footer p {
 [data-diff="3"] {
   --dc: var(--d3);
 }
-.mp-head .mf {
+.mp-head > .mf {
   display: block;
 }
-.mp-head .mf > .map-art {
+.mp-head > .mf > .map-art {
   display: block;
   width: 100%;
   height: auto;
@@ -9226,13 +9226,20 @@ footer p {
     transform: translateY(-2px);
   }
 }
+/* /maps title card: its bottom edge is open, the search bar (.map-bar) under it closes the frame. */
+.th.gh.map-head {
+  margin-bottom: 0;
+  border-bottom: 0;
+  border-radius: 14px 14px 0 0;
+  box-shadow: none;
+}
 .map-strip {
+  grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 10px;
 }
-/* plain stats are flat text; linked ones (.map-stat-link) are raised buttons with a chevron */
+/* stat cards (.gc); linked ones (.map-stat-link) get a chevron */
 .map-stat {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -9241,13 +9248,6 @@ footer p {
   min-width: 0;
   padding: 10px 12px;
   color: var(--ink);
-  border: 1px solid transparent;
-  border-radius: var(--r);
-}
-.map-stat-link {
-  background: var(--s1);
-  border-color: var(--rule-2);
-  box-shadow: 0 3px 0 var(--rule);
 }
 .map-stat-link:hover,
 .map-stat-link:focus-visible {
@@ -9280,6 +9280,8 @@ a.map-stat:hover {
   white-space: normal;
   text-transform: uppercase;
   overflow-wrap: anywhere;
+  -webkit-text-stroke: 4px var(--gp-stk);
+  paint-order: stroke fill;
 }
 .map-stat small {
   font: 700 10.5px/1.25 var(--f-body);
@@ -9288,17 +9290,19 @@ a.map-stat:hover {
   color: var(--ink-3);
 }
 
-/* control panel: search + sort on row 1, filter pills on row 2 */
-.map-bar {
+/* control panel, the title card's bottom shelf: search + sort on row 1, filter pills on row 2 */
+.gh.map-bar {
   display: flex;
   flex-wrap: wrap;
   gap: 10px 12px;
   align-items: center;
-  margin-bottom: 4px;
-  padding: 12px;
-  background: var(--s1);
-  border: 1px solid var(--rule-2);
-  border-radius: var(--r);
+  margin: 0;
+  padding: 12px 16px 14px;
+  background:
+    repeating-linear-gradient(135deg, rgb(255 255 255 / 0.016) 0 2px, transparent 2px 14px),
+    #111a2c;
+  border-top: 1px solid var(--gp-rim);
+  border-radius: 0 0 14px 14px;
 }
 @media (min-width: 701px) {
   .map-bar {
@@ -9314,9 +9318,10 @@ a.map-stat:hover {
   flex: 1 1 160px;
   min-width: 0;
   padding: 0 10px;
-  background: var(--bg);
+  background: var(--sub);
   border: 1px solid var(--rule-2);
-  border-radius: var(--r);
+  border-radius: 8px;
+  box-shadow: inset 0 2px 3px rgb(0 0 0 / 0.5);
 }
 .map-search:focus-within {
   border-color: var(--focus);
@@ -9348,9 +9353,10 @@ a.map-stat:hover {
   height: 40px;
   padding: 0 10px;
   color: var(--ink);
-  background: var(--bg);
+  background: var(--sub);
   border: 1px solid var(--rule-2);
-  border-radius: var(--r);
+  border-radius: 8px;
+  box-shadow: inset 0 2px 3px rgb(0 0 0 / 0.5);
   font: 700 14px var(--f-body);
 }
 .map-panel {
@@ -9363,35 +9369,25 @@ a.map-stat:hover {
 .map-cap {
   margin-right: 2px;
 }
+/* filter pills are .gc cards; .on (pressed) gets the yellow "picked" edge and a tick */
 .map-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 34px;
-  padding: 0 12px;
-  color: var(--ink-2);
-  background: transparent;
-  border: 1px solid var(--rule-2);
-  border-radius: 999px;
+  height: 36px;
+  padding: 0 12px 0 8px;
+  color: var(--ink);
   font: 700 14px/1 var(--f-body);
   cursor: pointer;
   white-space: nowrap;
 }
-.map-pill:hover {
-  color: var(--ink);
+.map-pill:hover:not(.on) {
   border-color: var(--ink-3);
 }
-.map-pill[aria-pressed="true"] {
-  color: var(--ink);
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 18%, var(--s1));
-}
-.map-pill[data-diff][aria-pressed="true"] {
-  border-color: var(--dc);
-  background: color-mix(in srgb, var(--dc) 22%, var(--s1));
-}
 .map-pill .ck {
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--accent);
 }
 .map-div {
   align-self: stretch;
@@ -9400,81 +9396,43 @@ a.map-stat:hover {
   background: var(--rule-2);
 }
 .map-clear {
-  padding: 6px 8px;
-  color: var(--ink-2);
-  background: none;
-  border: 0;
-  font: 700 13px var(--f-body);
-  text-decoration: underline;
-  cursor: pointer;
-}
-.map-clear:hover {
-  color: var(--ink);
+  min-height: 36px;
+  padding: 0 12px;
 }
 .map-filt {
   display: none;
 }
 
-/* results */
+/* results: one folding game panel per difficulty (.gp-fold), or one "All maps" panel when sorted */
 .map-none {
   margin-top: 24px;
 }
 .map-sec {
-  margin-top: 18px;
-  scroll-margin-top: calc(var(--hdr) + 70px);
+  scroll-margin-top: calc(var(--hdr) + 100px);
 }
-/* Fresh visit (maps.tsx): the browser skips sections below the fold until they scroll in. The 6px padding,
-   cancelled by the margins, keeps hover shadows and focus rings clear of the paint clip. */
-.map-sec.cv {
-  content-visibility: auto;
-  contain-intrinsic-block-size: auto 1100px;
-  padding: 6px;
-  margin: 12px -6px -6px;
-}
-@media (max-width: 700px) {
-  .map-sec.cv {
-    contain-intrinsic-block-size: auto 2400px;
-  }
-}
-.map-band {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-  padding: 6px 14px 6px 8px;
-  list-style: none;
-  cursor: pointer;
-  border-left: 4px solid var(--dc);
-  background: linear-gradient(90deg, color-mix(in srgb, var(--dc) 18%, transparent), transparent 70%);
-  border-radius: var(--r);
-}
-.map-band::-webkit-details-marker {
-  display: none;
-}
-.map-band h2 {
-  margin: 0;
-  font: 800 28px/1 var(--f-display);
-  text-transform: uppercase;
-}
-.map-band .c {
-  font: 700 13px var(--f-body);
-  color: var(--ink-3);
-}
-.map-band .c b {
+.map-sec .sec-aside b {
   color: var(--ink);
 }
-.map-band::after {
-  content: "";
-  margin-left: auto;
-  width: 9px;
-  height: 9px;
-  border: solid var(--ink-2);
-  border-width: 0 3px 3px 0;
-  rotate: 45deg;
-  transition: rotate 0.15s;
+/* No diagonal texture on these tall panels: it is barely visible and costs phones a paint over the whole grid. */
+.gp.map-sec {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gp-1) 10%, transparent), transparent 240px), #111a2c;
 }
-.map-sec:not([open]) > .map-band::after {
-  rotate: -45deg;
+/* Fresh visit (maps.tsx): the browser skips whole panels below the fold until they scroll in. The wrapper's
+   padding, cancelled by its margins, keeps the title tab above the panel's edge, the panel's ledge and focus
+   rings clear of the paint clip (top: 26 + 30 = the panel's usual 56px gap). */
+.map-cv {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 1150px;
+  padding: 30px 6px 6px;
+  margin: 26px -6px -6px;
+}
+.map-cv > .gp {
+  margin-top: 0;
+}
+@media (max-width: 700px) {
+  .map-cv {
+    contain-intrinsic-block-size: auto 2450px;
+  }
 }
 .map-grid {
   display: grid;
@@ -9494,9 +9452,6 @@ a.map-stat:hover {
   height: 100%;
   min-width: 0;
   color: var(--ink);
-  background: var(--s2);
-  border: 2px solid var(--rule);
-  border-radius: 10px;
   overflow: hidden;
 }
 .map-tile-art {
@@ -9658,15 +9613,10 @@ a.map-stat:hover {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    height: 40px;
+    min-height: 40px;
     padding: 0 12px;
-    color: var(--ink);
-    background: var(--bg);
-    border: 1px solid var(--rule-2);
-    border-radius: var(--r);
     font: 800 15px/1 var(--f-display);
     text-transform: uppercase;
-    cursor: pointer;
   }
   .map-filt i {
     padding: 2px 6px;
@@ -9701,55 +9651,85 @@ a.map-stat:hover {
     flex-basis: 100%;
     margin-left: 30px;
   }
-  .map-band h2 {
-    font-size: 24px;
-  }
+}
+/* Map page title card (game frame in the difficulty tone): art | name + chips, then stat cards and prev / next. */
+.gh.mp-head {
+  display: grid;
+  grid-template-columns: minmax(0, 406px) minmax(0, 1fr);
+  align-items: end;
+  gap: 16px 20px;
+  margin: 0 0 8px;
+  padding: 18px;
+}
+.mp-head > .mf {
+  width: 100%;
+}
+.mp-info {
+  min-width: 0;
+}
+.mp-t {
+  margin-bottom: 14px;
+  -webkit-text-stroke: 6px var(--gp-stk);
+  paint-order: stroke fill;
+}
+.mp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 .mp-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  text-decoration: none;
-}
-.mp-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 20px;
-  border-left: 6px solid var(--dc, var(--rule-2));
-  padding-left: 16px;
-}
-.mp-head .mf {
-  width: min(100%, 406px);
-}
-.mp-info {
-  display: grid;
-  gap: 12px;
-  min-width: 0;
-}
-.mp-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.mp-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   min-height: 40px;
-  padding: 0 12px;
+  padding: 0 12px 0 8px;
   font: 700 15px/1 var(--f-display);
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+}
+a.mp-chip:hover,
+a.mp-chip:focus-visible,
+a.mp-nb:hover,
+a.mp-nb:focus-visible,
+a.mp-ev:hover,
+a.mp-ev:focus-visible {
+  border-color: var(--accent);
+}
+.mp-stats {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.mp-stat {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 2px 10px;
+  min-width: 0;
+  padding: 10px 12px;
+}
+.mp-stat > :first-child {
+  grid-row: span 2;
+  filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.4));
+}
+.mp-stat .gn {
+  font-size: 26px;
+  white-space: nowrap;
+}
+.mp-stat small {
+  font: 700 11px/1.2 var(--f-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--ink-2);
-  border: 1px solid var(--rule);
-  border-radius: var(--r);
 }
 .mp-pn {
+  grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  margin-bottom: 20px;
 }
 .mp-nb {
   display: flex;
@@ -9758,17 +9738,18 @@ a.map-stat:hover {
   min-width: 0;
   padding: 6px 10px;
   color: var(--ink);
-  background: var(--s1);
-  border: 1px solid var(--rule-2);
-  border-radius: var(--r);
 }
 .mp-nb.next {
-  grid-column: 2;
   justify-content: flex-end;
   text-align: right;
 }
-.mp-nb:hover {
-  background: var(--s2);
+.mp-nb.none {
+  justify-content: center;
+  color: var(--ink-3);
+  font-size: 13px;
+  background: none;
+  border-style: dashed;
+  box-shadow: none;
 }
 .mp-nb-t {
   display: grid;
@@ -9782,12 +9763,72 @@ a.map-stat:hover {
   text-transform: uppercase;
   color: var(--ink-3);
 }
-.map-ev {
-  margin-top: 24px;
+/* boss events and races: two columns of event cards; wiki-only rows are flat dashed cards */
+.mp-evs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mp-evs > li {
+  min-width: 0;
+}
+.mp-ev {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  height: 100%;
+  min-height: 64px;
+  padding: 8px 12px 8px 8px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.mp-ev > .spr {
+  filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.4));
+}
+.mp-ev-m {
+  display: grid;
+  min-width: 0;
+}
+.mp-ev-m strong {
+  overflow-wrap: anywhere;
+}
+.mp-ev-m span {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.mp-ev.old {
+  background: none;
+  border-style: dashed;
+  box-shadow: none;
+}
+.mp-wiki {
+  padding: 4px 7px;
+  font: 700 11px/1 var(--f-body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border: 1px solid var(--rule-2);
+  border-radius: 4px;
 }
 @media (max-width: 700px) {
+  .gh.mp-head {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: 10px;
+  }
+  .mp-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mp-stat:nth-child(n + 3),
   .mp-nb .mf {
     display: none;
+  }
+  .mp-evs {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -9998,7 +10039,8 @@ footer a {
   font-weight: 600;
 }
 /* Game title card (ToolHero tone): the game-panel frame and dark tokens (.gh shares .gp's), title outlined like a tab. */
-.th.gh {
+.th.gh,
+.gh.mp-head {
   margin-top: 0;
   background:
     linear-gradient(120deg, color-mix(in srgb, var(--gp-1) 22%, transparent), transparent 70%),
@@ -11348,17 +11390,27 @@ a.th-ic:focus-visible {
   font-weight: 700;
 }
 .mp-mine-none {
-  margin: 12px 0;
-  font-size: 14px;
+  margin: 0 0 12px;
+  color: var(--ink-2);
+}
+.mp-mine-go {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
 }
 .mp-mg + .mp-mg {
-  margin-top: 12px;
+  margin-top: 14px;
 }
 .mp-mg .modes {
-  margin-bottom: 4px;
+  margin-bottom: 10px;
 }
-.mp-off {
-  opacity: 0.35;
+.mp-mg .modes li {
+  padding: 8px 10px;
+}
+.mp-mg .modes li.mp-off {
+  opacity: 0.45;
+  filter: grayscale(1);
+  box-shadow: none;
 }
 .mp-mg .modes small {
   display: block;
@@ -11467,17 +11519,17 @@ a.th-ic:focus-visible {
   }
 }
 /* Folding panels: the title tab is the toggle (its arrow turns); folded, a line shows the section's completion. */
-.my-fold > summary {
+.gp-fold > summary {
   cursor: pointer;
   list-style: none;
 }
-.my-fold > summary::-webkit-details-marker {
+.gp-fold > summary::-webkit-details-marker {
   display: none;
 }
-.my-fold > summary .sec-aside {
+.gp-fold > summary .sec-aside {
   margin-left: auto;
 }
-.my-fold > summary h2::after {
+.gp-fold > summary h2::after {
   content: "";
   margin-left: 4px;
   border-style: solid;
@@ -11486,20 +11538,20 @@ a.th-ic:focus-visible {
   filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.4));
   transition: transform 0.15s;
 }
-.my-fold:not([open]) > summary h2::after {
+.gp-fold:not([open]) > summary h2::after {
   transform: rotate(-90deg);
 }
-.my-fold > summary:hover h2 {
+.gp-fold > summary:hover h2 {
   filter: brightness(1.12);
 }
-.my-fold:not([open]) > summary {
+.gp-fold:not([open]) > summary {
   margin-bottom: 0;
 }
 .my-recap {
   flex-basis: 100%;
   display: flex;
 }
-.my-fold[open] .my-recap {
+.gp-fold[open] .my-recap {
   display: none;
 }
 .my-recap .my-meter {
@@ -11865,7 +11917,7 @@ button.my-miss:hover {
   margin: 0;
   padding: 0 12px;
 }
-.my-fold {
+.gp-fold {
   scroll-margin-top: 72px;
 }
 /* completion summary */
