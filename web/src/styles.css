@@ -14316,11 +14316,13 @@ main > .vh + .feature.gh {
   flex-basis: 100%;
   margin: 0 0 4px;
 }
-.chl-bar .tabs {
+.chl-bar .tabs,
+.tabs.bk-mode {
   gap: 8px;
   border: 0;
 }
-.chl-bar .tab {
+.chl-bar .tab,
+.bk-mode .tab {
   align-items: center;
   min-height: 40px;
   font: 800 18px/1 var(--f-display);
@@ -14332,11 +14334,13 @@ main > .vh + .feature.gh {
   border-radius: 10px;
   box-shadow: inset 0 1px 0 var(--gc-hi), 0 3px 0 var(--gp-led);
 }
-.chl-bar .tab:hover {
+.chl-bar .tab:hover,
+.bk-mode .tab:hover {
   color: var(--gc-ink);
   border-color: var(--accent);
 }
-.chl-bar .tab.on {
+.chl-bar .tab.on,
+.bk-mode .tab.on {
   color: var(--gc-ink);
   background: linear-gradient(180deg, var(--gc-1), var(--gc-2));
   border-color: var(--accent);
@@ -14458,4 +14462,9 @@ main > .vh + .feature.gh {
 }
 .pg-fold-big.gp {
   margin-top: 56px;
+}
+@media (max-width: 700px) {
+  .tools-sec .tile-art {
+    width: 96px;
+  }
 }
