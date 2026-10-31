@@ -69,7 +69,9 @@ chips and cards into `.gc` / `.gc.on`, and sink form fields into the panel (dark
 `.sug-field`). Its plain title becomes the toned title card (`<ToolHero tone>`). Done so far: /me, /suggest, the header's My
 stats and Suggest buttons, /maps and /maps/<id> (tone = the map's difficulty: green, blue, amber, crimson; folding
 panels use `.gp-fold`), /odyssey and /odyssey/<id> (teal title cards; Islands panel in the picked difficulty's
-colour: Easy green, Medium blue, Hard amber; `EventHead tone` and `GStat` are ready for the boss/race/CT pages).
+colour: Easy green, Medium blue, Hard amber), /races and /race/<id> (crimson title cards; leaderboard blue, medal
+cut-offs bronze via `CutoffStrip tone`, rules violet; full history a bronze fold via `FullHistory tone`; boss and CT
+pages can reuse all of these).
 
 ## New section checklist
 
