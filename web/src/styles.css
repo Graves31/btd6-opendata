@@ -2632,7 +2632,7 @@ button.fd-tile:hover {
   border-color: #ff8a00;
   box-shadow: 0 0 0 1.5px #fff;
   color: #fff;
-  text-shadow: 0 0 2px #7a3b00, 0 1px 0 #7a3b00;
+  text-shadow: 0 1px 0 #7a3b00, 0 -1px 0 #7a3b00, 1px 0 0 #7a3b00, -1px 0 0 #7a3b00;
 }
 .ttile:not(.off):hover {
   transform: translateY(-2px);
@@ -14408,20 +14408,20 @@ main > .vh + .feature.gh {
 .gp > .pg-ph > :not(:first-child) {
   padding-bottom: 4px;
 }
-.gp :is(.pg-step, .pg-copy) {
+:is(.gp, .ps-ctl) :is(.pg-step, .pg-copy) {
   color: #fff;
   background: linear-gradient(180deg, var(--gp-1), var(--gp-2));
   border: 2px solid var(--gp-dk);
   border-radius: 8px;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 3px 0 #060a14;
 }
-.gp :is(.pg-step, .pg-copy):hover:not(:disabled) {
+:is(.gp, .ps-ctl) :is(.pg-step, .pg-copy):hover:not(:disabled) {
   color: #fff;
   background: linear-gradient(180deg, var(--gp-1), var(--gp-2));
   border-color: var(--gp-dk);
   filter: brightness(1.12);
 }
-.gp :is(.pg-step, .pg-copy):active:not(:disabled) {
+:is(.gp, .ps-ctl) :is(.pg-step, .pg-copy):active:not(:disabled) {
   transform: translateY(2px);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 1px 0 #060a14;
 }
@@ -14611,4 +14611,71 @@ main > .vh + .feature.gh {
 .gp .st-for {
   color: var(--accent-ink);
   font-weight: 700;
+}
+
+/* ─────────────────────────────── Plate text (docs/game-ui.md rule 10)
+   White text on a section-colour plate gets a dark outline in the plate's own dark colour, like the title tabs, so
+   it reads on the light tones too (amber, teal, bronze). The yellow "picked" plates keep their dark text. */
+:is(.gbtn, .hideban.g button, .gh .share-btn, .gh .jump-rules, .gp .pager a, .gp .lb-bar .tab, .bs-controls .bs-seg button,
+  .gp .bs-more, .gp .chl-pg, .daynav-all, .gp .pg-step, .gp .pg-copy, .ps-ctl .pg-step, .gp .spr-n, .rv-edit, .rv-focus, .rv-tolist, .rv-step) {
+  text-shadow:
+    0 1px 0 var(--gp-dk, #0f2650),
+    0 -1px 0 var(--gp-dk, #0f2650),
+    1px 0 0 var(--gp-dk, #0f2650),
+    -1px 0 0 var(--gp-dk, #0f2650),
+    0 2px 0 var(--gp-dk, #0f2650);
+}
+:is(.gbtn.go, .gp .pager a.on, .gp .lb-bar .tab.on, .bs-controls .bs-seg button.on, .rv-edit.on) {
+  text-shadow: none;
+}
+/* My stats without a key: the intro sits in a panel; the key form sinks into it */
+.my-intro-sec .my-intro {
+  margin: 0;
+}
+.gp .my-form {
+  padding: 0;
+  background: none;
+  border: 0;
+}
+.gp .ctm-hint {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* Back links ("‹ Maps", "‹ Tools"): a small blue game plate, like the header's buttons */
+.backlink {
+  color: #fff;
+  background: linear-gradient(180deg, #4f8ad6, #3468b0);
+  border: 2px solid #0f2650;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 3px 0 #060a14;
+  text-shadow: 0 1px 0 #0f2650, 0 -1px 0 #0f2650, 1px 0 0 #0f2650, -1px 0 0 #0f2650, 0 2px 0 #0f2650;
+}
+.backlink span {
+  color: #ffe45c;
+}
+.backlink:hover {
+  color: #fff;
+  background: linear-gradient(180deg, #4f8ad6, #3468b0);
+  border-color: #0f2650;
+  filter: brightness(1.12);
+}
+.backlink:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 1px 0 #060a14;
+}
+/* Paragon scaling: the sticky degree bar framed like the panels under it */
+.ps-ctl {
+  border: 2px solid var(--gp-edge);
+  border-radius: 12px;
+  box-shadow: 0 3px 0 #060a14;
+}
+/* Tool panel headings: a button beside the tab (Copy link, Reset all) sits inside the panel, not on its frame */
+.gp > .pg-ph:has(> button, > :not(:first-child) button) {
+  margin-bottom: 26px;
+}
+.gp > .pg-ph > :is(button, :not(:first-child):has(button)) {
+  position: relative;
+  top: 22px;
 }

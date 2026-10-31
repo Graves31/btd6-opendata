@@ -72,9 +72,19 @@ function MyTeamCard(p: { live?: CT }) {
   useWant(my ? [teamHistoryKey(my.id), guildKey(my.id), ...(p.live ? [ctCutoffsKey(p.live.id)] : [])] : []);
   if (!my)
     return (
-      <p class="ctm-hint">
-        <b>Follow your team:</b> open its page and tap <i>Set as my team</i>. Its results then wait for you here.
-      </p>
+      <Section
+        tone="violet"
+        title={
+          <>
+            <Spr family="ui" k="CtBanner" size={34} />
+            My team
+          </>
+        }
+      >
+        <p class="ctm-hint">
+          <b>Follow your team:</b> open its page and tap <i>Set as my team</i>. Its results then wait for you here.
+        </p>
+      </Section>
     );
   const h = peek(teamHistoryKey(my.id));
   const entries = h?.ok ? ((h.data as unknown as { entries?: TeamHistoryEntry[] }).entries ?? []) : [];

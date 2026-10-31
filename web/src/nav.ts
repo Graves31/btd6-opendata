@@ -132,7 +132,10 @@ export function navigate(to: string, opts: { replace?: boolean; keepScroll?: boo
   const section = opts.scrollY !== undefined ? document.activeElement?.closest("section") : null;
   pending = { href: url.pathname + url.search, t0: performance.now(), cached: store.has(needs(next)), section };
   history.replaceState({ ...(history.state ?? {}), scrollY: window.scrollY }, "");
-  const from: BackTo | undefined = opts.replace ? backTo() : { href: location.pathname + location.search, label: backLabeler(route) };
+  // A tab or page of the same page (Normal → Elite, page 2) keeps where you came from, so its back link survives.
+  // Not the round visualizer: its "‹ List" needs the list view it came from (views/rounds.tsx toList).
+  const inherit = opts.replace || (url.pathname === location.pathname && next.name !== "rounds");
+  const from: BackTo | undefined = inherit ? backTo() : { href: location.pathname + location.search, label: backLabeler(route) };
   if (opts.replace) history.replaceState({ scrollY: y, from }, "", url);
   else history.pushState({ scrollY: y, from }, "", url);
   setRoute(next, y);

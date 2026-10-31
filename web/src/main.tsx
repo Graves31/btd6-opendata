@@ -199,10 +199,11 @@ function backLabel(r: Route): string {
 setBackLabeler(backLabel);
 
 /** Pages you drill into from a list or board get "‹ <where you came from>" (in-site clicks only, not shared links). */
-const BACK_ON = new Set<string>(["player", "team", "challenge", "ctgroup", "map"]);
+const BACK_ON = new Set<string>(["player", "team", "challenge", "ctgroup", "map", "boss", "race", "odyssey", "ct"]);
 function BackLink(props: { r: Route }) {
   const b = BACK_ON.has(props.r.name) ? backTo() : undefined;
-  if (!b) return null;
+  // a tab or page of the same event (Normal → Elite, Teams → Map) is not a page to go back to
+  if (!b || new URL(b.href, location.origin).pathname === location.pathname) return null;
   return (
     <a
       class="backlink"

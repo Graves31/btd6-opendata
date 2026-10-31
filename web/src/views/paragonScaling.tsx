@@ -310,7 +310,7 @@ export function ParagonScalingPage(p: { d?: number; to?: number }) {
           ))}
         </nav>
       </ToolHero>
-      <section class="ps-ctl" aria-label="Degree">
+      <section class="ps-ctl gp-violet" aria-label="Degree">
         <span class="ps-ctl-l">
           <Ic f="ui" k="ParagonDegree" size={28} />
           Degree

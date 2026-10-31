@@ -29,7 +29,7 @@ import { DIFF_LABEL } from "../maps.ts";
 import { href } from "../routes.ts";
 import { CATEGORY, HERO_ORDER, inOrder, TOWER_ORDER } from "../rules.tsx";
 import { artName, hasArt, MapArt, MODE_NAME, Spr } from "../sprite.tsx";
-import { A, Img, ToolHero, useTick, type Tone } from "../ui.tsx";
+import { A, Img, Section, ToolHero, useTick, type Tone } from "../ui.tsx";
 import { longWord } from "./people.tsx";
 
 const PROGRESS = progressData as unknown as GameProgress;
@@ -98,6 +98,7 @@ function KeyForm() {
 
 function Intro() {
   return (
+    <Section tone="blue" class="my-intro-sec" title={<Lbl k="Search">Connect your save</Lbl>}>
     <div class="my-intro">
       <p>
         An Open Access Key (OAK) is a private key from Ninja Kiwi that lets this page read <strong>your own</strong> BTD6 save: medals, instas, tower XP and more. Anyone with your key can read your save, so don't share
@@ -110,6 +111,7 @@ function Intro() {
       </p>
       <KeyForm />
     </div>
+    </Section>
   );
 }
 

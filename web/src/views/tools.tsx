@@ -90,7 +90,6 @@ export function ToolsHub() {
             All tools
           </>
         }
-        aside={`${TOOLS.length} tools`}
       >
         <div class="tiles tools-tiles">
           {TOOLS.map((t) => (
