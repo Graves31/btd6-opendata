@@ -76,6 +76,9 @@ violet, relics rose; list: my team violet, this week green, next teal, past CTs 
 title card and banner frame, Normal / Elite as two cards; board blue, cut-offs bronze, rules violet; list: boss
 stats violet with each portrait's ledge in its boss's colour, this week green, past blue, history bronze). The boss
 list keeps its own identity on purpose: the boss-tinted banner cards and the boss order ring are not turned into `.gc`.
+/bosses/<type> (banner in the rose frame, Normal / Elite cards and T1-T5 plates; health green, kill time amber,
+always active violet, skulls crimson, spawns teal, past events blue, about a bronze fold). Panels reset every theme
+token except `--bg`: a page whose wells use `--bg` sets it dark on its panels (`.bs-page .gp`).
 
 ## New section checklist
 
