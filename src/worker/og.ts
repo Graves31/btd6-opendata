@@ -127,10 +127,10 @@ const page = (title: string, description: string, image: string | null = null, w
 });
 
 const LISTS: Record<string, [string, string]> = {
-  bosses: ["BTD6 Boss Event Leaderboards", "Every Bloons TD 6 boss event: leaderboards, rules and top scores, with full history."],
-  races: ["BTD6 Race Leaderboards", "Every Bloons TD 6 race: leaderboards and rules, with full history."],
+  bosses: ["BTD6 Boss Event Leaderboards", "Every Bloons TD 6 boss event, from Bloonarius to Diamondback: live Normal and Elite leaderboards, rules and top scores, with full history."],
+  races: ["BTD6 Race Leaderboards", "Every Bloons TD 6 race event: the live leaderboard of fastest times, each race's rules and map, and the full race history."],
   ct: ["BTD6 Contested Territory (CT): Map, Relics & Leaderboards", "Every Bloons TD 6 Contested Territory (CT) event: the hex tile map, relics, team and player leaderboards, medal cut-offs and team history."],
-  odyssey: ["Odysseys", "Every Bloons TD 6 odyssey: islands, rules and rewards."],
+  odyssey: ["BTD6 Odysseys", "Every Bloons TD 6 odyssey, current and past: each island's map and rules, the modifiers, and the rewards for Easy, Medium and Hard."],
   events: ["Events", "Bloons TD 6 events: bosses, races, Contested Territory and odysseys."],
 };
 
@@ -138,15 +138,15 @@ const TOOLS: [string, string] = ["BTD6 Round Visualizer (RBE & bloons per round)
 
 const TOOLS_HUB: [string, string] = ["Tools", "Bloons TD 6 tools built on the game's own data: the round visualizer, the paragon degree calculator and farming resources."];
 const FARMING: [string, string] = ["BTD6 Farming Resources", "Bloons TD 6 farming resources: when a 0-0-0, 1-0-0 and 2-0-0 Banana Farm drops its bananas during a round."];
-const BANK: [string, string] = ["BTD6 Bank & IMF Loan Planner", "When to collect a Monkey Bank, and how much to deposit in an IMF Loan."];
+const BANK: [string, string] = ["BTD6 Bank & IMF Loan Planner", "Bloons TD 6 Monkey Bank and IMF Loan planner: the best round to collect a bank, and how much to deposit in an IMF Loan, with Monkey Knowledge."];
 const HERO_XP: [string, string] = ["BTD6 Hero XP Planner", "When to place a Bloons TD 6 hero so it reaches a level by a round (boss tier), with map difficulty, Monkey Knowledge and Energizer."];
 const PARAGON: [string, string] = ["BTD6 Paragon Calculator: Degree & Power", "Bloons TD 6 paragon degree calculator: the degree your sacrificed cash, pops, towers and totems give, what the next degree takes, and the quickest way to the next boss breakpoint."];
 const PARAGON_SCALING: [string, string] = ["BTD6 Paragon Scaling", "How a Bloons TD 6 paragon grows per degree: power needed, damage, pierce, attack speed and boss damage, charted from the game's data."];
 
 const CHALLENGE_LISTS: Record<string, [string, string]> = {
-  daily: ["Daily challenges", "Every Bloons TD 6 daily challenge: rules, map and modifiers."],
-  newest: ["Newest challenges", "The newest Bloons TD 6 player-made challenges: rules, map and modifiers."],
-  trending: ["Trending challenges", "Trending Bloons TD 6 player-made challenges: rules, map and modifiers."],
+  daily: ["BTD6 Daily Challenges", "Every Bloons TD 6 daily challenge, today's and past ones by number: the map, rules, towers allowed and modifiers of each challenge."],
+  newest: ["BTD6 Newest Challenges", "The newest Bloons TD 6 player-made challenges: the map, rules, towers allowed and modifiers of each one, with its challenge code."],
+  trending: ["BTD6 Trending Challenges", "Trending Bloons TD 6 player-made challenges: the map, rules, towers allowed and modifiers of each one, with its challenge code."],
 };
 
 /** Boss stats pages (/bosses/<type>), as in web/public/sitemap.xml. */
@@ -172,11 +172,12 @@ export async function describe(deps: Deps, pathname: string): Promise<PageMeta> 
   if (a === "tools" && b === "hero-xp" && !c) return page(...HERO_XP);
   if (a === "tools" && !b) return page(...TOOLS_HUB);
   if (a === "stats" && !b) return page("Site stats", "How many people use BTD6 Open Data: visits, page views and the most-opened pages."); // old /tools?set=… links are the visualizer, but the hub text is true of both
-  if (a === "maps" && !b) return page("BTD6 Maps", "Every official Bloons TD 6 map, with the boss events and races played on it.");
+  if (a === "maps" && !b) return page("BTD6 Maps", "Every official Bloons TD 6 map, Beginner to Expert, with or without water: search them and see every boss event and race played on each map.");
   const m = a === "maps" && b && !c ? MAP_LIST.find((x) => x[0] === b) : undefined;
   if (m) {
     const diff = ["Beginner", "Intermediate", "Advanced", "Expert"][m[1]];
-    return page(`${MAP_NAMES[b]} · BTD6 Map`, `${MAP_NAMES[b]}, ${/^[AEIOU]/.test(diff) ? "an" : "a"} ${diff} map in Bloons TD 6${m[2] ? " with water" : ""}: every boss event and race played on it.`);
+    const name = MAP_NAMES[b];
+    return page(`${name} · BTD6 Map`, `${name}, ${/^[AEIOU]/.test(diff) ? "an" : "a"} ${diff} map in Bloons TD 6${m[2] ? " with water" : ""}: every boss event and race played on ${name}, with their dates and leaderboards.`);
   }
   if (a === "challenges" && !c && (!b || Object.hasOwn(CHALLENGE_LISTS, b))) return page(...CHALLENGE_LISTS[b ?? "daily"]);
   if (a === "bosses" && b && BOSS_TYPES.has(b) && !c) {
@@ -193,11 +194,16 @@ export async function describe(deps: Deps, pathname: string): Promise<PageMeta> 
       const n = /(\d+)$/.exec(str(ev.name))?.[1];
       const type = str(ev.bossType);
       const title = type ? `${cap(type)}${n ? ` #${n}` : ""} · BTD6 Boss Event` : str(ev.name) || "Boss event";
-      return page(title, `Bloons TD 6 ${type ? `${cap(type)} ` : ""}boss event${dates}. Standard and elite leaderboards, rules and top scores.`, asset(ev.bossTypeURL));
+      const meta = await cachedBody(deps, `/btd6/bosses/${b}/metadata/standard`);
+      const normal = SCORING[str(ev.normalScoringType)];
+      const elite = SCORING[str(ev.eliteScoringType)];
+      const scoring = !normal ? "" : elite && elite !== normal ? ` Normal ranks by ${normal}, Elite by ${elite}.` : ` Ranked by ${normal}.`;
+      return page(title, `Bloons TD 6 ${type ? `${cap(type)}${n ? ` #${n}` : ""} ` : ""}boss event${onMap(meta)}${dates}.${scoring} Normal and Elite leaderboards, rules and top scores.`, asset(ev.bossTypeURL));
     }
     if (kind === "race") {
       const meta = await cachedBody(deps, `/btd6/races/${b}/metadata`);
-      return page(`${str(ev.name) || "Race"} · Race`, `Race event${dates}. Leaderboard, rules and fastest times.`, asset(meta?.mapURL), true);
+      const name = str(ev.name) || "Race";
+      return page(`${name} · BTD6 Race`, `${name}, a Bloons TD 6 race event${onMap(meta)}${dates}: the full leaderboard of fastest times, the rules and the modifiers.`, asset(meta?.mapURL), true);
     }
     if (kind === "ct") {
       const group = c === "group" && d ? " group" : "";
@@ -209,7 +215,7 @@ export async function describe(deps: Deps, pathname: string): Promise<PageMeta> 
     const desc = str(ev.description);
     const blurb = clip(desc, 160);
     const sentence = blurb ? ` ${blurb}${/[.!?…]$/.test(blurb) ? "" : "."}` : "";
-    return page(`${str(ev.name) || "Odyssey"} · Odyssey`, `Odyssey${dates}.${sentence} Islands, rules and rewards.`);
+    return page(`${str(ev.name) || "Odyssey"} · BTD6 Odyssey`, `Bloons TD 6 odyssey${dates}.${sentence} Each island's map, rules and modifiers, and the rewards.`);
   }
 
   if (a === "player" && HEX48.test(b)) {
@@ -283,6 +289,12 @@ const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0
 export const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 /** "EndOfTheRoad" → "End Of The Road". */
 const spaced = (s: string) => s.replace(/([a-z])([A-Z0-9])/g, "$1 $2");
+const SCORING: Record<string, string> = { LeastCash: "Least Cash", LeastTiers: "Least Tiers", GameTime: "fastest time" };
+/** " on Sunset Gulch" from an event's cached metadata, or "". */
+const onMap = (meta: Obj | null) => {
+  const id = str(meta?.map);
+  return id ? ` on ${MAP_NAMES[id] ?? spaced(id)}` : "";
+};
 const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1).trimEnd()}…` : s);
 /** Only NK's own image host makes it into a preview (was: any https URL; NK assets are https://static-api.nkstatic.com/…). */
 const asset = (v: unknown) => (typeof v === "string" && v.startsWith("https://static-api.nkstatic.com/") ? v : null);

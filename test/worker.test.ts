@@ -1167,17 +1167,20 @@ describe("link previews (og tags on page navigations)", () => {
     assert.match(html, /<title>Vortex #47 · BTD6 Boss Event · BTD6 Open Data<\/title>/);
     assert.equal(meta(html, "og:title"), "Vortex #47 · BTD6 Boss Event · BTD6 Open Data");
     assert.match(meta(html, "og:image")!, /^https:\/\/static-api\.nkstatic\.com\/.*vortex\.png$/);
-    assert.match(meta(html, "description")!, /^Bloons TD 6 Vortex boss event, \d+ Sep – \d+ Sep 2026\./);
+    assert.equal(
+      meta(html, "description"),
+      "Bloons TD 6 Vortex #47 boss event on One Two Tree, 19 Sep – 24 Sep 2026. Ranked by Least Cash. Normal and Elite leaderboards, rules and top scores.",
+    );
     assert.equal(meta(html, "twitter:card"), "summary");
     assert.equal(meta(html, "og:url"), "https://btd6data.com/boss/Vortex47_mu62cmt5");
     assert.equal((html.match(/og:title/g) ?? []).length, 1, "the shell's own og tags are replaced");
     assert.equal(r.headers.get("ETag"), null);
     assert.equal(t.origin.calls.length, calls);
 
-    assert.match((await page(t, "/odyssey/muekowzs")).html, /<title>Not all Heroes wear capes · Odyssey/);
+    assert.match((await page(t, "/odyssey/muekowzs")).html, /<title>Not all Heroes wear capes · BTD6 Odyssey/);
     assert.match((await page(t, `/ct/${CT_ID}`)).html, /<title>Contested Territory · /);
     assert.match((await page(t, "/races/")).html, /<title>BTD6 Race Leaderboards · /);
-    assert.match((await page(t, "/challenges")).html, /<title>Daily challenges · /);
+    assert.match((await page(t, "/challenges")).html, /<title>BTD6 Daily Challenges · /);
     assert.match((await page(t, "/challenges/constructor")).html, /<title>BTD6 Open Data<\/title>/);
     const lych = (await page(t, "/bosses/lych")).html;
     assert.match(lych, /<title>BTD6 Lych Boss: Health, Tiers &amp; Past Events · /);
