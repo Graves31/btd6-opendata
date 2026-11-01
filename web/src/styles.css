@@ -6280,22 +6280,25 @@ button.fd-tile:hover {
 .bs-hero .bh-art img,
 .bs-hero .bh-art .img-missing,
 .bs-hero .bh-noart {
-  aspect-ratio: 1440 / 249;
+  aspect-ratio: 1440 / 215;
   object-fit: cover;
   object-position: 50% 0; /* the boss logo sits at the top of the banner art */
 }
 .bs-hero .bh-side {
-  padding: 12px 18px;
+  padding: 8px 16px;
+}
+.bs-hero .bh-side .eyebrow {
+  margin-bottom: 2px;
 }
 .bs-title {
   flex-basis: 100%;
-  font: 800 clamp(34px, 4.4vw, 52px)/0.95 var(--f-display);
+  font: 800 clamp(30px, 3.8vw, 44px)/0.95 var(--f-display);
   text-transform: uppercase;
   overflow-wrap: anywhere;
 }
 .bs-tag {
   flex-basis: 100%;
-  margin-top: 8px;
+  margin-top: 4px;
   font-weight: 600;
   color: var(--ink);
 }
@@ -6309,11 +6312,11 @@ button.fd-tile:hover {
   flex-wrap: wrap;
   gap: 6px;
   flex-basis: 100%;
-  margin-top: 8px;
+  margin-top: 6px;
   list-style: none;
 }
 .bs-chips li {
-  padding: 3px 9px;
+  padding: 2px 8px;
   font: 700 12px/1.2 var(--f-body);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -6471,6 +6474,18 @@ button.fd-tile:hover {
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 8px 16px;
 }
+.bs-gl > div {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  column-gap: 10px;
+  align-content: center;
+  min-width: 0;
+}
+.bs-gl > div > .spr,
+.bs-gl > div > svg {
+  grid-row: 1 / span 3;
+  align-self: center;
+}
 .bs-gl dt {
   font: 700 12px/1 var(--f-body);
   color: var(--ink-3);
@@ -6478,8 +6493,31 @@ button.fd-tile:hover {
 .bs-gl dd {
   text-align: left;
   margin: 4px 0 0;
+  min-width: 0;
   font: 800 22px/1.1 var(--f-display);
   color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.bs-gl dd.bs-gs {
+  margin-top: 2px;
+  font: 600 12px/1.25 var(--f-body);
+  color: var(--ink-2);
+}
+/* the player-count modifier: one badge in the glance strip and the Health panel header */
+.bs-pbadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding: 2px 10px 2px 6px;
+  font: 700 13px/1.3 var(--f-body);
+  color: var(--ink);
+  background: var(--s2);
+  border: 1px solid var(--rule-2);
+  border-radius: 999px;
+}
+.sec-aside > .bs-pbadge {
+  margin-bottom: 0;
 }
 .bs-players button {
   display: inline-flex;
@@ -6778,8 +6816,10 @@ button.fd-tile:hover {
   min-height: 48px;
 }
 .bs-chip {
+  max-width: 100%;
   padding: 4px 6px;
-  font: 700 11px/1.1 var(--f-body);
+  overflow-wrap: anywhere;
+  font: 700 10px/1.1 var(--f-body);
   text-align: center;
   text-transform: uppercase;
   color: var(--ink-2);
@@ -7271,12 +7311,44 @@ a.hist-map:hover {
   }
 }
 @media (max-width: 700px) {
+  .bs-hero {
+    margin-bottom: 8px;
+  }
   .bs-hero .bh-top {
     grid-template-columns: minmax(0, 1fr);
   }
+  .bs-hero .bh-art img,
+  .bs-hero .bh-art .img-missing,
+  .bs-hero .bh-noart {
+    aspect-ratio: 1440 / 150;
+  }
   .bs-hero .bh-side {
+    padding: 6px 12px 8px;
     border-left: 0;
     border-top: 1px solid var(--rule);
+  }
+  .bs-hero .bh-side .eyebrow {
+    display: none;
+  }
+  .bs-title {
+    font-size: 28px;
+  }
+  .bs-tag {
+    margin-top: 2px;
+    font-size: 14px;
+    line-height: 1.25;
+  }
+  .bs-tag2 {
+    font-size: 12px;
+    line-height: 1.25;
+  }
+  .bs-chips {
+    gap: 4px;
+    margin-top: 4px;
+  }
+  .bs-chips li {
+    padding: 1px 6px;
+    font-size: 11px;
   }
   .bs-controls {
     gap: 8px;
@@ -7302,6 +7374,9 @@ a.hist-map:hover {
   }
   .bs-seg.bs-players {
     grid-template-columns: repeat(4, 1fr);
+  }
+  .bs-gl {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   }
   .bs-gl dd {
     font-size: 19px;
@@ -10022,22 +10097,22 @@ footer a {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 12px 16px;
-  margin-bottom: 12px;
-  padding: 14px 16px;
+  gap: 6px 12px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
   background: linear-gradient(120deg, color-mix(in srgb, var(--th-tint) 22%, var(--s1)), var(--s1) 70%);
   border: 1px solid var(--rule-2);
   border-radius: var(--r);
 }
 .th-art {
   display: block;
-  width: 72px;
-  height: 72px;
+  width: 52px;
+  height: 52px;
   filter: drop-shadow(0 3px 6px rgb(0 0 0 / 0.35));
 }
 .th-art > img,
 .th-art > .spr {
-  --s: 72px;
+  --s: 52px;
   display: block;
   width: 100%;
   height: 100%;
@@ -10046,14 +10121,15 @@ footer a {
   min-width: 0;
 }
 .th-h1 {
-  font: 800 clamp(30px, 6vw, 48px)/0.95 var(--f-display);
+  font: 800 clamp(26px, 6vw, 44px)/0.95 var(--f-display);
   text-transform: uppercase;
   letter-spacing: 0.01em;
   overflow-wrap: break-word;
   text-wrap: balance;
 }
 .th-sub {
-  margin-top: 6px;
+  margin-top: 3px;
+  line-height: 1.3;
   color: var(--ink);
   font-weight: 600;
 }
@@ -10082,16 +10158,16 @@ footer a {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
 .th-ic {
   display: block;
-  padding: 2px;
+  padding: 1px;
   border-radius: 8px;
   transition: transform 0.12s;
 }
 .th-ic .spr {
-  --s: 38px;
+  --s: 32px;
 }
 .th-x .rv-edit {
   margin-left: auto;
@@ -10110,14 +10186,14 @@ a.th-ic:focus-visible {
 @media (min-width: 701px) {
   .th {
     grid-template-columns: auto minmax(0, 1fr) auto;
-    padding: 18px 22px;
+    padding: 14px 20px;
   }
   .th-art {
-    width: 96px;
-    height: 96px;
+    width: 80px;
+    height: 80px;
   }
   .th-art > .spr {
-    --s: 96px;
+    --s: 80px;
   }
   .th-x {
     grid-column: auto;
@@ -10125,7 +10201,7 @@ a.th-ic:focus-visible {
     max-width: 380px;
   }
   .th-ic .spr {
-    --s: 44px;
+    --s: 40px;
   }
 }
 /* paragon scaling: the 14 paragons in two rows of 7 */

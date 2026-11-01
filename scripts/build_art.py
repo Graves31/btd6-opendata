@@ -637,7 +637,7 @@ BLOONS = {  # canonical bloon keys -> plain base sprites (no damage states, no e
 # defines for a bloon type the round sets use, whose icon differs from the base sprite. Keys: "<bloon key>:<flags>"
 # (flags = camo 1 | regrow 2 | fortified 4), e.g. "ceramic:5" = fortified camo ceramic.
 _DARK_BLOONS = {"black", "lead", "zomg", "ddt", "bad"}
-ROUNDS_INDEX = ROOT / "web" / "src" / "data" / "rounds" / "index.ts"
+ROUNDS_INDEX = ROOT / "web" / "src" / "data" / "rounds" / "data.ts"
 
 
 def bloon_variants() -> dict:
@@ -672,6 +672,9 @@ for _b in _BOSSES:
 # icons ("bar:<name>") from the BossUi prefab (see boss_ui()).
 BOSSES["skull"] = "ref/BossSkullPipOn"
 BOSSES["skull:off"] = "ref/BossSkullPipOff"
+# Lych spawns have no usable model icon: the soul droplet and the grey grave sprites stand in ("spawn:<key>").
+BOSSES["spawn:MiniLych"] = "ref/LychSoulDroplet"
+BOSSES["spawn:Tombstone"] = "ref/GraveGrey"
 # UserProfile.bossBadgesNormal/Elite use capitalised names: alias them onto the same cells.
 BOSS_ALIASES = {b.capitalize(): b for b in _BOSSES}
 # The boss badges a profile shows (normal / elite), as on the game's profile screen. Own sheet: profiles only.

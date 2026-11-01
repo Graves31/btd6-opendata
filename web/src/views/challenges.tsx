@@ -27,9 +27,9 @@ import { MapArt, MODE_NAME, Spr } from "../sprite.tsx";
 import { A, body, Bug, EvIcon, Gate, peek, Section, Tabs, ToolHero } from "../ui.tsx";
 
 const BLURB: Record<ChallengeFilter, string> = {
-  daily: "A new standard and advanced challenge every day, plus the co-op daily. Open one for its full rules and win rate.",
-  newest: "The latest challenges players have published in the game's challenge browser.",
-  trending: "Player challenges getting the most plays right now.",
+  daily: "Today's daily challenges, past dailies by number, and each one's full rules and win rate.",
+  newest: "The newest player-made challenges, searchable by name or code.",
+  trending: "The player-made challenges getting the most plays right now.",
 };
 const FIRST_FACT = 1; // lines[0] is the blurb (see ChallengesPage), the facts follow
 const PAGE_SIZE = 25; // NK's page size for the newest / trending feeds

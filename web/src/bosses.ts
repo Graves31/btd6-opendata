@@ -70,6 +70,14 @@ export interface BossStatsData {
 /** A multiplier as the game's challenge editor shows it (and the rules panel): 0.9 → "90%". */
 export const mult = (n: number) => `${+(n * 100).toFixed(1)}%`;
 
+/** Where the skulls sit (fractions of health): "every 16.7%" when evenly spaced, else "at 25 / 60%". */
+export function skullPlaces(at: number[]): string {
+  const p = [...at].sort((a, b) => a - b);
+  const pc = (x: number) => +(x * 100).toFixed(1);
+  if (p.length > 1 && p.every((x, i) => Math.abs(x - p[0] * (i + 1)) < 0.002)) return `every ${pc(p[0])}%`;
+  return `at ${p.map(pc).join(" / ")}%`;
+}
+
 /** Event modifiers that apply to a boss: healthMultipliers.boss and bossSpeedMultiplier (1 = none). */
 export interface BossMods {
   health: number;

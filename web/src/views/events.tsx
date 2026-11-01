@@ -160,11 +160,11 @@ const KIND_LABEL: Record<EventKind, string> = {
 };
 /** Lists with a lede (bosses have their stats strip; races explain themselves). */
 const KIND_BLURB: Partial<Record<EventKind, string>> = {
-  boss: "The bosses take turns, each with a Normal and an Elite leaderboard.",
-  ct: "Teams claim hexagon tiles over a week. Players and teams are ranked separately.",
-  race: "One map and one rule set each week. The fastest game time wins.",
+  boss: "This week's boss, the boss rotation, past events, and each boss's health and skulls.",
+  ct: "This week's CT and every past one: map, relics, team and player leaderboards.",
+  race: "This week's race and every past race, each with its leaderboard, map and rules.",
   odyssey:
-    "A chain of islands with one boat crew. No leaderboards; clear it to collect the rewards.",
+    "This week's odyssey and every past one: each island's map, rules and rewards.",
 };
 
 /** Event from NK's live list, else from our archive (events NK no longer lists). */

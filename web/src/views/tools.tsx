@@ -79,7 +79,7 @@ export function ToolsHub() {
         art={<img src={toolsArt} width={96} height={96} alt="" />}
         eyebrow="BTD6 Open Data"
         title="Tools"
-        sub="Calculators and visualizers built from the game's own data."
+        sub="Round visualizer, paragon calculator, and bank, hero XP and farming planners, from the game's own data."
       />
       <Section
         tone="blue"

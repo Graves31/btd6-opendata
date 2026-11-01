@@ -77,11 +77,6 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
   `build_art.py --skip-maps` run (rebuilding the BossUi cache) wrote index.ts/manifest.json with different hashes
   than the following cached runs (those are identical). Find what differs before the next game-patch rebuild.
 
-- **Boss stats page: Lych soul / tombstone icons** (2026-10-02). Their bloon models have no usable icon (soul: none,
-  tombstone: the ZOMG icon), so the page shows text chips. Unused game sprites that might fit, for the owner to pick
-  by eye: ref/LychSoulDroplet, ref/GraveGrey, scene/GraveGhost. Spawn counts are not decoded (tier N spawns level N:
-  checked in the data and on the wiki, pinned in test/bosses.test.ts).
-
 - **Boss page header, option B** (kept as a fallback, 2026-09-30). The owner chose option A (Normal/Elite tabs form
   the top edge of the details card; the card shows only the selected difficulty). Option B, if A doesn't work out:
   keep the strip and the separate Normal/Elite + Solo–4P row; the strip shows the selected difficulty only (one

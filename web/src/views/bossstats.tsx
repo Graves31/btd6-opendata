@@ -27,6 +27,7 @@ import {
   mult,
   NO_BOSS_MODS,
   sameEffects,
+  skullPlaces,
   shieldHp,
   shieldLabel,
   shieldWord,
@@ -546,14 +547,20 @@ function StatsBody(props: {
   const coop = data.coop;
   const hpOf = (t: BossTier) => coopHealth(modHealth(t.health, mods), coop, players);
   // "before modifier N" / "1 player N" under a changed health value
-  const baseHp = (h: number) =>
-    `${modded ? (players > 1 ? "base" : "before modifier") : "1 player"} ${fmtInt(h)}`;
+  const baseHp = (h: number) => `before modifier ${fmtInt(coopHealth(h, coop, players))}`;
   const shHp = (sh: BossShield) => coopHealth(shieldHp(sh, mods), coop, players);
   const coopKeys = Object.keys(coop).filter((k) => +k > 1);
+  // the one player-count modifier, shown as a badge where health appears
+  const pBadge = players > 1 && coop[players] !== undefined && (
+    <span class="bs-pbadge">
+      <Spr family="ui" k={`Coop${players}`} size={20} optional />
+      {players} players · health &amp; shields ×{coop[players]}
+    </span>
+  );
   const top = hpOf(tiers[tiers.length - 1]);
   const hp = hpOf(tier);
   const modded = mods.health !== 1;
-  const scaled = modded || players > 1;
+  const scaled = modded;
   const rows = skullRows(
     hp,
     tier.skulls,
@@ -698,33 +705,35 @@ function StatsBody(props: {
             At a glance
           </>
         }
-        aside={`${elite ? "Elite" : "Normal"} T${r.t}${players > 1 ? ` · ${players} players` : ""}`}
+        aside={`${elite ? "Elite" : "Normal"} T${r.t}`}
       >
+        {pBadge}
         <dl class="bs-gl">
           <div>
+            <Spr family="ui" k="BossTier" size={32} />
             <dt>Health</dt>
             <dd class="num">{fmtInt(hp)}</dd>
           </div>
           <div>
+            <Skull size={32} />
             <dt>Skulls</dt>
-            <dd>
-              {tier.skulls.length > 0
-                ? `${tier.skulls.length} · ${tier.skulls
-                    .map((x) => +(x.at * 100).toFixed(1))
-                    .sort((a, b) => a - b)
-                    .join("/")}%`
-                : "none"}
-            </dd>
+            <dd>{tier.skulls.length > 0 ? tier.skulls.length : "none"}</dd>
+            {tier.skulls.length > 0 && (
+              <dd class="bs-gs">{skullPlaces(tier.skulls.map((x) => x.at))}</dd>
+            )}
           </div>
           <div>
+            <Spr family="ui" k="FasterBoss" size={32} optional />
             <dt>Speed</dt>
             <dd class="num">{speedVal(modSpeed(tier.speed, mods))}</dd>
           </div>
           <div>
+            <Spr family="ui" k="GameTime" size={32} />
             <dt>Minimum kill time</dt>
             <dd class="num">{kill ? killText(kill) : "–"}</dd>
           </div>
           <div>
+            <Spr family="boss" k={`elite:${r.type}`} size={32} optional />
             <dt>Elite vs Normal T5</dt>
             <dd class="num">{ratio}×</dd>
           </div>
@@ -741,6 +750,7 @@ function StatsBody(props: {
                 Health per tier
               </>
             }
+            aside={pBadge || undefined}
           >
             <div class="bs-th" aria-hidden="true">
               <span>Tier</span>
@@ -1056,17 +1066,14 @@ function StatsBody(props: {
 
         </div>
 
-        <Section
-          tone="blue"
-          class="bs-plate wide bs-past-plate"
-          title={
-            <>
+        <details class="sec gp gp-blue gp-fold bs-plate wide bs-past-plate">
+          <summary class="sec-h">
+            <h2>
               <EvIcon k="boss" size={34} />
               <span id="bs-pe-h">Past events</span>
-            </>
-          }
-          aside={`${shown} events`}
-        >
+            </h2>
+            <span class="sec-aside">{shown} events</span>
+          </summary>
           {shown === 0 && <p class="quiet">None in the lists yet.</p>}
           <ul class="bs-past">
             {past.map((x) => {
@@ -1153,7 +1160,7 @@ function StatsBody(props: {
           {!peek(historyKey("boss")) && (
             <p class="quiet">Loading older events…</p>
           )}
-        </Section>
+        </details>
       </div>
 
       <details class="bs-plate bs-about gp gp-bronze gp-fold">

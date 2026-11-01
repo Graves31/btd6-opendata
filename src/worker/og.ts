@@ -27,7 +27,7 @@ export interface AssetsLike {
 /** The site's one public address: canonical links, link previews, Discord posts, redirects from other hosts. */
 export const SITE = "https://btd6data.com";
 export const SITE_NAME = "BTD6 Open Data";
-const GENERIC_DESCRIPTION = "Live Bloons TD 6 boss, race, CT and odyssey leaderboards, player profiles, and tools: round visualizer, paragon calculator and more. Unofficial.";
+const GENERIC_DESCRIPTION = "Live Bloons TD 6 boss, race, CT and odyssey leaderboards, player profiles and dailies, plus the round visualizer, paragon calculator and planners. Unofficial.";
 /** Site-wide preview image (absolute path on this site), or null for none. */
 export const SITE_IMAGE: string | null = "/og.jpg";
 const LOOKUP_TIMEOUT_MS = 300;
@@ -136,16 +136,16 @@ const page = (title: string, description: string, image: string | null = null, w
 });
 
 const LISTS: Record<string, [string, string]> = {
-  bosses: ["BTD6 Boss Event Leaderboards", "Every Bloons TD 6 boss event, Bloonarius to Diamondback: live Normal and Elite leaderboards, top scores, plus each boss's health per tier and skulls."],
-  races: ["BTD6 Race Leaderboards", "Every Bloons TD 6 race event: the live leaderboard of fastest times, each race's rules and map, and the full race history."],
-  ct: ["BTD6 Contested Territory (CT): Map, Relics & Leaderboards", "Every Bloons TD 6 Contested Territory (CT) event: the hex tile map, relics, team and player leaderboards, medal cut-offs and team history."],
-  odyssey: ["BTD6 Odysseys", "Every Bloons TD 6 odyssey, current and past: each island's map and rules, the modifiers, and the rewards for Easy, Medium and Hard."],
-  events: ["Events", "Bloons TD 6 events: bosses, races, Contested Territory and odysseys."],
+  bosses: ["BTD6 Boss Event Leaderboards", "Bloons TD 6 boss events: live Normal and Elite leaderboards, the boss rotation, every past event, and each boss's health per tier and skulls."],
+  races: ["BTD6 Race Leaderboards", "Bloons TD 6 race events: the live leaderboard of fastest times, each race's rules and map, and the full history of past races."],
+  ct: ["BTD6 Contested Territory (CT): Map, Relics & Leaderboards", "Bloons TD 6 Contested Territory (CT): the live hex map with relics, team and player leaderboards, medal cut-offs and your team's history."],
+  odyssey: ["BTD6 Odysseys", "Every Bloons TD 6 odyssey, current and past: each island's map, rules, modifiers and the rewards for Easy, Medium and Hard."],
+  events: ["Events", "Bloons TD 6 events: this week's bosses, races, Contested Territory and odysseys, with their leaderboards and every past event."],
 };
 
 const TOOLS: [string, string] = ["BTD6 Round Visualizer (RBE & bloons per round)", "Bloons TD 6 round sets from the game's own data: the bloons, RBE and spawn timeline of every round."];
 
-const TOOLS_HUB: [string, string] = ["Tools", "Bloons TD 6 tools built on the game's own data: the round visualizer, the paragon degree calculator and farming resources."];
+const TOOLS_HUB: [string, string] = ["Tools", "Bloons TD 6 tools from the game's own data: round visualizer, paragon calculator, and bank, hero XP and farming planners."];
 const FARMING: [string, string] = ["BTD6 Farming Resources", "Bloons TD 6 farming resources: when a 0-0-0, 1-0-0 and 2-0-0 Banana Farm drops its bananas during a round."];
 const BANK: [string, string] = ["BTD6 Bank & IMF Loan Planner", "Bloons TD 6 Monkey Bank and IMF Loan planner: the best round to collect a bank, and how much to deposit in an IMF Loan, with Monkey Knowledge."];
 const HERO_XP: [string, string] = ["BTD6 Hero XP Planner", "When to place a Bloons TD 6 hero so it reaches a level by a round (boss tier), with map difficulty, Monkey Knowledge and Energizer."];
@@ -153,9 +153,9 @@ const PARAGON: [string, string] = ["BTD6 Paragon Calculator: Degree & Power", "B
 const PARAGON_SCALING: [string, string] = ["BTD6 Paragon Scaling", "How a Bloons TD 6 paragon grows per degree: power needed, damage, pierce, attack speed and boss damage, charted from the game's data."];
 
 const CHALLENGE_LISTS: Record<string, [string, string]> = {
-  daily: ["BTD6 Daily Challenges", "Every Bloons TD 6 daily challenge, today's and past ones by number: the map, rules, towers allowed and modifiers of each challenge."],
-  newest: ["BTD6 Newest Challenges", "The newest Bloons TD 6 player-made challenges: the map, rules, towers allowed and modifiers of each one, with its challenge code."],
-  trending: ["BTD6 Trending Challenges", "Trending Bloons TD 6 player-made challenges: the map, rules, towers allowed and modifiers of each one, with its challenge code."],
+  daily: ["BTD6 Daily Challenges", "Bloons TD 6 daily challenges: today's standard, advanced and co-op dailies, and past ones by number with each one's rules and win rate."],
+  newest: ["BTD6 Newest Challenges", "The newest Bloons TD 6 player-made challenges: search by name or challenge code, with each one's map, rules and towers allowed."],
+  trending: ["BTD6 Trending Challenges", "Trending Bloons TD 6 player-made challenges: the most played right now, with each one's map, rules and towers allowed."],
 };
 
 const DEFAULT_ROUND_LIST = (defaultRounds as unknown as { rounds: Round[] }).rounds;
@@ -235,7 +235,7 @@ export async function describe(deps: Deps, pathname: string): Promise<PageMeta> 
   if (a === "tools" && b === "hero-xp" && !c) return page(...HERO_XP);
   if (a === "tools" && !b) return page(...TOOLS_HUB);
   if (a === "stats" && !b) return page("Site stats", "How many people use BTD6 Open Data: visits, page views and the most-opened pages."); // old /tools?set=… links are the visualizer, but the hub text is true of both
-  if (a === "maps" && !b) return page("BTD6 Maps", "Every official Bloons TD 6 map, Beginner to Expert, with or without water: search them and see every boss event and race played on each map.");
+  if (a === "maps" && !b) return page("BTD6 Maps", "Every official Bloons TD 6 map by difficulty, searchable, with the boss events and races played on each, and your medals.");
   const m = a === "maps" && b && !c ? MAP_LIST.find((x) => x[0] === b) : undefined;
   if (m) {
     const diff = ["Beginner", "Intermediate", "Advanced", "Expert"][m[1]];

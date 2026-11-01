@@ -294,7 +294,7 @@ export function CTOverview() {
         art={<EvIcon k="ct" size={96} />}
         eyebrow="Weekly event"
         title="Contested Territory"
-        sub="Teams claim hexagon tiles over a week. Players and teams are ranked separately."
+        sub="The live CT map with relics, team and player leaderboards, medal cut-offs and your team's history."
       >
         <Freshness k="/btd6/ct" />
       </ToolHero>

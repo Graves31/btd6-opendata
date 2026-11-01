@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { BAR_EXTRA, bossMods, coopHealth, killParts, killText, killTime, warpShare, passiveLines, speedReference, speedVal, shieldHp, shieldLabel, effect, effects, modHealth, modSpeed, mult, NO_BOSS_MODS, sameEffects, skullRows, speedShare, spawnName, tierRatio, type BossStatsData } from "../web/src/bosses.ts";
+import { BAR_EXTRA, bossMods, coopHealth, killParts, killText, killTime, warpShare, passiveLines, speedReference, speedVal, shieldHp, shieldLabel, effect, effects, modHealth, modSpeed, mult, NO_BOSS_MODS, sameEffects, skullPlaces, skullRows, speedShare, spawnName, tierRatio, type BossStatsData } from "../web/src/bosses.ts";
 import { BOSS_TYPES, href, needs, parse, setBossStatsUrl } from "../web/src/routes.ts";
 
 const at = (p: string) => parse(new URL(p, "https://x.invalid"));
@@ -316,5 +316,14 @@ describe("minimum kill time", () => {
     assert.equal(t("lych", "elite", 3, true).total, t("lych", "elite", 3).total);
     for (const k of Object.keys(b) as (keyof typeof b)[])
       for (const d of ["normal", "elite"] as const) for (let n = 1; n <= 5; n++) assert.ok(t(k, d, n), `${k} ${d} ${n}`);
+  });
+});
+
+describe("skullPlaces", () => {
+  it("says every N% when evenly spaced, else lists the places", () => {
+    assert.equal(skullPlaces([1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6]), "every 16.7%");
+    assert.equal(skullPlaces([0.75, 0.5, 0.25]), "every 25%");
+    assert.equal(skullPlaces([0.5, 0.2]), "at 20 / 50%");
+    assert.equal(skullPlaces([0.5]), "at 50%");
   });
 });

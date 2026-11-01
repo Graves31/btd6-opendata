@@ -436,8 +436,8 @@
   "boss": {
    "cell": 96,
    "cols": 7,
-   "rows": 6,
-   "bytes": 111100,
+   "rows": 7,
+   "bytes": 113746,
    "keys": [
     "Blastapopoulos",
     "Bloonarius",
@@ -487,6 +487,8 @@
     "spawn:DiamondbackDiamondBloon",
     "spawn:DreadRockBloon",
     "spawn:DreadRockBloon:elite",
+    "spawn:MiniLych",
+    "spawn:Tombstone",
     "vortex"
    ],
    "missingOptional": []
@@ -2920,7 +2922,7 @@
    "missingOptional": []
   }
  },
- "totalSheetBytes": 1581114,
+ "totalSheetBytes": 1583760,
  "bossBar": {
   "parts": {
    "armour:diamondback:edge": {

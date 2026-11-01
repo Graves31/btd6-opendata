@@ -297,8 +297,8 @@ export function MapsPage(props: { r: MapsRoute }) {
           <p class="eyebrow">Every official map</p>
           <h1 class="th-h1">Maps</h1>
           <p class="th-sub">
-            All {MAP_LIST.length} official maps: when each last had a boss event
-            or a race, and how often.
+            Every map by difficulty, with the boss events and races played on
+            each, and your medals.
           </p>
         </div>
         <div class="map-strip">
