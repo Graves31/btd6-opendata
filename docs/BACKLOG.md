@@ -5,6 +5,11 @@ Status: **later** = agreed, not scheduled · **idea** = not yet approved · **de
 
 ## Later (agreed)
 
+- **Next up (2026-11-01, owner: do next).** (1) /bosses title card: the boss-rotation button sits alone on its own
+  row on phones (card ~189 px); put it beside the title. (2) CT page: it prefetches ~20 group leaderboards from NK at
+  once; on a cold cache they're slow (first live e2e after both 1 Nov deploys timed out on /ct/<id>, reruns passed).
+  Load fewer groups up front.
+
 - **Farming optimizer for boss events** (2026-10-30, P0 done: docs/farming-optimizer.md). Next, P1: the owner runs
   Mod Helper "Export Game Data" (modded game), then `build_economy.py`, the exact simulator, in-game checks and a
   HiGHS benchmark. Owner: a real matrix optimizer (MILP), "fastest routes to cash".
