@@ -61,6 +61,8 @@ export interface BossInfo {
 export interface BossStatsData {
   bosses: Record<string, BossInfo>;
   speed: Record<string, number>;
+  /** boss health multiplier by player count ("1".."4"), from NK's server settings */
+  coop: Record<string, number>;
   v: string;
   format: number;
 }
@@ -83,6 +85,8 @@ export function bossMods(m: { healthMultipliers?: { boss?: number }; bossSpeedMu
 
 /** Tier HP with the event's boss health multiplier, whole HP. */
 export const modHealth = (base: number, m: BossMods) => Math.round(base * m.health);
+/** Boss health with the co-op player count (1..4): NK's coopHealthMultipliers. */
+export const coopHealth = (hp: number, coop: Record<string, number>, p: number) => Math.round(hp * (coop[p] ?? 1));
 /** Speed (game units) with the event's boss speed multiplier. */
 export const modSpeed = (base: number, m: BossMods) => base * m.speed;
 /** Speed as a share of a Red bloon's: 1.25 vs Red 25 → 0.05. */

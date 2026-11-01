@@ -180,6 +180,8 @@ export interface BossStatsRoute {
   ev?: string;
   /** false (`mod=0`): base values */
   mod: boolean;
+  /** co-op players 1..4: boss health scales with it */
+  p: number;
 }
 
 /**
@@ -470,7 +472,7 @@ export function parse(url: URL): Route {
   if (a === "bosses" && b && !c) {
     if (!(BOSS_TYPES as readonly string[]).includes(b)) return { name: "notfound" };
     const ev = q.get("ev");
-    const r: BossStatsRoute = { name: "bossstats", type: b, d: oneOf(q.get("d"), ["standard", "elite"] as const, "standard"), t: int(q.get("t"), 5, 1, 5), mod: q.get("mod") !== "0" };
+    const r: BossStatsRoute = { name: "bossstats", type: b, d: oneOf(q.get("d"), ["standard", "elite"] as const, "standard"), t: int(q.get("t"), 5, 1, 5), mod: q.get("mod") !== "0", p: int(q.get("p"), 1, 1, 4) };
     if (ev && EVENT_ID.test(ev)) r.ev = ev;
     return r;
   }
@@ -629,8 +631,8 @@ export const href = {
   boss: (id: string, d: BossDiff = "standard", n = 1, p = 1) =>
     `/boss/${id}${qs({ d: d === "standard" ? undefined : d, n: n === 1 ? undefined : n, p: p === 1 ? undefined : p })}`,
   /** Boss stats page; only non-default values are written. */
-  bossstats: (type: string, o: { d?: BossDiff; t?: number; ev?: string; mod?: boolean } = {}) =>
-    `/bosses/${type}${qs({ d: o.d === "elite" ? "elite" : undefined, t: o.t !== undefined && o.t !== 5 ? o.t : undefined, ev: o.ev, mod: o.mod === false ? 0 : undefined })}`,
+  bossstats: (type: string, o: { d?: BossDiff; t?: number; ev?: string; mod?: boolean; p?: number } = {}) =>
+    `/bosses/${type}${qs({ d: o.d === "elite" ? "elite" : undefined, t: o.t !== undefined && o.t !== 5 ? o.t : undefined, ev: o.ev, mod: o.mod === false ? 0 : undefined, p: o.p !== undefined && o.p > 1 ? o.p : undefined })}`,
   race: (id: string, p = 1) => `/race/${id}${qs({ p: p === 1 ? undefined : p })}`,
   /** No tab → the CT's default (Teams); an explicit tab is always spelled out, so tab links are distinguishable. */
   ct: (id: string, tab?: CTTab, p = 1) => `/ct/${id}${qs({ tab, p: p === 1 ? undefined : p })}`,

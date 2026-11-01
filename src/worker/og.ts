@@ -11,6 +11,7 @@
 // Static files (/assets/*, /art/*, sw.js, fonts, images) never reach the Worker.
 
 import { MAP_LIST, MAP_NAMES } from "../../web/src/data/names.ts";
+import bossSummary from "../../web/src/data/bossSummary.json" with { type: "json" };
 import defaultRounds from "../../web/src/data/rounds/default.json" with { type: "json" };
 import { fmtInt } from "../../web/src/format.ts";
 import { NO_MODS, parse } from "../../web/src/routes.ts";
@@ -61,6 +62,8 @@ export interface PageMeta {
   wide?: boolean;
   /** Extra links for the prerendered text (a round page's neighbours). */
   links?: [href: string, label: string][];
+  /** Extra prerendered text (escaped HTML built here) after the description: a boss stats page's health table. */
+  pre?: string;
 }
 
 const EVENT_ID = /^[A-Za-z0-9_-]{4,64}$/;
@@ -133,7 +136,7 @@ const page = (title: string, description: string, image: string | null = null, w
 });
 
 const LISTS: Record<string, [string, string]> = {
-  bosses: ["BTD6 Boss Event Leaderboards", "Every Bloons TD 6 boss event, from Bloonarius to Diamondback: live Normal and Elite leaderboards, rules and top scores, with full history."],
+  bosses: ["BTD6 Boss Event Leaderboards", "Every Bloons TD 6 boss event, Bloonarius to Diamondback: live Normal and Elite leaderboards, top scores, plus each boss's health per tier and skulls."],
   races: ["BTD6 Race Leaderboards", "Every Bloons TD 6 race event: the live leaderboard of fastest times, each race's rules and map, and the full race history."],
   ct: ["BTD6 Contested Territory (CT): Map, Relics & Leaderboards", "Every Bloons TD 6 Contested Territory (CT) event: the hex tile map, relics, team and player leaderboards, medal cut-offs and team history."],
   odyssey: ["BTD6 Odysseys", "Every Bloons TD 6 odyssey, current and past: each island's map and rules, the modifiers, and the rewards for Easy, Medium and Hard."],
@@ -181,6 +184,36 @@ function roundPage(n: number): PageMeta | undefined {
 /** Boss stats pages (/bosses/<type>), as in web/public/sitemap.xml. */
 const BOSS_TYPES = new Set(["bloonarius", "lych", "vortex", "dreadbloon", "phayze", "blastapopoulos", "diamondback"]);
 
+/** The skull health marks as the page shows them: "25/50/75". */
+const skullMarks = (skulls: number[]) => skulls.map((x) => +(x * 100).toFixed(1)).sort((a, b) => a - b).join("/");
+
+/** Boss stats page: health per tier and skulls from the small derived bossSummary.json (never hard-coded numbers). */
+function bossStatsPage(type: string): PageMeta {
+  const { coop, bosses } = bossSummary as { coop: Record<string, number>; bosses: Record<string, { name: string; normal: number[]; elite: number[]; skulls: number[] }> };
+  const bo = bosses[type];
+  const { name, normal, elite } = bo;
+  const players = Object.keys(coop).filter((k) => +k > 1);
+  const marks = skullMarks(bo.skulls);
+  const parts = [
+    `${bo.skulls.length} skulls at ${marks}%`,
+    `co-op ×${coop[players[0]]}–×${coop[players[players.length - 1]]}`,
+    "kill time and past events",
+  ];
+  const core = `${name} HP in Bloons TD 6: ${fmtInt(normal[0])} (T1) to ${fmtInt(normal[4])} (T5), Elite T5 ${fmtInt(elite[4])}.`;
+  let desc = core;
+  for (let n = parts.length; n > 0; n--) {
+    desc = `${core} ${parts.slice(0, n).join(", ")}.`;
+    if (desc.length <= 160) break;
+    desc = core;
+  }
+  const row = (label: string, hp: number[]) => `<li>${label}: ${hp.map((h, i) => `T${i + 1} ${fmtInt(h)}`).join(", ")}</li>`;
+  const pre =
+    `<h2>${esc(name)} health per tier</h2><ul>${row("Normal", normal)}${row("Elite", elite)}</ul>` +
+    `<p>${bo.skulls.length} skulls, at ${marks}% of health.</p>` +
+    `<p>Co-op: boss health and shields ${players.map((k) => `×${coop[k]}`).join(" / ")} for ${players.join(" / ")} players (NK's server settings).</p>`;
+  return { ...page(`BTD6 ${name} Health & Skulls: HP per Tier, Normal & Elite`, desc), pre };
+}
+
 /** Route-specific tags from cached data only; null/GENERIC when nothing usable is cached. */
 export async function describe(deps: Deps, pathname: string): Promise<PageMeta> {
   let seg: string[];
@@ -211,7 +244,7 @@ export async function describe(deps: Deps, pathname: string): Promise<PageMeta> 
   }
   if (a === "challenges" && !c && (!b || Object.hasOwn(CHALLENGE_LISTS, b))) return page(...CHALLENGE_LISTS[b ?? "daily"]);
   if (a === "bosses" && b && BOSS_TYPES.has(b) && !c) {
-    return page(`BTD6 ${cap(b)} Boss: Health, Tiers & Past Events`, `${cap(b)} boss stats in Bloons TD 6: health, skulls, spawns and minimum kill time per tier, Normal and Elite, plus every past ${cap(b)} event.`);
+    return bossStatsPage(b);
   }
   if (!b) return GENERIC;
 
@@ -372,7 +405,7 @@ export function injectMeta(html: string, m: PageMeta, url: URL): string {
   out = out.replace(/<\/head>/i, () => `${[canonical, ...tags].join("\n    ")}\n  </head>`);
   // Readable text for crawlers that don't run scripts; the app clears it before its first render.
   const links = [...SECTIONS, ...(m.links ?? [])].map(([h, l]) => `<a href="${h}">${l}</a>`).join(" · ");
-  const text = `<div class="pre"><h1>${esc(m.title)}</h1><p>${esc(m.description)}</p><nav>${links}</nav></div>`;
+  const text = `<div class="pre"><h1>${esc(m.title)}</h1><p>${esc(m.description)}</p>${m.pre ?? ""}<nav>${links}</nav></div>`;
   return out.replace(/<div id="app"><\/div>/i, () => `<div id="app">${text}</div>`);
 }
 

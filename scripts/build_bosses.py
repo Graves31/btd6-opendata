@@ -159,6 +159,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "web" / "src" / "data" / "bosses.json"
+SUMMARY = ROOT / "web" / "src" / "data" / "bossSummary.json"  # small derived copy for the Worker's search text
 FORMAT_VERSION = 1
 
 
@@ -1448,6 +1449,18 @@ def build(sim: bytes, bloons: dict, text: dict, version: str) -> tuple[dict, dic
     return out, icons
 
 
+def load_coop() -> dict:
+    """settings.gameEvents.bosses.coopHealthMultipliers from the newest cached server settings: {"2": 1.2, ...}."""
+    hits = sorted(br.SERVER_CACHE.glob("skuSettings-*-PRODUCTION"), key=lambda p: p.stat().st_mtime)
+    if not hits:
+        sys.exit(f"no cached server settings (skuSettings-*) in {br.SERVER_CACHE}: launch the game once (or set BTD6_CACHE)")
+    try:
+        c = json.loads(br._dgdata(hits[-1].read_bytes()))["settings"]["gameEvents"]["bosses"]["coopHealthMultipliers"]
+    except (ValueError, KeyError, TypeError) as e:
+        sys.exit(f"{hits[-1].name}: no settings.gameEvents.bosses.coopHealthMultipliers ({e})")
+    return {str(k): _num(v) for k, v in c.items()}
+
+
 def main() -> dict:
     """Writes bosses.json; returns the spawned bloons' icon specs ("Atlas/Sprite") for build_art."""
     if not br.AA_DIR.is_dir():
@@ -1465,10 +1478,17 @@ def main() -> dict:
         for k in ("name", "tagline", "tagline2"):
             if B[k] is not None:
                 B[k] = bn.clean(B[k])
+    data["coop"] = load_coop()
     raw = (json.dumps(data, separators=(",", ":"), sort_keys=True, ensure_ascii=False) + "\n").encode("utf-8")
     if not OUT.exists() or OUT.read_bytes() != raw:
         OUT.parent.mkdir(parents=True, exist_ok=True)
         OUT.write_bytes(raw)
+    summary = {"coop": data["coop"], "bosses": {k: {"name": B["name"], "normal": [t["health"] for t in B["normal"]],
+               "elite": [t["health"] for t in B["elite"]], "skulls": [s["at"] for s in B["normal"][4]["skulls"]]}
+               for k, B in data["bosses"].items()}}
+    raw2 = (json.dumps(summary, separators=(",", ":"), sort_keys=True) + "\n").encode("utf-8")
+    if not SUMMARY.exists() or SUMMARY.read_bytes() != raw2:
+        SUMMARY.write_bytes(raw2)
     print(f"  bosses     {len(data['bosses'])} boss types -> {OUT.relative_to(ROOT)} ({len(raw) / 1024:.1f} KB)")
     return icons
 

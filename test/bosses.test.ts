@@ -4,16 +4,28 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { BAR_EXTRA, bossMods, killParts, killText, killTime, warpShare, passiveLines, speedReference, speedVal, shieldHp, shieldLabel, effect, effects, modHealth, modSpeed, mult, NO_BOSS_MODS, sameEffects, skullRows, speedShare, spawnName, tierRatio, type BossStatsData } from "../web/src/bosses.ts";
+import { BAR_EXTRA, bossMods, coopHealth, killParts, killText, killTime, warpShare, passiveLines, speedReference, speedVal, shieldHp, shieldLabel, effect, effects, modHealth, modSpeed, mult, NO_BOSS_MODS, sameEffects, skullRows, speedShare, spawnName, tierRatio, type BossStatsData } from "../web/src/bosses.ts";
 import { BOSS_TYPES, href, needs, parse, setBossStatsUrl } from "../web/src/routes.ts";
 
 const at = (p: string) => parse(new URL(p, "https://x.invalid"));
 const data = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../web/src/data/bosses.json"), "utf8")) as BossStatsData;
 
+describe("co-op health", () => {
+  it("health with p players = base x the server's multiplier", () => {
+    const base = data.bosses.bloonarius.normal[4].health;
+    assert.equal(coopHealth(base, data.coop, 1), base);
+    assert.equal(coopHealth(base, data.coop, 3), Math.round(base * data.coop["3"]));
+    assert.ok(data.coop["3"] > data.coop["2"]);
+  });
+});
+
 describe("boss stats route", () => {
   it("parses /bosses/<type> with defaults and params", () => {
-    assert.deepEqual(at("/bosses/lych"), { name: "bossstats", type: "lych", d: "standard", t: 5, mod: true });
-    assert.deepEqual(at("/bosses/vortex?d=elite&t=3&ev=Vortex47_mu62cmt5&mod=0"), { name: "bossstats", type: "vortex", d: "elite", t: 3, ev: "Vortex47_mu62cmt5", mod: false });
+    assert.deepEqual(at("/bosses/lych"), { name: "bossstats", type: "lych", d: "standard", t: 5, mod: true, p: 1 });
+    assert.deepEqual(at("/bosses/vortex?d=elite&t=3&ev=Vortex47_mu62cmt5&mod=0"), { name: "bossstats", type: "vortex", d: "elite", t: 3, ev: "Vortex47_mu62cmt5", mod: false, p: 1 });
+    assert.equal((at("/bosses/lych?p=3") as { p: number }).p, 3);
+    assert.equal((at("/bosses/lych?p=9") as { p: number }).p, 1);
+    assert.equal((at("/bosses/lych?p=x") as { p: number }).p, 1);
     assert.equal((at("/bosses/lych?t=9") as { t: number }).t, 5);
     assert.equal((at("/bosses/lych?ev=a/b") as { ev?: string }).ev, undefined);
   });
@@ -27,7 +39,10 @@ describe("boss stats route", () => {
     assert.equal(href.bossstats("lych"), "/bosses/lych");
     const h = href.bossstats("dreadbloon", { d: "elite", t: 2, ev: "msi6n2qi", mod: false });
     assert.equal(h, "/bosses/dreadbloon?d=elite&t=2&ev=msi6n2qi&mod=0");
-    assert.deepEqual(at(h), { name: "bossstats", type: "dreadbloon", d: "elite", t: 2, ev: "msi6n2qi", mod: false });
+    assert.deepEqual(at(h), { name: "bossstats", type: "dreadbloon", d: "elite", t: 2, ev: "msi6n2qi", mod: false, p: 1 });
+    assert.equal(href.bossstats("lych", { p: 1 }), "/bosses/lych");
+    assert.equal(href.bossstats("lych", { p: 3 }), "/bosses/lych?p=3");
+    assert.equal((at(href.bossstats("lych", { d: "elite", p: 4 })) as { p: number }).p, 4);
   });
   it("needs: the data file, the lists, and the event's ruleset when ev is set", () => {
     setBossStatsUrl("/assets/bosses-abc.json");

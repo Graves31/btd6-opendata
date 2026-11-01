@@ -15,6 +15,7 @@ import { fmtInt } from "../web/src/format.ts";
 import { bloonLabel, distinctBloons, roundCash, roundRbe } from "../web/src/rounds.ts";
 import { DEFAULT_ROUNDS, NO_MODS } from "../web/src/routes.ts";
 import defaultSet from "../web/src/data/rounds/default.json" with { type: "json" };
+import bosses from "../web/src/data/bosses.json" with { type: "json" };
 import { policyFor, ROUTES } from "../src/nk/routes.ts";
 
 /** Origin requests for hot-set keys (excludes the profile warmer's /users and /guild fetches). */
@@ -1220,8 +1221,17 @@ describe("link previews (og tags on page navigations)", () => {
     assert.match((await page(t, "/challenges")).html, /<title>BTD6 Daily Challenges · /);
     assert.match((await page(t, "/challenges/constructor")).html, /<title>BTD6 Open Data<\/title>/);
     const lych = (await page(t, "/bosses/lych")).html;
-    assert.match(lych, /<title>BTD6 Lych Boss: Health, Tiers &amp; Past Events · /);
-    assert.match(lych, /<div id="app"><div class="pre"><h1>BTD6 Lych Boss: Health, Tiers &amp; Past Events · BTD6 Open Data<\/h1><p>Lych boss stats/);
+    assert.match(lych, /<title>BTD6 Lych Health &amp; Skulls: HP per Tier, Normal &amp; Elite · BTD6 Open Data<\/title>/);
+    assert.match(lych, /<div id="app"><div class="pre"><h1>BTD6 Lych Health &amp; Skulls: HP per Tier, Normal &amp; Elite · BTD6 Open Data<\/h1><p>Lych HP in Bloons TD 6/);
+    // numbers come from the game data, not pasted
+    const ly = bosses.bosses.lych;
+    const desc = /<meta name="description" content="([^"]*)"/.exec(lych)![1];
+    assert.ok(desc.length <= 160);
+    assert.ok(desc.includes(`${fmtInt(ly.normal[0].health)} (T1) to ${fmtInt(ly.normal[4].health)} (T5), Elite T5 ${fmtInt(ly.elite[4].health)}`));
+    for (const [i, x] of ly.normal.entries()) assert.ok(lych.includes(`T${i + 1} ${fmtInt(x.health)}`));
+    for (const [i, x] of ly.elite.entries()) assert.ok(lych.includes(`T${i + 1} ${fmtInt(x.health)}`));
+    assert.ok(lych.includes(`×${bosses.coop["2"]} / ×${bosses.coop["3"]} / ×${bosses.coop["4"]} for 2 / 3 / 4 players`));
+    for (const n of ["blastapopoulos", "diamondback", "bloonarius"]) assert.ok(/<meta name="description" content="([^"]*)"/.exec((await page(t, `/bosses/${n}`)).html)![1].length <= 160);
     assert.equal(t.origin.calls.length, calls);
   });
 
@@ -1299,6 +1309,7 @@ describe("link previews (og tags on page navigations)", () => {
       ["/", "https://btd6data.com/"],
       ["/bosses/", "https://btd6data.com/bosses"],
       ["/bosses/phayze?d=elite&t=3", "https://btd6data.com/bosses/phayze"],
+      ["/bosses/bloonarius?p=3", "https://btd6data.com/bosses/bloonarius"],
       ["/tools/rounds?set=default&r=60", "https://btd6data.com/tools/rounds"],
       ["/tools?set=default", "https://btd6data.com/tools/rounds"],
       ["/tools", "https://btd6data.com/tools"],

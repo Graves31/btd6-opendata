@@ -6436,7 +6436,9 @@ button.fd-tile:hover {
   background: var(--on-accent);
 }
 
-/* Desktop: 12-column grid (health 5 + skulls 7, then pairs of 6); below 1000 px one column, skulls first. */
+/* Desktop: two independent columns on a 12-column grid: health over kill time (5), and the stack (skulls, then the
+   effect panels) spanning both rows (7), so a short panel never leaves a hole beside a tall one. Below 1000 px one
+   column; the stack dissolves and `order` gives health, skulls, kill time, effects. */
 .bs-grid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -6446,13 +6448,50 @@ button.fd-tile:hover {
 .bs-grid > .bs-plate {
   grid-column: span 6;
 }
+.bs-grid > .bs-health {
+  grid-column: 1 / span 5;
+  grid-row: 1;
+}
+.bs-grid > .bs-kill {
+  grid-column: 1 / span 5;
+  grid-row: 2;
+}
 .bs-grid > .bs-stack {
+  grid-column: 6 / span 7;
+  grid-row: 1 / span 2;
   display: grid;
   gap: 12px;
-  grid-column: span 5;
 }
-.bs-grid > .bs-skulls-plate {
-  grid-column: span 7;
+/* "At a glance": a row of stat tiles */
+.bs-glance {
+  margin-bottom: 12px;
+}
+.bs-gl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px 16px;
+}
+.bs-gl dt {
+  font: 700 12px/1 var(--f-body);
+  color: var(--ink-3);
+}
+.bs-gl dd {
+  text-align: left;
+  margin: 4px 0 0;
+  font: 800 22px/1.1 var(--f-display);
+  color: var(--ink);
+}
+.bs-players button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+@media (min-width: 1000px) {
+  .bs-past {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 24px;
+  }
 }
 .bs-grid > .bs-plate.wide {
   grid-column: 1 / -1;
@@ -7210,12 +7249,25 @@ a.hist-map:hover {
   .bs-grid > .bs-plate,
   .bs-grid > .bs-plate.wide {
     grid-column: 1;
+    grid-row: auto;
   }
   .bs-grid > .bs-stack {
     display: contents;
   }
-  .bs-skulls-plate {
-    order: -1;
+  .bs-grid .bs-health {
+    order: 1;
+  }
+  .bs-grid .bs-skulls-plate {
+    order: 2;
+  }
+  .bs-grid .bs-kill {
+    order: 3;
+  }
+  .bs-grid .bs-stack > .bs-plate:not(.bs-skulls-plate) {
+    order: 4;
+  }
+  .bs-grid > .bs-plate.wide {
+    order: 5;
   }
 }
 @media (max-width: 700px) {
@@ -7247,6 +7299,12 @@ a.hist-map:hover {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     width: 100%;
+  }
+  .bs-seg.bs-players {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .bs-gl dd {
+    font-size: 19px;
   }
   .bs-th,
   .bs-tier {

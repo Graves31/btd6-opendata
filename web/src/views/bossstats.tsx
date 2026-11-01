@@ -16,6 +16,7 @@ import {
   BAR_EXTRA,
   bossMods,
   commonStretch,
+  coopHealth,
   effects,
   killParts,
   killText,
@@ -39,6 +40,7 @@ import {
   warpShare,
   type BossAction,
   type BossInfo,
+  type BossShield,
   type BossStatsData,
   type BossTier,
   type Effect,
@@ -434,7 +436,7 @@ export function BossStatsPage(props: { r: BossStatsRoute }) {
 
   const to = (patch: Partial<BossStatsRoute>) => {
     const n = { ...r, ...patch };
-    return href.bossstats(n.type, { d: n.d, t: n.t, ev: n.ev, mod: n.mod });
+    return href.bossstats(n.type, { d: n.d, t: n.t, ev: n.ev, mod: n.mod, p: n.p });
   };
   const go = (patch: Partial<BossStatsRoute>) =>
     navigate(to(patch), { replace: true, keepScroll: true });
@@ -463,7 +465,7 @@ export function BossStatsPage(props: { r: BossStatsRoute }) {
             />
           </span>
           <div class="bh-side">
-            <p class="eyebrow">Boss stats</p>
+            <p class="eyebrow">Boss health &amp; stats</p>
             <h1 class="bs-title">{name}</h1>
             {boss && (
               <>
@@ -540,14 +542,22 @@ function StatsBody(props: {
   const elite = r.d === "elite";
   const tiers: BossTier[] = elite ? boss.elite : boss.normal;
   const tier = tiers[r.t - 1];
-  const hpOf = (t: BossTier) => modHealth(t.health, mods);
+  const players = r.p;
+  const coop = data.coop;
+  const hpOf = (t: BossTier) => coopHealth(modHealth(t.health, mods), coop, players);
+  // "before modifier N" / "1 player N" under a changed health value
+  const baseHp = (h: number) =>
+    `${modded ? (players > 1 ? "base" : "before modifier") : "1 player"} ${fmtInt(h)}`;
+  const shHp = (sh: BossShield) => coopHealth(shieldHp(sh, mods), coop, players);
+  const coopKeys = Object.keys(coop).filter((k) => +k > 1);
   const top = hpOf(tiers[tiers.length - 1]);
   const hp = hpOf(tier);
   const modded = mods.health !== 1;
+  const scaled = modded || players > 1;
   const rows = skullRows(
     hp,
     tier.skulls,
-    tier.shield ? shieldHp(tier.shield, mods) : 0,
+    tier.shield ? shHp(tier.shield) : 0,
   );
   const ctx = { actions: tier.actions, noModel: tier.noModel };
   const fx = tier.skulls.map((s) => effects(s.do, ctx));
@@ -624,6 +634,23 @@ function StatsBody(props: {
             </button>
           ))}
         </div>
+        <span class="bs-ctl-l" aria-hidden="true">
+          Players
+        </span>
+        <div class="bs-seg bs-players" role="group" aria-label="Players">
+          {[1, 2, 3, 4].map((n) => (
+            <button
+              key={n}
+              type="button"
+              class={n === players ? "on" : undefined}
+              aria-pressed={n === players}
+              onClick={() => go({ p: n })}
+            >
+              <Spr family="ui" k={`Coop${n}`} size={20} optional />
+              {n}
+            </button>
+          ))}
+        </div>
         {changed && opening && (
           <div class="bs-mod">
             <button
@@ -662,8 +689,49 @@ function StatsBody(props: {
         )}
       </div>
 
+      <Section
+        tone="blue"
+        class="bs-plate bs-glance"
+        title={
+          <>
+            <Spr family="ui" k="Trophy" size={34} />
+            At a glance
+          </>
+        }
+        aside={`${elite ? "Elite" : "Normal"} T${r.t}${players > 1 ? ` · ${players} players` : ""}`}
+      >
+        <dl class="bs-gl">
+          <div>
+            <dt>Health</dt>
+            <dd class="num">{fmtInt(hp)}</dd>
+          </div>
+          <div>
+            <dt>Skulls</dt>
+            <dd>
+              {tier.skulls.length > 0
+                ? `${tier.skulls.length} · ${tier.skulls
+                    .map((x) => +(x.at * 100).toFixed(1))
+                    .sort((a, b) => a - b)
+                    .join("/")}%`
+                : "none"}
+            </dd>
+          </div>
+          <div>
+            <dt>Speed</dt>
+            <dd class="num">{speedVal(modSpeed(tier.speed, mods))}</dd>
+          </div>
+          <div>
+            <dt>Minimum kill time</dt>
+            <dd class="num">{kill ? killText(kill) : "–"}</dd>
+          </div>
+          <div>
+            <dt>Elite vs Normal T5</dt>
+            <dd class="num">{ratio}×</dd>
+          </div>
+        </dl>
+      </Section>
+
       <div class="bs-grid">
-        <div class="bs-stack">
           <Section
             tone="green"
             class="bs-plate bs-health"
@@ -695,11 +763,7 @@ function StatsBody(props: {
                       <span class="bs-tl">T{n}</span>
                       <span class="bs-hp num">
                         {fmtInt(h)}
-                        {modded && (
-                          <small class="bs-base">
-                            before modifier {fmtInt(t.health)}
-                          </small>
-                        )}
+                        {scaled && <small class="bs-base">{baseHp(t.health)}</small>}
                       </span>
                       <span class="bs-hbar" aria-hidden="true">
                         <i
@@ -720,6 +784,11 @@ function StatsBody(props: {
               })}
             </ol>
             <p class="bs-note quiet">Elite T5 = {ratio}× Normal T5.</p>
+            <p class="bs-note quiet">
+              Co-op: boss health and shields{" "}
+              {coopKeys.map((k) => `×${coop[k]}`).join(" / ")} for{" "}
+              {coopKeys.join(" / ")} players (NK's server settings).
+            </p>
             <p class="bs-note quiet">
               Speed T{r.t}: {speedVal(modSpeed(tier.speed, mods))} —{" "}
               {speedCompare(modSpeed(tier.speed, mods), data.speed)}. Game
@@ -811,32 +880,7 @@ function StatsBody(props: {
               </ul>
             </Section>
           )}
-          {active.length > 0 && (
-            <Section
-              tone="violet"
-              class="bs-plate bs-active"
-              title={
-                <>
-                  <Spr family="ui" k="BossBoost" size={34} />
-                  Always active
-                </>
-              }
-              aside={`${elite ? "Elite" : "Normal"} T${r.t}`}
-            >
-              <ul class="bs-lines">
-                {active.map((l) => (
-                  <li key={l.text}>
-                    {l.text}
-                    {l.internal && (
-                      <small class="bs-int"> (internal name)</small>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </Section>
-          )}
-        </div>
-
+        <div class="bs-stack">
         <Section
           tone="crimson"
           class="bs-plate bs-skulls-plate"
@@ -858,13 +902,10 @@ function StatsBody(props: {
           {tier.shield && (
             <p class="bs-every">
               <strong>{shieldLabel(tier.shield)}:</strong>{" "}
-              <span class="num">{fmtInt(shieldHp(tier.shield, mods))}</span> HP,
+              <span class="num">{fmtInt(shHp(tier.shield))}</span> HP,
               up at spawn and rebuilt at every skull
-              {modded && (
-                <small class="bs-base">
-                  {" "}
-                  (before modifier {fmtInt(tier.shield.health)})
-                </small>
+              {scaled && (
+                <small class="bs-base"> ({baseHp(tier.shield.health)})</small>
               )}
             </p>
           )}
@@ -941,7 +982,30 @@ function StatsBody(props: {
             </ol>
           )}
         </Section>
-
+          {active.length > 0 && (
+            <Section
+              tone="violet"
+              class="bs-plate bs-active"
+              title={
+                <>
+                  <Spr family="ui" k="BossBoost" size={34} />
+                  Always active
+                </>
+              }
+              aside={`${elite ? "Elite" : "Normal"} T${r.t}`}
+            >
+              <ul class="bs-lines">
+                {active.map((l) => (
+                  <li key={l.text}>
+                    {l.text}
+                    {l.internal && (
+                      <small class="bs-int"> (internal name)</small>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          )}
         {spawns.length > 0 && (
           <Section
             tone="teal"
@@ -990,9 +1054,11 @@ function StatsBody(props: {
           </Section>
         )}
 
+        </div>
+
         <Section
           tone="blue"
-          class="bs-plate bs-past-plate"
+          class="bs-plate wide bs-past-plate"
           title={
             <>
               <EvIcon k="boss" size={34} />

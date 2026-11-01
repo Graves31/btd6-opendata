@@ -126,7 +126,7 @@ export function title(r: Route): string {
       return t(`${name}${r.d === "elite" ? " Elite" : ""}`);
     }
     case "bossstats":
-      return t(`${bossName(r.type)} · Boss stats`);
+      return t(`BTD6 ${bossName(r.type)} Health & Skulls: HP per Tier, Normal & Elite`);
     case "race":
       return t(`${findEvent<Race>("race", r.id)?.name ?? raceFromId(r.id)} · Race`);
     case "ct":
