@@ -8,7 +8,7 @@ import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import type { ChallengeDocument } from "../src/nk/types.ts";
 import { BLOON_TYPES, BLOONS, ROUND_SET_BY_ID, ROUND_SETS, type RoundSetData } from "../web/src/data/rounds/index.ts";
-import { href, needs, NO_MODS, parse, PG_MAX, safeSrc, setRoundKeys, type ParagonRoute, type RoundMods, type RoundsRoute } from "../web/src/routes.ts";
+import { DEFAULT_ROUNDS, href, needs, NO_MODS, parse, PG_MAX, safeSrc, setRoundKeys, type ParagonRoute, type RoundMods, type RoundsRoute } from "../web/src/routes.ts";
 import {
   applyFlags,
   bloonLabel,
@@ -44,12 +44,26 @@ describe("rounds route: URL ⇄ route", () => {
     route({ set: "default", from: 79, to: 79, r: 79, mode: "Impoppable", mods: mods({ camo: true, spd: 5, mhp: 0.2 }), base: true, has: ["camo", "moabs"] }),
     route({ set: "alternate", from: 40, mods: mods({ regrow: true, fort: true, hp: 2, rgr: 1.5, mspd: 0.7 }), bloon: ["ceramic", "lead"] }),
     route({ set: "dreadbloon", has: ["changed", "regrow", "fort"], bloon: ["ddt"], r: 50 }),
+    route({ r: 79, view: "round" }),
+    route({ r: 140, view: "round", from: 60, to: 100, mods: mods({ camo: true }), has: ["moabs"], src: "/boss/Vortex46_ms8tf3cb" }),
   ];
   for (const r of cases) {
     it(`round-trips ${href.rounds(r)}`, () => {
       assert.deepEqual(parse(U(href.rounds(r))), r);
     });
   }
+  it("a Default round's focused view lives at /tools/rounds/<n>; other cases keep the query form", () => {
+    assert.equal(href.rounds({ r: 79, view: "round" }), "/tools/rounds/79");
+    assert.equal(href.rounds({ set: "default", r: 79, view: "round", from: 60 }), "/tools/rounds/79?from=60");
+    assert.deepEqual(parse(U("/tools/rounds/79")), parse(U("/tools/rounds?r=79&view=round")));
+    assert.deepEqual(parse(U("/tools/rounds/79?set=vortex&camo=1")), parse(U("/tools/rounds?set=vortex&camo=1&r=79&view=round")));
+    assert.equal(href.rounds({ set: "vortex", r: 79, view: "round" }), "/tools/rounds?set=vortex&r=79&view=round");
+    assert.equal(href.rounds({ r: 79, view: "round", mode: "Impoppable" }), "/tools/rounds?r=79&mode=Impoppable&view=round");
+    assert.equal(href.rounds({ r: 141, view: "round" }), "/tools/rounds?r=141&view=round");
+    assert.equal(href.rounds({ r: 79 }), "/tools/rounds?r=79");
+    for (const bad of ["0", "141", "abc", "079", "1/2", "1.5"]) assert.equal(parse(U(`/tools/rounds/${bad}`)).name, "notfound", bad);
+    assert.equal(parse(U(`/tools/rounds/${DEFAULT_ROUNDS}`)).name, "rounds");
+  });
   it("writes only non-default values", () => {
     assert.equal(href.rounds({ set: "vortex", mods: mods() }), "/tools/rounds?set=vortex");
     assert.equal(href.rounds({}), "/tools/rounds");

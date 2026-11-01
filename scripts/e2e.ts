@@ -429,14 +429,16 @@ async function main() {
     await step("Tools → Camo filter", "button.rv-fchip[data-f='camo']", "filter");
     const some = await page.evaluate(() => document.querySelectorAll("ol.rv-list li.rv-row").length);
     if (!(await here()).includes("has=camo") || !(some > 0 && some < all)) problems.push(`camo filter: ${some} of ${all} rows, url ${await here()}`);
+    // The default set's focused round is its own page, /tools/rounds/<n>.
+    const focused = () => page.evaluate(() => /^\/tools\/rounds\/(\d+)$/.exec(location.pathname)?.[1] ?? null);
     await step("List → Focus", "button.rv-focus");
-    if (!(await here()).includes("view=round")) problems.push("Focus: no round view");
-    const m0 = await page.evaluate(() => new URLSearchParams(location.search).get("r"));
+    const m0 = await focused();
+    if (!m0) problems.push("Focus: no round page");
     await step("Focused → next match", "button.rv-nextmatch:not([disabled])");
-    const m1 = await page.evaluate(() => new URLSearchParams(location.search).get("r"));
+    const m1 = await focused();
     if (!(Number(m1) > Number(m0))) problems.push(`next match: r ${m0} → ${m1}`);
     await step("Focused → List", "button.rv-tolist");
-    if ((await here()).includes("view=round")) problems.push("‹ List: still on the round view");
+    if (await focused()) problems.push("‹ List: still on the round page");
 
     // Tools → Farming resources: the banana spawn chart (4 + 6 + 8 bananas).
     await toolsMenu();

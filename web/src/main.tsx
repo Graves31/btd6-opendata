@@ -3,7 +3,7 @@ import { useEffect, useLayoutEffect, useReducer, useRef, useState } from "preact
 import type { ChallengeDocument, CT as CTEvent, Guild, Odyssey, Race, UserProfile } from "../../src/nk/types.ts";
 import { bossName, bossTitle, dailyTitle, fmtDay, mapName } from "./format.ts";
 import { backTo, onRoute, refreshNow, route as initialRoute, routeCommitted, setBackLabeler, store } from "./nav.ts";
-import { challengeKey, guildKey, historyKey, href, LIST_KEY, needs, userKey, type EventKind, type Route } from "./routes.ts";
+import { challengeKey, guildKey, historyKey, href, LIST_KEY, needs, roundPageNo, userKey, type EventKind, type Route } from "./routes.ts";
 import "./fonts.css";
 import "./logo-font.css";
 import { homePicks } from "./picks.ts";
@@ -184,7 +184,9 @@ function tabTitle(r: Route): string {
         : r.name === "paragon"
           ? "BTD6 Paragon Degree Calculator"
           : r.name === "rounds"
-            ? `${roundsTitle(r)} · BTD6 Round Visualizer`
+            ? roundPageNo(r) !== undefined
+              ? `BTD6 Round ${r.r}: Bloons, RBE & Cash`
+              : `${roundsTitle(r)} · BTD6 Round Visualizer`
             : undefined;
   return s ? `${s} · BTD6 Open Data` : title(r);
 }

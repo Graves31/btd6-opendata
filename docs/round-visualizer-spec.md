@@ -200,7 +200,7 @@ This covers boss, race, challenge and odyssey rules. CT tiles have no ruleset in
 
 - **Source:**
   - The data agent's `scripts/build_rounds.py` reads the local game install (read-only, like `build_art.py`) and writes one JSON file per set to `web/src/data/rounds/<id>.json`.
-  - It also regenerates `web/src/data/rounds/index.ts`, the manifest:
+  - It also regenerates `web/src/data/rounds/index.ts`, the manifest (with `data.ts`, its asset-free tables that the Worker imports for the round pages):
     - per set: id, name, icon key, aliases (API `roundSets` values and `mode` names that resolve to it), first and last round, boss type;
     - the game version;
     - which optional fields exist (RBE, cash, per-type health, mode income rules);

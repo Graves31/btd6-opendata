@@ -11,7 +11,11 @@
 // Static files (/assets/*, /art/*, sw.js, fonts, images) never reach the Worker.
 
 import { MAP_LIST, MAP_NAMES } from "../../web/src/data/names.ts";
-import { parse } from "../../web/src/routes.ts";
+import defaultRounds from "../../web/src/data/rounds/default.json" with { type: "json" };
+import { fmtInt } from "../../web/src/format.ts";
+import { NO_MODS, parse } from "../../web/src/routes.ts";
+import { bloonLabel, distinctBloons, roundCash, roundRbe } from "../../web/src/roundCalc.ts";
+import type { Round } from "../../web/src/data/rounds/data.ts";
 import type { Deps } from "./deps.ts";
 import { hotPayload, mem, peekHot } from "./store.ts";
 
@@ -55,6 +59,8 @@ export interface PageMeta {
   image: string | null;
   /** Wide images (map previews) get the large Twitter card. */
   wide?: boolean;
+  /** Extra links for the prerendered text (a round page's neighbours). */
+  links?: [href: string, label: string][];
 }
 
 const EVENT_ID = /^[A-Za-z0-9_-]{4,64}$/;
@@ -149,6 +155,29 @@ const CHALLENGE_LISTS: Record<string, [string, string]> = {
   trending: ["BTD6 Trending Challenges", "Trending Bloons TD 6 player-made challenges: the map, rules, towers allowed and modifiers of each one, with its challenge code."],
 };
 
+const DEFAULT_ROUND_LIST = (defaultRounds as unknown as { rounds: Round[] }).rounds;
+
+/** /tools/rounds/<n>: the Default round set's round n, described from the game data only (ROUND_SETS default first..last). */
+function roundPage(n: number): PageMeta | undefined {
+  const first = DEFAULT_ROUND_LIST[0]!.n;
+  const last = DEFAULT_ROUND_LIST.at(-1)!.n;
+  const round = DEFAULT_ROUND_LIST.find((r) => r.n === n);
+  if (!round) return undefined;
+  const kinds = distinctBloons(round, NO_MODS).map((b) => `${fmtInt(b.count)} ${bloonLabel(b.key, b.flags).replace(/\b[a-z]/g, (c) => c.toUpperCase())}${b.count === 1 ? "" : "s"}`);
+  const rbe = roundRbe(round, NO_MODS);
+  const cash = roundCash(round);
+  const tail = [rbe === undefined ? "" : `${fmtInt(rbe)} RBE`, cash ? `${fmtInt(Math.round(cash.pops + cash.bonus))} cash` : ""].filter(Boolean).join(", ");
+  // at most 3 kinds, fewer when the text would pass ~160 characters
+  let desc = "";
+  for (let k = Math.min(3, kinds.length); k >= 1; k--) {
+    desc = `Bloons TD 6 round ${n} (default rounds): ${kinds.slice(0, k).join(", ")}${kinds.length > k ? " and more" : ""}.${tail ? ` ${tail}.` : ""} When each bloon spawns, on the round's timeline.`;
+    if (desc.length <= 160) break;
+  }
+  const meta = page(`BTD6 Round ${n}: Bloons, RBE & Cash`, desc);
+  meta.links = [...(n > first ? [[`/tools/rounds/${n - 1}`, `Round ${n - 1}`] as [string, string]] : []), ...(n < last ? [[`/tools/rounds/${n + 1}`, `Round ${n + 1}`] as [string, string]] : [])];
+  return meta;
+}
+
 /** Boss stats pages (/bosses/<type>), as in web/public/sitemap.xml. */
 const BOSS_TYPES = new Set(["bloonarius", "lych", "vortex", "dreadbloon", "phayze", "blastapopoulos", "diamondback"]);
 
@@ -165,6 +194,7 @@ export async function describe(deps: Deps, pathname: string): Promise<PageMeta> 
   if (seg.length === 1 && LISTS[a]) return page(...LISTS[a]);
   // Tools (/tools, /tools/rounds, /tools/paragon): static pages, no lookup.
   if (a === "tools" && b === "rounds" && !c) return page(...TOOLS);
+  if (a === "tools" && b === "rounds" && c && !d && /^[1-9]\d{0,2}$/.test(c)) return roundPage(Number(c)) ?? GENERIC;
   if (a === "tools" && b === "paragon" && !c) return page(...PARAGON);
   if (a === "tools" && b === "farming" && !c) return page(...FARMING);
   if (a === "tools" && b === "paragon-scaling" && !c) return page(...PARAGON_SCALING);
@@ -341,7 +371,7 @@ export function injectMeta(html: string, m: PageMeta, url: URL): string {
   const canonical = `<link rel="canonical" href="${esc(SITE + canonicalPath(url))}" />`;
   out = out.replace(/<\/head>/i, () => `${[canonical, ...tags].join("\n    ")}\n  </head>`);
   // Readable text for crawlers that don't run scripts; the app clears it before its first render.
-  const links = SECTIONS.map(([h, l]) => `<a href="${h}">${l}</a>`).join(" · ");
+  const links = [...SECTIONS, ...(m.links ?? [])].map(([h, l]) => `<a href="${h}">${l}</a>`).join(" · ");
   const text = `<div class="pre"><h1>${esc(m.title)}</h1><p>${esc(m.description)}</p><nav>${links}</nav></div>`;
   return out.replace(/<div id="app"><\/div>/i, () => `<div id="app">${text}</div>`);
 }

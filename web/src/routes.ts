@@ -496,6 +496,14 @@ export function parse(url: URL): Route {
   if (a === "maps" && b && !c && MAP_IDS.has(b)) return { name: "map", id: b }; // other ids: a real 404 (og.ts)
   if (a === "tools" && !b) return ROUNDS_PARAMS.some((k) => q.has(k)) ? parseRounds(q) : { name: "tools" }; // old shared /tools?… links
   if (a === "tools" && b === "rounds" && !c) return parseRounds(q);
+  if (a === "tools" && b === "rounds" && c && !d) {
+    // /tools/rounds/<n>: one indexable page per Default round, the focused view of ?r=<n>&view=round
+    if (!/^[1-9]\d{0,2}$/.test(c) || Number(c) > DEFAULT_ROUNDS) return { name: "notfound" };
+    const q2 = new URLSearchParams(q);
+    q2.set("r", c);
+    q2.set("view", "round");
+    return parseRounds(q2);
+  }
   if (a === "tools" && b === "paragon" && !c) return parseParagon(q);
   if (a === "tools" && b === "farming" && !c) {
     const r = Number(q.get("r"));
@@ -574,6 +582,13 @@ function parseParagon(q: URLSearchParams): ParagonRoute {
   return r;
 }
 
+/** Default round set size (web/src/data/rounds, pinned in test/rounds.test.ts): /tools/rounds/1..N are real pages. */
+export const DEFAULT_ROUNDS = 140;
+
+/** The round number whose own page (/tools/rounds/<n>) this route is: the focused Default-set round, no mode. */
+export const roundPageNo = (p: Partial<RoundsRoute>): number | undefined =>
+  p.view === "round" && p.r !== undefined && p.r >= 1 && p.r <= DEFAULT_ROUNDS && (!p.set || p.set === "default") && !p.mode ? p.r : undefined;
+
 function parseRounds(q: URLSearchParams): RoundsRoute {
   const set = q.get("set");
   const mode = q.get("mode");
@@ -643,9 +658,12 @@ export const href = {
     const bloon = normBloon(p.bloon ?? []);
     o.has = has.length ? has.join(",") : undefined;
     o.bloon = bloon.length ? bloon.join(",") : undefined;
-    o.view = p.view === "round" ? "round" : undefined;
+    const n = roundPageNo(p);
+    if (n !== undefined) {
+      o.set = o.r = undefined;
+    } else o.view = p.view === "round" ? "round" : undefined;
     o.src = p.src;
-    return `/tools/rounds${qs(o).replace(/%2C/g, ",")}`;
+    return `/tools/rounds${n !== undefined ? `/${n}` : ""}${qs(o).replace(/%2C/g, ",")}`;
   },
   /** The maps explorer; only non-default values are written. */
   maps: (p: Partial<Omit<MapsRoute, "name">> = {}) => {

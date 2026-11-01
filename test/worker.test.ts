@@ -10,6 +10,11 @@ import { MAX_BATCH } from "../src/worker/proxy.ts";
 import { handleStats, resetStatsMemo, shapeStats } from "../src/worker/stats.ts";
 import { CAPTURED_AT, DAY, HOUR, MIN, get, makeEnv } from "./harness.ts";
 import { MAP_LIST } from "../web/src/data/names.ts";
+import { ROUND_SET_BY_ID } from "../web/src/data/rounds/index.ts";
+import { fmtInt } from "../web/src/format.ts";
+import { bloonLabel, distinctBloons, roundCash, roundRbe } from "../web/src/rounds.ts";
+import { DEFAULT_ROUNDS, NO_MODS } from "../web/src/routes.ts";
+import defaultSet from "../web/src/data/rounds/default.json" with { type: "json" };
 import { policyFor, ROUTES } from "../src/nk/routes.ts";
 
 /** Origin requests for hot-set keys (excludes the profile warmer's /users and /guild fetches). */
@@ -1155,6 +1160,38 @@ describe("link previews (og tags on page navigations)", () => {
     const sitemap = readFileSync(new URL("../web/public/sitemap.xml", import.meta.url), "utf8");
     const listed = [...sitemap.matchAll(/btd6data\.com\/maps\/([^<]+)</g)].map((x) => decodeURIComponent(x[1]));
     assert.deepEqual(listed, MAP_LIST.map((m) => m[0]), "web/public/sitemap.xml lists every map page, in game order");
+  });
+
+  it("round pages: /tools/rounds/<n> has its own title, description from the Default set, prev/next links; others are 404", async () => {
+    const t = makeEnv();
+    const def = ROUND_SET_BY_ID.default!;
+    assert.equal(DEFAULT_ROUNDS, def.last, "routes.ts DEFAULT_ROUNDS = the Default set's last round");
+    for (const n of [1, 79, def.last]) {
+      const { r, html } = await page(t, `/tools/rounds/${n}?x=1`);
+      assert.equal(r.status, 200);
+      const round = (defaultSet as unknown as { rounds: { n: number; g: never[] }[] }).rounds.find((x) => x.n === n) as never;
+      const rbe = roundRbe(round, NO_MODS)!;
+      const cash = roundCash(round)!;
+      const kinds = distinctBloons(round, NO_MODS);
+      const first = `${fmtInt(kinds[0]!.count)} ${bloonLabel(kinds[0]!.key, kinds[0]!.flags)}`;
+      assert.match(html, new RegExp(`<title>BTD6 Round ${n}: Bloons, RBE &amp; Cash · BTD6 Open Data</title>`));
+      const d = meta(html, "description")!;
+      assert.ok(d.startsWith(`Bloons TD 6 round ${n} (default rounds): ${first}`), d);
+      assert.ok(d.includes(`${fmtInt(rbe)} RBE, ${fmtInt(Math.round(cash.pops + cash.bonus))} cash.`), d);
+      assert.ok(d.length <= 170, d);
+      assert.equal(meta(html, "og:url"), `https://btd6data.com/tools/rounds/${n}`);
+      assert.match(html, new RegExp(`<link rel="canonical" href="https://btd6data\.com/tools/rounds/${n}" />`));
+      const pre = /<div class="pre">[\s\S]*?<\/div>/.exec(html)![0];
+      assert.equal(pre.includes(`href="/tools/rounds/${n - 1}"`), n > def.first, "previous round link");
+      assert.equal(pre.includes(`href="/tools/rounds/${n + 1}"`), n < def.last, "next round link");
+      assert.ok(!pre.includes("Round 0") && !pre.includes(`Round ${def.last + 1}`));
+    }
+    for (const bad of ["/tools/rounds/0", `/tools/rounds/${def.last + 1}`, "/tools/rounds/abc", "/tools/rounds/079", "/tools/rounds/1/2"]) {
+      assert.equal((await page(t, bad)).r.status, 404, bad);
+    }
+    const sitemap = readFileSync(new URL("../web/public/sitemap.xml", import.meta.url), "utf8");
+    const listed = [...sitemap.matchAll(/btd6data\.com\/tools\/rounds\/(\d+)</g)].map((x) => Number(x[1]));
+    assert.deepEqual(listed, Array.from({ length: def.last - def.first + 1 }, (_, i) => def.first + i), "sitemap lists the Default set's rounds, in order");
   });
 
   it("event pages use cached event data (boss portrait from NK), never the origin", async () => {
