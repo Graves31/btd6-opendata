@@ -312,13 +312,19 @@ function verHint(ver: GameVer): string {
 function Picker(props: { s: ParagonRoute; go: (p: Patch) => void }) {
   const { s, go } = props;
   return (
-    <section class="pg-pick" aria-label="Paragon">
+    <section class="pg-pick pg-panel gp gp-rose" aria-label="Paragon">
+      <div class="pg-ph">
+        <p class="eyebrow">
+          {paragonIcon(s.tower, 34)}
+          Paragon
+        </p>
+      </div>
       <div class="pg-picker">
         {pickRuns(s.ver).map(([cat, towers]) => (
           <div key={cat} class="pg-run" role="group" aria-label={cat}>
             {towers.map((t) => (
               <button key={t} type="button" class={`pg-tile c-${cat}`} data-k={t} aria-pressed={t === s.tower} aria-label={`${paragonName(t, s.ver)} (${unitName(t)})`} title={paragonName(t, s.ver)} onClick={() => go({ tower: t })}>
-                <span class="pg-tile-art">{paragonIcon(t, 72)}</span>
+                <span class="pg-tile-art">{paragonIcon(t, 64)}</span>
                 <span class="pg-tile-ft" aria-hidden="true">
                   <Spr family="tower" k={t} size={24} label />
                   <span class="pg-tile-n">{SHORT[t] ?? unitName(t)}</span>
@@ -490,7 +496,7 @@ function InputsPanel(p: { s: ParagonRoute; res: ParagonResult; max: Max; go: (p:
   const block = (key: Bucket["key"], fields: ComponentChildren) => {
     const b = res.buckets.find((x) => x.key === key)!;
     return (
-      <div class={`pg-bk${b.full ? " full" : ""}`}>
+      <div class={`pg-bk gc${b.full ? " full" : ""}`}>
         <div class="pg-bk-f">{fields}</div>
         <p class={`pg-bk-pw${b.power === 0 ? " zero" : ""}`}>
           <b>{b.full ? "MAX" : fmtInt(b.power)}</b>
@@ -624,9 +630,9 @@ function ResultCard(p: { res: ParagonResult; ver: GameVer; boost: boolean; copie
                   {b.cap !== null ? ` / ${fmtInt(b.cap)}` : ""}
                 </b>
               </div>
-              <div class="pg-track" aria-hidden="true">
+              <span class={`gbar${b.full ? " done" : ""}`} aria-hidden="true">
                 <i style={{ width: `${pct}%` }} />
-              </div>
+              </span>
               <p class="pg-b-n">{b.cap === null ? "uncapped" : b.full ? "MAX" : `${Math.floor(pct)}% of the cap`}</p>
             </li>
           );
@@ -641,8 +647,9 @@ function ResultCard(p: { res: ParagonResult; ver: GameVer; boost: boolean; copie
 function ScalingFold(p: { degree: number; ver: GameVer }) {
   const rows = [...new Set([1, 20, 40, 60, 80, 100, p.degree])].sort((a, b) => a - b);
   const one = (n: number) => +n.toFixed(1);
-  const H = (long: string, short: string) => (
+  const H = (f: "ui" | "boss" | "paragon", k: string, long: string, short = long) => (
     <th scope="col">
+      <Spr family={f} k={k} size={30} label />
       <span class="pg-long">{long}</span>
       <span class="pg-short">{short}</span>
     </th>
@@ -655,15 +662,15 @@ function ScalingFold(p: { degree: number; ver: GameVer }) {
           Per-degree scaling
         </h2>
       </summary>
-      <table class="pg-table">
+      <table class="pg-table pg-sc">
         <thead>
           <tr>
-            {H("Degree", "Deg")}
-            {H("Damage", "Dmg")}
-            {H("Pierce", "Prc")}
-            {H("Attack speed", "Speed")}
-            {H("Boss N", "Boss N")}
-            {H("Boss E", "Boss E")}
+            {H("ui", "ParagonDegree", "Degree", "Deg")}
+            {H("ui", "Pops", "Damage", "Dmg")}
+            {H("paragon", "DartMonkey", "Pierce", "Prc")}
+            {H("ui", "AbilityCooldownDecrease", "Attack speed", "Speed")}
+            {H("boss", "Bloonarius", "Normal")}
+            {H("boss", "elite:bloonarius", "Elite")}
           </tr>
         </thead>
         <tbody>
@@ -686,7 +693,6 @@ function ScalingFold(p: { degree: number; ver: GameVer }) {
           })}
         </tbody>
       </table>
-      <p class="pg-hint">Your degree is highlighted. Boss N / E: bonus damage to normal / elite bosses.</p>
       <A href={href.paragonScaling(p.degree)} class="pg-link">
         Full scaling analysis ›
       </A>
