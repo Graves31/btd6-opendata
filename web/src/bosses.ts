@@ -312,13 +312,29 @@ export function passiveLines(tier: Pick<BossTier, "passives" | "actions" | "noMo
       const body = named ? { text: named + (isNum(p.first) ? `, first after ${sec(p.first)}` : ""), internal: false } : timerBody(doNames, tier.actions);
       timers.push({ text: `Every ${sec(p.seconds)}${p.immediately === true ? ", also at spawn" : ""}${body.text ? `: ${body.text}` : ""}`, internal: body.internal });
     } else if (p.kind === "damageReduction" && isNum(p.amount)) {
-      stats.push({ text: p.amount === 0 ? "No damage reduction" : `Takes ${+p.amount.toFixed(2)} less damage from every hit` });
+      // game code (DamageReduction.GetModifiedDamage): no reduction while the bloon has armour, i.e. the shell is up
+      stats.push({ text: p.amount === 0 ? "No damage reduction" : `Takes ${+p.amount.toFixed(2)} less damage from every hit, once the Ceramic Armor Shell is broken` });
+    } else if (p.kind === "speedBoost" && isNum(p.speedBoost)) {
+      // game code (BuffBloonSpeed): spawned bloons get speed × speedBoost, dropped once they reach the boss
+      timers.push({ text: `Slipstream: Bloons move ${+p.speedBoost.toFixed(2)}× faster until they reach Vortex` });
+    } else if (p.kind === "rangeZone" && isNum(p.rangeMultiplier)) {
+      stats.push({ text: `Towers on screen: ${Math.abs(+(p.rangeMultiplier * 100).toFixed(1))}% less range` });
+    } else if (p.kind === "abilityCooldownZone" && isNum(p.multiplier)) {
+      stats.push({ text: `Ability cooldowns ${Math.abs(+(p.multiplier * 100).toFixed(1))}% slower` });
+    } else if (p.kind === "worthReduction" && isNum(p.worthMultiplier)) {
+      stats.push({ text: `Towers sell for ${mult(p.worthMultiplier)} of their price while Lych is on the map` });
     } else if (p.kind === "phayze" && isNum(p.shieldSpeedBoost)) {
       stats.push({ text: `${mult(p.shieldSpeedBoost)} speed while the Reality Shield is up` });
     } else if (p.kind === "heat" && isNum(p.maxHeatLevel)) {
       stats.push({ text: `Heat limit ${grp(p.maxHeatLevel)}` });
     } else if (p.kind === "diamondback" && isNum(p.numOfMiddleSegments)) {
+      if (isNum(p.bloonBleedHealthPercent))
+        timers.push({ text: `Every ${+(p.bloonBleedHealthPercent * 100).toFixed(2)}% of health lost: each segment spawns Bloons along the track` });
       stats.push({ text: `${p.numOfMiddleSegments} middle segments` });
+      if (isNum(p.tailShieldMaxHealthPercent) && isNum(p.tailDamageMultiplier) && isNum(p.tailShieldRegenerateTime))
+        stats.push({
+          text: `Rattle Tail shield: ${mult(p.tailShieldMaxHealthPercent)} of its health; broken, Diamondback takes ${+p.tailDamageMultiplier.toFixed(2)}× damage until it regrows (${sec(p.tailShieldRegenerateTime)}, or at a skull)`,
+        });
     } else if (p.kind === "tombstones" && isNum(p.tombstoneHealthOverride)) {
       stats.push({ text: `Tombstone HP ${grp(p.tombstoneHealthOverride)}` });
     }
@@ -402,7 +418,7 @@ export interface KillTime {
   warps: number;
   total: number;
 }
-export function killTime(tier: Pick<BossTier, "skulls" | "passives" | "actions">, skipOne = false): KillTime | null {
+export function killTime(tier: Pick<BossTier, "skulls" | "passives" | "actions">, skips = 0): KillTime | null {
   const anim = tier.passives?.find((p) => p.kind === "anim");
   if (!anim || !isNum(anim.spawn) || !isNum(anim.death)) return null;
   const actions = tier.actions ?? {};
@@ -429,8 +445,8 @@ export function killTime(tier: Pick<BossTier, "skulls" | "passives" | "actions">
     const r = on ? off(s.do, 0, false, new Set()) : null;
     return r ?? { t: isNum(back) ? back : 0, dash: false };
   });
-  // Herald of Everfrost's Eclipse of Fimbulwinter cancels one skull per tier: drop the longest
-  if (skipOne && per.length) {
+  // skulls cancelled by paragon abilities (Herald of Everfrost's Eclipse, S.P.I.D.E.R.'s Single Out): drop the longest
+  for (let n = 0; n < skips && per.length; n++) {
     const i = per.reduce((b, x, k) => (x.t + +x.dash > per[b].t + +per[b].dash ? k : b), 0);
     per.splice(i, 1);
   }

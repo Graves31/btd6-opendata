@@ -96,6 +96,11 @@ function pastRows(
   return { rows, wiki: old.length };
 }
 const TIERS = [1, 2, 3, 4, 5];
+/** Paragon abilities that cancel a skull (minimum kill time toggles); one of each per tier. */
+const SKIPPERS = [
+  { paragon: "Ice paragon", ability: "Herald of Everfrost's Eclipse of Fimbulwinter" },
+  { paragon: "Sniper paragon", ability: "S.P.I.D.E.R. Monkey's Single Out" },
+];
 
 /** Plain words for a skull's effects; unknown names get a small "(internal name)" hint. */
 function Effects(props: { list: Effect[] }) {
@@ -574,8 +579,9 @@ function StatsBody(props: {
   const hasImm = !!tier.immunity;
   const ratio = tierRatio(boss.elite[4].health, boss.normal[4].health);
   const active = passiveLines(tier);
-  const [skip, setSkip] = useState(false);
-  const kill = killTime(tier, skip);
+  const [skip, setSkip] = useState([false, false]);
+  const skips = skip.filter(Boolean).length;
+  const kill = killTime(tier, skips);
   const warp = warpShare(tier);
   const backInv = tier.passives?.find((p) => p.kind === "diamondback")
     ?.skullInvulnerableTime as number | undefined;
@@ -752,21 +758,25 @@ function StatsBody(props: {
             }
             aside={pBadge || undefined}
           >
-            <div class="bs-th" aria-hidden="true">
+            <div class={`bs-th${kill ? " has-kt" : ""}`} aria-hidden="true">
               <span>Tier</span>
               <span>Health</span>
               <span title="Bars scaled to T5">Bar</span>
               <span>Speed</span>
+              {kill && <span title="Minimum kill time">Kill</span>}
             </div>
             <ol class="bs-tiers">
               {TIERS.map((n) => {
                 const t = tiers[n - 1];
                 const h = hpOf(t);
+                const k = killTime(t, skips);
+                const full = killTime(t);
+                const saved = k && full ? +(full.total - k.total).toFixed(3) : 0;
                 return (
                   <li key={n}>
                     <button
                       type="button"
-                      class={`bs-tier${n === r.t ? " on" : ""}`}
+                      class={`bs-tier${kill ? " has-kt" : ""}${n === r.t ? " on" : ""}`}
                       aria-pressed={n === r.t}
                       onClick={() => go({ t: n })}
                     >
@@ -788,11 +798,92 @@ function StatsBody(props: {
                           </small>
                         )}
                       </span>
+                      {kill && (
+                        <span class="bs-sp bs-kv num">
+                          {k ? `${+k.total.toFixed(2)} s` : "–"}
+                          {k && k.warps > 0 && (
+                            <small class="bs-base">
+                              + {k.warps} warp{k.warps > 1 ? "s" : ""}
+                            </small>
+                          )}
+                          {skips > 0 && saved > 0 && (
+                            <small class="bs-base">−{saved} s</small>
+                          )}
+                        </span>
+                      )}
                     </button>
                   </li>
                 );
               })}
             </ol>
+            {kill && (
+              <div class="bs-kt">
+                <p class="bs-kt-h">
+                  <Spr family="ui" k="GameTime" size={22} />
+                  <span>
+                    <strong>Minimum kill time T{r.t}:</strong>{" "}
+                    {killParts(kill).join(" + ")} ={" "}
+                    <strong class="num">{killText(kill)}</strong>
+                  </span>
+                </p>
+                <div class="bs-checks">
+                  {SKIPPERS.map((s, i) => (
+                    <label class="bs-check" key={s.paragon}>
+                      <input
+                        type="checkbox"
+                        checked={skip[i]}
+                        onChange={() =>
+                          setSkip(skip.map((v, j) => (j === i ? !v : v)))
+                        }
+                      />
+                      Skip 1 skull: {s.paragon}
+                      <span class="quiet">{s.ability}</span>
+                    </label>
+                  ))}
+                </div>
+                <details class="bs-kt-why quiet">
+                  <summary>How it's counted</summary>
+                  <ul>
+                    <li>
+                      Instant damage between phases, so only what damage can't
+                      shorten is left: the entrance, the invulnerable time at
+                      each skull and the defeat animation (all from the game
+                      data).
+                    </li>
+                    {tier.shield && (
+                      <li>
+                        The {shieldLabel(tier.shield)} breaks instantly and adds
+                        no time.
+                      </li>
+                    )}
+                    {tier.passives?.some((p) => p.kind === "ethereal") && (
+                      <li>
+                        Ethereal at each skull until its Lych souls are popped;
+                        with instant damage they pop as they appear.
+                      </li>
+                    )}
+                    {kill.warps > 0 && (
+                      <li>
+                        Also invulnerable while it warps
+                        {warp !== undefined &&
+                          ` ${mult(warp)} of the path forward`}
+                        : that depends on the map's path length, so it isn't in
+                        the seconds.
+                      </li>
+                    )}
+                    <li>
+                      Skips: Herald of Everfrost's Eclipse of Fimbulwinter
+                      cancels one skull per tier; S.P.I.D.E.R. Monkey's Single
+                      Out deals the damage to the next skull and cancels it (not
+                      while a shield is up; its charge time isn't counted). One
+                      of each per tier here (game code, Bloons Wiki).
+                      {backInv !== undefined &&
+                        ` Assumed here to include the ${backInv} s invulnerability; the wiki doesn't say.`}
+                    </li>
+                  </ul>
+                </details>
+              </div>
+            )}
             <p class="bs-note quiet">Elite T5 = {ratio}× Normal T5.</p>
             <p class="bs-note quiet">
               Co-op: boss health and shields{" "}
@@ -805,91 +896,6 @@ function StatsBody(props: {
               units.
             </p>
           </Section>
-          {kill && (
-            <Section
-              tone="amber"
-              class="bs-plate bs-kill"
-              title={
-                <>
-                  <Spr family="ui" k="GameTime" size={34} />
-                  Minimum kill time
-                </>
-              }
-            >
-              <label class="bs-check">
-                <input
-                  type="checkbox"
-                  checked={skip}
-                  onChange={() => setSkip(!skip)}
-                />
-                Skip 1 skull with the Ice paragon
-                <span class="quiet">
-                  Herald of Everfrost's Eclipse of Fimbulwinter
-                </span>
-              </label>
-              <ol class="bs-tiers">
-                {TIERS.map((n) => {
-                  const full = killTime(tiers[n - 1]);
-                  const k = killTime(tiers[n - 1], skip);
-                  if (!k || !full) return null;
-                  const saved = +(full.total - k.total).toFixed(3);
-                  return (
-                    <li key={n}>
-                      <button
-                        type="button"
-                        class={`bs-tier bs-kt${n === r.t ? " on" : ""}`}
-                        aria-pressed={n === r.t}
-                        onClick={() => go({ t: n })}
-                      >
-                        <span class="bs-tl">T{n}</span>
-                        <span class="bs-hp num">{killText(k)}</span>
-                        <span class="bs-sp num">
-                          {skip && (saved > 0 ? `−${saved} s` : "no change")}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ol>
-              <p class="bs-note">
-                <strong>T{r.t}:</strong> {killParts(kill).join(" + ")} ={" "}
-                <strong class="num">{killText(kill)}</strong>
-              </p>
-              <ul class="bs-note quiet bs-kt-why">
-                <li>
-                  Instant damage between phases, so only what damage can't
-                  shorten is left: the entrance, the invulnerable time at each
-                  skull and the defeat animation (all from the game data).
-                </li>
-                {tier.shield && (
-                  <li>
-                    The {shieldLabel(tier.shield)} breaks instantly and adds no
-                    time.
-                  </li>
-                )}
-                {tier.passives?.some((p) => p.kind === "ethereal") && (
-                  <li>
-                    Ethereal at each skull until its Lych souls are popped; with
-                    instant damage they pop as they appear.
-                  </li>
-                )}
-                {kill.warps > 0 && (
-                  <li>
-                    Also invulnerable while it warps
-                    {warp !== undefined && ` ${mult(warp)} of the path forward`}
-                    : that depends on the map's path length, so it isn't in the
-                    seconds.
-                  </li>
-                )}
-                <li>
-                  Ice paragon: its ability cancels the effects of one skull per
-                  tier (Bloons Wiki).
-                  {backInv !== undefined &&
-                    ` Assumed here to include the ${backInv} s invulnerability; the wiki doesn't say.`}
-                </li>
-              </ul>
-            </Section>
-          )}
         <div class="bs-stack">
         <Section
           tone="crimson"

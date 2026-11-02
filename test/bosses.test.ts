@@ -197,7 +197,7 @@ describe("always-active wording", () => {
     assert.equal(tierOf("bloonarius").triggers.length, 0);
   });
   it("timers: seconds, 'also at spawn', the wait in seconds", () => {
-    assert.deepEqual(lines("vortex"), ["Every 5 s: storm pulse destroys projectiles"]);
+    assert.deepEqual(lines("vortex"), ["Slipstream: Bloons move 2.5× faster until they reach Vortex", "Every 5 s: storm pulse destroys projectiles"]);
     assert.deepEqual(lines("phayze").slice(0, 2), [
       "Every 24 s, also at spawn: Radar Jam, Camo-seeing buffs off for 12 s",
       "Every 24 s: pulls Bloons to Phayze and gives them Camo",
@@ -206,19 +206,24 @@ describe("always-active wording", () => {
     assert.deepEqual(lines("lych").slice(0, 3), ["Every 12 s: drain, first after 2 s", "Every 9 s: regrow, first after 2 s", "Every 18 s: tombstone, first after 10 s"]);
   });
   it("stat lines: damage reduction, shield speed, heat limit, segments, tombstone HP", () => {
-    assert.deepEqual(lines("dreadbloon"), ["Takes 1 less damage from every hit"]);
+    assert.deepEqual(lines("dreadbloon"), ["Takes 1 less damage from every hit, once the Ceramic Armor Shell is broken"]);
     assert.ok(passiveLines({ passives: [{ kind: "damageReduction", amount: 0 }] }).some((l) => l.text === "No damage reduction"));
     assert.ok(lines("phayze").includes("140% speed while the Reality Shield is up"));
     assert.ok(lines("blastapopoulos").includes("Heat limit 30,000"));
-    assert.deepEqual(lines("diamondback"), ["5 middle segments"]);
+    assert.deepEqual(lines("diamondback"), [
+      "Every 1% of health lost: each segment spawns Bloons along the track",
+      "5 middle segments",
+      "Rattle Tail shield: 10% of its health; broken, Diamondback takes 2× damage until it regrows (60 s, or at a skull)",
+    ]);
+    assert.ok(lines("blastapopoulos").includes("Towers on screen: 8% less range"));
+    assert.ok(lines("blastapopoulos").includes("Ability cooldowns 20% slower"));
+    assert.ok(lines("lych").includes("Towers sell for 35% of their price while Lych is on the map"));
     assert.ok(lines("lych").includes("Tombstone HP 17,600"));
   });
   it("only whitelisted numbers render: unknown fields and kinds never show", () => {
     const out = passiveLines({
       passives: [
         { kind: "heat", maxHeatLevel: 30000, stunDuration: 4, heatPercents: 777, damagedHeat: 555 },
-        { kind: "speedBoost", speedBoost: 2.5, debuffInRadius: 40 },
-        { kind: "rangeZone", rangeMultiplier: -0.08 },
         { kind: "timer", seconds: 7, do: ["DestroyProjectiles"], radius: 987654 },
         { kind: "brandNew", amount: 31337 },
       ],
@@ -296,7 +301,7 @@ describe("boss spawns", () => {
 
 describe("minimum kill time", () => {
   const b = data.bosses;
-  const t = (k: keyof typeof b, d: "normal" | "elite", n: number, skip = false) => killTime(b[k][d][n - 1], skip)!;
+  const t = (k: keyof typeof b, d: "normal" | "elite", n: number, skip = 0) => killTime(b[k][d][n - 1], skip)!;
   it("entrance + invulnerable time at each skull + defeat animation, from the game data", () => {
     assert.equal(t("vortex", "normal", 1).total, 3 + 3 * 0.5 + 3);
     assert.equal(t("blastapopoulos", "normal", 5).total, 3 + 4 * 2 + 8);
@@ -310,10 +315,12 @@ describe("minimum kill time", () => {
     assert.equal(killText(k), "12 s + 3 warps");
     assert.equal(warpShare(b.phayze.normal[0]), 0.08);
   });
-  it("the Ice paragon skip drops one skull, and changes nothing where skulls cost no time", () => {
-    assert.equal(t("vortex", "normal", 1, true).total, 7);
-    assert.equal(killText(t("phayze", "normal", 1, true)), "10 s + 2 warps");
-    assert.equal(t("lych", "elite", 3, true).total, t("lych", "elite", 3).total);
+  it("each paragon skip drops one skull, and changes nothing where skulls cost no time", () => {
+    assert.equal(t("vortex", "normal", 1, 1).total, 7);
+    assert.equal(t("vortex", "normal", 1, 2).total, 6.5);
+    assert.equal(killText(t("phayze", "normal", 1, 1)), "10 s + 2 warps");
+    assert.equal(killText(t("phayze", "normal", 1, 2)), "8 s + 1 warp");
+    assert.equal(t("lych", "elite", 3, 2).total, t("lych", "elite", 3).total);
     for (const k of Object.keys(b) as (keyof typeof b)[])
       for (const d of ["normal", "elite"] as const) for (let n = 1; n <= 5; n++) assert.ok(t(k, d, n), `${k} ${d} ${n}`);
   });
