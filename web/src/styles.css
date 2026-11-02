@@ -14357,7 +14357,7 @@ main > .vh + .feature.gh {
   }
 }
 .pp-stats .mp-stat {
-  align-content: start;
+  align-content: center;
 }
 .pp-stats .mp-stat .gn {
   font-size: 24px;
