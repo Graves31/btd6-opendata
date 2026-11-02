@@ -311,7 +311,6 @@ export function CTOverview() {
               Past CTs
             </>
           }
-          aside={`${past.length} CTs`}
         >
           <ul class="ctp-grid">
             {shown.map((c) => (

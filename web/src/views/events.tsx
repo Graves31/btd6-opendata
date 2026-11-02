@@ -943,7 +943,6 @@ export function EventList(props: { kind: EventKind }) {
               Boss stats
             </>
           }
-          aside={`${BOSS_TYPES.length} bosses`}
         >
           {/* One page per boss type (health per tier, skulls, spawns): each portrait is a prefetched link. The
               span carries the boss's tint (A takes no data attributes). */}
@@ -982,7 +981,6 @@ export function EventList(props: { kind: EventKind }) {
                 {soon ? "Upcoming and past" : "Past bosses"}
               </>
             }
-            aside={`${all.length - live.length} events`}
           >
             <ul class="events k-boss">{rest.map(row)}</ul>
           </Section>
@@ -1033,7 +1031,6 @@ export function EventList(props: { kind: EventKind }) {
                 {soon ? "Upcoming and past" : ody ? "Past odysseys" : "Past races"}
               </>
             }
-            aside={`${all.length - live.length} ${ody ? "odysseys" : "races"}`}
           >
             <ul class={`events k-${kind}`}>{rest.map(row)}</ul>
           </Section>

@@ -318,8 +318,7 @@ function DailyLists(props: { series: Series[]; now: number } & Lists) {
                 <EvIcon k="daily" size={34} />
                 {label}
               </>
-            }
-            aside={`${items.length} challenge${items.length === 1 ? "" : "s"}`}>
+            }>
             <ul class="chl-grid">
               {items.map((c) => (
                 <ChallengeCard key={c.id} c={c} kind={kind} badge={kind !== "coop" ? dayBadge(c.id, now) : undefined} />
