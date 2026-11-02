@@ -50,21 +50,3 @@ export function cutoffTrend(snaps: Snap[] | undefined, rank: number): { delta: n
   const y = b.ranks[rank];
   return typeof x === "number" && typeof y === "number" ? { delta: y - x, since: a.at, at: b.at } : undefined;
 }
-
-/** How one relic of this CT did in the other archived CTs (this CT itself excluded). */
-export function relicHistory(thisId: string, relic: string, cts: RelicCT[] | undefined) {
-  const prev = (cts ?? []).filter((c) => c.id !== thisId);
-  const hit = prev.filter((c) => c.relics.includes(relic));
-  return { seen: hit.length, of: prev.length, last: hit.reduce((m, c) => Math.max(m, c.end), 0) || undefined };
-}
-
-/** This CT's game-type counts against the average of the previous CTs (rounded); undefined without previous CTs. */
-export function gameMix(thisId: string, games: Record<string, number>, cts: RelicCT[] | undefined) {
-  const prev = (cts ?? []).filter((c) => c.id !== thisId && Object.keys(c.games ?? {}).length);
-  if (!prev.length) return;
-  const out: Record<string, { now: number; avg: number }> = {};
-  for (const k of Object.keys(games)) {
-    out[k] = { now: games[k], avg: Math.round(prev.reduce((s, c) => s + (c.games[k] ?? 0), 0) / prev.length) };
-  }
-  return { of: prev.length, by: out };
-}

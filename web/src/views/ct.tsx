@@ -17,12 +17,9 @@ import {
 import { ordinal } from "../boards.ts";
 import {
   cutoffTrend,
-  gameMix,
-  relicHistory,
   relicOf,
   tileStats,
   type CTCutoffs,
-  type RelicCT,
 } from "../ctStats.ts";
 import { RELIC_INFO } from "../data/names.ts";
 import { Freshness } from "../fresh.tsx";
@@ -34,7 +31,6 @@ import {
 import { store } from "../nav.ts";
 import {
   CT_GROUP_PLACEHOLDER,
-  CT_RELICS_KEY,
   ctCutoffsKey,
   ctGroupKey,
   ctKey,
@@ -98,7 +94,7 @@ export function CTPage(props: { id: string; tab: CTTab; p: number }) {
   const tiles = body<CTTiles>(tilesKey)?.tiles;
   const top = upcoming ? undefined : body<CTTeamEntry[]>(ctKey(id, "teams"));
   const winner = top?.[0];
-  useWant([tilesKey, CT_RELICS_KEY, ctCutoffsKey(id), ...(top ?? []).slice(0, 3).map((r) => guildKey(idFromUrl(r.profile)))]);
+  useWant([tilesKey, ctCutoffsKey(id), ...(top ?? []).slice(0, 3).map((r) => guildKey(idFromUrl(r.profile)))]);
   if (!ev && isMissing(key)) {
     return (
       <NotFound
@@ -223,7 +219,7 @@ export function CTPage(props: { id: string; tab: CTTab; p: number }) {
             <>
               <Freshness k={key} ended={done} />
               <Gate k={key} rows={25} empty={<p>No tile data yet.</p>} />
-              <CTMapTab id={id} tiles={tiles} />
+              <CTMapTab tiles={tiles} />
             </>
           )}
           {tab !== "map" && (
@@ -546,15 +542,13 @@ const GameBadge = (p: { g: string; size: number }) => (
 );
 
 /** The map tab: game-type filter, the hex map with the selected tile's details, the game mix and the relic grid. */
-function CTMapTab(props: { id: string; tiles?: CTTile[] }) {
+function CTMapTab(props: { tiles?: CTTile[] }) {
   const [sel, setSel] = useState<string>();
   const [game, setGame] = useState<string>();
   const mapRef = useRef<HTMLDivElement>(null);
-  const { tiles, id } = props;
+  const { tiles } = props;
   if (!tiles) return null;
   const ts = tileStats(tiles);
-  const cts = (peek(CT_RELICS_KEY)?.data as unknown as { cts?: RelicCT[] } | undefined)?.cts;
-  const mix = gameMix(id, ts.games, cts);
   const relics = tiles.filter((t) => relicOf(t) && (!game || t.gameType === game));
   const pick = (tile: string) => {
     setSel(tile);
@@ -616,11 +610,9 @@ function CTMapTab(props: { id: string; tiles?: CTTile[] }) {
               <TileKey g={k} />
               <GameBadge g={k} size={24} />
               <b class="num">{v}</b>
-              {mix?.by[k] && <span class="quiet small">usually {mix.by[k].avg}</span>}
             </li>
           ))}
         </ul>
-        {mix && <p class="quiet small">"Usually" is the average of the last {mix.of} CTs.</p>}
       </Section>
       <Section
         tone="rose"
@@ -639,13 +631,6 @@ function CTMapTab(props: { id: string; tiles?: CTTile[] }) {
             {relics.map((t) => {
               const relic = relicOf(t)!;
               const info = relicInfo(relic);
-              const h = cts ? relicHistory(id, relic, cts) : undefined;
-              const hist =
-                h && h.of > 0
-                  ? h.seen === 0
-                    ? "New"
-                    : `In ${h.seen} of the last ${h.of} CTs · last ${fmtDay(h.last!)}`
-                  : undefined;
               return (
                 <li key={t.id}>
                   <button
@@ -668,7 +653,6 @@ function CTMapTab(props: { id: string; tiles?: CTTile[] }) {
                       <GameBadge g={t.gameType} size={20} />
                       <span class="mono">{t.id}</span>
                     </span>
-                    {hist && <span class={h!.seen === 0 ? "rc-h new" : "rc-h"}>{hist}</span>}
                     {info.description && <span class="rc-tip">{info.description}</span>}
                   </button>
                 </li>

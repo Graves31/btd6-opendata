@@ -410,7 +410,7 @@ export function needs(r: Route): string[] {
       return [LIST_KEY.race, raceMetaKey(r.id), raceBoardKey(r.id, r.p)];
     case "ct":
       // Every tab reads the tiles (header, hero map), the relic history and the cut-off trend; ctExtras adds the top teams' emblems.
-      return [...new Set([LIST_KEY.ct, historyKey("ct"), ctKey(r.id, r.tab, r.p), ctKey(r.id, "map"), ctKey(r.id, "teams"), CT_RELICS_KEY, ctCutoffsKey(r.id), ...ctExtras(r)])];
+      return [...new Set([LIST_KEY.ct, historyKey("ct"), ctKey(r.id, r.tab, r.p), ctKey(r.id, "map"), ctKey(r.id, "teams"), ctCutoffsKey(r.id), ...ctExtras(r)])];
     case "ctgroup":
       return [LIST_KEY.ct, ctGroupKey(r.id, r.gid), ...ctExtras(r)];
     case "odyssey":

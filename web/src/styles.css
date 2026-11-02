@@ -13300,15 +13300,6 @@ button.my-miss:hover {
   color: var(--ink-2);
   font-size: 12px;
 }
-.rc-h {
-  color: var(--ink-3);
-  font-size: 12px;
-  line-height: 1.3;
-}
-.rc-h.new {
-  color: var(--accent-ink);
-  font-weight: 700;
-}
 /* the effect: hover / keyboard focus, and stays open on the selected relic (tap) */
 .rc-tip {
   display: none;
