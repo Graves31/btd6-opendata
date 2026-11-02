@@ -685,7 +685,8 @@ for _b in _BOSSES:
 
 # Social Season badges, keyed by the API's seasonBadges ids (NK's own URL for SeasonUltimate3 answers 404).
 # The game names each Ultimate medal after its season's theme; season order from the Blooncyclopedia's
-# Social Season Event page (1 "Dr. Monkey Needs You!", 2 "Striker's Vacation!", 3 "Quincy's Roadtrip!").
+# Social Season Event page (1 "Dr. Monkey Needs You!", 2 "Striker's Vacation!", 3 "Quincy's Roadtrip!",
+# 4 "Dark Magic Club").
 # Ultimate 2 checked by eye against NK's SocialSeasonsUltimate2Medal.png (the beach ball).
 SEASON_BADGES = {
     "SeasonTier1": "ref/SocialSeasonsTier1Medal",
@@ -695,6 +696,7 @@ SEASON_BADGES = {
     "SeasonUltimate1": "ref/SocialSeasonsUltimateMedalScience",
     "SeasonUltimate2": "ref/SocialSeasonsUltimateMedalStrikersVacation",
     "SeasonUltimate3": "ref/SocialSeasonsUltimateMedalQuincysRoadTrip",
+    "SeasonUltimate4": "ref/SocialSeasonsUltimateMedalDarkMagicClub",
     "SeasonChampion": "ref/SocialSeasonsChampionMedal",
 }
 
@@ -1476,8 +1478,8 @@ export type Family =
   /** Rogue Legends artifacts keyed by the save id ("OneShot2" = name + tier 1..3; favouriteArtifacts: name + (tier + 1))
    *  and "boost:Quickening" / "boost:Toughness" / "boost:Velocity". Only the /me page loads this sheet. */
   | "artifact"
-  /** Social Season badges keyed by UserProfile.seasonBadges ids: SeasonTier1–4, SeasonUltimate1–3 (one per
-   *  season: 1 Dr. Monkey, 2 Striker's Vacation, 3 Quincy's Roadtrip), SeasonChampion. */
+  /** Social Season badges keyed by UserProfile.seasonBadges ids: SeasonTier1–4, SeasonUltimate1–4 (one per
+   *  season: 1 Dr. Monkey, 2 Striker's Vacation, 3 Quincy's Roadtrip, 4 Dark Magic Club), SeasonChampion. */
   | "season";
 '''
 

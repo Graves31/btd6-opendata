@@ -223,11 +223,12 @@ function byAbilityName(m: Record<string, number>): Record<string, number> {
 const seasonName = (id: string) => human(id.replace(/^(SocialSeasons|Season)/, "").replace(/Medal$/, ""));
 
 /** Every Social Season badge the game has, in its order; each season's Ultimate is named after its theme. */
-const SEASON_BADGES = ["SeasonTier1", "SeasonTier2", "SeasonTier3", "SeasonTier4", "SeasonUltimate1", "SeasonUltimate2", "SeasonUltimate3", "SeasonChampion"];
+const SEASON_BADGES = ["SeasonTier1", "SeasonTier2", "SeasonTier3", "SeasonTier4", "SeasonUltimate1", "SeasonUltimate2", "SeasonUltimate3", "SeasonUltimate4", "SeasonChampion"];
 const SEASON_THEME: Record<string, string> = {
   SeasonUltimate1: "Season 1: Dr. Monkey Needs You!",
   SeasonUltimate2: "Season 2: Striker's Vacation!",
   SeasonUltimate3: "Season 3: Quincy's Roadtrip!",
+  SeasonUltimate4: "Season 4: Dark Magic Club",
 };
 
 /**

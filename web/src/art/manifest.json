@@ -2893,7 +2893,7 @@
    "cell": 96,
    "cols": 3,
    "rows": 3,
-   "bytes": 24662,
+   "bytes": 28318,
    "keys": [
     "SeasonChampion",
     "SeasonTier1",
@@ -2902,7 +2902,8 @@
     "SeasonTier4",
     "SeasonUltimate1",
     "SeasonUltimate2",
-    "SeasonUltimate3"
+    "SeasonUltimate3",
+    "SeasonUltimate4"
    ],
    "missingOptional": []
   },
@@ -2922,7 +2923,7 @@
    "missingOptional": []
   }
  },
- "totalSheetBytes": 1583760,
+ "totalSheetBytes": 1587416,
  "bossBar": {
   "parts": {
    "armour:diamondback:edge": {
