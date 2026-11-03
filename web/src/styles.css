@@ -14593,7 +14593,7 @@ a.oy-dp:focus-visible,
     padding: 0 7px 0 5px;
   }
 }
-/* Tools menu: a blue game panel, each tool a card with its art; the open page gets the yellow edge */
+/* Tools menu: a blue game panel, each tool a flat row with its art; the open page in yellow */
 .dd {
   gap: 6px;
   padding: 10px;
@@ -14609,22 +14609,22 @@ a.oy-dp:focus-visible,
   margin: 0;
   color: #fff;
   font-weight: 700;
-  background: linear-gradient(180deg, #1c2643, #161f36);
-  border: 1px solid #2c3e62;
+  background: none;
+  border: 0;
   border-radius: 10px;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #22498a;
 }
+/* "All tools", then a rule: a 1px line 6px below it (offset 7, spread -6), inside the gap */
 .top nav .dd a:first-child {
   color: #fff;
+  margin-bottom: 6px;
+  box-shadow: 0 7px 0 -6px #2c3e62;
 }
 .top nav .dd a:hover {
-  background: linear-gradient(180deg, #1c2643, #161f36);
-  border-color: var(--accent);
+  background: rgb(255 255 255 / 0.07);
 }
 .top nav .dd a.on {
-  background: linear-gradient(180deg, #1c2643, #161f36);
-  border-color: var(--accent);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #8a7406;
+  color: var(--accent);
+  background: rgb(255 255 255 / 0.05);
 }
 .dd img,
 .sheet img {
@@ -14650,7 +14650,7 @@ a.oy-dp:focus-visible,
 .theme-btn svg {
   filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.45));
 }
-/* Phone bar: the current section a raised plate with the yellow ledge; sheets are game panels of cards */
+/* Phone bar: the current section a raised plate with the yellow ledge; sheets are game panels of flat rows */
 .bar > a,
 .bar > button {
   margin: 5px 3px 7px;
@@ -14680,14 +14680,16 @@ a.oy-dp:focus-visible,
 .sheet a {
   color: #fff;
   font-weight: 700;
-  background: linear-gradient(180deg, #1c2643, #161f36);
-  border: 1px solid #2c3e62;
+  background: none;
+  border: 0;
   border-radius: 10px;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #22498a;
+}
+.sheet a:hover {
+  background: rgb(255 255 255 / 0.07);
 }
 .sheet a.on {
-  border-color: var(--accent);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 3px 0 #8a7406;
+  color: var(--accent);
+  background: rgb(255 255 255 / 0.05);
 }
 
 /* ─────────────────────────────── Logo (v3, docs/game-ui.md): the game-logo wordmark. "BTD6" white and "Open Data"
