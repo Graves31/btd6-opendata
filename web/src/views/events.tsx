@@ -12,7 +12,6 @@ import type {
   ChallengeDocument,
   CT,
   CTTeamEntry,
-  CTTile,
   NKEvent,
   Odyssey,
   OdysseyMetadata,
@@ -64,7 +63,7 @@ import {
 import { eventGap, eventHistory, mapMetaKeys, type HistEvent } from "../maps.ts";
 import { onRoute, store } from "../nav.ts";
 import type { Envelope } from "../store.ts";
-import { ctLeader, homePicks } from "../picks.ts";
+import { ctLeader, homePicks, homeSlots } from "../picks.ts";
 import {
   bossBoardKey,
   BOSS_TYPES,
@@ -126,8 +125,10 @@ import {
   When,
 } from "../ui.tsx";
 import { TeamEmblem } from "./ctOverview.tsx";
-import { HexThumb } from "./ctMap.tsx";
 import { errorKind, NotFound } from "./errors.tsx";
+import { TOOLS } from "./tools.tsx";
+import mapsArt from "../art/tools/maps.webp";
+import toolsArt from "../art/tools/overclock.webp";
 
 type AnyEvent = (Boss | Race | CT | Odyssey) & { archived?: boolean };
 
@@ -267,388 +268,396 @@ function keyPart(raw: ScorePart[], scoring?: string): ScorePart | undefined {
 
 // ─────────────────────────────── home
 
+/** "Where to?" tiles: the same art as the nav. */
+const WHERE: { to: string; art: ComponentChildren; title: string; sub: string }[] = [
+  { to: href.events("boss"), art: <EvIcon k="boss" size={56} />, title: "Bosses", sub: "Live and past boss events, Normal and Elite boards" },
+  { to: href.events("race"), art: <EvIcon k="race" size={56} />, title: "Races", sub: "Race leaderboards and every race since 2018" },
+  { to: href.events("ct"), art: <EvIcon k="ct" size={56} />, title: "Contested Territory", sub: "Teams, the hex map and your team" },
+  { to: href.events("odyssey"), art: <EvIcon k="odyssey" size={56} />, title: "Odysseys", sub: "Each odyssey's islands and rules" },
+  { to: "/challenges", art: <EvIcon k="daily" size={56} />, title: "Challenges", sub: "Daily challenges and how many beat them" },
+  { to: href.maps(), art: <img src={mapsArt} width={56} height={56} alt="" decoding="async" />, title: "Maps", sub: "Every map, with your medals on it" },
+  { to: "/tools", art: <img src={toolsArt} width={56} height={56} alt="" decoding="async" />, title: "Tools", sub: "Round visualizer, paragon, bank, hero XP" },
+  { to: "/me", art: <Spr family="ui" k="Xp" size={56} />, title: "My stats", sub: "Your medals, heroes and progress. Your OAK stays in your browser." },
+];
+
+/** Tool subs for the home page, one short line each (TOOLS keeps the long ones for the hub). */
+const TOOL_SUB: Record<string, string> = {
+  "Round visualizer": "Every round: bloons, RBE and spawn timeline",
+  "Paragon calculator": "What degree your sacrifices make",
+  "Paragon scaling": "What each paragon degree adds, charted",
+  "Farming resources": "When banana farms drop their bananas",
+  "Bank & IMF Loan planner": "When to collect a bank, what to deposit",
+  "Hero XP planner": "When to place a hero to hit a level in time",
+};
+
+const scrollToNow = () => document.getElementById("on-now")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+type Soon = { id: string; type: string; start: number; end: number };
+
 export function Home() {
   const p = homePicks(body, store.featured);
   const events = body<NKEvent[]>(EVENTS_KEY);
   if (!p.boss && !p.race) {
-    // No pickable boss or race: a Gate for whichever list hasn't arrived (loading / error / retry), else an empty state.
-    const missing = !peek(LIST_KEY.boss)?.ok
-      ? LIST_KEY.boss
-      : !peek(LIST_KEY.race)?.ok
-        ? LIST_KEY.race
-        : undefined;
-    return missing ? (
-      <Gate k={missing} rows={8} />
-    ) : (
-      <div class="empty">
-        <p class="empty-t">Nothing scheduled right now</p>
-        <p>
-          No boss event or race is live or coming up.{" "}
-          <A href={href.events("boss")}>See past boss events</A>.
-        </p>
-      </div>
-    );
+    // No pickable boss or race: a Gate for whichever list hasn't arrived (loading / error / retry).
+    const missing = !peek(LIST_KEY.boss)?.ok ? LIST_KEY.boss : !peek(LIST_KEY.race)?.ok ? LIST_KEY.race : undefined;
+    if (missing) return <Gate k={missing} rows={8} />;
   }
+  const s = homeSlots(p);
+  const cards = [
+    s.liveCt && <HmCt key="ct" ct={s.liveCt} />,
+    s.liveOdy && <HmOdyssey key="ody" ody={s.liveOdy} />,
+    s.liveRace && <HmRace key="race" race={s.liveRace} />,
+    p.daily && <HmDaily key="daily" id={p.daily.id} name={p.daily.name} />,
+  ].filter(Boolean);
+  // Next up: the schedule's upcoming events plus the picked ones that haven't started (same id once).
+  const now = Date.now();
+  const next = new Map<string, Soon>();
+  for (const e of events ?? []) if (e.start > now) next.set(e.id, e);
+  for (const [type, e] of s.soon) if (!next.has(e.id)) next.set(e.id, { id: e.id, type, start: e.start, end: e.end });
+  const soon = [...next.values()].sort((a, b) => a.start - b.start);
+  const hasLast = s.lastBoss || s.lastRace || s.lastCt;
   return (
     <>
-      <h1 class="vh">What's on in BTD6 right now</h1>
-      {p.boss && (
-        <FeaturedBoss boss={p.boss}>
-          {/* Phones: the other live events as a compact 2x2 grid after the top 5 (the big tiles below are hidden there). */}
-          <MiniGrid p={p} />
-        </FeaturedBoss>
-      )}
-      {(p.race || p.ct || p.ody || p.daily) && (
-        // Wide screens only (phones get the mini cards inside the boss panel): one panel, four cards built alike.
+      <header class="th gh gp-violet hm-hero">
+        <span class="hm-logo" aria-hidden="true">
+          <span class="hm-l1">BTD6</span>
+          <span class="hm-l2">Open Data</span>
+        </span>
+        <div class="hm-ht">
+          <h1 class="vh">BTD6 Open Data</h1>
+          <p class="th-sub hm-lede">Live boss, race and Contested Territory leaderboards, plus tools to plan your games. Straight from Ninja Kiwi's Open Data.</p>
+          <div class="hm-btns">
+            <button type="button" class="gbtn go" onClick={scrollToNow}>
+              What's on now
+            </button>
+            <A href="/me" class="gbtn">
+              Open My stats
+            </A>
+          </div>
+        </div>
+        {/* No Boss Rush page on the site: five icons in one row. */}
+        <nav class="hm-icons" aria-label="Events">
+          {(
+            [
+              ["boss", "Bosses", href.events("boss")],
+              ["race", "Races", href.events("race")],
+              ["ct", "Contested Territory", href.events("ct")],
+              ["odyssey", "Odysseys", href.events("odyssey")],
+              ["daily", "Challenges", "/challenges"],
+            ] as const
+          ).map(([k, label, to]) => (
+            <A key={k} href={to} class="th-ic" label={label} title={label}>
+              <EvIcon k={k} size={56} />
+            </A>
+          ))}
+        </nav>
+      </header>
+
+      <div id="on-now" class="hm-anchor">
         <Section
           tone="blue"
-          class="home-sec"
           title={
             <>
-              <Spr family="ui" k="Trophy" size={34} />
-              This week
+              <Spr family="ui" k="GameTime" size={34} />
+              On now
             </>
           }
+          aside="Your local time"
         >
-          <div class="tiles">
-            {p.race && <RaceTile race={p.race} prev={p.racePrev} />}
-            {p.ct && <CTTile ct={p.ct} prev={p.ctPrev} />}
-            {p.ody && <OdysseyTile ody={p.ody} />}
-            {p.daily && <DailyTile id={p.daily.id} name={p.daily.name} />}
-          </div>
+          {s.liveBoss && <HmBoss boss={s.liveBoss} />}
+          {cards.length > 0 && <div class={`hm-cards n${cards.length}`}>{cards}</div>}
+          {(soon.length > 0 || hasLast) && (
+            <ul class="hm-list">
+              {soon.map((e) => (
+                <HmNext key={e.id} e={e} />
+              ))}
+              {s.lastBoss && <HmLastBoss boss={s.lastBoss} />}
+              {s.lastRace && <HmLastRace race={s.lastRace} />}
+              {s.lastCt && <HmLastCt ct={s.lastCt} />}
+            </ul>
+          )}
+          {!s.liveBoss && cards.length === 0 && soon.length === 0 && !hasLast && <p class="quiet">Nothing is live or coming up right now.</p>}
         </Section>
-      )}
-      {events && <ComingUp events={events} />}
+      </div>
+
+      <Section tone="amber" title="Where to?">
+        <div class="hm-where">
+          {WHERE.map((w) => (
+            <A key={w.to} href={w.to} class="hm-tile gc">
+              <span class="hm-tile-art">{w.art}</span>
+              <span class="hm-tile-t">{w.title}</span>
+              <span class="hm-tile-s">{w.sub}</span>
+            </A>
+          ))}
+        </div>
+      </Section>
+
+      <Section tone="teal" title="Tools" aside={<A href="/tools">All tools →</A>}>
+        <div class="hm-tools">
+          {TOOLS.map((t) => (
+            <A key={t.to} href={t.to} class="hm-tool">
+              <img src={t.art} width={64} height={64} alt="" decoding="async" />
+              <span class="hm-tool-t">{t.title}</span>
+              <span class="hm-tool-s">{TOOL_SUB[t.title] ?? t.sub}</span>
+            </A>
+          ))}
+        </div>
+      </Section>
     </>
   );
 }
 
-/** Home top 5: Normal or Elite. Kept for the visit, so coming back to Now shows the same one. */
-let homeDiff: BossDiff = "standard";
-
-function FeaturedBoss(props: { boss: Boss; children?: ComponentChildren }) {
+/** The live boss: art, name, countdown, map line, Normal top 3. */
+function HmBoss(props: { boss: Boss }) {
   const b = props.boss;
   const meta = body<ChallengeDocument>(bossMetaKey(b.id, "standard"));
-  const live = status(b.start, b.end).s === "live";
-  // Live or over: the Normal/Elite tiles pick the top 5. Not started: no board (never the previous boss's).
-  const started = b.start <= Date.now();
-  const [d, setD] = useState<BossDiff>(homeDiff);
-  const elite = d === "elite";
-  const scoringNow = elite ? b.eliteScoringType : b.normalScoringType;
-  const top = started
-    ? body<BossLeaderboardEntry[]>(bossBoardKey(b.id, d, 1))?.slice(0, 5)
-    : undefined;
+  const top = body<BossLeaderboardEntry[]>(bossBoardKey(b.id, "standard", 1))?.slice(0, 3);
   const to = href.boss(b.id);
-  const boardTo = href.boss(b.id, d);
-  const pick = (x: BossDiff) => {
-    homeDiff = x;
-    setD(x);
-  };
+  const name = bossTitle(b.bossType);
+  const no = bossNum(b.name);
   return (
-    <section class="feature gh gp-rose" aria-labelledby="feat-title">
-      <BossHero
-        boss={b}
-        fallback={bossLabel(b)}
-        heading="h2"
-        headingId="feat-title"
-        to={to}
-        class="feature-hero"
-      />
-      <div class="feature-body">
-        <div class="feature-main">
-          {/* Not a link: the banner already goes to the boss page (one tab stop, not three). */}
-          <div class="fm-map">
-            <MapArt
-              map={meta?.map}
-              url={meta?.mapURL}
-              size={200}
-              eager
-              alt={meta ? `Map: ${mapName(meta.map)}` : "Map"}
-            />
-            {meta && (
-              <p class="fm-t">
-                <span class="fm-name">{mapName(meta.map)}</span>
-                <span class="fm-sub">
-                  <span>{meta.difficulty}</span>
-                  <span class="mode">
-                    <Spr
-                      family="ui"
-                      k={modeIcon(meta)}
-                      size={24}
-                      label
-                      optional
-                    />
-                    {MODE_NAME[meta.mode] ?? meta.mode}
+    <div class="hm-boss gc">
+      <A href={to} class="hm-boss-art" label={`${name}${no ? ` #${no}` : ""} leaderboard`}>
+        <Img src={b.bossTypeURL} w={1440} h={332} eager alt="" fallback={<span class="bh-noart">{name}</span>} />
+      </A>
+      <div class="hm-boss-main">
+        <p class="eyebrow ti">
+          <EvIcon k="boss" size={30} />
+          Boss event
+        </p>
+        <h3 class="hm-t hm-boss-t">
+          <A href={to}>
+            {name}
+            {no && <span class="hm-no"> #{no}</span>}
+          </A>
+        </h3>
+        <Bug start={b.start} end={b.end} />
+        {meta && (
+          <p class="hm-meta">
+            {mapName(meta.map)} · {meta.difficulty} · {MODE_NAME[meta.mode] ?? meta.mode} · Rounds {fmtRounds(meta.startRound, meta.endRound)}
+          </p>
+        )}
+      </div>
+      <div class="hm-boss-top">
+        <h4 class="kicker">
+          Normal solo · top {top?.length || 3}
+          {top?.[0] && <span class="kicker-r">{partLabel(keyPart(top[0].scoreParts, b.normalScoringType)?.name ?? "Score")}</span>}
+        </h4>
+        {top?.length ? (
+          <ol class="podium">
+            {top.map((r, i) => {
+              const kp = keyPart(r.scoreParts, b.normalScoringType);
+              return (
+                <LinkRow as="li" key={r.profile + i} href={href.player(idFromUrl(r.profile))}>
+                  <span class="rank-in">
+                    <span class="pod-m">
+                      <Medal board="boss" rank={i + 1} total={b.totalScores_standard} size={28} />
+                    </span>
+                    <span class={`plate p${i + 1}`}>{i + 1}</span>
                   </span>
-                  <span>
-                    Rounds {fmtRounds(meta.startRound, meta.endRound)}
-                  </span>
-                </span>
-              </p>
-            )}
-          </div>
-          {/* The two difficulties side by side; while the event is live they also pick the top 5 beside them. */}
-          <div
-            class="fd-tiles"
-            role={started ? "group" : undefined}
-            aria-label={started ? "Top 5 leaderboard" : undefined}
-          >
-            {(["standard", "elite"] as const).map((x) => {
-              const t =
-                x === "elite" ? b.eliteScoringType : b.normalScoringType;
-              const inner = (
-                <>
-                  <span class="kicker">
-                    {x === "standard" ? "Normal" : "Elite"}
-                  </span>
-                  <span class="fd-sc">
-                    <Spr family="ui" k={t} size={48} label optional />
-                    {scoringShort(t)}
-                  </span>
-                  <span class="fd-n">
-                    {fmtInt(
-                      x === "elite"
-                        ? b.totalScores_elite
-                        : b.totalScores_standard,
-                    )}{" "}
-                    entries
-                  </span>
-                </>
-              );
-              return started ? (
-                <button
-                  key={x}
-                  type="button"
-                  class={d === x ? "fd-tile on" : "fd-tile"}
-                  aria-pressed={d === x}
-                  onClick={() => pick(x)}
-                >
-                  {inner}
-                </button>
-              ) : (
-                <div key={x} class="fd-tile">
-                  {inner}
-                </div>
+                  <A href={href.player(idFromUrl(r.profile))} class="pname">
+                    {r.displayName}
+                  </A>
+                  <span class="num">{kp ? fmtPart(kp) : fmtInt(r.score)}</span>
+                </LinkRow>
               );
             })}
-          </div>
-        </div>
-        {started ? (
-          <div class="feature-top">
-            <h3 class="kicker">
-              {live ? "" : "Final · "}
-              {elite ? "Elite" : "Normal"} solo · top {top?.length || 5}
-              {top?.[0] && (
-                <span class="kicker-r">
-                  {partLabel(
-                    keyPart(top[0].scoreParts, scoringNow)?.name ?? "Score",
-                  )}
-                </span>
-              )}
-            </h3>
-            {top?.length ? (
-              <ol class="podium">
-                {top.map((r, i) => {
-                  const kp = keyPart(r.scoreParts, scoringNow);
-                  return (
-                    <LinkRow
-                      as="li"
-                      key={r.profile + i}
-                      href={href.player(idFromUrl(r.profile))}
-                    >
-                      <span class="rank-in">
-                        <span class="pod-m">
-                          <Medal
-                            board={elite ? "bossElite" : "boss"}
-                            rank={i + 1}
-                            total={
-                              elite
-                                ? b.totalScores_elite
-                                : b.totalScores_standard
-                            }
-                            size={28}
-                          />
-                        </span>
-                        <span class={`plate p${i + 1}`}>{i + 1}</span>
-                      </span>
-                      <A href={href.player(idFromUrl(r.profile))} class="pname">
-                        {r.displayName}
-                      </A>
-                      <span class="num">
-                        {kp ? fmtPart(kp) : fmtInt(r.score)}
-                      </span>
-                    </LinkRow>
-                  );
-                })}
-              </ol>
-            ) : (
-              <p class="quiet">No scores yet.</p>
-            )}
-            <A href={boardTo} class="more">
-              {live ? "Full" : "Final"} {elite ? "elite " : ""}leaderboard{" "}
-              <span aria-hidden="true">→</span>
-            </A>
-          </div>
+          </ol>
         ) : (
-          <div class="feature-top">
-            <p class="quiet">Scores open {fmtWhen(b.start)}.</p>
-            <A href={to} class="more">
-              Event page <span aria-hidden="true">→</span>
-            </A>
-          </div>
+          <p class="quiet">No scores yet.</p>
         )}
-        {props.children}
+        <A href={href.boss(b.id, "standard")} class="more">
+          Leaderboard <span aria-hidden="true">→</span>
+        </A>
       </div>
-    </section>
+    </div>
   );
 }
 
-function RaceTile(props: { race: Race; prev?: Race }) {
+/** An equal-height event card: icon + eyebrow, title, countdown badge, meta lines. */
+function HmCard(props: { to: string; icon: string; eyebrow: string; title: string; when?: { start: number; end: number }; children: ComponentChildren }) {
+  return (
+    <A href={props.to} class="hm-card gc">
+      <span class="eyebrow ti">
+        <EvIcon k={props.icon} size={30} />
+        {props.eyebrow}
+      </span>
+      <span class="hm-t">{props.title}</span>
+      {props.when && <Bug start={props.when.start} end={props.when.end} />}
+      <span class="hm-meta">{props.children}</span>
+    </A>
+  );
+}
+
+function HmRace(props: { race: Race }) {
   const r = props.race;
   const meta = body<ChallengeDocument>(raceMetaKey(r.id));
-  const winner = props.prev
-    ? body<RaceLeaderboardEntry[]>(raceBoardKey(props.prev.id))?.[0]
-    : undefined;
   return (
-    <A href={href.race(r.id)} class="tile">
-      <span class="tile-art">
-        <MapArt framed map={meta?.map} url={meta?.mapURL} size={120} />
-      </span>
-      <span class="tile-body">
-        <span class="eyebrow ti">
-          <EvIcon k="race" size={36} />
-          Race
-        </span>
-        <h2 class="tile-title">{r.name}</h2>
-        <Bug start={r.start} end={r.end} />
-        <span class="tile-meta">
-          {meta && (
-            <>
-              {mapName(meta.map)} · {meta.difficulty} · Rounds{" "}
-              {fmtRounds(meta.startRound, meta.endRound)}
-              <br />
-            </>
-          )}
-          {r.totalScores
-            ? `${fmtInt(r.totalScores)} finishers`
-            : "No finishers yet"}
-          {winner && props.prev && (
-            <>
-              <br />
-              Last race, {props.prev.name}:{" "}
-              <strong>{winner.displayName}</strong> in{" "}
-              <strong class="num">{fmtMs(winner.score)}</strong>
-            </>
-          )}
-        </span>
-      </span>
-    </A>
-  );
-}
-
-function CTTile(props: { ct: CT; prev?: CT }) {
-  const c = props.ct;
-  const leader = ctLeader(body, props.prev ?? c);
-  const tiles = body<{ tiles: CTTile[] }>(ctKey((props.prev ?? c).id, "map"))?.tiles ?? [];
-  const st = status(c.start, c.end).s;
-  const leadLabel = props.prev
-    ? "Previous CT winner"
-    : st === "ended"
-      ? "Winning team"
-      : "Leading team";
-  return (
-    <A href={href.ct(c.id)} class="tile">
-      <span class="tile-art">
-        {tiles.length > 0 ? <HexThumb tiles={tiles} size={120} /> : <NoMapFrame size={120} />}
-      </span>
-      <span class="tile-body">
-        <span class="eyebrow ti">
-          <EvIcon k="ct" size={36} />
-          Team event
-        </span>
-        <h2 class="tile-title">Contested Territory</h2>
-        <Bug start={c.start} end={c.end} />
-        <span class="tile-meta">
-          {fmtDay(c.start)} – {fmtDay(c.end)}
+    <HmCard to={href.race(r.id)} icon="race" eyebrow="Race" title={r.name} when={r}>
+      {meta && (
+        <>
+          {mapName(meta.map)} · {meta.difficulty} · Rounds {fmtRounds(meta.startRound, meta.endRound)}
           <br />
-          {leader ? (
-            <>
-              {leadLabel}:
-              <span class="tile-lead">
-                <TeamEmblem id={idFromUrl(leader.profile)} size={28} />
-                <strong>{leader.displayName}</strong> ·{" "}
-                <span class="nowrap">{fmtInt(leader.score)} pts</span>
-              </span>
-            </>
-          ) : ended(c) ? (
-            <>
-              Leaderboard no longer published by Ninja Kiwi
-              <br />
-            </>
-          ) : (
-            <>
-              No captures yet
-              <br />
-            </>
-          )}
-          {status(c.start, c.end).s === "upcoming"
-            ? `Territory opens ${fmtWhen(c.start)}`
-            : `${fmtInt(c.totalScores_team)} teams · ${fmtInt(c.totalScores_player)} players`}
-        </span>
-      </span>
-    </A>
+        </>
+      )}
+      {r.totalScores ? `${fmtInt(r.totalScores)} finishers` : "No finishers yet"}
+    </HmCard>
   );
 }
 
-function OdysseyTile(props: { ody: Odyssey }) {
+function HmCt(props: { ct: CT }) {
+  const c = props.ct;
+  const leader = ctLeader(body, c);
+  return (
+    <HmCard to={href.ct(c.id)} icon="ct" eyebrow="Team event" title="Contested Territory" when={c}>
+      {fmtDay(c.start)} – {fmtDay(c.end)}
+      <br />
+      {leader ? (
+        <>
+          Leading team:
+          <span class="tile-lead">
+            <TeamEmblem id={idFromUrl(leader.profile)} size={28} />
+            <strong>{leader.displayName}</strong> · <span class="nowrap">{fmtInt(leader.score)} pts</span>
+          </span>
+        </>
+      ) : (
+        <>
+          No captures yet
+          <br />
+        </>
+      )}
+      {fmtInt(c.totalScores_team)} teams · {fmtInt(c.totalScores_player)} players
+    </HmCard>
+  );
+}
+
+function HmOdyssey(props: { ody: Odyssey }) {
   const o = props.ody;
   const maps = body<ChallengeDocument[]>(odyMapsKey(o.id, "easy"));
   return (
-    <A href={href.odyssey(o.id)} class="tile tile-ody">
-      <span class="tile-art">
-        <IslandRow maps={maps} size={52} max={4} />
-      </span>
-      <span class="tile-body">
-        <span class="eyebrow ti">
-          <EvIcon k="odyssey" size={36} />
-          Odyssey
-        </span>
-        <h2 class="tile-title">{o.name}</h2>
-        <Bug start={o.start} end={o.end} />
-        <span class="tile-meta">
-          {o.description}
-          {o.description && maps && <br />}
-          {maps ? `${maps.length} islands on Easy` : ""}
-        </span>
-      </span>
-    </A>
+    <HmCard to={href.odyssey(o.id)} icon="odyssey" eyebrow="Odyssey" title={o.name} when={o}>
+      {o.description}
+      {o.description && maps && <br />}
+      {maps ? `${maps.length} islands on Easy` : ""}
+    </HmCard>
   );
 }
 
-/** Numbered, framed island maps in a wrapping row (max 5, then "+N"); one placeholder frame while they load. */
-function IslandRow(props: {
-  maps?: ChallengeDocument[];
-  size: number;
-  max?: number;
-}) {
-  const all = props.maps ?? [];
-  if (!all.length)
-    return (
-      <span class="mf-row">
-        <MapArt framed size={props.size} />
-      </span>
-    );
-  const max = props.max ?? 5;
+function HmDaily(props: { id: string; name: string }) {
+  const c = body<ChallengeDocument>(challengeKey(props.id));
+  const rate = c?.playsUnique ? c.winsUnique / c.playsUnique : null;
+  const by = dailyAuthor(props.name);
   return (
-    <span class="mf-row">
-      {all.slice(0, max).map((m, i) => (
-        <span key={i} class="mf-n">
-          <MapArt framed map={m.map} url={m.mapURL} size={props.size} alt="" />
-          <b>{i + 1}</b>
+    <HmCard to={href.challenge(props.id)} icon="daily" eyebrow="Daily challenge" title={dailyTitle(props.id) ?? props.name.replace(/^(\w+ \d+): /, "")}>
+      {by && (
+        <>
+          by <strong>{by}</strong>
+          <br />
+        </>
+      )}
+      {c ? (
+        <>
+          {mapName(c.map)} · {c.difficulty} · {human(c.mode)}
+          <br />
+          Rounds {fmtRounds(c.startRound, c.endRound)} · ${fmtInt(c.startingCash)}
+          {rate !== null && (
+            <>
+              <br />
+              <strong class="num">{fmtPct(rate)}</strong> of {fmtCompact(c.playsUnique)} players won
+            </>
+          )}
+        </>
+      ) : by ? null : (
+        props.name
+      )}
+    </HmCard>
+  );
+}
+
+/** One row of the compact list: tag, name, a line of detail, and the badge on the right. */
+function HmRow(props: { to?: string; icon: ComponentChildren; tag: string; name: string; children?: ComponentChildren; badge: ComponentChildren }) {
+  const inner = (
+    <>
+      <span class="hm-ri">{props.icon}</span>
+      <span class="hm-rt">
+        <span class="hm-rn">
+          <span class="hm-tag">{props.tag}</span>
+          {props.name}
         </span>
-      ))}
-      {all.length > max && <span class="mf-more">+{all.length - max}</span>}
-    </span>
+        {props.children && <span class="hm-rs">{props.children}</span>}
+      </span>
+      <span class="hm-rb">{props.badge}</span>
+    </>
+  );
+  return <li>{props.to ? <A href={props.to} class="hm-row">{inner}</A> : <span class="hm-row plain">{inner}</span>}</li>;
+}
+
+/** Next up: an event that hasn't started (events without a page of their own are plain rows). */
+function HmNext(props: { e: Soon }) {
+  const e = props.e;
+  const kind = EVENT_KIND[e.type];
+  const type = EVENT_TYPE_LABEL[e.type] ?? human(e.type);
+  const known = kind ? findEvent<AnyEvent>(kind, e.id) : undefined;
+  const name = known && kind === "boss" ? bossLabel(known as Boss) : known && "name" in known ? (known as Race).name : null;
+  const [fam, key] = kind === "boss" && known ? ["boss", (known as Boss).bossType] : (EVENT_ICON[e.type] ?? ["ui", e.type]);
+  return (
+    <HmRow
+      to={kind ? eventHref(kind, e.id) : undefined}
+      icon={<Spr family={fam} k={key} size={32} label />}
+      tag="Next up"
+      name={name ?? type}
+      badge={<EvStatus start={e.start} end={e.end} />}
+    >
+      {name ? `${type} · ` : ""}starts {fmtWhen(e.start)}
+    </HmRow>
+  );
+}
+
+function HmLastBoss(props: { boss: Boss }) {
+  const b = props.boss;
+  const w = body<BossLeaderboardEntry[]>(bossBoardKey(b.id, "standard", 1))?.[0];
+  const kp = w && keyPart(w.scoreParts, b.normalScoringType);
+  return (
+    <HmRow to={href.boss(b.id, "standard")} icon={<Spr family="boss" k={b.bossType} size={32} label />} tag="Last boss" name={bossLabel(b)} badge={<EvStatus start={b.start} end={b.end} />}>
+      {w && (
+        <>
+          Winner <strong>{w.displayName}</strong> · <span class="num">{kp ? fmtPart(kp) : fmtInt(w.score)}</span>{" "}
+        </>
+      )}
+      <span class="hm-go">Final board →</span>
+    </HmRow>
+  );
+}
+
+function HmLastRace(props: { race: Race }) {
+  const r = props.race;
+  const w = body<RaceLeaderboardEntry[]>(raceBoardKey(r.id))?.[0];
+  return (
+    <HmRow to={href.race(r.id)} icon={<EvIcon k="race" size={32} />} tag="Last race" name={r.name} badge={<EvStatus start={r.start} end={r.end} />}>
+      {w && (
+        <>
+          Winner <strong>{w.displayName}</strong> in <span class="num">{fmtMs(w.score)}</span>{" "}
+        </>
+      )}
+      <span class="hm-go">Final board →</span>
+    </HmRow>
+  );
+}
+
+function HmLastCt(props: { ct: CT }) {
+  const c = props.ct;
+  const leader = ctLeader(body, c);
+  return (
+    <HmRow to={href.ct(c.id)} icon={<EvIcon k="ct" size={32} />} tag="Last CT" name={`${fmtDay(c.start)} – ${fmtDay(c.end)}`} badge={<EvStatus start={c.start} end={c.end} />}>
+      {leader ? (
+        <>
+          Winning team <strong>{leader.displayName}</strong> · <span class="num">{fmtInt(leader.score)} pts</span>
+        </>
+      ) : (
+        "Leaderboard no longer published by Ninja Kiwi"
+      )}{" "}
+      <span class="hm-go">Final board →</span>
+    </HmRow>
   );
 }
 
@@ -671,114 +680,6 @@ function NoMapFrame(props: { size: number }) {
   );
 }
 
-/** A daily challenge's tile (home, and the challenges page's "today" card). `eyebrow` defaults to the home one. */
-export function DailyTile(props: { id: string; name: string; icon?: string; eyebrow?: string }) {
-  const c = body<ChallengeDocument>(challengeKey(props.id));
-  const rate = c?.playsUnique ? c.winsUnique / c.playsUnique : null;
-  const by = dailyAuthor(props.name);
-  return (
-    <A href={href.challenge(props.id)} class="tile">
-      <span class="tile-art">
-        <MapArt framed map={c?.map} url={c?.mapURL} size={120} />
-      </span>
-      <span class="tile-body">
-        <span class="eyebrow ti">
-          <EvIcon k={props.icon ?? "daily"} size={36} />
-          {props.eyebrow ?? "Daily challenge"}
-        </span>
-        <h2 class="tile-title">
-          {dailyTitle(props.id) ?? props.name.replace(/^(\w+ \d+): /, "")}
-        </h2>
-        <span class="tile-meta">
-          {by && (
-            <>
-              by <strong>{by}</strong>
-              <br />
-            </>
-          )}
-          {c ? (
-            <>
-              {mapName(c.map)} · {c.difficulty} · {human(c.mode)}
-              <br />
-              Rounds {fmtRounds(c.startRound, c.endRound)} · $
-              {fmtInt(c.startingCash)}
-              {rate !== null && (
-                <>
-                  <br />
-                  <strong class="num">{fmtPct(rate)}</strong> of{" "}
-                  {fmtCompact(c.playsUnique)} players won
-                </>
-              )}
-            </>
-          ) : by ? null : (
-            props.name
-          )}
-        </span>
-      </span>
-    </A>
-  );
-}
-
-/** Compact tiles for phones: eyebrow, title, status. The same picks as the big tiles. */
-function MiniGrid(props: { p: ReturnType<typeof homePicks> }) {
-  const { race, ct, ody, daily } = props.p;
-  // Race and daily: a small map and its rounds (CT and odyssey have no single map).
-  const raceMeta = race && body<ChallengeDocument>(raceMetaKey(race.id));
-  const dailyDoc = daily && body<ChallengeDocument>(challengeKey(daily.id));
-  const mini = (
-    to: string,
-    eyebrow: string,
-    icon: string,
-    title: string,
-    when?: { start: number; end: number },
-    map?: ChallengeDocument | false,
-  ) => (
-    <A href={to} class={map === undefined ? "mini" : "mini has-map"}>
-      <span class="eyebrow ti">
-        <EvIcon k={icon} size={30} />
-        {eyebrow}
-      </span>
-      <span class="mini-t">{title}</span>
-      {map !== undefined && (
-        <span class="mini-map">
-          <MapArt framed map={map ? map.map : undefined} url={map ? map.mapURL : undefined} size={48} alt="" />
-          {map && (
-            <span class="mini-r">
-              Rounds {fmtRounds(map.startRound, map.endRound)}
-            </span>
-          )}
-        </span>
-      )}
-      {when && <EvStatus start={when.start} end={when.end} />}
-    </A>
-  );
-  if (!race && !ct && !ody && !daily) return null;
-  return (
-    <div class="minis">
-      {race &&
-        mini(href.race(race.id), "Race", "race", race.name, race, raceMeta ?? false)}
-      {ct &&
-        mini(
-          href.ct(ct.id),
-          "Contested Territory",
-          "ct",
-          `${fmtDay(ct.start)} – ${fmtDay(ct.end)}`,
-          ct,
-        )}
-      {ody && mini(href.odyssey(ody.id), "Odyssey", "odyssey", ody.name, ody)}
-      {daily &&
-        mini(
-          href.challenge(daily.id),
-          "Daily challenge",
-          "daily",
-          dailyTitle(daily.id) ?? daily.name.replace(/^(\w+ \d+): /, ""),
-          undefined,
-          dailyDoc ?? false,
-        )}
-    </div>
-  );
-}
-
 /**
  * Status in lists: live and upcoming keep the coloured countdown label; an ended event is the neutral boxed
  * "ENDED | 44 D AGO". Re-checked every 30 s like StatusBadge.
@@ -791,98 +692,6 @@ function EvStatus(props: { start: number; end: number }) {
     <EndedBug ms={now - props.end} sm />
   ) : (
     <span class={`st ${st.s}`}>{st.label}</span>
-  );
-}
-
-/** Home: what starts next (live events are already the cards above). */
-function ComingUp(props: { events: NKEvent[] }) {
-  const now = Date.now();
-  const rows = props.events
-    .filter((e) => e.start > now)
-    .sort((a, b) => a.start - b.start);
-  if (!rows.length) return null;
-  return (
-    <Section
-      tone="violet"
-      title={
-        <>
-          <Spr family="ui" k="GameTime" size={34} />
-          Coming up
-        </>
-      }
-      aside="Your local time"
-    >
-      <div class="board-wrap">
-        <table class="board sched">
-          <thead>
-            <tr>
-              <th>Event</th>
-              <th>Starts</th>
-              <th class="opt">Ends</th>
-              <th class="m-hide">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((e) => {
-              const kind = EVENT_KIND[e.type];
-              const type = EVENT_TYPE_LABEL[e.type] ?? human(e.type);
-              const known = kind ? findEvent<AnyEvent>(kind, e.id) : undefined;
-              const name =
-                known && kind === "boss"
-                  ? bossLabel(known as Boss)
-                  : known && "name" in known
-                    ? (known as Race).name
-                    : null;
-              const [fam, key] =
-                kind === "boss" && known
-                  ? ["boss", (known as Boss).bossType]
-                  : (EVENT_ICON[e.type] ?? ["ui", e.type]);
-              const label = (
-                <>
-                  <Spr family={fam} k={key} size={24} label />
-                  <span class="sched-n">
-                    {name ?? type}
-                    {name && <span class="sched-type">{type}</span>}
-                  </span>
-                </>
-              );
-              const cells = (
-                <>
-                  <td class="ev-name">
-                    {kind ? (
-                      <A href={eventHref(kind, e.id)} class="sched-l">
-                        {label}
-                      </A>
-                    ) : (
-                      <span class="sched-l">{label}</span>
-                    )}
-                  </td>
-                  <td class="nowrap">
-                    {fmtWhen(e.start)}
-                    {/* phones: the status under the date instead of a column that scrolls sideways */}
-                    <span class="m-sub">
-                      <EvStatus start={e.start} end={e.end} />
-                    </span>
-                  </td>
-                  <td class="nowrap opt">{fmtWhen(e.end)}</td>
-                  <td class="m-hide">
-                    <EvStatus start={e.start} end={e.end} />
-                  </td>
-                </>
-              );
-              // Only events with a page are rows that open it; the rest are plain (no hover, muted name).
-              return kind ? (
-                <LinkRow key={e.id} href={eventHref(kind, e.id)}>
-                  {cells}
-                </LinkRow>
-              ) : (
-                <tr key={e.id}>{cells}</tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </Section>
   );
 }
 

@@ -57,19 +57,47 @@ export function ctLeader(get: Get, ct: CT | undefined): CTTeamEntry | undefined 
   return ct ? get<CTTeamEntry[]>(ctKey(ct.id, "teams"))?.[0] : undefined;
 }
 
-/** Keys the home page reads beyond the lists. */
+/** What the home page shows from the picks: live cards, "Last ..." rows (ended) and the unstarted ones for "Next up". */
+export function homeSlots(p: HomePicks, now = Date.now()) {
+  const live = (e?: Timed) => (e && e.start <= now && now < e.end ? e : undefined);
+  const over = (e?: Timed) => (e && e.end <= now ? e : undefined);
+  return {
+    liveBoss: live(p.boss) as Boss | undefined,
+    liveRace: live(p.race) as Race | undefined,
+    liveCt: live(p.ct) as CT | undefined,
+    liveOdy: live(p.ody) as Odyssey | undefined,
+    lastBoss: over(p.boss) as Boss | undefined,
+    lastRace: (over(p.race) ?? p.racePrev) as Race | undefined,
+    lastCt: (over(p.ct) ?? p.ctPrev) as CT | undefined,
+    /** Picked events that haven't started: [event type, event]. */
+    soon: (
+      [
+        ["bossBloon", p.boss],
+        ["raceEvent", p.race],
+        ["ct", p.ct],
+        ["odysseyEvent", p.ody],
+      ] as [string, Timed | undefined][]
+    ).filter((x): x is [string, Timed] => !!x[1] && x[1].start > now),
+  };
+}
+
+/** Keys the home page reads beyond the lists (exactly what renders: see Home in views/events.tsx). */
 export function homeExtraKeys(get: Get, p: HomePicks): string[] {
+  const s = homeSlots(p);
   const keys: string[] = [];
-  // Both top 5s (the home switch flips between them instantly), once the boss has started.
-  if (p.boss) keys.push(bossMetaKey(p.boss.id, "standard"));
-  if (p.boss && p.boss.start <= Date.now()) keys.push(bossBoardKey(p.boss.id, "standard", 1), bossBoardKey(p.boss.id, "elite", 1));
-  if (p.race) keys.push(raceMetaKey(p.race.id));
-  if (p.racePrev) keys.push(raceBoardKey(p.racePrev.id));
-  const ct = p.ctPrev ?? p.ct;
-  if (ct) keys.push(ctKey(ct.id, "teams"), ctKey(ct.id, "map"));
-  const leader = ctLeader(get, ct);
-  if (leader) keys.push(guildKey(idFromUrl(leader.profile)));
-  if (p.ody) keys.push(odyMapsKey(p.ody.id, "easy"));
+  // The boss's Normal board (top 3 / winner) once it has started; its map line while live.
+  if (s.liveBoss) keys.push(bossMetaKey(s.liveBoss.id, "standard"));
+  const boss = s.liveBoss ?? s.lastBoss;
+  if (boss) keys.push(bossBoardKey(boss.id, "standard", 1));
+  if (s.liveRace) keys.push(raceMetaKey(s.liveRace.id));
+  if (s.lastRace) keys.push(raceBoardKey(s.lastRace.id));
+  for (const ct of [s.liveCt, s.lastCt]) {
+    if (!ct) continue;
+    keys.push(ctKey(ct.id, "teams"));
+    const leader = ctLeader(get, ct);
+    if (leader) keys.push(guildKey(idFromUrl(leader.profile)));
+  }
+  if (s.liveOdy) keys.push(odyMapsKey(s.liveOdy.id, "easy"));
   if (p.daily) keys.push(challengeKey(p.daily.id));
   return keys;
 }

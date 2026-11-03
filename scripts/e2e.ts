@@ -225,7 +225,7 @@ async function main() {
       }
     };
     await page.goto(BASE, { waitUntil: "networkidle0" });
-    await page.waitForSelector(".feature, .tiles");
+    await page.waitForSelector("#on-now");
     await api.quiet();
     pages.home = "/";
     await shoot(page, "desktop-home");
@@ -303,7 +303,7 @@ async function main() {
       problems.push(`${row.step}: neither a leaderboard nor an empty state`);
       return false;
     };
-    const home = () => step("→ Now", 'header nav a[href="/"]');
+    const home = () => step("→ Home", 'header nav a[href="/"]');
 
     await step("Now → Bosses", 'header nav a[href="/bosses"]', "events");
     if ((await page.evaluate(() => document.querySelectorAll(".bs-strip a[href^='/bosses/']").length)) !== 7) problems.push("/bosses: the 7-portrait boss stats strip is missing");
@@ -349,11 +349,11 @@ async function main() {
     if (await has("a.mp-ev[href^='/boss/']")) await step("Map → boss event", "a.mp-ev[href^='/boss/']", "boss");
     await home();
 
-    const race = await step("Now → race", ".tile[href^='/race/']");
+    const race = await step("Now → race", "#on-now a[href^='/race/']");
     await boardOrEmpty(race);
     await home();
 
-    const ct = await step("Now → CT", ".tile[href^='/ct/']");
+    const ct = await step("Now → CT", "#on-now a[href^='/ct/']");
     // An upcoming CT opens on the map with Teams/Players disabled; a started one on Teams.
     const upcomingCt = await has("main .ctv");
     if (upcomingCt) {
@@ -554,9 +554,12 @@ async function main() {
     await step("Challenges → a daily", "main a[href^='/challenge/']");
     await home();
 
-    await step("Now → odyssey", ".tile[href^='/odyssey/']", "odyssey");
-    await home();
-    await step("Now → daily challenge", ".tile[href^='/challenge/']", "challenge");
+    // (home shows an odyssey only while it is live or upcoming)
+    if (await has("#on-now a[href^='/odyssey/']")) {
+      await step("Now → odyssey", "#on-now a[href^='/odyssey/']", "odyssey");
+      await home();
+    }
+    await step("Now → daily challenge", "#on-now a[href^='/challenge/']", "challenge");
     await home();
 
     // The other event lists (cards with art per kind).

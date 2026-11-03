@@ -8,7 +8,7 @@ import "./fonts.css";
 import "./logo-font.css";
 import { homePicks } from "./picks.ts";
 import "./styles.css";
-import { warmAllOnIdle, warmFor } from "./sprite.tsx";
+import { warmAllOnIdle, warmFor, Spr } from "./sprite.tsx";
 import { A, body, EvIcon } from "./ui.tsx";
 import { BossPage, bossTitleFor, CardOnly, bossTypeFor, EventList, Home, OdysseyPage, RacePage } from "./views/events.tsx";
 import { CTPage } from "./views/ct.tsx";
@@ -194,7 +194,7 @@ function tabTitle(r: Route): string {
 /** How a page is named in the back link: its title, plus the team size / page it was on. */
 function backLabel(r: Route): string {
   let s = title(r).replace(/ · BTD6 Open Data$/, "");
-  if (s === "BTD6 Open Data") return "Live";
+  if (s === "BTD6 Open Data") return "Home";
   if (r.name === "boss" && r.n > 1) s += ` · ${r.n}P`;
   if ((r.name === "boss" || r.name === "race" || r.name === "ct") && r.p > 1) s += ` · page ${r.p}`;
   return s;
@@ -224,7 +224,7 @@ function BackLink(props: { r: Route }) {
 
 /** [href, label, section]: a page belongs to the section its list lives in. */
 const NAV: [string, string, string][] = [
-  [href.home(), "Live", "home"],
+  [href.home(), "Home", "home"],
   [href.events("boss"), "Bosses", "boss"],
   [href.events("race"), "Races", "race"],
   [href.events("ct"), "CT", "ct"],
@@ -233,18 +233,12 @@ const NAV: [string, string, string][] = [
   [href.maps(), "Maps", "maps"],
   ["/tools", "Tools", "tools"],
 ];
-/** Phone bottom bar: Live, Bosses, Races, the Tools menu and "More" (the rest, in the sheet). */
+/** Phone bottom bar: Home, Bosses, Races, the Tools menu and "More" (the rest, in the sheet). */
 const BAR = [NAV[0], NAV[1], NAV[2]];
 const SHEET = [NAV[3], NAV[4], NAV[5], NAV[6]];
 type Menu = "" | "more" | "tools";
 const ICON: Record<string, string> = { boss: "boss", race: "race", ct: "ct", odyssey: "odyssey", challenges: "daily" };
 const svg = { width: 24, height: 24, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": true } as const;
-const LiveIcon = () => (
-  <svg {...svg}>
-    <circle cx="12" cy="12" r="2" />
-    <path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2" />
-  </svg>
-);
 const MoreIcon = () => (
   <svg {...svg}>
     <path d="M4 7h16M4 12h16M4 17h16" />
@@ -268,7 +262,7 @@ const toolLinks = (r: Route) => [
   )),
 ];
 const sectionIcon = (sec: string) =>
-  sec === "home" ? <LiveIcon /> : sec === "maps" ? <MapIcon /> : sec === "tools" ? <ToolsIcon /> : <EvIcon k={ICON[sec]} size={24} />;
+  sec === "home" ? <Spr family="ui" k="GamesPlayed" size={24} /> : sec === "maps" ? <MapIcon /> : sec === "tools" ? <ToolsIcon /> : <EvIcon k={ICON[sec]} size={24} />;
 function section(r: Route): string {
   const n = r.name;
   if (r.name === "events") return r.kind;

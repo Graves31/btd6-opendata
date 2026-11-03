@@ -14,7 +14,7 @@ const KINDS: [string, string][] = [
 const MAX = 1000;
 /** "Which page" choices: [label, group]; the label is what reaches Discord. */
 const PAGES: [string, string][] = [
-  ["Live", "Pages"],
+  ["Home", "Pages"],
   ["Bosses", "Pages"],
   ["Races", "Pages"],
   ["CT", "Pages"],
