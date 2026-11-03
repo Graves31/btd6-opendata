@@ -410,13 +410,20 @@ export function injectMeta(html: string, m: PageMeta, url: URL): string {
 }
 
 const SECTIONS = [
-  ["/", "Live events"],
+  // The home page's areas and tools, in its order.
+  ["/", "Home"],
   ["/bosses", "Boss events"],
   ["/races", "Races"],
   ["/ct", "Contested Territory"],
   ["/odyssey", "Odysseys"],
   ["/challenges", "Challenges"],
   ["/maps", "Maps"],
+  ["/me", "My stats"],
+  ["/tools", "Tools"],
   ["/tools/rounds", "Round visualizer"],
   ["/tools/paragon", "Paragon calculator"],
+  ["/tools/paragon-scaling", "Paragon scaling"],
+  ["/tools/farming", "Farming resources"],
+  ["/tools/bank-planner", "Bank and IMF Loan planner"], // labels go into the HTML unescaped
+  ["/tools/hero-xp", "Hero XP planner"],
 ];
